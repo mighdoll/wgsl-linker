@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "types": ["@webgpu/types", "cypress"],
     "lib": ["DOM", "DOM.Iterable", "ESNext", "ESNext.AsyncIterable"],
     "esModuleInterop": false,
     "downlevelIteration": true,
