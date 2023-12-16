@@ -1,4 +1,9 @@
-import { Token, escapeRegex, tokenMatcher } from "./TokenMatcher.js";
+import {
+  Token,
+  TokenMatcher,
+  escapeRegex,
+  tokenMatcher,
+} from "./TokenMatcher.js";
 
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - --" +
@@ -8,27 +13,43 @@ const symbolList = symbolSet.split(" ").sort((a, b) => b.length - a.length);
 const escaped = symbolList.map(escapeRegex);
 export const symbol = new RegExp(escaped.join("|"));
 
-export interface Lexer {
-  next(): Token | undefined;
-}
-
 const directive = /#[a-zA-Z_][a-zA-Z0-9_]+/;
+
+const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
+const ws = /\s+/;
+
 const mainMatch = tokenMatcher({
   lineComment: "//",
   commentStart: "/*",
   commentEnd: "*/",
   directive,
   annotation: /@[a-zA-Z_][a-zA-Z0-9_]+/,
-  word: /[a-zA-Z_][a-zA-Z0-9_]+/,
-  ws: /\s+/,
+  word,
+  ws,
 });
 
 const notDirective = /[^#]+$/;
 const eol = /$/;
 
-const line = tokenMatcher({
+export const lineCommentMatch = tokenMatcher({
   directive,
   notDirective,
+  eol,
+});
+const lparen = "(";
+const rparen = ")";
+const comma = ",";
+const equals = "=";
+
+export const directiveArgsMatch = tokenMatcher({
+  word,
+  ws,
+  lparen,
+  rparen,
+  comma,
+  equals,
+  eol,
+});
 
 export interface Lexer {
   next(): Token | undefined;
