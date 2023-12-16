@@ -3,9 +3,10 @@ export interface Token {
   text: string;
 }
 
-interface TokenMatcher {
+export interface TokenMatcher {
+  start(src: string, position?: number): void;
   next(): Token | undefined;
-  start(src: string): void;
+  position(): number;
 }
 
 export function tokenMatcher(
@@ -17,23 +18,31 @@ export function tokenMatcher(
   const expParts = Object.values(matchers).map(toRegexSource).join("|");
   const exp = new RegExp(expParts, "idg");
 
-  function start(text: string): void {
+  function start(text: string, position = 0): void {
     src = text;
-    exp.lastIndex = 0;
+    exp.lastIndex = position;
   }
 
   function next(): Token | undefined {
+    if (!src) {
+      throw new Error("start() first");
+    }
     const matches = exp.exec(src);
     const matchedIndex = findGroupDex(matches?.indices);
     if (matchedIndex) {
       const { startEnd, groupDex } = matchedIndex;
       const kind = groups[groupDex];
       const text = src.slice(startEnd[0], startEnd[1]);
+      console.log({ kind, text });
       return { kind, text };
     }
   }
 
-  return { next, start };
+  function position(): number {
+    return exp.lastIndex;
+  }
+
+  return { start, next, position };
 }
 
 interface MatchedIndex {
