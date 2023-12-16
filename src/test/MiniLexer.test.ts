@@ -1,14 +1,20 @@
 import { expect, test } from "vitest";
 import { lex } from "../MiniLexer";
 import { tokenMatcher } from "../TokenMatcher.js";
+import { miniParse } from "../MiniParser.js";
 
-test("#import foo", () => {
+test("lex #import foo", () => {
   const lexer = lex(`#import foo`);
   const tokens = [1, 2].map(lexer.next);
   expect(tokens.map((t) => t?.kind)).toEqual(["directive", "word"]);
 });
 
-test("comments ", () => {
+test.only("parse #import foo", () => {
+  const parsed = miniParse("#import foo");
+  console.log("parsed result:", parsed);
+});
+
+test("/* foo */", () => {
   const lexer = lex(`/* foo */`);
   const tokens = [1, 2, 3].map(lexer.next);
   const tokenKinds = tokens.map((t) => t?.kind);
