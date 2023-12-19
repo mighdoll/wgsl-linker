@@ -4,6 +4,7 @@ import {
   lex,
   lineCommentMatch,
 } from "./MiniLexer.js";
+import { ParserContext, kind, or, parserStage, seq } from "./ParserCombinator.js";
 import { Token } from "./TokenMatcher.js";
 
 interface ParserState {
@@ -11,54 +12,75 @@ interface ParserState {
   results: AbstractElem[];
 }
 
-export function miniParse(src: string): AbstractElem[] {
-  const state: ParserState = {
-    lexer: lex(src),
-    results: [],
-  };
-
-  directive(state) || lineComment(state);
-  return state.results;
-}
+export type AbstractElem = DirectiveElem;
 
 /** 'interesting' elements found in the source */
-interface AbstractElem extends Token {
+export interface AbstractElemBase {
   kind: string;
   position: number;
 }
 
-export function lineComment(state: ParserState): boolean {
-  const { lexer } = state;
-  if (lexer.peek()?.kind !== "lineComment") {
-    return false;
+export interface DirectiveElem extends AbstractElemBase {
+  kind: "directive";
+  name: string;
+  args: string[];
+}
+
+type AnyFn = () => any;
+type StringOrAnyFn = string | AnyFn;
+
+const root = parserStage((state: ParserState) => directive(state));
+
+const directive = parserStage((state: ParserState): string | null => {
+  const directiveElems = seq(kind("directive"), singleWord)(state);
+  if (directiveElems) {
+    const [name, word] = directiveElems;
+    const position = state.lexer.position();
+    state.results.push({ kind: "directive", name, args: [word], position });
+    return name;
+  } else {
+    return null;
   }
-  lexer.pushMatcher(lineCommentMatch);
-  lexer.next();
-  directive(state) || lineComment(state);
+});
 
-  lexer.popMatcher();
-  return true;
+const singleWord = parserStage((state: ParserState): string | null => {
+  return state.lexer.withMatcher(directiveArgsMatch, () => {
+    const x = seq(kind("word"), kind("eol"))(state);
+    return x?.[0] || null;
+  });
+});
+
+export function miniParse(src: string): AbstractElem[] {
+  const lexer = lex(src);
+  const results: AbstractElem[] = [];
+
+  const state: ParserContext = {
+    lexer,
+    results,
+  };
+
+
+  const a = root(state);
+  console.log("a", a);
+  console.log("results", results);
+
+  return state.results;
 }
 
-export function directive(state: ParserState): boolean {
-  const { lexer } = state;
-  if (lexer.peek()?.kind !== "directive") {
-    return false;
-  }
-  lexer.next();
-  directiveArgs(state);
+// function lineComment(state: ParserState): boolean {
+//   const { lexer } = state;
+//   if (lexer.peek()?.kind !== "lineComment") {
+//     return false;
+//   }
+//   lexer.pushMatcher(lineCommentMatch);
+//   lexer.next();
+//   directive(state) || lineComment(state);
 
+//   lexer.popMatcher();
+//   return true;
+// }
 
-  state.lexer.popMatcher();
-  return true;
-}
-
-export function directiveArgs(state: ParserState): boolean {
-  const { lexer } = state;
-  lexer.pushMatcher(directiveArgsMatch);
-  const next = lexer.next();
-  return true;
-}
+// type ParseFn = (state: ParserState) => boolean;
 
 // for (let token: Token | undefined; (token = lexer.next()); ) {
 //   switch (token.kind) {
@@ -69,3 +91,14 @@ export function directiveArgs(state: ParserState): boolean {
 //       console.log("unhandled token", token);
 //   }
 // }
+
+  // function parenArgs(): string[] | null {
+  //   return lexer.withMatcher(directiveArgsMatch, () => {
+  //     const results = seq("lparen", "word", "rparen", "eol");
+  //     if (!results) {
+  //       return null;
+  //     }
+  //     const args = [results[1]];
+  //     return args;
+  //   });
+  // }

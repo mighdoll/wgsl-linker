@@ -3,15 +3,16 @@ import { lex } from "../MiniLexer";
 import { tokenMatcher } from "../TokenMatcher.js";
 import { miniParse } from "../MiniParser.js";
 
+
+test("parse #import foo", () => {
+  const parsed = miniParse("#import foo");
+  console.log("parsed result:", parsed);
+});
+
 test("lex #import foo", () => {
   const lexer = lex(`#import foo`);
   const tokens = [1, 2].map(lexer.next);
   expect(tokens.map((t) => t?.kind)).toEqual(["directive", "word"]);
-});
-
-test.only("parse #import foo", () => {
-  const parsed = miniParse("#import foo");
-  console.log("parsed result:", parsed);
 });
 
 test("/* foo */", () => {
