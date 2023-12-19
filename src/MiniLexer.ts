@@ -54,8 +54,12 @@ export const directiveArgsMatch = tokenMatcher({
 export interface Lexer {
   next(): Token | undefined;
   peek(): Token | undefined;
-  pushMatcher(newMatcher: TokenMatcher): void;
+  pushMatcher(tokenMatcher: TokenMatcher): void;
   popMatcher(): void;
+  withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T;
+  tryParse<T>(fn: () => T): T | undefined;
+  position(): number;
+  setPosition(pos:number):void;
 }
 
 export function lex(src: string): Lexer {
@@ -75,6 +79,16 @@ export function lex(src: string): Lexer {
       }
       return token;
     }
+  }
+
+  function tryParse<T>(fn: () => T): T {
+    const startPos = matcher.position();
+    const result = fn();
+    if (!result) {
+      matcher.start(src, startPos);
+      // TODO drop peek?
+    }
+    return result;
   }
 
   function peek(): Token | undefined {
@@ -97,7 +111,30 @@ export function lex(src: string): Lexer {
     matcher.start(src, position);
   }
 
-  return { next, peek, pushMatcher, popMatcher };
+  function position(): number {
+    return matcher.position();
+  }
+  function setPosition(pos:number): void{
+    matcher.start(src, pos);
+  }
+
+  function withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T {
+    pushMatcher(tokenMatcher);
+    const result = fn();
+    popMatcher();
+    return result;
+  }
+
+  return {
+    next,
+    peek,
+    tryParse,
+    position,
+    setPosition,
+    withMatcher,
+    pushMatcher,
+    popMatcher,
+  };
 }
 
 export function regexOr(flags: string, ...exp: RegExp[]): RegExp {
