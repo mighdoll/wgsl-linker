@@ -10,10 +10,19 @@ export type ParserStage<T> = (state: ParserContext) => T | null;
 export type ParserFn<T> = (state: ParserContext) => T | null;
 
 export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
+  return (state: ParserContext): T | null => {
+    const position = state.lexer.position();
+    const result = fn(state);
+    if (result === null || result === undefined) {
+      state.lexer.setPosition(position);
+      return null;
+    } else {
+      return result;
+    }
+  };
+
   // add fluent interface methods?
-  // reset position on failure?
-  // return start position
-  return fn;
+  // return start position?
 }
 
 export function kind(kind: string): ParserStage<Token> {
@@ -35,12 +44,10 @@ export function or<T, U, V>(
 export function or(...stages: ParserStage<any>[]): ParserStage<any> {
   return parserStage((state: ParserContext) => {
     for (const p of stages) {
-      const pos = state.lexer.position();
       const result = p(state);
       if (result !== null) {
         return result;
       }
-      state.lexer.setPosition(pos);
     }
     return null;
   });
@@ -60,7 +67,7 @@ export function seq(...stages: ParserStage<any>[]): ParserStage<any[]> {
     const results = [];
     for (const stage of stages) {
       const result = stage(state);
-      if (result === null || result === undefined) {
+      if (result === null) {
         return null;
       }
       results.push(result);
