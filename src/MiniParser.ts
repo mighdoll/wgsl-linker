@@ -1,11 +1,6 @@
-import {
-  Lexer,
-  directiveArgsMatch,
-  lex,
-  lineCommentMatch,
-} from "./MiniLexer.js";
-import { ParserContext, kind, or, parserStage, seq } from "./ParserCombinator.js";
-import { Token } from "./TokenMatcher.js";
+import { Lexer, matchingLexer } from "./MatchingLexer.js";
+import { directiveArgsMatch, mainMatch } from "./MiniLexer.js";
+import { ParserContext, kind, parserStage, seq } from "./ParserCombinator.js";
 
 interface ParserState {
   lexer: Lexer;
@@ -51,18 +46,13 @@ const singleWord = parserStage((state: ParserState): string | null => {
 });
 
 export function miniParse(src: string): AbstractElem[] {
-  const lexer = lex(src);
+  const lexer = matchingLexer(src, mainMatch);
   const results: AbstractElem[] = [];
 
   const state: ParserContext = {
     lexer,
     results,
   };
-
-
-  const a = root(state);
-  console.log("a", a);
-  console.log("results", results);
 
   return state.results;
 }
@@ -92,13 +82,13 @@ export function miniParse(src: string): AbstractElem[] {
 //   }
 // }
 
-  // function parenArgs(): string[] | null {
-  //   return lexer.withMatcher(directiveArgsMatch, () => {
-  //     const results = seq("lparen", "word", "rparen", "eol");
-  //     if (!results) {
-  //       return null;
-  //     }
-  //     const args = [results[1]];
-  //     return args;
-  //   });
-  // }
+// function parenArgs(): string[] | null {
+//   return lexer.withMatcher(directiveArgsMatch, () => {
+//     const results = seq("lparen", "word", "rparen", "eol");
+//     if (!results) {
+//       return null;
+//     }
+//     const args = [results[1]];
+//     return args;
+//   });
+// }
