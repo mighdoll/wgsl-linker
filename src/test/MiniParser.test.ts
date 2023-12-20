@@ -6,10 +6,10 @@ import { ParserContext, ParserStage } from "../ParserCombinator.js";
 
 test("parse #import foo", () => {
   const parsed = miniParse("#import foo");
-  // console.log("parsed result:", parsed);
+  expect(parsed).toMatchSnapshot();
 });
 
-test.only("lineComment parse // foo bar", () => {
+test("lineComment parse // foo bar", () => {
   const src = "// foo bar";
   const state = testParse(lineComment, src);
   expect(state.lexer.position()).eq(src.length);
