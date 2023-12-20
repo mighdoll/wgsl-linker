@@ -1,4 +1,4 @@
-import { Lexer } from "./MiniLexer.js";
+import { Lexer } from "./MatchingLexer.js";
 
 export interface ParserContext {
   lexer: Lexer;

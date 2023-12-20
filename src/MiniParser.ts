@@ -1,5 +1,5 @@
 import { Lexer, matchingLexer } from "./MatchingLexer.js";
-import { directiveArgsMatch, mainMatch } from "./MiniLexer.js";
+import { directiveArgsMatch, lineCommentMatch, mainMatch } from "./MiniLexer.js";
 import { ParserContext, kind, parserStage, seq } from "./ParserCombinator.js";
 
 interface ParserState {
@@ -26,6 +26,16 @@ type StringOrAnyFn = string | AnyFn;
 
 const root = parserStage((state: ParserState) => directive(state));
 
+export function miniParse(src: string): AbstractElem[] {
+  const lexer = matchingLexer(src, mainMatch);
+  const results: AbstractElem[] = [];
+
+  const state: ParserContext = { lexer, results };
+  root(state);
+
+  return state.results;
+}
+
 const directive = parserStage((state: ParserState): string | null => {
   const directiveElems = seq(kind("directive"), singleWord)(state);
   if (directiveElems) {
@@ -45,17 +55,11 @@ const singleWord = parserStage((state: ParserState): string | null => {
   });
 });
 
-export function miniParse(src: string): AbstractElem[] {
-  const lexer = matchingLexer(src, mainMatch);
-  const results: AbstractElem[] = [];
-
-  const state: ParserContext = {
-    lexer,
-    results,
-  };
-
-  return state.results;
-}
+// const lineComment = parserStage((state: ParserState): true | null => {
+//   return state.lexer.withMatcher(lineCommentMatch, () => {
+//     return seq(kind("lineComment"), directive)(state);
+//   });
+// });
 
 // function lineComment(state: ParserState): boolean {
 //   const { lexer } = state;
