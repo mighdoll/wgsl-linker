@@ -42,6 +42,7 @@ export function or(...stages: ParserStage<any>[]): ParserStage<any> {
       }
       state.lexer.setPosition(pos);
     }
+    return null;
   });
 }
 
@@ -54,7 +55,7 @@ export function seq<T, U, V>(
   b: ParserStage<U>,
   c: ParserStage<V>
 ): ParserStage<[T, U, V]>;
-export function seq(...stages: ParserStage<any>[]): ParserStage<any[] | null> {
+export function seq(...stages: ParserStage<any>[]): ParserStage<any[]> {
   return parserStage((state: ParserContext) => {
     const results = [];
     for (const stage of stages) {

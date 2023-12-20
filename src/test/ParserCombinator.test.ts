@@ -10,8 +10,7 @@ test("or() finds first match", () => {
   const p = or(kind("directive"), kind("lineComment"));
   const lexed = p({ lexer, results });
   expect(lexed).toEqual({ kind: "directive", text: "#import" });
-  const position = lexer.position();
-  expect(position).toEqual(src.length);
+  expect(lexer.position()).toEqual(src.length);
 });
 
 test("or() finds second match", () => {
@@ -19,8 +18,19 @@ test("or() finds second match", () => {
   const lexer = matchingLexer(src, mainMatch);
   const results: any[] = [];
   const p = or(kind("directive"), kind("lineComment"));
-  const lexed = p({ lexer, results });  
+  const lexed = p({ lexer, results });
   expect(lexed?.kind).toEqual("lineComment");
-  const position = lexer.position();
-  expect(position).toEqual("//".length);
+  expect(lexer.position()).toEqual("//".length);
 });
+
+test("or() finds no match ", () => {
+  const src = "fn decl() {}";
+  const lexer = matchingLexer(src, mainMatch);
+  const results: any[] = [];
+  const p = or(kind("directive"), kind("lineComment"));
+  const lexed = p({ lexer, results });
+  expect(lexed).toEqual(null);
+  expect(lexer.position()).toEqual(0);
+});
+
+test("seq()", () => {});
