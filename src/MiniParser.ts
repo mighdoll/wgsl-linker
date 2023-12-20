@@ -54,8 +54,15 @@ const singleWord = parserStage((state: ParserState): string | null => {
   });
 });
 
-// const root = or(directive, lineComment);
-const root = directive;
+export const lineComment = parserStage((state: ParserState): boolean => {
+  return state.lexer.withMatcher(lineCommentMatch, () => {
+    const afterComment = or(directive, kind("notDirective"));
+    const parser = seq(kind("lineComment"), afterComment);
+    return parser(state) != null;
+  });
+});
+
+const root = or(directive, lineComment);
 
 export function miniParse(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainMatch);
@@ -67,13 +74,6 @@ export function miniParse(src: string): AbstractElem[] {
   return state.results;
 }
 
-export const lineComment = parserStage((state: ParserState): boolean => {
-  return state.lexer.withMatcher(lineCommentMatch, () => {
-    const afterComment = or(directive, kind("notDirective"));
-    const parser = seq(kind("lineComment"), afterComment);
-    return parser(state) != null;
-  });
-});
 
 // function lineComment(state: ParserState): boolean {
 //   const { lexer } = state;
