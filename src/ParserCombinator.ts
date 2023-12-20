@@ -1,12 +1,13 @@
 import { Lexer } from "./MatchingLexer.js";
+import { Token } from "./TokenMatcher.js";
 
 export interface ParserContext {
   lexer: Lexer;
   results: any[];
 }
 
-export type ParserStage<T> = (state: ParserContext) => T;
-export type ParserFn<T> = (state: ParserContext) => T;
+export type ParserStage<T> = (state: ParserContext) => T | null;
+export type ParserFn<T> = (state: ParserContext) => T | null;
 
 export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
   // add fluent interface methods?
@@ -38,14 +39,14 @@ export function or<T, U>(
 }
 
 export function seq<T, U>(
-  a: ParserStage<T | null>,
-  b: ParserStage<U | null>
-): ParserStage<[T, U] | null>;
+  a: ParserStage<T>,
+  b: ParserStage<U>
+): ParserStage<[T, U]>;
 export function seq<T, U, V>(
   a: ParserStage<T>,
   b: ParserStage<U>,
   c: ParserStage<V>
-): ParserStage<[T, U, V] | null>;
+): ParserStage<[T, U, V]>;
 export function seq(...stages: ParserStage<any>[]): ParserStage<any[] | null> {
   return parserStage((state: ParserContext) => {
     const results = [];
