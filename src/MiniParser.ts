@@ -1,5 +1,5 @@
 import { Lexer, matchingLexer } from "./MatchingLexer.js";
-import { directiveArgsMatch, lineCommentMatch, mainMatch } from "./MiniLexer.js";
+import { directiveArgsMatch, mainMatch } from "./MiniLexer.js";
 import { ParserContext, kind, parserStage, seq } from "./ParserCombinator.js";
 
 interface ParserState {
@@ -24,22 +24,11 @@ export interface DirectiveElem extends AbstractElemBase {
 type AnyFn = () => any;
 type StringOrAnyFn = string | AnyFn;
 
-const root = parserStage((state: ParserState) => directive(state));
-
-export function miniParse(src: string): AbstractElem[] {
-  const lexer = matchingLexer(src, mainMatch);
-  const results: AbstractElem[] = [];
-
-  const state: ParserContext = { lexer, results };
-  root(state);
-
-  return state.results;
-}
-
 const directive = parserStage((state: ParserState): string | null => {
   const directiveElems = seq(kind("directive"), singleWord)(state);
   if (directiveElems) {
-    const [name, word] = directiveElems;
+    const [token, word] = directiveElems;
+    const name = token.text;
     const position = state.lexer.position();
     state.results.push({ kind: "directive", name, args: [word], position });
     return name;
@@ -51,9 +40,22 @@ const directive = parserStage((state: ParserState): string | null => {
 const singleWord = parserStage((state: ParserState): string | null => {
   return state.lexer.withMatcher(directiveArgsMatch, () => {
     const x = seq(kind("word"), kind("eol"))(state);
-    return x?.[0] || null;
+    return x?.[0].text || null;
   });
 });
+
+// const root = or(directive, lineComment);
+const root = directive;
+
+export function miniParse(src: string): AbstractElem[] {
+  const lexer = matchingLexer(src, mainMatch);
+  const results: AbstractElem[] = [];
+
+  const state: ParserContext = { lexer, results };
+  root(state);
+
+  return state.results;
+}
 
 // const lineComment = parserStage((state: ParserState): true | null => {
 //   return state.lexer.withMatcher(lineCommentMatch, () => {

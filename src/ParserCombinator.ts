@@ -15,11 +15,12 @@ export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
   return fn;
 }
 
-export const kind = (kind: string) =>
-  parserStage((state: ParserContext): string | null => {
+export function kind(kind: string): ParserStage<Token> {
+  return parserStage((state: ParserContext): Token | null => {
     const next = state.lexer.next();
-    return next?.kind === kind ? next.text : null;
+    return next?.kind === kind ? next : null;
   });
+}
 
 export function or<T, U>(
   a: ParserStage<T>,
