@@ -15,6 +15,13 @@ test("lineComment parse // foo bar", () => {
   expect(state.lexer.position()).eq(src.length);
 });
 
+test("lineComment parse // #import foo", () => {
+  const src = "// #import foo";
+  const state = testParse(lineComment, src);
+  expect(state.lexer.position()).eq(src.length);
+  expect(state.results).toMatchSnapshot();
+});
+
 export function testParse<T>(
   stage: ParserStage<T>,
   src: string
