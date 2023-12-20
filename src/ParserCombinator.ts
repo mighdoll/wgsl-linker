@@ -26,15 +26,22 @@ export function kind(kind: string): ParserStage<Token> {
 export function or<T, U>(
   a: ParserStage<T>,
   b: ParserStage<U>
-): ParserStage<T | U> {
+): ParserStage<T | U>;
+export function or<T, U, V>(
+  a: ParserStage<T>,
+  b: ParserStage<U>,
+  c: ParserStage<V>
+): ParserStage<T | U | V>;
+export function or(...stages: ParserStage<any>[]): ParserStage<any> {
   return parserStage((state: ParserContext) => {
-    const pos = state.lexer.position();
-    const aResult = a(state);
-    if (aResult) {
-      return aResult;
+    for (const p of stages) {
+      const pos = state.lexer.position();
+      const result = p(state);
+      if (result !== null) {
+        return result;
+      }
+      state.lexer.setPosition(pos);
     }
-    state.lexer.setPosition(pos);
-    return b(state);
   });
 }
 
