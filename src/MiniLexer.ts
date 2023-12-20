@@ -22,10 +22,11 @@ StructConstruct()
 const directive = /#[a-zA-Z_][a-zA-Z0-9_]+/;
 const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
 const ws = /\s+/;
+const lineComment = "//";
 
 /** matching tokens at wgsl root level */
 export const mainMatch = tokenMatcher({
-  lineComment: "//",
+  lineComment,
   commentStart: "/*",
   commentEnd: "*/",
   directive,
@@ -39,6 +40,7 @@ const eol = /$/;
 
 /** matching tokens within '//' line comment */
 export const lineCommentMatch = tokenMatcher({
+  lineComment,
   directive,
   notDirective,
   eol,

@@ -1,6 +1,16 @@
 import { Lexer, matchingLexer } from "./MatchingLexer.js";
-import { directiveArgsMatch, mainMatch } from "./MiniLexer.js";
-import { ParserContext, kind, parserStage, seq } from "./ParserCombinator.js";
+import {
+  directiveArgsMatch,
+  lineCommentMatch,
+  mainMatch,
+} from "./MiniLexer.js";
+import {
+  ParserContext,
+  kind,
+  or,
+  parserStage,
+  seq,
+} from "./ParserCombinator.js";
 
 interface ParserState {
   lexer: Lexer;
@@ -57,11 +67,13 @@ export function miniParse(src: string): AbstractElem[] {
   return state.results;
 }
 
-// const lineComment = parserStage((state: ParserState): true | null => {
-//   return state.lexer.withMatcher(lineCommentMatch, () => {
-//     return seq(kind("lineComment"), directive)(state);
-//   });
-// });
+export const lineComment = parserStage((state: ParserState): boolean => {
+  return state.lexer.withMatcher(lineCommentMatch, () => {
+    const afterComment = or(directive, kind("notDirective"));
+    const parser = seq(kind("lineComment"), afterComment);
+    return parser(state) != null;
+  });
+});
 
 // function lineComment(state: ParserState): boolean {
 //   const { lexer } = state;

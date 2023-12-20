@@ -1,12 +1,29 @@
 import { expect, test } from "vitest";
-import { miniParse } from "../MiniParser.js";
+import { matchingLexer } from "../MatchingLexer.js";
+import { mainMatch } from "../MiniLexer.js";
+import { lineComment, miniParse } from "../MiniParser.js";
+import { ParserContext, ParserStage } from "../ParserCombinator.js";
 
 test("parse #import foo", () => {
   const parsed = miniParse("#import foo");
   // console.log("parsed result:", parsed);
 });
 
-test("parse // foo", () => {
-  const parsed = miniParse("// foo bar");
-  // console.log("parsed result:", parsed);
+test.only("lineComment parse // foo bar", () => {
+  const src = "// foo bar";
+  const state = testParse(lineComment, src);
+  expect(state.lexer.position()).eq(src.length);
 });
+
+export function testParse<T>(
+  stage: ParserStage<T>,
+  src: string
+): ParserContext {
+  const lexer = matchingLexer(src, mainMatch);
+  const results: any[] = [];
+
+  const state: ParserContext = { lexer, results };
+  stage(state);
+
+  return state;
+}
