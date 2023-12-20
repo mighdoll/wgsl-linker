@@ -75,31 +75,6 @@ export function miniParse(src: string): AbstractElem[] {
 }
 
 
-// function lineComment(state: ParserState): boolean {
-//   const { lexer } = state;
-//   if (lexer.peek()?.kind !== "lineComment") {
-//     return false;
-//   }
-//   lexer.pushMatcher(lineCommentMatch);
-//   lexer.next();
-//   directive(state) || lineComment(state);
-
-//   lexer.popMatcher();
-//   return true;
-// }
-
-// type ParseFn = (state: ParserState) => boolean;
-
-// for (let token: Token | undefined; (token = lexer.next()); ) {
-//   switch (token.kind) {
-//     case "lineComment":
-
-//     case "directive":
-//     default:
-//       console.log("unhandled token", token);
-//   }
-// }
-
 // function parenArgs(): string[] | null {
 //   return lexer.withMatcher(directiveArgsMatch, () => {
 //     const results = seq("lparen", "word", "rparen", "eol");
