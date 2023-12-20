@@ -76,6 +76,25 @@ export function seq(...stages: ParserStage<any>[]): ParserStage<any[]> {
   });
 }
 
+export function opt<T>(stage: ParserStage<T>): ParserStage<T | boolean> {
+  return parserStage((state: ParserContext) => {
+    return stage(state) || false;
+  });
+}
+
+export function repeat<T>(stage: ParserStage<T>): ParserStage<T[]> {
+  return parserStage((state: ParserContext) => {
+    const results = [];
+    while (true) {
+      const result = stage(state);
+      if (result === null) {
+        return results;
+      }
+      results.push(result);
+    }
+  });
+}
+
 /*
   
    // syntax 1. wrapper functions for or, seq, opt, rep

@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`opt() makes failing match ok 1`] = `
+[
+  false,
+  {
+    "kind": "word",
+    "text": "foo",
+  },
+]
+`;

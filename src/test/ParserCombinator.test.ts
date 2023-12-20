@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { kind, or, seq } from "../ParserCombinator.js";
+import { kind, opt, or, seq } from "../ParserCombinator.js";
 import { matchingLexer } from "../MatchingLexer.js";
 import { mainMatch } from "../MiniLexer.js";
 
@@ -33,7 +33,7 @@ test("or() finds no match ", () => {
   expect(lexer.position()).toEqual(0);
 });
 
-test.only("seq() finds partial match", () => {
+test("seq() finds partial match", () => {
   const src = "#import";
   const lexer = matchingLexer(src, mainMatch);
   const results: any[] = [];
@@ -42,3 +42,13 @@ test.only("seq() finds partial match", () => {
   expect(lexed).toEqual(null);
   expect(lexer.position()).toEqual(0);
 });
+
+test("opt() makes failing match ok", () => {
+  const src = "foo";
+  const lexer = matchingLexer(src, mainMatch);
+  const results: any[] = [];
+  const p = seq(opt(kind("directive")), kind("word"));
+  const lexed = p({ lexer, results });
+  expect(lexed).not.null;
+  expect(lexed).toMatchSnapshot();
+})
