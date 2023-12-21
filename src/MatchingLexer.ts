@@ -26,6 +26,7 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
       while (token?.kind === "ws") {
         token = matcher.next();
       }
+      // console.log({ token });
       return token;
     }
   }

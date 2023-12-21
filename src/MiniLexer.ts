@@ -23,6 +23,7 @@ const directive = /#[a-zA-Z_][a-zA-Z0-9_]+/;
 const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
 const ws = /\s+/;
 const lineComment = "//";
+const digits = /[0-9]+/;
 
 /** matching tokens at wgsl root level */
 export const mainMatch = tokenMatcher({
@@ -52,10 +53,11 @@ const equals = "=";
 
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
 export const directiveArgsMatch = tokenMatcher({
-  word,
-  ws,
   lparen,
   rparen,
+  word,
+  digits,
+  ws,
   comma,
   equals,
   eol,
