@@ -1,4 +1,5 @@
 import { TextExport, TextModule } from "./Linker.js";
+import { miniParse } from "./MiniParser.js";
 import {
   endExportRegex,
   endInsertRegex,
@@ -19,6 +20,7 @@ export function parseModule(src: string, defaultModuleName?: string): TextModule
   let moduleName: string | undefined;
   let rootLines: string[] | undefined;
 
+  miniParse(src); // temporary to check minified size of build. TODO remove
   src.split("\n").forEach(line => {
     const matches = matchModuleDirectives(line);
     const { exportMatch, endInsertMatch, endExportMatch } = matches;
