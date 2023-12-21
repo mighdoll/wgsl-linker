@@ -17,8 +17,9 @@ test("or() finds first match", () => {
 test("or() finds second match", () => {
   const src = "// #import";
   const lexer = matchingLexer(src, mainMatch);
+  const m = mainMatch;
   const results: any[] = [];
-  const p = or("directive", "lineComment");
+  const p = or(m.directive, m.lineComment);
   const lexed = p({ lexer, results });
   expect(lexed?.kind).toEqual("lineComment");
   expect(lexer.position()).toEqual("//".length);

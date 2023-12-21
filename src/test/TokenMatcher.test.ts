@@ -13,3 +13,12 @@ test("token matcher", () => {
   expect(b).toEqual({ kind: "spaces", text: " " });
   expect(c).toEqual({ kind: "name", text: "foo" });
 });
+
+test("token matcher autocomplete", () => {
+  const m = tokenMatcher({
+    name: /[a-z]+/,
+    spaces: /\s+/,
+  });
+  expect(m.name).toEqual("name");
+  expect(m.spaces).toEqual("spaces");
+});
