@@ -25,3 +25,5 @@ exports[`parse #import foo 1`] = `
   },
 ]
 `;
+
+exports[`parse empty string 1`] = `[]`;

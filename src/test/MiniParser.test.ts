@@ -9,6 +9,11 @@ test("parse #import foo", () => {
   expect(parsed).toMatchSnapshot();
 });
 
+test("parse empty string", () => {
+  const parsed = miniParse("");
+  expect(parsed).toMatchSnapshot();
+});
+
 test("lineComment parse // foo bar", () => {
   const src = "// foo bar";
   const state = testParse(lineComment, src);
