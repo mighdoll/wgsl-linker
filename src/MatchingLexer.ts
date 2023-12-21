@@ -2,33 +2,24 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
   next(): Token | undefined;
-  peek(): Token | undefined;
-  pushMatcher(tokenMatcher: TokenMatcher): void;
-  popMatcher(): void;
   withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T;
   tryParse<T>(fn: () => T): T | undefined;
-  position(): number;
-  setPosition(pos: number): void;
+  position(pos?: number): number;
 }
 
 export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
   let matcher = rootMatcher;
   const matcherStack: TokenMatcher[] = [];
-  const peeked: (Token | undefined)[] = [];
 
   matcher.start(src);
 
   function next(): Token | undefined {
-    if (peeked.length > 0) {
-      return peeked.shift();
-    } else {
-      let token = matcher.next();
-      while (token?.kind === "ws") {
-        token = matcher.next();
-      }
-      // console.log({ token });
-      return token;
+    let token = matcher.next();
+    while (token?.kind === "ws") {
+      token = matcher.next();
     }
+    // console.log({ token });
+    return token;
   }
 
   function tryParse<T>(fn: () => T): T {
@@ -36,16 +27,8 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
     const result = fn();
     if (!result) {
       matcher.start(src, startPos);
-      // TODO drop peek?
     }
     return result;
-  }
-
-  function peek(): Token | undefined {
-    if (peeked.length === 0) {
-      peeked.push(next());
-    }
-    return peeked[0];
   }
 
   function pushMatcher(newMatcher: TokenMatcher): void {
@@ -62,11 +45,12 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
     matcher.start(src, position);
   }
 
-  function position(): number {
+  function position(pos?: number): number {
+    if (pos !== undefined) {
+      matcher.start(src, pos);
+      return pos;
+    }
     return matcher.position();
-  }
-  function setPosition(pos: number): void {
-    matcher.start(src, pos);
   }
 
   function withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T {
@@ -78,12 +62,8 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
 
   return {
     next,
-    peek,
     tryParse,
     position,
-    setPosition,
     withMatcher,
-    pushMatcher,
-    popMatcher,
   };
 }

@@ -14,7 +14,7 @@ export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
     const position = state.lexer.position();
     const result = fn(state);
     if (result === null || result === undefined) {
-      state.lexer.setPosition(position);
+      state.lexer.position(position);
       return null;
     } else {
       return result;
