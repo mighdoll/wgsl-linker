@@ -71,6 +71,8 @@ test("repeat() to (1,2,3,4)", () => {
 });
 
 /*
+ consider making a conciser way to specify parsers: 
+
  wordNum = word | digits
  paramsList = #wordNum? (, #wordNum)*  
  params = "(" paramsList ")"

@@ -7,7 +7,7 @@ export interface ParserContext {
 }
 
 export type ParserStage<T> = (state: ParserContext) => T | null;
-export type ParserFn<T> = (state: ParserContext) => T | null;
+export type ParserFn<T> = (state: ParserContext) => T | null | undefined;
 
 export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
   return (state: ParserContext): T | null => {
