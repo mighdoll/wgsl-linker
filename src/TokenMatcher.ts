@@ -13,7 +13,7 @@ export function tokenMatcher(
   matchers: Record<string, string | RegExp>
 ): TokenMatcher {
   const groups: string[] = Object.keys(matchers);
-  let src:string;
+  let src: string;
 
   const expParts = Object.values(matchers).map(toRegexSource).join("|");
   const exp = new RegExp(expParts, "idg");

@@ -8,6 +8,7 @@ export interface ParserContext {
 
 export type ParserStage<T> = (state: ParserContext) => T | null;
 export type ParserFn<T> = (state: ParserContext) => T | null | undefined;
+export type ParserStageArg<T> = ParserStage<T> | string;
 
 export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
   return (state: ParserContext): T | null => {
@@ -32,19 +33,20 @@ export function kind(kind: string): ParserStage<Token> {
   });
 }
 
-export function or<T, U>(
-  a: ParserStage<T>,
-  b: ParserStage<U>
+export function or<T = Token, U = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>
 ): ParserStage<T | U>;
-export function or<T, U, V>(
-  a: ParserStage<T>,
-  b: ParserStage<U>,
-  c: ParserStage<V>
+export function or<T = Token, U = Token, V = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>
 ): ParserStage<T | U | V>;
-export function or(...stages: ParserStage<any>[]): ParserStage<any> {
+export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
   return parserStage((state: ParserContext) => {
-    for (const p of stages) {
-      const result = p(state);
+    for (const stage of stages) {
+      const parser = parserArg(stage);
+      const result = parser(state);
       if (result !== null) {
         return result;
       }
@@ -53,20 +55,21 @@ export function or(...stages: ParserStage<any>[]): ParserStage<any> {
   });
 }
 
-export function seq<T, U>(
-  a: ParserStage<T>,
-  b: ParserStage<U>
+export function seq<T = Token, U = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>
 ): ParserStage<[T, U]>;
-export function seq<T, U, V>(
-  a: ParserStage<T>,
-  b: ParserStage<U>,
-  c: ParserStage<V>
+export function seq<T = Token, U = Token, V = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>
 ): ParserStage<[T, U, V]>;
-export function seq(...stages: ParserStage<any>[]): ParserStage<any[]> {
+export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage((state: ParserContext) => {
     const results = [];
     for (const stage of stages) {
-      const result = stage(state);
+      const parser = parserArg(stage);
+      const result = parser(state);
       if (result === null) {
         return null;
       }
@@ -76,17 +79,28 @@ export function seq(...stages: ParserStage<any>[]): ParserStage<any[]> {
   });
 }
 
-export function opt<T>(stage: ParserStage<T>): ParserStage<T | boolean> {
+export function opt<T>(stage: string): ParserStage<Token | boolean>;
+export function opt<T>(stage: ParserStage<T>): ParserStage<T | boolean>;
+export function opt<T>(
+  stage: ParserStageArg<T>
+): ParserStage<T | Token | boolean> {
   return parserStage((state: ParserContext) => {
-    return stage(state) || false;
+    const parser = parserArg(stage);
+    const result = parser(state);
+    return result || false;
   });
 }
 
-export function repeat<T>(stage: ParserStage<T>): ParserStage<T[]> {
+export function repeat(stage: string): ParserStage<Token[]>;
+export function repeat<T>(stage: ParserStage<T>): ParserStage<T[]>;
+export function repeat<T>(
+  stage: ParserStageArg<T>
+): ParserStage<(T | Token)[]> {
   return parserStage((state: ParserContext) => {
     const results = [];
     while (true) {
-      const result = stage(state);
+      const parser = parserArg(stage);
+      const result = parser(state);
       if (result === null) {
         return results;
       }
@@ -95,23 +109,9 @@ export function repeat<T>(stage: ParserStage<T>): ParserStage<T[]> {
   });
 }
 
-/*
-  
-   // syntax 1. wrapper functions for or, seq, opt, rep
-  const root = or(lineComment, fnDecl);
-  const lineComment = seq(kind("lineComment", opt(directive)));
-  const results = parse(root, lexer)
-
-  // syntax 2. fluent interface 
-  const root = lineComment.or(fnDecl);
-  const lineComment = kind("lineComment").opt(directive);
-
-  in either case, each stage needs to take in a ParserContext.
-  Output could be a struct, or maybe just a non-undefined value.
-
-  TS type for the result value for some of these combinators is tricky, 
-  something like a seq returns an array of multiple types..
-  
-*/
-
-function parserChain(src: string) {}
+/** convert naked string arguments into kind() parsers */
+function parserArg<T>(
+  arg: ParserStageArg<T>
+): ParserStage<T> | ParserStage<Token> {
+  return typeof arg === "string" ? kind(arg) : arg;
+}
