@@ -20,10 +20,11 @@
     "./replace-template": {
       "import": "./dist/ReplaceTemplate.js",
       "require": "./dist/ReplaceTemplate.cjs",
-      "types" : "./dist/ReplaceTemplate.d.ts"
+      "types": "./dist/ReplaceTemplate.d.ts"
     }
   },
   "devDependencies": {
+    "typescript": "^5.3.3",
     "vite": "^5.0.2",
     "vite-plugin-dts": "^3.6.4",
     "vite-tsconfig-paths": "^4.2.1",
