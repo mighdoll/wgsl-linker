@@ -26,8 +26,7 @@ export function parsing<T>(
   const parserFn: StageFn<T> = (state: ParserContext) => {
     const r = fn(state);
     if (r !== null && r !== undefined) {
-      const result = { value: r, results: {} };
-      return result;
+      return { value: r, results: {} };
     } else {
       return null;
     }
@@ -167,7 +166,7 @@ function mergeNamed(
 ): Record<string, any[]> {
   const sharedKeys = Object.keys(a).filter((k) => b[k]);
   // combine arrays from liked named keys
-  const sharedEntries = sharedKeys.map((k) => [k, [...a[k], ...b[k]]]); 
+  const sharedEntries = sharedKeys.map((k) => [k, [...a[k], ...b[k]]]);
   const shared = Object.fromEntries(sharedEntries);
   return { ...a, ...b, ...shared }; // shared keys overwritten
 }
