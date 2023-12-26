@@ -4,14 +4,7 @@ import {
   lineCommentMatch,
   mainMatch,
 } from "./MiniLexer.js";
-import {
-  ParserContext,
-  kind,
-  or,
-  parserStage,
-  parsing,
-  seq,
-} from "./ParserCombinator.js";
+import { ParserContext, kind, or, parsing, seq } from "./ParserCombinator.js";
 
 interface ParserState {
   lexer: Lexer;
@@ -31,9 +24,6 @@ export interface DirectiveElem extends AbstractElemBase {
   name: string;
   args: string[];
 }
-
-type AnyFn = () => any;
-type StringOrAnyFn = string | AnyFn;
 
 const singleWord = parsing((state: ParserState): string | null => {
   return state.lexer.withMatcher(directiveArgsMatch, () => {
