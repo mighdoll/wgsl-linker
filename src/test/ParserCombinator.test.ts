@@ -63,12 +63,19 @@ test("seq() handles two element match", () => {
   expect(lexed).toMatchSnapshot();
 });
 
-// test.only("seq() with named result", () => {
-//   const src = "#import foo";
-//   const p = seq(m.directive, kind(m.word).named("yo"));
-//   const { lexed } = testCombinator(src, p);
-//   console.log(JSON.stringify(lexed, null,2))
-// });
+test("named kind match", () => {
+  const src = "foo";
+  const p = kind(m.word).named("nn");
+  const { lexed } = testCombinator(src, p);
+  expect(lexed?.results.nn).deep.equals(["foo"]);
+});
+
+test("seq() with named result", () => {
+  const src = "#import foo";
+  const p = seq(m.directive, kind(m.word).named("yo"));
+  const { lexed } = testCombinator(src, p);
+  expect(lexed?.results.yo).deep.equals(["foo"]);
+});
 
 // test("seq() with named result", () => {
 //   const src = "#import foo";
