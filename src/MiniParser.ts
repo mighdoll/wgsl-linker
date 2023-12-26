@@ -45,11 +45,11 @@ const directive = parsing((state: ParserState): string | null => {
   }
 });
 
-export const lineComment = parsing((state: ParserState): boolean => {
+export const lineComment = parsing((state: ParserState): boolean | null => {
   return state.lexer.withMatcher(lineCommentMatch, () => {
     const afterComment = or(directive, kind("notDirective"));
     const parser = seq(kind("lineComment"), afterComment);
-    return parser(state) != null;
+    return parser(state) === null ? null : true;
   });
 });
 
@@ -75,3 +75,13 @@ export function miniParse(src: string): AbstractElem[] {
 //     return args;
 //   });
 // }
+
+// export const lineComment = parsing(
+//   (state: ParserState): OptParserResult<any> => {
+//     return state.lexer.withMatcher(lineCommentMatch, () => {
+//       const afterComment = or(directive, kind("notDirective"));
+//       const parser = seq(kind("lineComment"), afterComment);
+//       return parser(state);
+//     });
+//   }
+// );

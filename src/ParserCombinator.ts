@@ -1,25 +1,67 @@
 import { Lexer } from "./MatchingLexer.js";
 import { Token } from "./TokenMatcher.js";
 
+/** Parsing Combinators
+ *
+ * The basic idea is that parsers are contructed heirarchically from other parsers.
+ * Each parser is independently testable and reusable with combinators like or() and seq().
+ *
+ * Each parser is a function that recognizes tokens produced by a lexer
+ * and returns a result.
+ *  Returning null indicate failure. Tokens are not consumed on failure.
+ *  Users can also use the .named() method to tag results from a stage. Named results
+ *    propagate up to containing parsers for convenience in selecting key results
+ *    from other syntax.
+ *
+ * Built in parsers and combinators are available:
+ *  kind() recognizes tokens of a particular type.
+ *  or(), seq(), opt(), and repeat() combine other stages.
+ *
+ * Users construct their own parsers by combining other parser stages but also
+ * by supplying custom functions to parsing(). Custom functions
+ * are supplied an array for returning application specific results.
+ * Custom parsers typically return a value to containing parsers for intermediate
+ * results, and add results to the results array when a semantic phrase is
+ * fully parsed. 
+ * 
+ * Custom functions are also supplied the lexer so that they can temporarily change 
+ * lexing mode (e.g. while processing comments or strings)
+ */
+
+/** Information passed to the parsers during parsing */
 export interface ParserContext {
+  /** supply tokens to the parser*/
   lexer: Lexer;
+
+  /** for user written parsers to accumulate parsing results */
   results: any[];
 }
 
+/** Result from a parser */
 export interface ParserResult<T> {
+  /** result from this stage */
   value: T;
+
+  /** named results from this stage and all child stages*/
   named: Record<string, any[]>;
 }
+/** parsers return null if they don't match */
 export type OptParserResult<T> = ParserResult<T> | null;
 
+/** a composable parsing element */
 export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
 }
 
-export type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
-export type ParserStageArg<T> = ParserStage<T> | string;
+/** Internal parsing functions return a value and also a set of named results from contained parser  */
+type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
 
+/** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
+type ParserStageArg<T> = ParserStage<T> | string;
+
+/** Convert a parsing function to a parser stage for use with combinators.
+ * This is normally the way users construct non-trivial parsing */
 export function parsing<T>(
   fn: (state: ParserContext) => T | null | undefined
 ): ParserStage<T> {
@@ -35,6 +77,7 @@ export function parsing<T>(
   return parserStage(parserFn);
 }
 
+/** wrap a function returning */
 export function parserStage<T>(
   fn: StageFn<T>,
   resultName?: string
@@ -45,21 +88,22 @@ export function parserStage<T>(
     if (result === null || result === undefined) {
       state.lexer.position(position);
       return null;
-    }
-    if (resultName) {
-      const accumulated = {
+    } else if (resultName) {
+      return {
         value: result.value,
         named: mergeNamed(result.named, { [resultName]: [result.value] }),
       };
-      return accumulated;
     } else {
       return result;
     }
   };
+
   stageFn.named = (name: string) => parserStage(fn, name);
   return stageFn;
 }
 
+/** Parse for a particular kind of token,
+ * @return the matching text */
 export function kind(kind: string): ParserStage<string> {
   return parsing((state: ParserContext): string | null => {
     const next = state.lexer.next();
@@ -67,6 +111,8 @@ export function kind(kind: string): ParserStage<string> {
   });
 }
 
+/** Try parsing with one or more parsers,
+ *  @return the first successful parse */
 export function or<T = Token, U = Token>(
   a: ParserStageArg<T>,
   b: ParserStageArg<U>
@@ -89,6 +135,8 @@ export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
   });
 }
 
+/** Parse a sequence of parsers
+ * @return an array of all parsed results, or null if any parser fails */
 export function seq<T = Token, U = Token>(
   a: ParserStageArg<T>,
   b: ParserStageArg<U>
@@ -115,6 +163,12 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   });
 }
 
+/** Try a parser. 
+ *
+ * If the parse succeeds, return the result.
+ * If the parser fails, return false and don't advance the input. Returning false
+ * indicates a successful parse, so combinators like seq() will succeed. 
+ */
 export function opt<T>(stage: string): ParserStage<string | boolean>;
 export function opt<T>(stage: ParserStage<T>): ParserStage<T | boolean>;
 export function opt<T>(
