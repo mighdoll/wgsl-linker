@@ -2,7 +2,7 @@
 
 exports[`opt() makes failing match ok 1`] = `
 {
-  "results": {},
+  "named": {},
   "value": [
     false,
     "foo",
@@ -12,7 +12,7 @@ exports[`opt() makes failing match ok 1`] = `
 
 exports[`seq() handles two element match 1`] = `
 {
-  "results": {},
+  "named": {},
   "value": [
     "#import",
     "foo",

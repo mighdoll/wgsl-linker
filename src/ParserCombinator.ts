@@ -8,7 +8,7 @@ export interface ParserContext {
 
 export interface ParserResult<T> {
   value: T;
-  results: Record<string, any[]>;
+  named: Record<string, any[]>;
 }
 export type OptParserResult<T> = ParserResult<T> | null;
 
@@ -26,7 +26,7 @@ export function parsing<T>(
   const parserFn: StageFn<T> = (state: ParserContext) => {
     const r = fn(state);
     if (r !== null && r !== undefined) {
-      return { value: r, results: {} };
+      return { value: r, named: {} };
     } else {
       return null;
     }
@@ -49,7 +49,7 @@ export function parserStage<T>(
     if (resultName) {
       const accumulated = {
         value: result.value,
-        results: mergeNamed(result.results, { [resultName]: [result.value] }),
+        named: mergeNamed(result.named, { [resultName]: [result.value] }),
       };
       return accumulated;
     } else {
@@ -108,10 +108,10 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
       if (result === null) {
         return null;
       }
-      namedResults = mergeNamed(namedResults, result.results);
+      namedResults = mergeNamed(namedResults, result.named);
       values.push(result.value);
     }
-    return { value: values, results: namedResults };
+    return { value: values, named: namedResults };
   });
 }
 
@@ -124,7 +124,7 @@ export function opt<T>(
     (state: ParserContext): OptParserResult<T | string | boolean> => {
       const parser = parserArg(stage);
       const result = parser(state);
-      return result || { value: false, results: {} };
+      return result || { value: false, named: {} };
     }
   );
 }
@@ -143,9 +143,9 @@ export function repeat<T>(
         const result = parser(state);
         if (result !== null) {
           values.push(result.value);
-          results = mergeNamed(results, result.results);
+          results = mergeNamed(results, result.named);
         } else {
-          return { value: values, results };
+          return { value: values, named: results };
         }
       }
     }

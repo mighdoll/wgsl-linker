@@ -67,14 +67,14 @@ test("named kind match", () => {
   const src = "foo";
   const p = kind(m.word).named("nn");
   const { lexed } = testCombinator(src, p);
-  expect(lexed?.results.nn).deep.equals(["foo"]);
+  expect(lexed?.named.nn).deep.equals(["foo"]);
 });
 
 test("seq() with named result", () => {
   const src = "#import foo";
   const p = seq(m.directive, kind(m.word).named("yo"));
   const { lexed } = testCombinator(src, p);
-  expect(lexed?.results.yo).deep.equals(["foo"]);
+  expect(lexed?.named.yo).deep.equals(["foo"]);
 });
 
 test("opt() makes failing match ok", () => {
@@ -94,7 +94,7 @@ test("repeat() to (1,2,3,4) via named", () => {
   const p = seq("lparen", params, "rparen");
   const lexed = p({ lexer, results });
   expect(lexed).not.null;
-  expect(lexed?.results.wn).deep.equals(["1", "2", "3", "4"]);
+  expect(lexed?.named.wn).deep.equals(["1", "2", "3", "4"]);
 });
 
 
