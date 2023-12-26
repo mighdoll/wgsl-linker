@@ -8,7 +8,7 @@ export interface ParserContext {
 
 export interface ParserResult<T> {
   value: T;
-  results: Record<string, any>;
+  results: Record<string, any[]>;
 }
 export type OptParserResult<T> = ParserResult<T> | null;
 
@@ -50,7 +50,7 @@ export function parserStage<T>(
     if (resultName) {
       const accumulated = {
         value: result.value,
-        results: { ...result.results, [resultName]: [result.value] }, // TODO merge like named result arrays
+        results: mergeNamed(result.results, { [resultName]: [result.value] }),
       };
       return accumulated;
     } else {
@@ -109,7 +109,7 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
       if (result === null) {
         return null;
       }
-      namedResults = { ...namedResults, ...result.results }; // TODO merge like names
+      namedResults = mergeNamed(namedResults, result.results);
       values.push(result.value);
     }
     return { value: values, results: namedResults };
@@ -144,7 +144,7 @@ export function repeat<T>(
         const result = parser(state);
         if (result !== null) {
           values.push(result.value);
-          results = { ...results, ...result.results };
+          results = mergeNamed(results, result.results);
         } else {
           return { value: values, results };
         }
@@ -158,4 +158,16 @@ function parserArg<T>(
   arg: ParserStageArg<T>
 ): ParserStage<T> | ParserStage<string> {
   return typeof arg === "string" ? kind(arg) : arg;
+}
+
+/** merge arrays in liked named keys */
+function mergeNamed(
+  a: Record<string, any[]>,
+  b: Record<string, any[]>
+): Record<string, any[]> {
+  const sharedKeys = Object.keys(a).filter((k) => b[k]);
+  // combine arrays from liked named keys
+  const sharedEntries = sharedKeys.map((k) => [k, [...a[k], ...b[k]]]); 
+  const shared = Object.fromEntries(sharedEntries);
+  return { ...a, ...b, ...shared }; // shared keys overwritten
 }
