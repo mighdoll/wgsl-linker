@@ -28,7 +28,7 @@ test("or() finds first match", () => {
   const src = "#import";
   const p = or("directive", "lineComment");
   const { lexed, position } = testCombinator(src, p);
-  expect(lexed?.value).toEqual({ kind: "directive", text: "#import" });
+  expect(lexed?.value).toEqual("#import");
   expect(position).toEqual(src.length);
 });
 
@@ -36,7 +36,7 @@ test("or() finds second match", () => {
   const src = "// #import";
   const p = or(m.directive, m.lineComment);
   const { lexed, position } = testCombinator(src, p);
-  expect(lexed?.value.kind).toEqual("lineComment");
+  expect(lexed?.value).toEqual("//");
   expect(position).toEqual("//".length);
 });
 

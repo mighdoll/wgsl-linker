@@ -5,10 +5,7 @@ exports[`opt() makes failing match ok 1`] = `
   "results": {},
   "value": [
     false,
-    {
-      "kind": "word",
-      "text": "foo",
-    },
+    "foo",
   ],
 }
 `;
@@ -17,14 +14,8 @@ exports[`seq() handles two element match 1`] = `
 {
   "results": {},
   "value": [
-    {
-      "kind": "directive",
-      "text": "#import",
-    },
-    {
-      "kind": "word",
-      "text": "foo",
-    },
+    "#import",
+    "foo",
   ],
 }
 `;

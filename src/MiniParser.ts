@@ -38,15 +38,15 @@ type StringOrAnyFn = string | AnyFn;
 const singleWord = parsing((state: ParserState): string | null => {
   return state.lexer.withMatcher(directiveArgsMatch, () => {
     const x = seq(kind("word"), kind("eol"))(state);
-    return x?.value[0].text || null;
+    return x?.value[0] || null;
   });
 });
 
 const directive = parsing((state: ParserState): string | null => {
   const directiveElems = seq(kind("directive"), singleWord)(state);
   if (directiveElems) {
-    const [token, word] = directiveElems.value;
-    const name = token.text;
+    const [direct, word] = directiveElems.value;
+    const name = direct;
     const position = state.lexer.position();
     state.results.push({ kind: "directive", name, args: [word], position });
     return name;
