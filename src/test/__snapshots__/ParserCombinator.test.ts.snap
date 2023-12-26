@@ -1,11 +1,30 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`opt() makes failing match ok 1`] = `
-[
-  false,
-  {
-    "kind": "word",
-    "text": "foo",
-  },
-]
+{
+  "results": {},
+  "value": [
+    false,
+    {
+      "kind": "word",
+      "text": "foo",
+    },
+  ],
+}
+`;
+
+exports[`seq() handles two element match 1`] = `
+{
+  "results": {},
+  "value": [
+    {
+      "kind": "directive",
+      "text": "#import",
+    },
+    {
+      "kind": "word",
+      "text": "foo",
+    },
+  ],
+}
 `;

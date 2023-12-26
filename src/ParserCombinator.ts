@@ -6,30 +6,69 @@ export interface ParserContext {
   results: any[];
 }
 
-export type ParserStage<T> = (state: ParserContext) => T | null;
-export type ParserFn<T> = (state: ParserContext) => T | null | undefined;
+export interface ParserResult<T> {
+  value: T;
+  results: Record<string, any>;
+}
+export type OptParserResult<T> = ParserResult<T> | null;
+
+export interface ParserStage<T> {
+  (state: ParserContext): OptParserResult<T>;
+  named(name: string): ParserStage<T>;
+}
+
+export type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
 export type ParserStageArg<T> = ParserStage<T> | string;
 
-export function parserStage<T>(fn: ParserFn<T>): ParserStage<T> {
-  return (state: ParserContext): T | null => {
+export function parsing<T>(
+  fn: (state: ParserContext) => T | null | undefined
+): ParserStage<T> {
+  const parserFn: StageFn<T> = (state: ParserContext) => {
+    const r = fn(state);
+    if (r !== null && r !== undefined) {
+      const result = { value: r, results: {} };
+      return result;
+    } else {
+      return null;
+    }
+  };
+
+  return parserStage(parserFn);
+}
+
+export function parserStage<T>(
+  fn: StageFn<T>,
+  resultName?: string
+): ParserStage<T> {
+  const stageFn = (state: ParserContext): OptParserResult<T> => {
     const position = state.lexer.position();
     const result = fn(state);
     if (result === null || result === undefined) {
       state.lexer.position(position);
       return null;
+    }
+    if (resultName) {
+      const accumulated = {
+        value: result.value,
+        results: { ...result.results, [resultName]: [result] }, // TODO merge like named result arrays
+      };
+      return accumulated;
     } else {
       return result;
     }
   };
-
-  // add fluent interface methods?
-  // return start position?
+  stageFn.named = (name: string) => parserStage(fn, name);
+  return stageFn;
 }
 
 export function kind(kind: string): ParserStage<Token> {
-  return parserStage((state: ParserContext): Token | null => {
+  return parserStage((state: ParserContext): ParserResult<Token> | null => {
     const next = state.lexer.next();
-    return next?.kind === kind ? next : null;
+    if (next?.kind === kind) {
+      return { value: next, results: {} };
+    } else {
+      return null;
+    }
   });
 }
 
@@ -43,7 +82,7 @@ export function or<T = Token, U = Token, V = Token>(
   c: ParserStageArg<V>
 ): ParserStage<T | U | V>;
 export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
-  return parserStage((state: ParserContext) => {
+  return parserStage((state: ParserContext): ParserResult<any> | null => {
     for (const stage of stages) {
       const parser = parserArg(stage);
       const result = parser(state);
@@ -66,16 +105,18 @@ export function seq<T = Token, U = Token, V = Token>(
 ): ParserStage<[T, U, V]>;
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage((state: ParserContext) => {
-    const results = [];
+    const values = [];
+    let namedResults = {};
     for (const stage of stages) {
       const parser = parserArg(stage);
       const result = parser(state);
       if (result === null) {
         return null;
       }
-      results.push(result);
+      namedResults = { ...namedResults, ...result.results }; // TODO merge like names
+      values.push(result.value);
     }
-    return results;
+    return { value: values, results: namedResults };
   });
 }
 
@@ -84,11 +125,13 @@ export function opt<T>(stage: ParserStage<T>): ParserStage<T | boolean>;
 export function opt<T>(
   stage: ParserStageArg<T>
 ): ParserStage<T | Token | boolean> {
-  return parserStage((state: ParserContext) => {
-    const parser = parserArg(stage);
-    const result = parser(state);
-    return result || false;
-  });
+  return parserStage(
+    (state: ParserContext): OptParserResult<T | Token | boolean> => {
+      const parser = parserArg(stage);
+      const result = parser(state);
+      return result || { value: false, results: {} };
+    }
+  );
 }
 
 export function repeat(stage: string): ParserStage<Token[]>;
@@ -96,15 +139,18 @@ export function repeat<T>(stage: ParserStage<T>): ParserStage<T[]>;
 export function repeat<T>(
   stage: ParserStageArg<T>
 ): ParserStage<(T | Token)[]> {
-  return parserStage((state: ParserContext) => {
-    const results = [];
+  return parserStage((state: ParserContext): OptParserResult<(T | Token)[]> => {
+    const values: (T | Token)[] = [];
+    let results = {};
     while (true) {
       const parser = parserArg(stage);
       const result = parser(state);
-      if (result === null) {
-        return results;
+      if (result !== null) {
+        values.push(result.value);
+        results = { ...results, ...result.results };
+      } else {
+        return { value: values, results };
       }
-      results.push(result);
     }
   });
 }

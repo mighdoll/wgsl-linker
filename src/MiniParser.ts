@@ -9,6 +9,7 @@ import {
   kind,
   or,
   parserStage,
+  parsing,
   seq,
 } from "./ParserCombinator.js";
 
@@ -34,10 +35,17 @@ export interface DirectiveElem extends AbstractElemBase {
 type AnyFn = () => any;
 type StringOrAnyFn = string | AnyFn;
 
-const directive = parserStage((state: ParserState): string | null => {
+const singleWord = parsing((state: ParserState): string | null => {
+  return state.lexer.withMatcher(directiveArgsMatch, () => {
+    const x = seq(kind("word"), kind("eol"))(state);
+    return x?.value[0].text || null;
+  });
+});
+
+const directive = parsing((state: ParserState): string | null => {
   const directiveElems = seq(kind("directive"), singleWord)(state);
   if (directiveElems) {
-    const [token, word] = directiveElems;
+    const [token, word] = directiveElems.value;
     const name = token.text;
     const position = state.lexer.position();
     state.results.push({ kind: "directive", name, args: [word], position });
@@ -47,14 +55,7 @@ const directive = parserStage((state: ParserState): string | null => {
   }
 });
 
-const singleWord = parserStage((state: ParserState): string | null => {
-  return state.lexer.withMatcher(directiveArgsMatch, () => {
-    const x = seq(kind("word"), kind("eol"))(state);
-    return x?.[0].text || null;
-  });
-});
-
-export const lineComment = parserStage((state: ParserState): boolean => {
+export const lineComment = parsing((state: ParserState): boolean => {
   return state.lexer.withMatcher(lineCommentMatch, () => {
     const afterComment = or(directive, kind("notDirective"));
     const parser = seq(kind("lineComment"), afterComment);
@@ -73,7 +74,6 @@ export function miniParse(src: string): AbstractElem[] {
 
   return state.results;
 }
-
 
 // function parenArgs(): string[] | null {
 //   return lexer.withMatcher(directiveArgsMatch, () => {
