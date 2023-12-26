@@ -50,7 +50,7 @@ export function parserStage<T>(
     if (resultName) {
       const accumulated = {
         value: result.value,
-        results: { ...result.results, [resultName]: [result] }, // TODO merge like named result arrays
+        results: { ...result.results, [resultName]: [result.value] }, // TODO merge like named result arrays
       };
       return accumulated;
     } else {

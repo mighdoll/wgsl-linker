@@ -42,7 +42,7 @@ test("or() finds second match", () => {
 
 test("or() finds no match ", () => {
   const src = "fn decl() {}";
-  const p = or("directive", "lineComment");
+  const p = or(m.directive, m.lineComment);
   const { lexed, position } = testCombinator(src, p);
   expect(lexed).toEqual(null);
   expect(position).toEqual(0);
@@ -62,6 +62,13 @@ test("seq() handles two element match", () => {
   const { lexed } = testCombinator(src, p);
   expect(lexed).toMatchSnapshot();
 });
+
+// test.only("seq() with named result", () => {
+//   const src = "#import foo";
+//   const p = seq(m.directive, kind(m.word).named("yo"));
+//   const { lexed } = testCombinator(src, p);
+//   console.log(JSON.stringify(lexed, null,2))
+// });
 
 // test("seq() with named result", () => {
 //   const src = "#import foo";
