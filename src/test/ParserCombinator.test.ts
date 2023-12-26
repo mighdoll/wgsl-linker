@@ -1,65 +1,81 @@
 import { test, expect } from "vitest";
-import { kind, opt, or, repeat, seq } from "../ParserCombinator.js";
+import {
+  OptParserResult,
+  ParserStage,
+  kind,
+  opt,
+  or,
+  repeat,
+  seq,
+} from "../ParserCombinator.js";
 import { matchingLexer } from "../MatchingLexer.js";
 import { directiveArgsMatch, mainMatch } from "../MiniLexer.js";
 import { Token } from "../TokenMatcher.js";
 
-test("or() finds first match", () => {
-  const src = "#import";
+const m = mainMatch;
+
+function testCombinator<T>(
+  src: string,
+  p: ParserStage<T>
+): { lexed: OptParserResult<T>; position: number } {
   const lexer = matchingLexer(src, mainMatch);
   const results: any[] = [];
-  const p = or("directive", "lineComment");
   const lexed = p({ lexer, results });
+  return { lexed, position: lexer.position() };
+}
+
+test("or() finds first match", () => {
+  const src = "#import";
+  const p = or("directive", "lineComment");
+  const { lexed, position } = testCombinator(src, p);
   expect(lexed?.value).toEqual({ kind: "directive", text: "#import" });
-  expect(lexer.position()).toEqual(src.length);
+  expect(position).toEqual(src.length);
 });
 
 test("or() finds second match", () => {
   const src = "// #import";
-  const lexer = matchingLexer(src, mainMatch);
-  const m = mainMatch;
-  const results: any[] = [];
   const p = or(m.directive, m.lineComment);
-  const lexed = p({ lexer, results });
+  const { lexed, position } = testCombinator(src, p);
   expect(lexed?.value.kind).toEqual("lineComment");
-  expect(lexer.position()).toEqual("//".length);
+  expect(position).toEqual("//".length);
 });
 
 test("or() finds no match ", () => {
   const src = "fn decl() {}";
-  const lexer = matchingLexer(src, mainMatch);
-  const results: any[] = [];
   const p = or("directive", "lineComment");
-  const lexed = p({ lexer, results });
+  const { lexed, position } = testCombinator(src, p);
   expect(lexed).toEqual(null);
-  expect(lexer.position()).toEqual(0);
+  expect(position).toEqual(0);
 });
 
 test("seq() returns null with partial match", () => {
   const src = "#import";
-  const lexer = matchingLexer(src, mainMatch);
-  const results: any[] = [];
   const p = seq("directive", "word");
-  const lexed = p({ lexer, results });
+  const { lexed, position } = testCombinator(src, p);
   expect(lexed).toEqual(null);
-  expect(lexer.position()).toEqual(0);
+  expect(position).toEqual(0);
 });
 
 test("seq() handles two element match", () => {
   const src = "#import foo";
-  const lexer = matchingLexer(src, mainMatch);
-  const results: any[] = [];
-  const p = seq("directive", "word");
-  const lexed = p({ lexer, results });
+  const p = seq(m.directive, m.word);
+  const { lexed } = testCombinator(src, p);
   expect(lexed).toMatchSnapshot();
 });
 
+// test("seq() with named result", () => {
+//   const src = "#import foo";
+//   const lexer = matchingLexer(src, mainMatch);
+//   const results: any[] = [];
+//   const p = seq("directive", kind("word"));
+//   const lexed = p({ lexer, results });
+//   console.log(lexed);
+// });
+
 test("opt() makes failing match ok", () => {
   const src = "foo";
-  const lexer = matchingLexer(src, mainMatch);
-  const results: any[] = [];
   const p = seq(opt("directive"), "word");
-  const lexed = p({ lexer, results });
+  const { lexed } = testCombinator(src, p);
   expect(lexed).not.null;
   expect(lexed).toMatchSnapshot();
 });
