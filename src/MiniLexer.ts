@@ -4,9 +4,9 @@ import { tokenMatcher } from "./TokenMatcher.js";
 /*
 syntax we aim to parse:
 
-#import name (arg1, arg2) from moduleName as rename
-#export (arg1, arg2)
-#replace 128=workgroupSize
+#import name <(arg1, arg2)> <from moduleName> <as rename>
+#export <name> <(arg1, arg2)>
+#replace 128=workgroupSize 
 // 
 /* * /
 
@@ -19,7 +19,9 @@ StructConstruct()
 <Struct, ...>  
 */
 
-const directive = /#[a-zA-Z_][a-zA-Z0-9_]+/;
+const exportD = "#export";
+const importD = "#import";
+const directives = {exportD, importD};
 const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
 const ws = /\s+/;
 const lineComment = "//";
@@ -27,10 +29,10 @@ const digits = /[0-9]+/;
 
 /** matching tokens at wgsl root level */
 export const mainMatch = tokenMatcher({
+  ...directives,
   lineComment,
   commentStart: "/*",
   commentEnd: "*/",
-  directive,
   annotation: /@[a-zA-Z_][a-zA-Z0-9_]+/,
   word,
   ws,
@@ -39,10 +41,9 @@ export const mainMatch = tokenMatcher({
 const notDirective = /[^#]+$/;
 const eol = /$/;
 
-/** matching tokens within '//' line comment */
+/** matching tokens at the start of a '//' line comment */
 export const lineCommentMatch = tokenMatcher({
-  lineComment,
-  directive,
+  ...directives,
   notDirective,
   eol,
 });

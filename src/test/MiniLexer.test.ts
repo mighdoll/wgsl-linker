@@ -5,7 +5,7 @@ import { mainMatch } from "../MiniLexer.js";
 test("lex #import foo", () => {
   const lexer = matchingLexer(`#import foo`, mainMatch);
   const tokens = [1, 2].map(lexer.next);
-  expect(tokens.map((t) => t?.kind)).toEqual(["directive", "word"]);
+  expect(tokens.map((t) => t?.kind)).toEqual(["importD", "word"]);
 });
 
 test("/* foo */", () => {

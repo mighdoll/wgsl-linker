@@ -26,7 +26,7 @@ function testCombinator<T>(
 
 test("or() finds first match", () => {
   const src = "#import";
-  const p = or("directive", "lineComment");
+  const p = or("importD", "lineComment");
   const { lexed, position } = testCombinator(src, p);
   expect(lexed?.value).toEqual("#import");
   expect(position).toEqual(src.length);
@@ -34,7 +34,7 @@ test("or() finds first match", () => {
 
 test("or() finds second match", () => {
   const src = "// #import";
-  const p = or(m.directive, m.lineComment);
+  const p = or(m.importD, m.lineComment);
   const { lexed, position } = testCombinator(src, p);
   expect(lexed?.value).toEqual("//");
   expect(position).toEqual("//".length);
@@ -42,7 +42,7 @@ test("or() finds second match", () => {
 
 test("or() finds no match ", () => {
   const src = "fn decl() {}";
-  const p = or(m.directive, m.lineComment);
+  const p = or(m.importD, m.lineComment);
   const { lexed, position } = testCombinator(src, p);
   expect(lexed).toEqual(null);
   expect(position).toEqual(0);
@@ -58,7 +58,7 @@ test("seq() returns null with partial match", () => {
 
 test("seq() handles two element match", () => {
   const src = "#import foo";
-  const p = seq(m.directive, m.word);
+  const p = seq(m.importD, m.word);
   const { lexed } = testCombinator(src, p);
   expect(lexed).toMatchSnapshot();
 });
@@ -72,7 +72,7 @@ test("named kind match", () => {
 
 test("seq() with named result", () => {
   const src = "#import foo";
-  const p = seq(m.directive, kind(m.word).named("yo"));
+  const p = seq(m.importD, kind(m.word).named("yo"));
   const { lexed } = testCombinator(src, p);
   expect(lexed?.named.yo).deep.equals(["foo"]);
 });
