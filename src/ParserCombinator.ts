@@ -137,6 +137,15 @@ export function kind(kind: string): ParserStage<string> {
   });
 }
 
+/** Parse for a token containing a text value
+ * @return the kind of token that matched */
+export function text(value: string): ParserStage<string> {
+  return parsing((state: ParserContext): string | null => {
+    const next = state.lexer.next();
+    return next?.text === value ? next.kind : null;
+  });
+}
+
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
 export function or<T = Token, U = Token>(

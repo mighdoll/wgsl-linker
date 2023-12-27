@@ -11,6 +11,7 @@ import {
   or,
   repeat,
   seq,
+  text,
   tokens,
 } from "./ParserCombinator.js";
 
@@ -63,13 +64,13 @@ const exportDirective = seq(
 });
 
 const importDirective = seq(
-  m.importD,
+  text("#import"),
   tokens(
     directiveArgsMatch,
     seq(
       kind(a.word).named("imp"),
       opt(directiveArgs.named("args")),
-      opt(seq(a.from, kind(a.word).named("from"))),
+      opt(seq(text("from"), kind(a.word).named("from"))),
       opt(seq(a.as, kind(a.word).named("as")))
     )
   )
@@ -83,6 +84,8 @@ const importDirective = seq(
   const e: ImportElem = { kind, name, args, from: f, as: a, start, end };
   results.push(e);
 });
+
+
 
 export const directive = or(exportDirective, importDirective);
 
