@@ -97,6 +97,12 @@ test("repeat() to (1,2,3,4) via named", () => {
   expect(lexed?.named.wn).deep.equals(["1", "2", "3", "4"]);
 });
 
+test("map()", () => {
+  const src = "foo";
+  const p = kind(m.word).map((r) => ({ value: r.value + "!", named: r.named }));
+  const { lexed } = testCombinator(src, p);
+  expect(lexed?.value).equals("foo!");
+});
 
 /*
  consider making a conciser way to specify parsers: 
