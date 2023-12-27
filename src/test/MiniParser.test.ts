@@ -39,14 +39,14 @@ test.skip("parse #import foo", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test.skip("lineComment parse // foo bar", () => {
+test("lineComment parse // foo bar", () => {
   const src = "// foo bar";
   const state = testParse(lineComment, src);
   expect(state.lexer.position()).eq(src.length);
 });
 
-test.skip("lineComment parse // #import foo", () => {
-  const src = "// #import foo";
+test("lineComment parse // #export foo", () => {
+  const src = "// #export foo";
   const state = testParse(lineComment, src);
   expect(state.lexer.position()).eq(src.length);
   expect(state.app).toMatchSnapshot();

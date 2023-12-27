@@ -1,5 +1,17 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`lineComment parse // #export foo 1`] = `
+[
+  {
+    "args": undefined,
+    "end": 14,
+    "kind": "export",
+    "name": "foo",
+    "start": 0,
+  },
+]
+`;
+
 exports[`parse #export foo 1`] = `
 [
   {

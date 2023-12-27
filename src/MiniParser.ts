@@ -38,6 +38,7 @@ export interface ExportElem extends AbstractElemBase {
 
 const m = mainMatch;
 const a = directiveArgsMatch;
+const l = lineCommentMatch;
 
 const directiveArgs = seq(
   "lparen",
@@ -62,13 +63,10 @@ const exportDirective = seq(
 
 export const directive = exportDirective; // TODO import directive
 
-export const lineComment = parsing((state: ParserState): boolean | null => {
-  return state.lexer.withMatcher(lineCommentMatch, () => {
-    const afterComment = or(directive, kind("notDirective"));
-    const parser = seq(kind("lineComment"), afterComment);
-    return parser(state) === null ? null : true;
-  });
-});
+export const lineComment = tokens(
+  lineCommentMatch,
+  or(directive, l.notDirective)
+);
 
 const root = or(directive, lineComment);
 
