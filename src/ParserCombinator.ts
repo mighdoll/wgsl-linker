@@ -54,7 +54,7 @@ export interface ParserStage<T> {
   named(name: string): ParserStage<T>;
   map<U>(fn: (result: T) => U | null): ParserStage<U | true>;
   mapResults<U>(
-    fn: (result: ParserResult<T>) => U | null
+    fn: (result: ParserResult<T>, state: ParserContext) => U | null
   ): ParserStage<U | true>;
 }
 
@@ -101,6 +101,7 @@ export function parserStage<T>(
     }
   };
 
+  // TODO if name is unspecified use the name of the stage
   stageFn.named = (name: string) => parserStage(fn, name);
   stageFn.mapResults = mapResults;
 
@@ -108,12 +109,12 @@ export function parserStage<T>(
     mapResults((results) => fn(results.value));
 
   function mapResults<U>(
-    fn: (results: ParserResult<T>) => U | null
+    fn: (results: ParserResult<T>, state: ParserContext) => U | null
   ): ParserStage<U | true> {
     return parserStage((state: ParserContext): OptParserResult<U | true> => {
       const origResults = stageFn(state);
       if (origResults === null) return null;
-      const mappedValue = fn(origResults);
+      const mappedValue = fn(origResults, state);
       if (mappedValue === null) return null;
       const value = mappedValue === undefined ? true : mappedValue;
 
