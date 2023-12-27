@@ -22,9 +22,9 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  * are supplied an array for returning application specific results.
  * Custom parsers typically return a value to containing parsers for intermediate
  * results, and add results to the results array when a semantic phrase is
- * fully parsed. 
- * 
- * Custom functions are also supplied the lexer so that they can temporarily change 
+ * fully parsed.
+ *
+ * Custom functions are also supplied the lexer so that they can temporarily change
  * lexing mode (e.g. while processing comments or strings)
  */
 
@@ -61,8 +61,7 @@ type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
 type ParserStageArg<T> = ParserStage<T> | string;
 
-/** Convert a parsing function to a parser stage for use with combinators.
- * This is normally the way users construct non-trivial parsing */
+/** Convert a parsing function to a parser stage for use with combinators. */
 export function parsing<T>(
   fn: (state: ParserContext) => T | null | undefined
 ): ParserStage<T> {
@@ -78,7 +77,7 @@ export function parsing<T>(
   return parserStage(parserFn);
 }
 
-/** wrap a function returning */
+/** wrap a parsing stage function to create a ParserStage */
 export function parserStage<T>(
   fn: StageFn<T>,
   resultName?: string
@@ -181,11 +180,11 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   });
 }
 
-/** Try a parser. 
+/** Try a parser.
  *
  * If the parse succeeds, return the result.
  * If the parser fails, return false and don't advance the input. Returning false
- * indicates a successful parse, so combinators like seq() will succeed. 
+ * indicates a successful parse, so combinators like seq() will succeed.
  */
 export function opt<T>(stage: string): ParserStage<string | boolean>;
 export function opt<T>(stage: ParserStage<T>): ParserStage<T | boolean>;
