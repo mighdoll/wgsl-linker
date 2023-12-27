@@ -4,13 +4,14 @@ import { mainMatch } from "../MiniLexer.js";
 import { lineComment, miniParse } from "../MiniParser.js";
 import { ParserContext, ParserStage } from "../ParserCombinator.js";
 
-test("parse #import foo", () => {
-  const parsed = miniParse("#import foo");
+test("parse empty string", () => {
+  const parsed = miniParse("");
   expect(parsed).toMatchSnapshot();
 });
 
-test("parse empty string", () => {
-  const parsed = miniParse("");
+
+test("parse #import foo", () => {
+  const parsed = miniParse("#import foo");
   expect(parsed).toMatchSnapshot();
 });
 
