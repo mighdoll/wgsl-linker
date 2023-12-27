@@ -99,7 +99,7 @@ test("repeat() to (1,2,3,4) via named", () => {
 
 test("map()", () => {
   const src = "foo";
-  const p = kind(m.word).map((r) => ({ value: r.value + "!", named: r.named }));
+  const p = kind(m.word).map((r) => r + "!");
   const { lexed } = testCombinator(src, p);
   expect(lexed?.value).equals("foo!");
 });
