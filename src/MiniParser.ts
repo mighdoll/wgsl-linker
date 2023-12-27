@@ -4,14 +4,23 @@ import {
   lineCommentMatch,
   mainMatch,
 } from "./MiniLexer.js";
-import { ParserContext, kind, or, parsing, seq } from "./ParserCombinator.js";
+import {
+  ParserContext,
+  kind,
+  opt,
+  or,
+  parsing,
+  repeat,
+  seq,
+  tokens,
+} from "./ParserCombinator.js";
 
 interface ParserState {
   lexer: Lexer;
   results: AbstractElem[];
 }
 
-export type AbstractElem = DirectiveElem;
+export type AbstractElem = ExportElem;
 
 /** 'interesting' elements found in the source */
 export interface AbstractElemBase {
@@ -19,31 +28,34 @@ export interface AbstractElemBase {
   position: number;
 }
 
-export interface DirectiveElem extends AbstractElemBase {
-  kind: "directive";
-  name: string;
-  args: string[];
+export interface ExportElem extends AbstractElemBase {
+  kind: "export";
+  name?: string;
+  args?: string[];
 }
 
-const singleWord = parsing((state: ParserState): string | null => {
-  return state.lexer.withMatcher(directiveArgsMatch, () => {
-    const x = seq(kind("word"), kind("eol"))(state);
-    return x?.value[0] || null;
-  });
+const m = mainMatch;
+const a = directiveArgsMatch;
+
+const directiveArgs = seq(
+  "lparen",
+  kind(a.word).named("word"),
+  repeat(seq(a.comma, kind(a.word).named("word"))),
+  "rparen"
+).mapResults((r) => r.named.word);
+
+const exportDirective = seq(
+  m.exportD,
+  tokens(
+    directiveArgsMatch,
+    seq(opt(kind("word").named("exportName")), opt(directiveArgs.named("args")))
+  )
+).mapResults((r, state) => {
+  const { exportName, args } = r.named;
+  state.results.push({ kind: "export", name: exportName?.[0], args });
 });
 
-const directive = parsing((state: ParserState): string | null => {
-  const directiveElems = seq(kind("directive"), singleWord)(state);
-  if (directiveElems) {
-    const [direct, word] = directiveElems.value;
-    const name = direct;
-    const position = state.lexer.position();
-    state.results.push({ kind: "directive", name, args: [word], position });
-    return name;
-  } else {
-    return null;
-  }
-});
+export const directive = exportDirective; // TODO import directive
 
 export const lineComment = parsing((state: ParserState): boolean | null => {
   return state.lexer.withMatcher(lineCommentMatch, () => {
@@ -64,17 +76,6 @@ export function miniParse(src: string): AbstractElem[] {
 
   return state.results;
 }
-
-// function parenArgs(): string[] | null {
-//   return lexer.withMatcher(directiveArgsMatch, () => {
-//     const results = seq("lparen", "word", "rparen", "eol");
-//     if (!results) {
-//       return null;
-//     }
-//     const args = [results[1]];
-//     return args;
-//   });
-// }
 
 // export const lineComment = parsing(
 //   (state: ParserState): OptParserResult<any> => {
