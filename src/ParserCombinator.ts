@@ -146,6 +146,12 @@ export function seq<T = Token, U = Token, V = Token>(
   b: ParserStageArg<U>,
   c: ParserStageArg<V>
 ): ParserStage<[T, U, V]>;
+export function seq<T = Token, U = Token, V = Token, W = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>,
+  d: ParserStageArg<W>
+): ParserStage<[T, U, V, W]>;
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage((state: ParserContext) => {
     const values = [];
