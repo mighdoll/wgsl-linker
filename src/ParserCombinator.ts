@@ -52,7 +52,7 @@ export type OptParserResult<T> = ParserResult<T> | null;
 export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
-  map<U>(fn: (result: T) => U | null): ParserStage<U>;
+  map<U>(fn: (result: T) => U | null): ParserStage<U | true>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -101,15 +101,16 @@ export function parserStage<T>(
   stageFn.named = (name: string) => parserStage(fn, name);
 
   stageFn.map = <U>(fn: (result: T) => U | null) => {
-    return parserStage((state: ParserContext): OptParserResult<U> => {
+    return parserStage((state: ParserContext): OptParserResult<U | true> => {
       const origResults = stageFn(state);
       if (origResults === null) return null;
-      
-      const { value, named } = origResults;
-      const mappedValue = fn(value);
-      if (mappedValue === null) return null;
 
-      return { value: mappedValue, named };
+      const { value: origValue, named } = origResults;
+      const mappedValue = fn(origValue);
+      if (mappedValue === null) return null;
+      const value = mappedValue === undefined ? true : mappedValue;
+
+      return { value, named };
     }, resultName);
   };
 
