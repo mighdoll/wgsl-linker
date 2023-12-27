@@ -41,17 +41,17 @@ const a = directiveArgsMatch;
 const l = lineCommentMatch;
 
 const directiveArgs = seq(
-  "lparen",
+  a.lparen,
   kind(a.word).named("word"),
   repeat(seq(a.comma, kind(a.word).named("word"))),
-  "rparen"
+  a.rparen
 ).mapResults((r) => r.named.word);
 
 const exportDirective = seq(
   m.exportD,
   tokens(
     directiveArgsMatch,
-    seq(opt(kind("word").named("exportName")), opt(directiveArgs.named("args")))
+    seq(opt(kind(a.word).named("exportName")), opt(directiveArgs.named("args")))
   )
 ).mapResults((r) => {
   const { start, end, results } = r;
@@ -79,13 +79,3 @@ export function miniParse(src: string): AbstractElem[] {
 
   return state.app;
 }
-
-// export const lineComment = parsing(
-//   (state: ParserState): OptParserResult<any> => {
-//     return state.lexer.withMatcher(lineCommentMatch, () => {
-//       const afterComment = or(directive, kind("notDirective"));
-//       const parser = seq(kind("lineComment"), afterComment);
-//       return parser(state);
-//     });
-//   }
-// );
