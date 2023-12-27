@@ -1,5 +1,4 @@
-import { E } from "vitest/dist/types-dea83b3d.js";
-import { Lexer, matchingLexer } from "./MatchingLexer.js";
+import { matchingLexer } from "./MatchingLexer.js";
 import {
   directiveArgsMatch,
   lineCommentMatch,
@@ -10,7 +9,6 @@ import {
   kind,
   opt,
   or,
-  parsing,
   repeat,
   seq,
   tokens,
@@ -54,12 +52,12 @@ const exportDirective = seq(
   m.exportD,
   tokens(
     directiveArgsMatch,
-    seq(opt(kind(a.word).named("exportName")), opt(directiveArgs.named("args")))
+    seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")))
   )
 ).mapResults((r) => {
   const { start, end, results } = r;
-  const { exportName, args } = r.named;
-  const name = exportName?.[0];
+  const { exp, args } = r.named;
+  const name = exp?.[0];
   const e: ExportElem = { kind: "export", name, args, start, end };
   results.push(e);
 });
@@ -69,7 +67,7 @@ const importDirective = seq(
   tokens(
     directiveArgsMatch,
     seq(
-      kind(a.word).named("importName"),
+      kind(a.word).named("imp"),
       opt(directiveArgs.named("args")),
       opt(seq(a.from, kind(a.word).named("from"))),
       opt(seq(a.as, kind(a.word).named("as")))
@@ -77,8 +75,8 @@ const importDirective = seq(
   )
 ).mapResults((r) => {
   const { start, end, results } = r;
-  const { importName, args, from, as } = r.named;
-  const name = importName[0];
+  const { imp, args, from, as } = r.named;
+  const name = imp[0];
   const f = from?.[0];
   const a = as?.[0];
   const kind = "import";
