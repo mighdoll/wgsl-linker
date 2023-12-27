@@ -13,6 +13,46 @@ exports[`lineComment parse // #import foo 1`] = `
 ]
 `;
 
+exports[`parse #export foo 1`] = `
+[
+  {
+    "args": undefined,
+    "kind": "export",
+    "name": "foo",
+  },
+]
+`;
+
+exports[`parse #export foo(bar) 1`] = `
+[
+  {
+    "args": [
+      [
+        "bar",
+      ],
+    ],
+    "kind": "export",
+    "name": "foo",
+  },
+]
+`;
+
+exports[`parse #export foo(bar, baz, boo) 1`] = `
+[
+  {
+    "args": [
+      [
+        "bar",
+        "baz",
+        "boo",
+      ],
+    ],
+    "kind": "export",
+    "name": "foo",
+  },
+]
+`;
+
 exports[`parse #import foo 1`] = `
 [
   {

@@ -12,12 +12,27 @@ test("parse empty string", () => {
 test("directive parses #export", () => {
   const parsed = testParse(directive, "#export");
   expect(parsed.results[0].kind).equals("export");
-})
+});
 
 test("parse #export", () => {
   const parsed = miniParse("#export");
   expect(parsed[0].kind).equals("export");
-})
+});
+
+test("parse #export foo", () => {
+  const parsed = miniParse("#export foo");
+  expect(parsed).toMatchSnapshot();
+});
+
+test("parse #export foo(bar)", () => {
+  const parsed = miniParse("#export foo(bar)");
+  expect(parsed).toMatchSnapshot();
+});
+
+test("parse #export foo(bar, baz, boo)", () => {
+  const parsed = miniParse("#export foo(bar, baz, boo)");
+  expect(parsed).toMatchSnapshot();
+});
 
 test.skip("parse #import foo", () => {
   const parsed = miniParse("#import foo");
