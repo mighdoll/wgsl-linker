@@ -104,6 +104,13 @@ test("map()", () => {
   expect(parsed?.value).equals("foo!");
 });
 
+test("mapResults()", () => {
+  const src = "foo";
+  const p = kind(m.word)
+    .named("word")
+    .mapResults((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
+  const { parsed } = testCombinator(src, p);
+  expect(parsed?.value).equals("found");
 });
 
 /*
