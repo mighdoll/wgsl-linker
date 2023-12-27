@@ -10,22 +10,15 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  * and returns a result.
  *  Returning null indicate failure. Tokens are not consumed on failure.
  *  Users can also use the .named() method to tag results from a stage. Named results
- *    propagate up to containing parsers for convenience in selecting key results
- *    from other syntax.
+ *    propagate up to containing parsers for convenience in selecting results.
  *
  * Built in parsers and combinators are available:
  *  kind() recognizes tokens of a particular type.
- *  or(), seq(), opt(), and repeat() combine other stages.
+ *  or(), seq(), opt(), map(), and repeat() combine other stages.
  *
- * Users construct their own parsers by combining other parser stages but also
- * by supplying custom functions to parsing(). Custom functions
- * are supplied an array for returning application specific results.
- * Custom parsers typically return a value to containing parsers for intermediate
- * results, and add results to the results array when a semantic phrase is
- * fully parsed.
- *
- * Custom functions are also supplied the lexer so that they can temporarily change
- * lexing mode (e.g. while processing comments or strings)
+ * Users construct their own parsers by combining other parser stages
+ * and typically report results by using mapResults() to modify the
+ * user manged app[] array.
  */
 
 /** Information passed to the parsers during parsing */
@@ -33,8 +26,8 @@ export interface ParserContext {
   /** supply tokens to the parser*/
   lexer: Lexer;
 
-  /** for user written parsers to accumulate parsing results */
-  results: any[];
+  /** handy place for user written parsers to accumulate application results */
+  app: any[];
 }
 
 /** Result from a parser */
@@ -123,7 +116,7 @@ export function parserStage<T>(
       const origResults = stageFn(state);
       if (origResults === null) return null;
       const end = state.lexer.position();
-      const extended = { ...origResults, start, end, results: state.results };
+      const extended = { ...origResults, start, end, results: state.app };
       const mappedValue = fn(extended);
       if (mappedValue === null) return null;
       const value = mappedValue === undefined ? true : mappedValue;

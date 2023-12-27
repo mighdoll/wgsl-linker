@@ -11,7 +11,7 @@ test("parse empty string", () => {
 
 test("directive parses #export", () => {
   const parsed = testParse(directive, "#export");
-  expect(parsed.results[0].kind).equals("export");
+  expect(parsed.app[0].kind).equals("export");
 });
 
 test("parse #export", () => {
@@ -49,7 +49,7 @@ test.skip("lineComment parse // #import foo", () => {
   const src = "// #import foo";
   const state = testParse(lineComment, src);
   expect(state.lexer.position()).eq(src.length);
-  expect(state.results).toMatchSnapshot();
+  expect(state.app).toMatchSnapshot();
 });
 
 export function testParse<T>(
@@ -57,9 +57,9 @@ export function testParse<T>(
   src: string
 ): ParserContext {
   const lexer = matchingLexer(src, mainMatch);
-  const results: any[] = [];
+  const app: any[] = [];
 
-  const state: ParserContext = { lexer, results };
+  const state: ParserContext = { lexer, app };
   stage(state);
 
   return state;

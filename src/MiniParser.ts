@@ -74,12 +74,12 @@ const root = or(directive, lineComment);
 
 export function miniParse(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainMatch);
-  const results: AbstractElem[] = [];
+  const app: AbstractElem[] = [];
 
-  const state: ParserContext = { lexer, results };
+  const state: ParserContext = { lexer, app };
   root(state);
 
-  return state.results;
+  return state.app;
 }
 
 // export const lineComment = parsing(

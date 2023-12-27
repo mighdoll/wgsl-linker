@@ -19,8 +19,8 @@ function testCombinator<T>(
   p: ParserStage<T>
 ): { parsed: OptParserResult<T>; position: number } {
   const lexer = matchingLexer(src, mainMatch);
-  const results: any[] = [];
-  const parsed = p({ lexer, results });
+  const app: any[] = [];
+  const parsed = p({ lexer, app });
   return { parsed, position: lexer.position() };
 }
 
@@ -88,11 +88,11 @@ test("opt() makes failing match ok", () => {
 test("repeat() to (1,2,3,4) via named", () => {
   const src = "(1,2,3,4)";
   const lexer = matchingLexer(src, directiveArgsMatch);
-  const results: any[] = [];
+  const app: any[] = [];
   const wordNum = or("word", "digits").named("wn");
   const params = seq(opt(wordNum), opt(repeat(seq("comma", wordNum))));
   const p = seq("lparen", params, "rparen");
-  const parsed = p({ lexer, results });
+  const parsed = p({ lexer, app });
   expect(parsed).not.null;
   expect(parsed?.named.wn).deep.equals(["1", "2", "3", "4"]);
 });
