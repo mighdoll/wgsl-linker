@@ -1,5 +1,5 @@
 import { Lexer } from "./MatchingLexer.js";
-import { Token } from "./TokenMatcher.js";
+import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 /** Parsing Combinators
  *
@@ -210,6 +210,19 @@ export function repeat<T>(
       }
     }
   );
+}
+
+/** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
+export function tokens<T>(
+  matcher: TokenMatcher,
+  arg: ParserStageArg<T>
+): ParserStage<T | string> {
+  return parserStage((state: ParserContext): OptParserResult<T | string> => {
+    return state.lexer.withMatcher(matcher, () => {
+      const parser = parserArg(arg);
+      return parser(state);
+    });
+  });
 }
 
 /** convert naked string arguments into kind() parsers */
