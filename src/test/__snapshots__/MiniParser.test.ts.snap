@@ -1,24 +1,13 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`lineComment parse // #import foo 1`] = `
-[
-  {
-    "args": [
-      "foo",
-    ],
-    "kind": "directive",
-    "name": "#import",
-    "position": 14,
-  },
-]
-`;
-
 exports[`parse #export foo 1`] = `
 [
   {
     "args": undefined,
+    "end": 11,
     "kind": "export",
     "name": "foo",
+    "start": 0,
   },
 ]
 `;
@@ -31,8 +20,10 @@ exports[`parse #export foo(bar) 1`] = `
         "bar",
       ],
     ],
+    "end": 16,
     "kind": "export",
     "name": "foo",
+    "start": 0,
   },
 ]
 `;
@@ -47,8 +38,10 @@ exports[`parse #export foo(bar, baz, boo) 1`] = `
         "boo",
       ],
     ],
+    "end": 26,
     "kind": "export",
     "name": "foo",
+    "start": 0,
   },
 ]
 `;
