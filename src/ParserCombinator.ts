@@ -61,7 +61,7 @@ export interface ParserStage<T> {
   named(name: string): ParserStage<T>;
   map<U>(fn: (result: T) => U | null): ParserStage<U | true>;
   mapResults<U>(
-    fn: (result: ExtendedResult<T>, state: ParserContext) => U | null
+    fn: (result: ExtendedResult<T>) => U | null
   ): ParserStage<U | true>;
 }
 
@@ -116,7 +116,7 @@ export function parserStage<T>(
     mapResults((results) => fn(results.value));
 
   function mapResults<U>(
-    fn: (results: ExtendedResult<T>, state: ParserContext) => U | null
+    fn: (results: ExtendedResult<T>) => U | null
   ): ParserStage<U | true> {
     return parserStage((state: ParserContext): OptParserResult<U | true> => {
       const start = state.lexer.position();
@@ -124,7 +124,7 @@ export function parserStage<T>(
       if (origResults === null) return null;
       const end = state.lexer.position();
       const extended = { ...origResults, start, end, results: state.results };
-      const mappedValue = fn(extended, state);
+      const mappedValue = fn(extended);
       if (mappedValue === null) return null;
       const value = mappedValue === undefined ? true : mappedValue;
 

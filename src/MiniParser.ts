@@ -52,12 +52,12 @@ const exportDirective = seq(
     directiveArgsMatch,
     seq(opt(kind("word").named("exportName")), opt(directiveArgs.named("args")))
   )
-).mapResults((r, state) => {
-  const { start, end } = r;
+).mapResults((r) => {
+  const { start, end, results } = r;
   const { exportName, args } = r.named;
   const name = exportName?.[0];
   const e: ExportElem = { kind: "export", name, args, start, end };
-  state.results.push(e);
+  results.push(e);
 });
 
 export const directive = exportDirective; // TODO import directive
