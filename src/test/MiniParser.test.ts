@@ -34,8 +34,13 @@ test("parse #export foo(bar, baz, boo)", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test.skip("parse #import foo", () => {
+test("parse #import foo", () => {
   const parsed = miniParse("#import foo");
+  expect(parsed).toMatchSnapshot();
+});
+
+test("parse #import foo(a,b) from bar as baz", () => {
+  const parsed = miniParse("#import foo from bar as baz");
   expect(parsed).toMatchSnapshot();
 });
 

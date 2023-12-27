@@ -61,12 +61,27 @@ exports[`parse #export foo(bar, baz, boo) 1`] = `
 exports[`parse #import foo 1`] = `
 [
   {
-    "args": [
-      "foo",
-    ],
-    "kind": "directive",
-    "name": "#import",
-    "position": 11,
+    "args": undefined,
+    "as": undefined,
+    "end": 11,
+    "from": undefined,
+    "kind": "import",
+    "name": "foo",
+    "start": 0,
+  },
+]
+`;
+
+exports[`parse #import foo(a,b) from bar as baz 1`] = `
+[
+  {
+    "args": undefined,
+    "as": "baz",
+    "end": 27,
+    "from": "bar",
+    "kind": "import",
+    "name": "foo",
+    "start": 0,
   },
 ]
 `;

@@ -21,7 +21,7 @@ StructConstruct()
 
 const exportD = "#export";
 const importD = "#import";
-const directives = {exportD, importD};
+const directives = { exportD, importD };
 const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
 const ws = /\s+/;
 const lineComment = "//";
@@ -56,6 +56,8 @@ const equals = "=";
 export const directiveArgsMatch = tokenMatcher({
   lparen,
   rparen,
+  from: "from",
+  as: "as",
   word,
   digits,
   ws,

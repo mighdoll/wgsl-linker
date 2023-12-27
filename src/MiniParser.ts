@@ -16,12 +16,7 @@ import {
   tokens,
 } from "./ParserCombinator.js";
 
-interface ParserState {
-  lexer: Lexer;
-  results: AbstractElem[];
-}
-
-export type AbstractElem = ExportElem;
+export type AbstractElem = ImportElem | ExportElem;
 
 /** 'interesting' elements found in the source */
 export interface AbstractElemBase {
@@ -34,6 +29,14 @@ export interface ExportElem extends AbstractElemBase {
   kind: "export";
   name?: string;
   args?: string[];
+}
+
+export interface ImportElem extends AbstractElemBase {
+  kind: "import";
+  name?: string;
+  args?: string[];
+  as?: string;
+  from?: string;
 }
 
 const m = mainMatch;
@@ -61,7 +64,29 @@ const exportDirective = seq(
   results.push(e);
 });
 
-export const directive = exportDirective; // TODO import directive
+const importDirective = seq(
+  m.importD,
+  tokens(
+    directiveArgsMatch,
+    seq(
+      kind(a.word).named("importName"),
+      opt(directiveArgs.named("args")),
+      opt(seq(a.from, kind(a.word).named("from"))),
+      opt(seq(a.as, kind(a.word).named("as")))
+    )
+  )
+).mapResults((r) => {
+  const { start, end, results } = r;
+  const { importName, args, from, as } = r.named;
+  const name = importName[0];
+  const f = from?.[0];
+  const a = as?.[0];
+  const kind = "import";
+  const e: ImportElem = { kind, name, args, from: f, as: a, start, end };
+  results.push(e);
+});
+
+export const directive = or(exportDirective, importDirective);
 
 export const lineComment = tokens(
   lineCommentMatch,
