@@ -114,15 +114,21 @@ test("mapResults()", () => {
   expect(parsed?.value).equals("found");
 });
 
-test("not()", () => {
+test("not() success", () => {
   const src = "foo bar";
-  const p = repeat(not(m.lbrace).debug("not"));
+  const p = repeat(not(m.lbrace));
   const { parsed } = testCombinator(src, p);
 
   const values = parsed!.value as Token[];
-  expect(values.map(v => v.text)).deep.equals(["foo", "bar"])
+  expect(values.map((v) => v.text)).deep.equals(["foo", "bar"]);
 });
 
+test("not() failure", () => {
+  const src = "foo";
+  const p = seq(not(m.word));
+  const { parsed } = testCombinator(src, p);
+  expect(parsed).null;
+});
 
 /*
  consider making a conciser way to specify parsers: 

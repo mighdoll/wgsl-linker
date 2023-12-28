@@ -173,6 +173,9 @@ export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
 export function seq<T = Token, U = Token>(
+  a: ParserStageArg<T>
+): ParserStage<[T]>;
+export function seq<T = Token, U = Token>(
   a: ParserStageArg<T>,
   b: ParserStageArg<U>
 ): ParserStage<[T, U]>;
@@ -229,7 +232,7 @@ export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
   return parserStage((state: ParserContext): OptParserResult<Token | true> => {
     const result = parserArg(stage)(state);
     if (result) {
-      return { value: true, named: {} };
+      return null;
     } else {
       const next = state.lexer.next();
       return next ? { value: next, named: {} } : null;
