@@ -6,7 +6,11 @@ export interface Lexer {
   position(pos?: number): number;
 }
 
-export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
+export function matchingLexer(
+  src: string,
+  rootMatcher: TokenMatcher,
+  ignore = new Set(["ws"])
+): Lexer {
   let matcher = rootMatcher;
   const matcherStack: TokenMatcher[] = [];
 
@@ -14,7 +18,7 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
 
   function next(): Token | undefined {
     let token = matcher.next();
-    while (token?.kind === "ws") {
+    while (token && ignore.has(token.kind)) {
       token = matcher.next();
     }
     // console.log({ token });
