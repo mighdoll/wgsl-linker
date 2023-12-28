@@ -139,7 +139,7 @@ export const fnDecl = seq(
 
 const root = or(fnDecl, directive, lineComment);
 
-export function miniParse(src: string): AbstractElem[] {
+export function parseMiniWgsl(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainMatch);
   const app: AbstractElem[] = [];
 

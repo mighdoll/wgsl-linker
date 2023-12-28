@@ -1,12 +1,12 @@
 import { expect, test } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
 import { mainMatch } from "../MiniWgslMatch.js";
-import { directive, lineComment, miniParse } from "../MiniWgslParse.js";
+import { directive, lineComment, parseMiniWgsl } from "../MiniWgslParse.js";
 import { ParserContext, ParserStage } from "../ParserCombinator.js";
 import { testParse } from "./TestParse.js";
 
 test("parse empty string", () => {
-  const parsed = miniParse("");
+  const parsed = parseMiniWgsl("");
   expect(parsed).toMatchSnapshot();
 });
 
@@ -16,32 +16,32 @@ test("directive parses #export", () => {
 });
 
 test("parse #export", () => {
-  const parsed = miniParse("#export");
+  const parsed = parseMiniWgsl("#export");
   expect(parsed[0].kind).equals("export");
 });
 
 test("parse #export foo", () => {
-  const parsed = miniParse("#export foo");
+  const parsed = parseMiniWgsl("#export foo");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #export foo(bar)", () => {
-  const parsed = miniParse("#export foo(bar)");
+  const parsed = parseMiniWgsl("#export foo(bar)");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #export foo(bar, baz, boo)", () => {
-  const parsed = miniParse("#export foo(bar, baz, boo)");
+  const parsed = parseMiniWgsl("#export foo(bar, baz, boo)");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #import foo", () => {
-  const parsed = miniParse("#import foo");
+  const parsed = parseMiniWgsl("#import foo");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #import foo(a,b) from bar as baz", () => {
-  const parsed = miniParse("#import foo from bar as baz");
+  const parsed = parseMiniWgsl("#import foo from bar as baz");
   expect(parsed).toMatchSnapshot();
 });
 
@@ -60,12 +60,12 @@ test("lineComment parse // #export foo", () => {
 
 test("parse fn foo() { }", () => {
   const src = "fn foo() { }";
-  const parsed = miniParse(src);
+  const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse fn with calls", () => {
   const src = "fn foo() {  foo(); bar(); }";
-  const parsed = miniParse(src);
+  const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
