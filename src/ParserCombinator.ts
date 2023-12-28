@@ -224,6 +224,19 @@ export function opt<T>(
   );
 }
 
+/** parse any token, except the provided */
+export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
+  return parserStage((state: ParserContext): OptParserResult<Token | true> => {
+    const result = parserArg(stage)(state);
+    if (result) {
+      return { value: true, named: {} };
+    } else {
+      const next = state.lexer.next();
+      return next ? { value: next, named: {} } : null;
+    }
+  });
+}
+
 export function repeat(stage: string): ParserStage<string[]>;
 export function repeat<T>(stage: ParserStage<T>): ParserStage<T[]>;
 export function repeat<T>(

@@ -3,6 +3,7 @@ import {
   OptParserResult,
   ParserStage,
   kind,
+  not,
   opt,
   or,
   repeat,
@@ -112,6 +113,16 @@ test("mapResults()", () => {
   const { parsed } = testCombinator(src, p);
   expect(parsed?.value).equals("found");
 });
+
+test("not()", () => {
+  const src = "foo bar";
+  const p = repeat(not(m.lbrace).debug("not"));
+  const { parsed } = testCombinator(src, p);
+
+  const values = parsed!.value as Token[];
+  expect(values.map(v => v.text)).deep.equals(["foo", "bar"])
+});
+
 
 /*
  consider making a conciser way to specify parsers: 
