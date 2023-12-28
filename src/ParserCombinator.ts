@@ -160,6 +160,9 @@ export function text(value: string): ParserStage<string> {
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
+export function or<T = Token>(
+  a: ParserStageArg<T>,
+): ParserStage<T>;
 export function or<T = Token, U = Token>(
   a: ParserStageArg<T>,
   b: ParserStageArg<U>
