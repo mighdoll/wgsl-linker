@@ -37,7 +37,6 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
       const { startEnd, groupDex } = matchedIndex;
       const kind = groups[groupDex];
       const text = src.slice(startEnd[0], startEnd[1]);
-      // console.log({ kind, text });
       return { kind, text };
     }
   }
