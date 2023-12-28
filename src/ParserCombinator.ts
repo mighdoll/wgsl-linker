@@ -313,6 +313,14 @@ export function tokens<T>(
   });
 }
 
+/** A delayed parser definition, for making recursive parser definitions. */
+export function fn<T>(fn: () => ParserStage<T>): ParserStage<T | string> {
+  return parserStage((state: ParserContext): OptParserResult<T | string> => {
+    const stage = parserArg(fn());
+    return stage(state);
+  });
+}
+
 /** convert naked string arguments into kind() parsers */ // LATEr consider converting to text() parser instead
 function parserArg<T>(
   arg: ParserStageArg<T>

@@ -2,6 +2,7 @@ import { test, expect } from "vitest";
 import {
   OptParserResult,
   ParserStage,
+  fn,
   kind,
   not,
   opt,
@@ -18,11 +19,11 @@ const m = mainMatch;
 function testCombinator<T>(
   src: string,
   p: ParserStage<T>
-): { parsed: OptParserResult<T>; position: number } {
+): { parsed: OptParserResult<T>; position: number; app: any[] } {
   const lexer = matchingLexer(src, mainMatch);
   const app: any[] = [];
   const parsed = p({ lexer, app });
-  return { parsed, position: lexer.position() };
+  return { parsed, position: lexer.position(), app };
 }
 
 test("or() finds first match", () => {
@@ -128,6 +129,23 @@ test("not() failure", () => {
   const p = seq(not(m.word));
   const { parsed } = testCombinator(src, p);
   expect(parsed).null;
+});
+
+test("recurse with fn()", () => {
+  const src = "{ a { b } }";
+  const p: ParserStage<any> = seq(
+    m.lbrace,
+    repeat(
+      or(
+        kind(m.word).named("word"),
+        fn(() => p)
+      )
+    ),
+    m.rbrace
+  );
+  const wrap = or(p).mapResults((r) => r.results.push(r.named.word));
+  const { app } = testCombinator(src, wrap);
+  expect(app[0]).deep.equals(["a", "b"]);
 });
 
 /*
