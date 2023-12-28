@@ -260,7 +260,7 @@ export function tokens<T>(
   });
 }
 
-/** convert naked string arguments into kind() parsers */
+/** convert naked string arguments into kind() parsers */ // LATEr consider converting to text() parser instead
 function parserArg<T>(
   arg: ParserStageArg<T>
 ): ParserStage<T> | ParserStage<string> {
