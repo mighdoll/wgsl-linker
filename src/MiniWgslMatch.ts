@@ -22,7 +22,7 @@ StructConstruct()
 const exportD = "#export";
 const importD = "#import";
 const directives = { exportD, importD };
-const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
+const word = /[a-zA-Z_][a-zA-Z0-9_]*/;
 const ws = /\s+/;
 const lineComment = "//";
 const digits = /[0-9]+/;
@@ -40,7 +40,7 @@ export const mainMatch = tokenMatcher({
   rbrace: "}",
   commentStart: "/*",
   commentEnd: "*/",
-  annotation: /@[a-zA-Z_][a-zA-Z0-9_]+/,
+  annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
   word,
   ws,
 });
