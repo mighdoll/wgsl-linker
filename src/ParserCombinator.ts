@@ -160,9 +160,7 @@ export function text(value: string): ParserStage<string> {
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
-export function or<T = Token>(
-  a: ParserStageArg<T>,
-): ParserStage<T>;
+export function or<T = Token>(a: ParserStageArg<T>): ParserStage<T>;
 export function or<T = Token, U = Token>(
   a: ParserStageArg<T>,
   b: ParserStageArg<U>
@@ -172,6 +170,34 @@ export function or<T = Token, U = Token, V = Token>(
   b: ParserStageArg<U>,
   c: ParserStageArg<V>
 ): ParserStage<T | U | V>;
+export function or<T = Token, U = Token, V = Token, W = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>,
+  d: ParserStageArg<W>
+): ParserStage<T | U | V | W>;
+export function or<T = Token, U = Token, V = Token, W = Token, X = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>,
+  d: ParserStageArg<W>,
+  e: ParserStageArg<X>
+): ParserStage<T | U | V | W | X>;
+export function or<
+  T = Token,
+  U = Token,
+  V = Token,
+  W = Token,
+  X = Token,
+  Y = Token
+>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>,
+  d: ParserStageArg<W>,
+  e: ParserStageArg<X>,
+  f: ParserStageArg<Y>
+): ParserStage<T | U | V | W | X | Y>;
 export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
   return parserStage((state: ParserContext): ParserResult<any> | null => {
     for (const stage of stages) {
@@ -226,7 +252,7 @@ export function seq<
   d: ParserStageArg<W>,
   e: ParserStageArg<X>,
   f: ParserStageArg<Y>
-): ParserStage<[T, U, V, W, X]>;
+): ParserStage<[T, U, V, W, X, Y]>;
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage((state: ParserContext) => {
     const values = [];
