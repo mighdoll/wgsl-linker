@@ -92,20 +92,6 @@ export const fnDecl = seq(text("fn"), kind(a.word).named("fn")).mapResults(
   }
 );
 
-function makeElem<U extends AbstractElem>(
-  kind: U["kind"],
-  er: ExtendedResult<any>,
-  named: string[],
-  namedArrays: string[] = []
-): U {
-  const { start, end } = er;
-  const nameValues = named.map((n) => [n, er.named[n]?.[0]]);
-  const arrayValues = namedArrays.map((n) => [n, er.named[n]]);
-  const nv = Object.fromEntries(nameValues);
-  const av = Object.fromEntries(arrayValues);
-  return { kind, start, end, ...nv, ...av };
-}
-
 export const directive = or(fnDecl, exportDirective, importDirective);
 
 export const lineComment = tokens(
@@ -123,4 +109,19 @@ export function miniParse(src: string): AbstractElem[] {
   root(state);
 
   return state.app;
+}
+
+/** creat an AbstractElem by pulling fields from named parse results */
+function makeElem<U extends AbstractElem>(
+  kind: U["kind"],
+  er: ExtendedResult<any>,
+  named: string[],
+  namedArrays: string[] = []
+): U {
+  const { start, end } = er;
+  const nameValues = named.map((n) => [n, er.named[n]?.[0]]);
+  const arrayValues = namedArrays.map((n) => [n, er.named[n]]);
+  const nv = Object.fromEntries(nameValues);
+  const av = Object.fromEntries(arrayValues);
+  return { kind, start, end, ...nv, ...av };
 }
