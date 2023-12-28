@@ -81,8 +81,8 @@ const importDirective = seq(
     )
   )
 ).mapResults((r) => {
-  const ee = makeElem<ImportElem>("import", r, ["imp", "from", "as"], ["args"]);
-  r.results.push(ee);
+  const e = makeElem<ImportElem>("import", r, ["imp", "from", "as"], ["args"]);
+  r.results.push(e);
 });
 
 export const fnDecl = seq(
@@ -90,8 +90,7 @@ export const fnDecl = seq(
   kind(a.word).named("fn"),
   "lparen"
 ).mapResults((r) => {
-  const e = makeElem<FnElem>("fn", r, ["fn"]);
-  r.results.push(e);
+  r.results.push(makeElem<FnElem>("fn", r, ["fn"]));
 });
 
 export const directive = or(exportDirective, importDirective);
