@@ -56,6 +56,8 @@ export interface ParserStage<T> {
   mapResults<U>(
     fn: (result: ExtendedResult<T>) => U | null
   ): ParserStage<U | true>;
+  parserName?: string;
+  debug(name: string): ParserStage<T>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -85,18 +87,23 @@ export function parserStage<T>(
   fn: StageFn<T>,
   resultName?: string
 ): ParserStage<T> {
+  let debug: string;
+
   const stageFn = (state: ParserContext): OptParserResult<T> => {
     const position = state.lexer.position();
     const result = fn(state);
     if (result === null || result === undefined) {
+      if (debug) console.log(`${debug} no match`);
       state.lexer.position(position);
       return null;
-    } else if (resultName) {
-      return {
-        value: result.value,
-        named: mergeNamed(result.named, { [resultName]: [result.value] }),
-      };
     } else {
+      if (debug) console.log(`${debug} matched`);
+      if (resultName) {
+        return {
+          value: result.value,
+          named: mergeNamed(result.named, { [resultName]: [result.value] }),
+        };
+      }
       return result;
     }
   };
@@ -104,6 +111,10 @@ export function parserStage<T>(
   // TODO if name is unspecified use the name of the stage
   stageFn.named = (name: string) => parserStage(fn, name);
   stageFn.mapResults = mapResults;
+  stageFn.debug = (name: string) => {
+    debug = name;
+    return stageFn;
+  };
 
   stageFn.map = <U>(fn: (result: T) => U | null) =>
     mapResults((results) => fn(results.value));
@@ -190,6 +201,28 @@ export function seq<T = Token, U = Token, V = Token, W = Token>(
   c: ParserStageArg<V>,
   d: ParserStageArg<W>
 ): ParserStage<[T, U, V, W]>;
+export function seq<T = Token, U = Token, V = Token, W = Token, X = Token>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>,
+  d: ParserStageArg<W>,
+  e: ParserStageArg<X>
+): ParserStage<[T, U, V, W, X]>;
+export function seq<
+  T = Token,
+  U = Token,
+  V = Token,
+  W = Token,
+  X = Token,
+  Y = Token
+>(
+  a: ParserStageArg<T>,
+  b: ParserStageArg<U>,
+  c: ParserStageArg<V>,
+  d: ParserStageArg<W>,
+  e: ParserStageArg<X>,
+  f: ParserStageArg<Y>
+): ParserStage<[T, U, V, W, X]>;
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage((state: ParserContext) => {
     const values = [];
