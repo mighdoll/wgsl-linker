@@ -9,7 +9,7 @@ import {
   seq,
 } from "../ParserCombinator.js";
 import { matchingLexer } from "../MatchingLexer.js";
-import { directiveArgsMatch, mainMatch } from "../MiniLexer.js";
+import { directiveArgsMatch, mainMatch } from "../MiniWgslMatch.js";
 import { Token } from "../TokenMatcher.js";
 
 const m = mainMatch;

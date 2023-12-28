@@ -3,7 +3,7 @@ import {
   directiveArgsMatch,
   lineCommentMatch,
   mainMatch,
-} from "./MiniLexer.js";
+} from "./MiniWgslMatch.js";
 import {
   ExtendedResult,
   ParserContext,

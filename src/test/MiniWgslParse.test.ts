@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
-import { mainMatch } from "../MiniLexer.js";
-import { directive, lineComment, miniParse } from "../MiniParser.js";
+import { mainMatch } from "../MiniWgslMatch.js";
+import { directive, lineComment, miniParse } from "../MiniWgslParse.js";
 import { ParserContext, ParserStage } from "../ParserCombinator.js";
 
 test("parse empty string", () => {
