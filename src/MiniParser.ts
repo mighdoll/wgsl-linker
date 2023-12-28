@@ -85,21 +85,23 @@ const importDirective = seq(
   r.results.push(ee);
 });
 
-export const fnDecl = seq(text("fn"), kind(a.word).named("fn")).mapResults(
-  (r) => {
-    const e = makeElem<FnElem>("fn", r, ["fn"]);
-    r.results.push(e);
-  }
-);
+export const fnDecl = seq(
+  text("fn"),
+  kind(a.word).named("fn"),
+  "lparen"
+).mapResults((r) => {
+  const e = makeElem<FnElem>("fn", r, ["fn"]);
+  r.results.push(e);
+});
 
-export const directive = or(fnDecl, exportDirective, importDirective);
+export const directive = or(exportDirective, importDirective);
 
 export const lineComment = tokens(
   lineCommentMatch,
   or(directive, l.notDirective)
 );
 
-const root = or(directive, lineComment);
+const root = or(fnDecl, directive, lineComment);
 
 export function miniParse(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainMatch);

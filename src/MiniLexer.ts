@@ -26,11 +26,18 @@ const word = /[a-zA-Z_][a-zA-Z0-9_]+/;
 const ws = /\s+/;
 const lineComment = "//";
 const digits = /[0-9]+/;
+const lparen = "(";
+const rparen = ")";
+const comma = ",";
+const equals = "=";
 
 /** matching tokens at wgsl root level */
 export const mainMatch = tokenMatcher({
   ...directives,
   lineComment,
+  lparen,
+  lbrace: "{",
+  rbrace: "}",
   commentStart: "/*",
   commentEnd: "*/",
   annotation: /@[a-zA-Z_][a-zA-Z0-9_]+/,
@@ -47,10 +54,6 @@ export const lineCommentMatch = tokenMatcher({
   notDirective,
   eol,
 });
-const lparen = "(";
-const rparen = ")";
-const comma = ",";
-const equals = "=";
 
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
 export const directiveArgsMatch = tokenMatcher({

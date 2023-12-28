@@ -3,7 +3,7 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
 export interface Lexer {
   next(): Token | undefined;
   withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T;
-  tryParse<T>(fn: () => T): T | undefined;
+  tryParse<T>(fn: () => T): T | undefined;  // TODO drop this?
   position(pos?: number): number;
 }
 

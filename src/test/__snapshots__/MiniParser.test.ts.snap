@@ -87,3 +87,14 @@ exports[`parse #import foo(a,b) from bar as baz 1`] = `
 `;
 
 exports[`parse empty string 1`] = `[]`;
+
+exports[`parse fn foo() {} 1`] = `
+[
+  {
+    "end": 7,
+    "fn": "foo",
+    "kind": "fn",
+    "start": 0,
+  },
+]
+`;
