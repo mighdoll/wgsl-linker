@@ -10,7 +10,7 @@ type FullTokenMatcher<T> = TokenMatcher & {
 export interface TokenMatcher {
   start(src: string, position?: number): void;
   next(): Token | undefined;
-  position(): number;
+  position(position?: number): number;
 }
 
 export function tokenMatcher<T extends Record<string, string | RegExp>>(
@@ -22,7 +22,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
   const expParts = Object.values(matchers).map(toRegexSource).join("|");
   const exp = new RegExp(expParts, "idg");
 
-  function start(text: string, position = 0): void {
+  function start(text: string, position: number = 0): void {
     src = text;
     exp.lastIndex = position;
   }
@@ -42,7 +42,10 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
     }
   }
 
-  function position(): number {
+  function position(pos?: number): number {
+    if (pos) {
+      exp.lastIndex = pos;
+    }
     return exp.lastIndex;
   }
 

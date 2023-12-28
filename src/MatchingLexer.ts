@@ -32,13 +32,12 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
     const position = matcher.position();
     matcher =
       matcherStack.pop() || (console.error("too many pops"), rootMatcher);
-    matcher.start(src, position);
+    matcher.position(position);
   }
 
   function position(pos?: number): number {
     if (pos !== undefined) {
       matcher.start(src, pos);
-      return pos;
     }
     return matcher.position();
   }
