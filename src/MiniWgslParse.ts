@@ -7,7 +7,10 @@ import {
 import {
   ExtendedResult,
   ParserContext,
+  ParserStage,
+  fn,
   kind,
+  not,
   opt,
   or,
   repeat,
@@ -85,20 +88,34 @@ const importDirective = seq(
   r.results.push(e);
 });
 
+export const directive = or(exportDirective, importDirective);
+
+export const lineComment = seq(
+  m.lineComment,
+  tokens(lineCommentMatch, or(directive, l.notDirective))
+);
+
+const block: ParserStage<any> = seq(
+  m.lbrace,
+  repeat(
+    or(
+      lineComment,
+      fn(() => block),
+      not(m.rbrace)
+    )
+  ),
+  m.rbrace
+);
+
 export const fnDecl = seq(
   text("fn"),
   kind(a.word).named("fn"),
-  "lparen"
+  "lparen",
+  repeat(or(lineComment, not(m.lbrace))),
+  block
 ).mapResults((r) => {
   r.results.push(makeElem<FnElem>("fn", r, ["fn"]));
 });
-
-export const directive = or(exportDirective, importDirective);
-
-export const lineComment = tokens(
-  lineCommentMatch,
-  or(directive, l.notDirective)
-);
 
 const root = or(fnDecl, directive, lineComment);
 

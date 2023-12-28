@@ -57,7 +57,7 @@ test("lineComment parse // #export foo", () => {
   expect(state.app).toMatchSnapshot();
 });
 
-test("parse fn foo() {}", () => {
+test("parse fn foo() { }", () => {
   const src = "fn foo() { }";
   const parsed = miniParse(src);
   expect(parsed).toMatchSnapshot();
