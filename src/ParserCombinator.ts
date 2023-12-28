@@ -66,7 +66,8 @@ type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
 type ParserStageArg<T> = ParserStage<T> | string;
 
-/** Convert a parsing function to a parser stage for use with combinators. */
+// TODO consider dropping this
+/** Create a ParserStage from a function that parses and returns a value */
 export function parsing<T>(
   fn: (state: ParserContext) => T | null | undefined
 ): ParserStage<T> {
@@ -82,7 +83,7 @@ export function parsing<T>(
   return parserStage(parserFn);
 }
 
-/** wrap a parsing stage function to create a ParserStage */
+/** Create a ParserStage from a full StageFn function that returns an OptParserResult */
 export function parserStage<T>(
   fn: StageFn<T>,
   resultName?: string
