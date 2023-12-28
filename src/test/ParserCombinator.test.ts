@@ -1,6 +1,7 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
+import { matchingLexer } from "../MatchingLexer.js";
+import { directiveArgsMatch, mainMatch } from "../MiniWgslMatch.js";
 import {
-  OptParserResult,
   ParserStage,
   fn,
   kind,
@@ -8,28 +9,17 @@ import {
   opt,
   or,
   repeat,
-  seq,
+  seq
 } from "../ParserCombinator.js";
-import { matchingLexer } from "../MatchingLexer.js";
-import { directiveArgsMatch, mainMatch } from "../MiniWgslMatch.js";
 import { Token } from "../TokenMatcher.js";
+import { testParse } from "./TestParse.js";
 
 const m = mainMatch;
-
-function testCombinator<T>(
-  src: string,
-  p: ParserStage<T>
-): { parsed: OptParserResult<T>; position: number; app: any[] } {
-  const lexer = matchingLexer(src, mainMatch);
-  const app: any[] = [];
-  const parsed = p({ lexer, app });
-  return { parsed, position: lexer.position(), app };
-}
 
 test("or() finds first match", () => {
   const src = "#import";
   const p = or("importD", "lineComment");
-  const { parsed, position } = testCombinator(src, p);
+  const { parsed, position } = testParse(p, src);
   expect(parsed?.value).toEqual("#import");
   expect(position).toEqual(src.length);
 });
@@ -37,7 +27,7 @@ test("or() finds first match", () => {
 test("or() finds second match", () => {
   const src = "// #import";
   const p = or(m.importD, m.lineComment);
-  const { parsed, position } = testCombinator(src, p);
+  const { parsed, position } = testParse(p, src);
   expect(parsed?.value).toEqual("//");
   expect(position).toEqual("//".length);
 });
@@ -45,7 +35,7 @@ test("or() finds second match", () => {
 test("or() finds no match ", () => {
   const src = "fn decl() {}";
   const p = or(m.importD, m.lineComment);
-  const { parsed, position } = testCombinator(src, p);
+  const { parsed, position } = testParse(p, src);
   expect(parsed).toEqual(null);
   expect(position).toEqual(0);
 });
@@ -53,7 +43,7 @@ test("or() finds no match ", () => {
 test("seq() returns null with partial match", () => {
   const src = "#import";
   const p = seq("directive", "word");
-  const { parsed, position } = testCombinator(src, p);
+  const { parsed, position } = testParse(p, src);
   expect(parsed).toEqual(null);
   expect(position).toEqual(0);
 });
@@ -61,28 +51,28 @@ test("seq() returns null with partial match", () => {
 test("seq() handles two element match", () => {
   const src = "#import foo";
   const p = seq(m.importD, m.word);
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed).toMatchSnapshot();
 });
 
 test("named kind match", () => {
   const src = "foo";
   const p = kind(m.word).named("nn");
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed?.named.nn).deep.equals(["foo"]);
 });
 
 test("seq() with named result", () => {
   const src = "#import foo";
   const p = seq(m.importD, kind(m.word).named("yo"));
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed?.named.yo).deep.equals(["foo"]);
 });
 
 test("opt() makes failing match ok", () => {
   const src = "foo";
   const p = seq(opt("directive"), "word");
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed).not.null;
   expect(parsed).toMatchSnapshot();
 });
@@ -102,7 +92,7 @@ test("repeat() to (1,2,3,4) via named", () => {
 test("map()", () => {
   const src = "foo";
   const p = kind(m.word).map((r) => r + "!");
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed?.value).equals("foo!");
 });
 
@@ -111,14 +101,14 @@ test("mapResults()", () => {
   const p = kind(m.word)
     .named("word")
     .mapResults((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed?.value).equals("found");
 });
 
 test("not() success", () => {
   const src = "foo bar";
   const p = repeat(not(m.lbrace));
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
 
   const values = parsed!.value as Token[];
   expect(values.map((v) => v.text)).deep.equals(["foo", "bar"]);
@@ -127,7 +117,7 @@ test("not() success", () => {
 test("not() failure", () => {
   const src = "foo";
   const p = seq(not(m.word));
-  const { parsed } = testCombinator(src, p);
+  const { parsed } = testParse(p, src);
   expect(parsed).null;
 });
 
@@ -144,14 +134,6 @@ test("recurse with fn()", () => {
     m.rbrace
   );
   const wrap = or(p).mapResults((r) => r.results.push(r.named.word));
-  const { app } = testCombinator(src, wrap);
+  const { app } = testParse(wrap, src);
   expect(app[0]).deep.equals(["a", "b"]);
 });
-
-/*
- consider making a conciser way to specify parsers: 
-
- wordNum = word | digits
- paramsList = #wordNum? (, #wordNum)*  
- params = "(" paramsList ")"
-*/

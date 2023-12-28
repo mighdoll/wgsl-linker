@@ -3,6 +3,7 @@ import { matchingLexer } from "../MatchingLexer.js";
 import { mainMatch } from "../MiniWgslMatch.js";
 import { directive, lineComment, miniParse } from "../MiniWgslParse.js";
 import { ParserContext, ParserStage } from "../ParserCombinator.js";
+import { testParse } from "./TestParse.js";
 
 test("parse empty string", () => {
   const parsed = miniParse("");
@@ -46,15 +47,15 @@ test("parse #import foo(a,b) from bar as baz", () => {
 
 test("lineComment parse // foo bar", () => {
   const src = "// foo bar";
-  const state = testParse(lineComment, src);
-  expect(state.lexer.position()).eq(src.length);
+  const { position } = testParse(lineComment, src);
+  expect(position).eq(src.length);
 });
 
 test("lineComment parse // #export foo", () => {
   const src = "// #export foo";
-  const state = testParse(lineComment, src);
-  expect(state.lexer.position()).eq(src.length);
-  expect(state.app).toMatchSnapshot();
+  const { position, app } = testParse(lineComment, src);
+  expect(position).eq(src.length);
+  expect(app).toMatchSnapshot();
 });
 
 test("parse fn foo() { }", () => {
@@ -68,16 +69,3 @@ test("parse fn with calls", () => {
   const parsed = miniParse(src);
   expect(parsed).toMatchSnapshot();
 });
-
-export function testParse<T>(
-  stage: ParserStage<T>,
-  src: string
-): ParserContext {
-  const lexer = matchingLexer(src, mainMatch);
-  const app: any[] = [];
-
-  const state: ParserContext = { lexer, app };
-  stage(state);
-
-  return state;
-}
