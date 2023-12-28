@@ -5,6 +5,7 @@ import {
   mainMatch,
 } from "./MiniLexer.js";
 import {
+  ExtendedResult,
   ParserContext,
   kind,
   opt,
@@ -15,13 +16,18 @@ import {
   tokens,
 } from "./ParserCombinator.js";
 
-export type AbstractElem = ImportElem | ExportElem;
+export type AbstractElem = ImportElem | ExportElem | FnElem;
 
 /** 'interesting' elements found in the source */
 export interface AbstractElemBase {
   kind: string;
   start: number;
   end: number;
+}
+
+export interface FnElem extends AbstractElemBase {
+  kind: "fn";
+  fn?: string;
 }
 
 export interface ExportElem extends AbstractElemBase {
@@ -75,19 +81,32 @@ const importDirective = seq(
     )
   )
 ).mapResults((r) => {
-  const { start, end, results } = r;
-  const { imp, args, from, as } = r.named;
-  const name = imp[0];
-  const f = from?.[0];
-  const a = as?.[0];
-  const kind = "import";
-  const e: ImportElem = { kind, name, args, from: f, as: a, start, end };
-  results.push(e);
+  const ee = makeElem<ImportElem>("import", r, ["imp", "from", "as"], ["args"]);
+  r.results.push(ee);
 });
 
+export const fnDecl = seq(text("fn"), kind(a.word).named("fn")).mapResults(
+  (r) => {
+    const e = makeElem<FnElem>("fn", r, ["fn"]);
+    r.results.push(e);
+  }
+);
 
+function makeElem<U extends AbstractElem>(
+  kind: U["kind"],
+  er: ExtendedResult<any>,
+  named: string[],
+  namedArrays: string[] = []
+): U {
+  const { start, end } = er;
+  const nameValues = named.map((n) => [n, er.named[n]?.[0]]);
+  const arrayValues = namedArrays.map((n) => [n, er.named[n]]);
+  const nv = Object.fromEntries(nameValues);
+  const av = Object.fromEntries(arrayValues);
+  return { kind, start, end, ...nv, ...av };
+}
 
-export const directive = or(exportDirective, importDirective);
+export const directive = or(fnDecl, exportDirective, importDirective);
 
 export const lineComment = tokens(
   lineCommentMatch,
