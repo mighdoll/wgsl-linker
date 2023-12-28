@@ -19,7 +19,7 @@ import {
   tokens,
 } from "./ParserCombinator.js";
 
-export type AbstractElem = ImportElem | ExportElem | FnElem;
+export type AbstractElem = ImportElem | ExportElem | FnElem | CallElem;
 
 /** 'interesting' elements found in the source */
 export interface AbstractElemBase {
@@ -28,9 +28,15 @@ export interface AbstractElemBase {
   end: number;
 }
 
+export interface CallElem extends AbstractElemBase {
+  kind: "call";
+  call: string;
+}
+
 export interface FnElem extends AbstractElemBase {
   kind: "fn";
-  fn?: string;
+  fn: string;
+  children: (ImportElem | CallElem)[];
 }
 
 export interface ExportElem extends AbstractElemBase {
@@ -41,7 +47,7 @@ export interface ExportElem extends AbstractElemBase {
 
 export interface ImportElem extends AbstractElemBase {
   kind: "import";
-  name?: string;
+  name: string;
   args?: string[];
   as?: string;
   from?: string;
@@ -95,11 +101,19 @@ export const lineComment = seq(
   tokens(lineCommentMatch, or(directive, l.notDirective))
 );
 
+export const fnCall = seq(
+  kind(m.word)
+    .mapResults(({ start, end, value }) => ({ start, end, call: value }))
+    .named("call"),
+  m.lparen
+);
+
 const block: ParserStage<any> = seq(
   m.lbrace,
   repeat(
     or(
       lineComment,
+      fnCall,
       fn(() => block),
       not(m.rbrace)
     )
@@ -114,7 +128,13 @@ export const fnDecl = seq(
   repeat(or(lineComment, not(m.lbrace))),
   block
 ).mapResults((r) => {
-  r.results.push(makeElem<FnElem>("fn", r, ["fn"]));
+  const calls = r.named.call || [];
+  const callElems: CallElem[] = calls.map(({ start, end, call }) => {
+    return { kind: "call", start, end, call };
+  });
+  const fn = makeElem<FnElem>("fn", r, ["fn"]);
+  fn.children = callElems;
+  r.results.push(fn);
 });
 
 const root = or(fnDecl, directive, lineComment);

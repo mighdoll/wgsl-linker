@@ -63,6 +63,12 @@ test("parse fn foo() { }", () => {
   expect(parsed).toMatchSnapshot();
 });
 
+test("parse fn with calls", () => {
+  const src = "fn foo() {  foo(); bar(); }";
+  const parsed = miniParse(src);
+  expect(parsed).toMatchSnapshot();
+});
+
 export function testParse<T>(
   stage: ParserStage<T>,
   src: string

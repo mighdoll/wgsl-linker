@@ -91,7 +91,33 @@ exports[`parse empty string 1`] = `[]`;
 exports[`parse fn foo() { } 1`] = `
 [
   {
+    "children": [],
     "end": 12,
+    "fn": "foo",
+    "kind": "fn",
+    "start": 0,
+  },
+]
+`;
+
+exports[`parse fn with calls 1`] = `
+[
+  {
+    "children": [
+      {
+        "call": "foo",
+        "end": 15,
+        "kind": "call",
+        "start": 10,
+      },
+      {
+        "call": "bar",
+        "end": 22,
+        "kind": "call",
+        "start": 16,
+      },
+    ],
+    "end": 27,
     "fn": "foo",
     "kind": "fn",
     "start": 0,
