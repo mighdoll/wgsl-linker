@@ -3,7 +3,6 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
 export interface Lexer {
   next(): Token | undefined;
   withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T;
-  tryParse<T>(fn: () => T): T | undefined;  // TODO drop this?
   position(pos?: number): number;
 }
 
@@ -20,15 +19,6 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
     }
     // console.log({ token });
     return token;
-  }
-
-  function tryParse<T>(fn: () => T): T {
-    const startPos = matcher.position();
-    const result = fn();
-    if (!result) {
-      matcher.start(src, startPos);
-    }
-    return result;
   }
 
   function pushMatcher(newMatcher: TokenMatcher): void {
@@ -62,7 +52,6 @@ export function matchingLexer(src: string, rootMatcher: TokenMatcher): Lexer {
 
   return {
     next,
-    tryParse,
     position,
     withMatcher,
   };
