@@ -68,7 +68,7 @@ const exportDirective = seq(
   m.exportD,
   tokens(
     directiveArgsMatch,
-    seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")))
+    seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), a.eol)
   )
 ).mapResults((r) => {
   const { start, end, results } = r;
@@ -78,6 +78,7 @@ const exportDirective = seq(
   results.push(e);
 });
 
+// #import foo<(a,b)> <from bar> <as boo>
 const importDirective = seq(
   text("#import"),
   tokens(
@@ -86,7 +87,8 @@ const importDirective = seq(
       kind(a.word).named("imp"),
       opt(directiveArgs.named("args")),
       opt(seq(text("from"), kind(a.word).named("from"))),
-      opt(seq(a.as, kind(a.word).named("as")))
+      opt(seq(a.as, kind(a.word).named("as"))),
+      a.eol
     )
   )
 ).mapResults((r) => {
