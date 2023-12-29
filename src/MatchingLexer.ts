@@ -4,6 +4,7 @@ export interface Lexer {
   next(): Token | undefined;
   withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T;
   position(pos?: number): number;
+  eof(): boolean;
 }
 
 export function matchingLexer(
@@ -53,9 +54,14 @@ export function matchingLexer(
     return result;
   }
 
+  function eof(): boolean {
+    return matcher.position() === src.length;
+  }
+
   return {
     next,
     position,
     withMatcher,
+    eof,
   };
 }

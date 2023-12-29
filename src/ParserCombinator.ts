@@ -304,7 +304,7 @@ export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
   });
 }
 
-/** yield next token, any token */ 
+/** yield next token, any token */
 export function any(): ParserStage<Token> {
   return parsing((state: ParserContext): Token | null => {
     const next = state.lexer.next();
@@ -354,6 +354,11 @@ export function fn<T>(fn: () => ParserStage<T>): ParserStage<T | string> {
     const stage = parserArg(fn());
     return stage(state);
   });
+}
+
+/** yields true if parsing has reached the end of input */
+export function eof(): ParserStage<true> {
+  return parsing((state: ParserContext) => state.lexer.eof() || null);
 }
 
 /** convert naked string arguments into kind() parsers */ // LATEr consider converting to text() parser instead
