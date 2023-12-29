@@ -88,7 +88,7 @@ const importDirective = seq(
   tokens(
     directiveArgsMatch,
     seq(
-      kind(a.word).named("imp"),
+      kind(a.word).named("name"),
       opt(directiveArgs.named("args")),
       opt(seq(text("from"), kind(a.word).named("from"))),
       opt(seq(a.as, kind(a.word).named("as"))),
@@ -96,7 +96,7 @@ const importDirective = seq(
     )
   )
 ).mapResults((r) => {
-  const e = makeElem<ImportElem>("import", r, ["imp", "from", "as"], ["args"]);
+  const e = makeElem<ImportElem>("import", r, ["name", "from", "as"], ["args"]);
   r.results.push(e);
 });
 
@@ -163,11 +163,12 @@ export function parseMiniWgsl(src: string): AbstractElem[] {
 function makeElem<U extends AbstractElem>(
   kind: U["kind"],
   er: ExtendedResult<any>,
-  named: string[],
+  named: (keyof U)[],
   namedArrays: string[] = []
 ): U {
   const { start, end } = er;
-  const nameValues = named.map((n) => [n, er.named[n]?.[0]]);
+  const nameds = named as string[];
+  const nameValues = nameds.map((n) => [n, er.named[n]?.[0]]);
   const arrayValues = namedArrays.map((n) => [n, er.named[n]]);
   const nv = Object.fromEntries(nameValues);
   const av = Object.fromEntries(arrayValues);

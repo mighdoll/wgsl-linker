@@ -17,6 +17,7 @@ export interface TextModule2 {
 export interface TextExport2 {
   name: string;
   ref: FnElem; // TODO | StructElem (| global var?)
+  src: string;
   // TODO parse report export params
 }
 
@@ -27,7 +28,7 @@ export function parseModule2(
   defaultModuleName?: string
 ): TextModule2 {
   const parsed = parseMiniWgsl(src);
-  const exports = findExports(parsed);
+  const exports = findExports(src, parsed);
   const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
   const imports = parsed.filter((e) => e.kind === "import") as ImportElem[];
   const moduleName = undefined; // TODO parse #module
@@ -39,13 +40,13 @@ export function parseModule2(
 // TODO consider how to export fields inside a struct.. currently indicated #export foo
 // should we still do text capture for fields? seems better to export (and merge?) the struct itself..
 
-function findExports(parsed: AbstractElem[]): TextExport2[] {
+function findExports(src:string, parsed: AbstractElem[]): TextExport2[] {
   const exports: TextExport2[] = [];
   parsed.forEach((elem, i) => {
     if (elem.kind === "export") {
       const next = parsed[i + 1];
       if (next?.kind === "fn") {
-        exports.push({ ref: next, name: next.fn });
+        exports.push({ ref: next, name: next.fn, src });
       }
     }
   });

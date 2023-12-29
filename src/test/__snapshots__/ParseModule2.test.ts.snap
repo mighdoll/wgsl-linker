@@ -25,8 +25,8 @@ exports[`read simple #fn import 1`] = `
       "as": undefined,
       "end": 18,
       "from": undefined,
-      "imp": "foo",
       "kind": "import",
+      "name": "foo",
       "start": 5,
     },
   ],
@@ -46,6 +46,12 @@ exports[`read simple fn export 1`] = `
         "kind": "fn",
         "start": 16,
       },
+      "src": "
+    // #export
+    fn one() -> i32 {
+      return 1;
+    }
+  ",
     },
   ],
   "fns": [

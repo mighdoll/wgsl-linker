@@ -65,8 +65,8 @@ exports[`parse #import foo 1`] = `
     "as": undefined,
     "end": 11,
     "from": undefined,
-    "imp": "foo",
     "kind": "import",
+    "name": "foo",
     "start": 0,
   },
 ]
@@ -79,8 +79,8 @@ exports[`parse #import foo(a,b) from bar as baz 1`] = `
     "as": "baz",
     "end": 27,
     "from": "bar",
-    "imp": "foo",
     "kind": "import",
+    "name": "foo",
     "start": 0,
   },
 ]
