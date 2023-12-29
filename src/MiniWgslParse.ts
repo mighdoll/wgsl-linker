@@ -8,6 +8,7 @@ import {
   ExtendedResult,
   ParserContext,
   ParserStage,
+  any,
   fn,
   kind,
   not,
@@ -139,7 +140,10 @@ export const fnDecl = seq(
   r.results.push(fn);
 });
 
-const root = or(fnDecl, directive, lineComment);
+const unknown = any().map((t) => console.log("unknown", t));
+const rootDecl = or(fnDecl, directive, lineComment, unknown);
+
+const root = repeat(rootDecl); // TODO check for EOF
 
 export function parseMiniWgsl(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainMatch);
