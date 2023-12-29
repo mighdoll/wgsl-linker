@@ -1,10 +1,16 @@
-import { AbstractElem, FnElem, parseMiniWgsl } from "./MiniWgslParse.js";
+import {
+  AbstractElem,
+  FnElem,
+  ImportElem,
+  parseMiniWgsl,
+} from "./MiniWgslParse.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
   template?: string;
   exports: TextExport2[];
   fns: FnElem[];
+  imports: ImportElem[];
 }
 
 export interface TextExport2 {
@@ -16,7 +22,8 @@ export function parseModule2(src: string): TextModule2 {
   const parsed = parseMiniWgsl(src);
   const exports = findExports(parsed);
   const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
-  return { exports, fns };
+  const imports = parsed.filter((e) => e.kind === "import") as ImportElem[];
+  return { exports, fns, imports };
 }
 
 // TODO consider how to export fields inside a struct.. currently indicated #export foo

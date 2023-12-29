@@ -1,22 +1,26 @@
 import { expect, test } from "vitest";
 import { parseModule2 } from "../ParseModule2.js";
 
-test.only("read simple fn export", () => {
-  const exportPrefix = `// #export`;
+test("read simple fn export", () => {
   const src = `
+    // #export
     fn one() -> i32 {
       return 1;
     }
   `;
-  const module = parseModule2(exportPrefix + "\n" + src);
+  const module = parseModule2(src);
   expect(module).toMatchSnapshot();
-
-  // expect(module.exports.length).toBe(1);
-  // const firstExport = module.exports[0];
-  // expect(firstExport.name).toBe("one");
-  // expect(firstExport.params).deep.equals([]);
-  // expect(firstExport.src).toBe(src);
 });
+
+test("read simple #fn import", () => {
+  const src = `
+  // #import foo
+  fn bar() { foo(); }
+  `
+  const module = parseModule2(src);
+  expect(module).toMatchSnapshot();
+});
+
 
 // test("read simple struct export", () => {
 //   const exportPrefix = `// #export`;

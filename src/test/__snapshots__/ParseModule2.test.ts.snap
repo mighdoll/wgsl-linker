@@ -1,26 +1,60 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`read simple #fn import 1`] = `
+{
+  "exports": [],
+  "fns": [
+    {
+      "children": [
+        {
+          "call": "foo",
+          "end": 34,
+          "kind": "call",
+          "start": 30,
+        },
+      ],
+      "end": 39,
+      "fn": "bar",
+      "kind": "fn",
+      "start": 18,
+    },
+  ],
+  "imports": [
+    {
+      "args": undefined,
+      "as": undefined,
+      "end": 18,
+      "from": undefined,
+      "imp": "foo",
+      "kind": "import",
+      "start": 5,
+    },
+  ],
+}
+`;
+
 exports[`read simple fn export 1`] = `
 {
   "exports": [
     {
       "ref": {
         "children": [],
-        "end": 55,
+        "end": 59,
         "fn": "one",
         "kind": "fn",
-        "start": 11,
+        "start": 16,
       },
     },
   ],
   "fns": [
     {
       "children": [],
-      "end": 55,
+      "end": 59,
       "fn": "one",
       "kind": "fn",
-      "start": 11,
+      "start": 16,
     },
   ],
+  "imports": [],
 }
 `;
