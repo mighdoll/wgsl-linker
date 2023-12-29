@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`read simple fn export 1`] = `
+{
+  "exports": [
+    {
+      "ref": {
+        "children": [],
+        "end": 55,
+        "fn": "one",
+        "kind": "fn",
+        "start": 11,
+      },
+    },
+  ],
+  "fns": [
+    {
+      "children": [],
+      "end": 55,
+      "fn": "one",
+      "kind": "fn",
+      "start": 11,
+    },
+  ],
+}
+`;
