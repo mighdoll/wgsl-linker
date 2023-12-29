@@ -8,7 +8,7 @@ test("read simple fn export", () => {
       return 1;
     }
   `;
-  const module = parseModule2(src);
+  const module = parseModule2(src, "my.module");
   expect(module).toMatchSnapshot();
 });
 
@@ -17,7 +17,7 @@ test("read simple #fn import", () => {
   // #import foo
   fn bar() { foo(); }
   `
-  const module = parseModule2(src);
+  const module = parseModule2(src, "my.module");
   expect(module).toMatchSnapshot();
 });
 

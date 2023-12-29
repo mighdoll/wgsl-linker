@@ -30,6 +30,7 @@ exports[`read simple #fn import 1`] = `
       "start": 5,
     },
   ],
+  "name": "my.module",
 }
 `;
 
@@ -37,6 +38,7 @@ exports[`read simple fn export 1`] = `
 {
   "exports": [
     {
+      "name": "one",
       "ref": {
         "children": [],
         "end": 59,
@@ -56,5 +58,6 @@ exports[`read simple fn export 1`] = `
     },
   ],
   "imports": [],
+  "name": "my.module",
 }
 `;
