@@ -65,6 +65,7 @@ const directiveArgs = seq(
   a.rparen
 ).mapResults((r) => r.named.word);
 
+/** #export <foo> <(a,b)> EOL */
 const exportDirective = seq(
   m.exportD,
   tokens(
@@ -79,7 +80,7 @@ const exportDirective = seq(
   results.push(e);
 });
 
-// #import foo<(a,b)> <from bar> <as boo>
+/** #import foo <(a,b)> <from bar> <as boo> EOL */
 const importDirective = seq(
   text("#import"),
   tokens(
@@ -99,6 +100,7 @@ const importDirective = seq(
 
 export const directive = or(exportDirective, importDirective);
 
+/** // <#import|#export|any> */
 export const lineComment = seq(
   m.lineComment,
   tokens(lineCommentMatch, or(directive, l.notDirective))
