@@ -290,7 +290,7 @@ export function opt<T>(
   );
 }
 
-/** parse any token, except the provided */
+/** yield one token, unless it matches the provided parser */ // TODO shouldn't consume match..
 export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
   return parserStage((state: ParserContext): OptParserResult<Token | true> => {
     const result = parserArg(stage)(state);
@@ -300,6 +300,14 @@ export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
       const next = state.lexer.next();
       return next ? { value: next, named: {} } : null;
     }
+  });
+}
+
+/** yield next token, any token */ 
+export function any(): ParserStage<Token> {
+  return parsing((state: ParserContext): Token | null => {
+    const next = state.lexer.next();
+    return next || null;
   });
 }
 
