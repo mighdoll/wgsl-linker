@@ -63,10 +63,10 @@ export const directiveArgsMatch = tokenMatcher({
   as: "as",
   word,
   digits,
-  ws,
   comma,
   equals,
   eol,
+  ws,
 });
 
 // const symbolSet =
