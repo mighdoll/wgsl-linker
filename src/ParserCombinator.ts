@@ -17,8 +17,9 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  *  or(), seq(), opt(), map(), and repeat() combine other stages.
  *
  * Users construct their own parsers by combining other parser stages
- * and typically report results by using mapResults() to modify the
- * user manged app[] array.
+ * and typically use mapResults() to report results. Results can be stored
+ * in the array app[], which is provided by the user and available for
+ * all user constructed parsers.
  */
 
 /** Information passed to the parsers during parsing */
