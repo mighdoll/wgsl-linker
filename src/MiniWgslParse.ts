@@ -9,6 +9,7 @@ import {
   ParserContext,
   ParserStage,
   any,
+  eof,
   fn,
   kind,
   not,
@@ -65,12 +66,13 @@ const directiveArgs = seq(
   a.rparen
 ).mapResults((r) => r.named.word);
 
+const eol = or(a.eol, eof());
 /** #export <foo> <(a,b)> EOL */
 const exportDirective = seq(
   m.exportD,
   tokens(
     directiveArgsMatch,
-    seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), a.eol)
+    seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), eol)
   )
 ).mapResults((r) => {
   const { start, end, results } = r;
@@ -90,7 +92,7 @@ const importDirective = seq(
       opt(directiveArgs.named("args")),
       opt(seq(text("from"), kind(a.word).named("from"))),
       opt(seq(a.as, kind(a.word).named("as"))),
-      a.eol
+      eol
     )
   )
 ).mapResults((r) => {
