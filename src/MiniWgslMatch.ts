@@ -46,7 +46,7 @@ export const mainMatch = tokenMatcher({
 });
 
 const notDirective = /[^#]+$/;
-const eol = /$/;
+const eol = /\n/;
 
 /** matching tokens at the start of a '//' line comment */
 export const lineCommentMatch = tokenMatcher({
