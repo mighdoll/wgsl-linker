@@ -87,10 +87,9 @@ export function parsing<T>(
 /** Create a ParserStage from a full StageFn function that returns an OptParserResult */
 export function parserStage<T>(
   fn: StageFn<T>,
-  resultName?: string
+  resultName?: string,
+  debug?:string
 ): ParserStage<T> {
-  let debug: string;
-
   const stageFn = (state: ParserContext): OptParserResult<T> => {
     const position = state.lexer.position();
     const result = fn(state);
@@ -113,10 +112,7 @@ export function parserStage<T>(
   // TODO if name is unspecified use the name of the stage
   stageFn.named = (name: string) => parserStage(fn, name);
   stageFn.mapResults = mapResults;
-  stageFn.debug = (name: string) => {
-    debug = name;
-    return stageFn;
-  };
+  stageFn.debug = (debugName: string) => parserStage(fn, resultName, debugName);
 
   stageFn.map = <U>(fn: (result: T) => U | null) =>
     mapResults((results) => fn(results.value));
