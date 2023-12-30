@@ -34,6 +34,7 @@ function resolveTextModule(importElem:ImportElem, importing: TextModuleExport2):
   const { start, end } = exp.ref;
   const importSrc = importModuleSrc.slice(start, end);
 
+  /* replace export args with import arg values */
   const importArgs = importElem.args ?? [];
   const entries = exp.args.map((p, i) => [p, importArgs[i]]);
   const importParams = Object.fromEntries(entries);
