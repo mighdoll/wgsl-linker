@@ -86,6 +86,7 @@ const exportDirective = seq(
     seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), eol)
   )
 ).mapResults((r) => {
+  // TODO shorten with makeElem
   const { start, end, results } = r;
   const { exp, args } = r.named;
   const name = exp?.[0];
@@ -165,7 +166,7 @@ export const fnDecl = seq(
   r.results.push(fn);
 });
 
-const unknown = any().map((t) => console.log("unknown", t));
+const unknown = any().map((t) => console.warn("???", t));
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
 const root = repeat(rootDecl); // TODO check for EOF
