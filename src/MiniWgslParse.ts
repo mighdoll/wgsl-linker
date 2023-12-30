@@ -21,7 +21,12 @@ import {
   tokens,
 } from "./ParserCombinator.js";
 
-export type AbstractElem = ImportElem | ExportElem | FnElem | CallElem;
+export type AbstractElem =
+  | ImportElem
+  | ExportElem
+  | FnElem
+  | CallElem
+  | StructElem;
 
 /** 'interesting' elements found in the source */
 export interface AbstractElemBase {
@@ -39,6 +44,11 @@ export interface FnElem extends AbstractElemBase {
   kind: "fn";
   fn: string;
   children: (ImportElem | CallElem)[];
+}
+
+export interface StructElem extends AbstractElemBase {
+  kind: "struct";
+  name: string;
 }
 
 export interface ExportElem extends AbstractElemBase {
@@ -99,7 +109,6 @@ const importDirective = seq(
   const e = makeElem<ImportElem>("import", r, ["name", "from", "as"], ["args"]);
   r.results.push(e);
 });
-
 export const directive = or(exportDirective, importDirective);
 
 /** // <#import|#export|any> */
@@ -107,6 +116,17 @@ export const lineComment = seq(
   m.lineComment,
   tokens(lineCommentMatch, or(directive, l.notDirective))
 );
+
+const structDecl = seq(
+  text("struct"),
+  m.word,
+  m.lbrace,
+  repeat(or(lineComment, not(m.rbrace))),
+  m.rbrace
+).mapResults((r) => {
+  const e = makeElem<StructElem>("struct", r, ["name"]);
+  r.results.push(e);
+});
 
 export const fnCall = seq(
   kind(m.word)
@@ -145,7 +165,7 @@ export const fnDecl = seq(
 });
 
 const unknown = any().map((t) => console.log("unknown", t));
-const rootDecl = or(fnDecl, directive, lineComment, unknown);
+const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
 const root = repeat(rootDecl); // TODO check for EOF
 
@@ -164,12 +184,13 @@ function makeElem<U extends AbstractElem>(
   kind: U["kind"],
   er: ExtendedResult<any>,
   named: (keyof U)[],
-  namedArrays: string[] = []
+  namedArrays: (keyof U)[] = []
 ): U {
   const { start, end } = er;
   const nameds = named as string[];
+  const namedSArrays = namedArrays as string[];
   const nameValues = nameds.map((n) => [n, er.named[n]?.[0]]);
-  const arrayValues = namedArrays.map((n) => [n, er.named[n]]);
+  const arrayValues = namedSArrays.map((n) => [n, er.named[n]]);
   const nv = Object.fromEntries(nameValues);
   const av = Object.fromEntries(arrayValues);
   return { kind, start, end, ...nv, ...av };

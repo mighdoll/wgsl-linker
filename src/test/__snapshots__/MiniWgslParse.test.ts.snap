@@ -124,3 +124,14 @@ exports[`parse fn with calls 1`] = `
   },
 ]
 `;
+
+exports[`parse struct 1`] = `
+[
+  {
+    "end": 30,
+    "kind": "struct",
+    "name": undefined,
+    "start": 0,
+  },
+]
+`;

@@ -66,3 +66,9 @@ test("parse fn with calls", () => {
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
+
+test("parse struct", () => {
+  const src = "struct Foo { a: f32; b: i32; }";
+  const parsed = parseMiniWgsl(src);
+  expect(parsed).toMatchSnapshot();
+});
