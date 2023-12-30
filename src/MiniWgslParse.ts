@@ -77,6 +77,7 @@ const directiveArgs = seq(
 ).mapResults((r) => r.named.word);
 
 const eol = or(a.eol, eof());
+
 /** #export <foo> <(a,b)> EOL */
 const exportDirective = seq(
   m.exportD,
