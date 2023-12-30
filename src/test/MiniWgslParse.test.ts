@@ -62,7 +62,7 @@ test("parse fn foo() { }", () => {
 });
 
 test("parse fn with calls", () => {
-  const src = "fn foo() {  foo(); bar(); }";
+  const src = "fn foo() { foo(); bar(); }";
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
@@ -71,4 +71,13 @@ test("parse struct", () => {
   const src = "struct Foo { a: f32; b: i32; }";
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
+});
+
+test.skip("parse fn with line comment", () => {
+  const src = `
+    fn binaryOp(a: Elem, b: Elem) -> Elem {
+        return Elem(a.sum + b.sum); // binOpImpl
+    }`;
+  const parsed = parseMiniWgsl(src);
+  console.log(parsed);
 });

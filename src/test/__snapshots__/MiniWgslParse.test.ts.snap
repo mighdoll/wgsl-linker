@@ -93,8 +93,8 @@ exports[`parse fn foo() { } 1`] = `
   {
     "children": [],
     "end": 12,
-    "fn": "foo",
     "kind": "fn",
+    "name": "foo",
     "start": 0,
   },
 ]
@@ -106,20 +106,20 @@ exports[`parse fn with calls 1`] = `
     "children": [
       {
         "call": "foo",
-        "end": 15,
+        "end": 14,
         "kind": "call",
         "start": 10,
       },
       {
         "call": "bar",
-        "end": 22,
+        "end": 21,
         "kind": "call",
-        "start": 16,
+        "start": 17,
       },
     ],
-    "end": 27,
-    "fn": "foo",
+    "end": 26,
     "kind": "fn",
+    "name": "foo",
     "start": 0,
   },
 ]
