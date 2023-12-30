@@ -20,7 +20,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
   let src: string;
 
   const expParts = Object.values(matchers).map(toRegexSource).join("|");
-  const exp = new RegExp(expParts, "idg");
+  const exp = new RegExp(expParts, "midg");
 
   function start(text: string, position: number = 0): void {
     src = text;
