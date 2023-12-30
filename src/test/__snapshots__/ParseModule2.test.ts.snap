@@ -14,8 +14,8 @@ exports[`read simple #fn import 1`] = `
         },
       ],
       "end": 39,
-      "fn": "bar",
       "kind": "fn",
+      "name": "bar",
       "start": 18,
     },
   ],
@@ -38,12 +38,20 @@ exports[`read simple fn export 1`] = `
 {
   "exports": [
     {
+      "args": [],
+      "exp": {
+        "args": undefined,
+        "end": 16,
+        "kind": "export",
+        "name": undefined,
+        "start": 7,
+      },
       "name": "one",
       "ref": {
         "children": [],
         "end": 59,
-        "fn": "one",
         "kind": "fn",
+        "name": "one",
         "start": 16,
       },
       "src": "
@@ -58,8 +66,8 @@ exports[`read simple fn export 1`] = `
     {
       "children": [],
       "end": 59,
-      "fn": "one",
       "kind": "fn",
+      "name": "one",
       "start": 16,
     },
   ],
