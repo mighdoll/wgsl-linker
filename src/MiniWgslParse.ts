@@ -42,7 +42,7 @@ export interface CallElem extends AbstractElemBase {
 
 export interface FnElem extends AbstractElemBase {
   kind: "fn";
-  fn: string;
+  name: string;
   children: (ImportElem | CallElem)[];
 }
 
@@ -150,7 +150,7 @@ const block: ParserStage<any> = seq(
 
 export const fnDecl = seq(
   text("fn"),
-  kind(a.word).named("fn"),
+  kind(a.word).named("name"),
   "lparen",
   repeat(or(lineComment, not(m.lbrace))),
   block
@@ -159,7 +159,7 @@ export const fnDecl = seq(
   const callElems: CallElem[] = calls.map(({ start, end, call }) => {
     return { kind: "call", start, end, call };
   });
-  const fn = makeElem<FnElem>("fn", r, ["fn"]);
+  const fn = makeElem<FnElem>("fn", r, ["name"]);
   fn.children = callElems;
   r.results.push(fn);
 });
