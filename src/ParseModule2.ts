@@ -1,5 +1,6 @@
 import {
   AbstractElem,
+  ExportElem,
   FnElem,
   ImportElem,
   parseMiniWgsl,
@@ -18,7 +19,8 @@ export interface TextExport2 {
   name: string;
   ref: FnElem; // TODO | StructElem (| global var?)
   src: string;
-  // TODO parse report export params
+  exp: ExportElem;
+  args: string[];
 }
 
 let unnamedModuleDex = 0;
@@ -45,8 +47,9 @@ function findExports(src:string, parsed: AbstractElem[]): TextExport2[] {
   parsed.forEach((elem, i) => {
     if (elem.kind === "export") {
       const next = parsed[i + 1];
+      const args = elem.args ?? [];
       if (next?.kind === "fn") {
-        exports.push({ ref: next, name: next.fn, src });
+        exports.push({ exp:elem, args, ref: next, name: next.name, src });
       }
     }
   });

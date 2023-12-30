@@ -18,7 +18,7 @@ export type ApplyTemplate = (
 ) => string;
 
 /** a single export from a module */
-type ModuleExport2 = TextModuleExport2 | GeneratorModuleExport2;
+export type ModuleExport2 = TextModuleExport2 | GeneratorModuleExport2;
 
 export interface TextModuleExport2 {
   module: TextModule2;

@@ -19,6 +19,51 @@ test("simple #import", () => {
   expect(linked).includes("fooImpl");
 });
 
+test("#import with parameter", () => {
+  const myModule = `
+    // #export (Elem)
+    fn foo(a: Elem) { /* fooImpl */ }
+  `;
+
+  const src = `
+    struct MyElem {}
+
+    // #import foo(MyElem)
+    fn bar() {
+      foo();
+    }
+  `;
+  const registry = new ModuleRegistry2(myModule);
+  const linked = linkWgsl2(src, registry);
+  expect(linked).includes("a: MyElem");
+});
+
+// test.only("transitive import", () => {
+//   const binOpModule = `
+//   // #export(Elem) 
+//   fn binaryOp(a: Elem, b: Elem) -> Elem {
+//       return Elem(a.sum + b.sum); // binOpImpl
+//   }
+//     `;
+//   const reduceModule = `
+//   #export(work)
+//   fn reduceWorkgroup(index:u32) {
+//       let combined = binaryOp(work[index], work[index + 1u]);
+//   }
+
+//   #import binaryOp(MyElem)
+//   `;
+//   const src = `
+//     // #import reduceWorkgroup(myWork)
+//     reduceWorkgroup(localId); // call the imported function
+//   `;
+//   const registry = new ModuleRegistry2(binOpModule, reduceModule);
+//   const linked = linkWgsl2(src, registry);
+//   expect(linked).includes("myWork[index]");
+//   expect(linked).not.includes("work[");
+//   expect(linked).includes("binOpImpl");
+// });
+
 // test("import with parameter", () => {
 //   const myModule = `
 //   // these are just for typechecking the module, they're not included when the export is imported
@@ -54,31 +99,6 @@ test("simple #import", () => {
 //   expect(linked).not.includes("work[");
 // });
 
-// test("transitive import", () => {
-//   const binOpModule = `
-//   // #export(Elem) 
-//   fn binaryOp(a: Elem, b: Elem) -> Elem {
-//       return Elem(a.sum + b.sum); // binOpImpl
-//   }
-//     `;
-//   const reduceModule = `
-//   #export(work)
-//   fn reduceWorkgroup(index:u32) {
-//       let combined = binaryOp(work[index], work[index + 1u]);
-//   }
-
-//   #import binaryOp(MyElem)
-//   `;
-//   const src = `
-//     // #import reduceWorkgroup(myWork)
-//     reduceWorkgroup(localId); // call the imported function
-//   `;
-//   const registry = new ModuleRegistry(binOpModule, reduceModule);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).includes("myWork[index]");
-//   expect(linked).not.includes("work[");
-//   expect(linked).includes("binOpImpl");
-// });
 
 // test("import with template replace", () => {
 //   const myModule = `
