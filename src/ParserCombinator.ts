@@ -102,13 +102,14 @@ export function parsing<T>(
     }
   };
 
-  return parserStage(parserFn, { traceName });
+  return parserStage(parserFn, { traceName, terminal: true });
 }
 
 interface ParserArgs {
-  traceName?: string;
-  resultName?: string;
-  trace?: TraceType;
+  resultName?: string; // name to use for result in named results
+  traceName?: string; // name to use for trace logging
+  trace?: TraceType; // enable trace logging
+  terminal?: boolean; // true for kind(), and text(), to avoid intro log statement
 }
 
 type TraceType = true | "deep" | "surround" | undefined;
@@ -118,7 +119,7 @@ export function parserStage<T>(
   fn: StageFn<T>,
   args = {} as ParserArgs
 ): ParserStage<T> {
-  const { traceName, resultName, trace } = args;
+  const { traceName, resultName, trace, terminal } = args;
   const stageFn = (state: ParserContext): OptParserResult<T> => {
     const { lexer } = state;
     const position = lexer.position();
@@ -126,7 +127,7 @@ export function parserStage<T>(
     // setup trace logging
     const { tlog, tstate } = traceLogging(state, trace);
 
-    tlog(`..${traceName}`);
+    if (!terminal) tlog(`..${traceName}`);
     const result = fn(tstate);
 
     if (result === null || result === undefined) {
@@ -366,7 +367,7 @@ export function any(): ParserStage<Token> {
   return parsing((state: ParserContext): Token | null => {
     const next = state.lexer.next();
     return next || null;
-  }, "not");
+  }, "any");
 }
 
 export function repeat(stage: string): ParserStage<string[]>;
