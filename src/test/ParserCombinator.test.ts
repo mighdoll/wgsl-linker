@@ -3,6 +3,7 @@ import { matchingLexer } from "../MatchingLexer.js";
 import { directiveArgsMatch, mainMatch } from "../MiniWgslMatch.js";
 import {
   ParserStage,
+  _withParserLog,
   fn,
   kind,
   not,
@@ -13,6 +14,7 @@ import {
 } from "../ParserCombinator.js";
 import { Token } from "../TokenMatcher.js";
 import { testParse } from "./TestParse.js";
+import { logCatch } from "./LogCatcher.js";
 
 const m = mainMatch;
 
@@ -136,4 +138,16 @@ test("recurse with fn()", () => {
   const wrap = or(p).mapResults((r) => r.results.push(r.named.word));
   const { app } = testParse(wrap, src);
   expect(app[0]).deep.equals(["a", "b"]);
+});
+
+test.only("quick indent test", () => {
+  const src = "a";
+  const { log, logged } = logCatch();
+  const p = repeat(seq(m.word)).trace();
+  _withParserLog(log, () => {
+    testParse(p, src);
+  });
+
+  console.log("---")
+  console.log(logged());
 });

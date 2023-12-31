@@ -1,6 +1,18 @@
 import { Lexer } from "./MatchingLexer.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
+let parserLog = console.log; // exposed for testing
+
+export function _withParserLog<T>(logFn: typeof console.log, fn: () => T): T {
+  const orig = parserLog;
+  try {
+    parserLog = logFn;
+    return fn();
+  } finally {
+    parserLog = orig;
+  }
+}
+
 /** Parsing Combinators
  *
  * The basic idea is that parsers are contructed heirarchically from other parsers.
@@ -30,7 +42,7 @@ export interface ParserContext {
   /** handy place for user written parsers to accumulate application results */
   app: any[];
 
-  /** during execution, log debug tracing at this indent level */
+  /** during execution, debug trace logging */
   _debug?: DebugContext;
 }
 
@@ -99,7 +111,7 @@ interface ParserArgs {
   trace?: TraceType;
 }
 
-type TraceType = true | "deep" | undefined;
+type TraceType = true | "deep" | "surround" | undefined;
 
 /** Create a ParserStage from a full StageFn function that returns an OptParserResult */
 export function parserStage<T>(
@@ -108,21 +120,21 @@ export function parserStage<T>(
 ): ParserStage<T> {
   const { traceName, resultName, trace } = args;
   const stageFn = (state: ParserContext): OptParserResult<T> => {
-    const { lexer, _debug } = state;
+    const { lexer } = state;
     const position = lexer.position();
 
-    const debug = _debug || trace === "deep" ? { indent: 0 } : undefined; // turn trace on for nested stages 
-    const log = trace || _debug; 
-    const pad = indent(_debug);
+    // setup trace logging
+    const { tlog, tstate } = traceLogging(state, trace);
 
-    const result = fn({ ...state, _debug: debug });
+    tlog(`..${traceName}`);
+    const result = fn(tstate);
 
     if (result === null || result === undefined) {
-      if (log) console.log(`${pad}!${traceName}`);
+      tlog(`x ${traceName}`);
       lexer.position(position);
       return null;
     } else {
-      if (log) console.log(`${pad}>${traceName}`);
+      tlog(`✓ ${traceName}`);
       if (resultName) {
         return {
           value: result.value,
@@ -132,12 +144,8 @@ export function parserStage<T>(
       return result;
     }
   };
-  
-  function indent(debug?: DebugContext) {
-    return "  ".repeat(debug?.indent || 0);
-  }
 
-  // TODO make name optional and use the name from e.g. a text or kind match?
+  // TODO make name param optional and use the name from a text() or kind() match?
   stageFn.named = (name: string) =>
     parserStage(fn, { ...args, resultName: name });
   stageFn.traceName = (name: string) =>
@@ -230,9 +238,10 @@ export function or<
 export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
   return parserStage(
     (state: ParserContext): ParserResult<any> | null => {
+      const localState = traceIndent(state);
       for (const stage of stages) {
         const parser = parserArg(stage);
-        const result = parser(state);
+        const result = parser(localState);
         if (result !== null) {
           return result;
         }
@@ -288,16 +297,14 @@ export function seq<
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage(
     (state: ParserContext) => {
+      const localState = traceIndent(state);
       const values = [];
       let namedResults = {};
-      const {_debug} = state;
-      const debug = _debug ? { indent: _debug.indent + 1 } : undefined;
       for (const stage of stages) {
         const parser = parserArg(stage);
-        const result = parser({...state, _debug: debug});
-        if (result === null) {
-          return null;
-        }
+        const result = parser(localState);
+        if (result === null) return null;
+
         namedResults = mergeNamed(namedResults, result.named);
         values.push(result.value);
       }
@@ -305,6 +312,15 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
     },
     { traceName: "seq" }
   );
+}
+
+/** increase indent for debug trace logging, if tracing is active */
+function traceIndent(state: ParserContext): ParserContext {
+  let _debug = state._debug;
+  if (_debug) {
+    _debug = { indent: _debug.indent + 1 };
+  }
+  return { ...state, _debug };
 }
 
 /** Try a parser.
@@ -332,7 +348,8 @@ export function opt<T>(
 export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
   return parserStage(
     (state: ParserContext): OptParserResult<Token | true> => {
-      const result = parserArg(stage)(state);
+      const localState = traceIndent(state);
+      const result = parserArg(stage)(localState);
       if (result) {
         return null;
       } else {
@@ -359,11 +376,12 @@ export function repeat<T>(
 ): ParserStage<(T | string)[]> {
   return parserStage(
     (state: ParserContext): OptParserResult<(T | string)[]> => {
+      const localState = traceIndent(state);
       const values: (T | string)[] = [];
       let results = {};
       while (true) {
         const parser = parserArg(stage);
-        const result = parser(state);
+        const result = parser(localState);
         if (result !== null) {
           values.push(result.value);
           results = mergeNamed(results, result.named);
@@ -381,12 +399,15 @@ export function tokens<T>(
   matcher: TokenMatcher,
   arg: ParserStageArg<T>
 ): ParserStage<T | string> {
-  return parserStage((state: ParserContext): OptParserResult<T | string> => {
-    return state.lexer.withMatcher(matcher, () => {
-      const parser = parserArg(arg);
-      return parser(state);
-    });
-  });
+  return parserStage(
+    (state: ParserContext): OptParserResult<T | string> => {
+      return state.lexer.withMatcher(matcher, () => {
+        const parser = parserArg(arg);
+        return parser(state);
+      });
+    },
+    { traceName: "tokens" }
+  );
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
@@ -419,4 +440,30 @@ function mergeNamed(
   const sharedEntries = sharedKeys.map((k) => [k, [...a[k], ...b[k]]]);
   const shared = Object.fromEntries(sharedEntries);
   return { ...a, ...b, ...shared }; // shared keys overwritten
+}
+
+function currentIndent(debug?: DebugContext) {
+  return "  ".repeat(debug?.indent || 0);
+}
+
+interface TraceLogging {
+  tlog(...msgs: any[]): void;
+  tstate: ParserContext;
+}
+
+/** setup trace logging inside a parser stage */
+function traceLogging(state: ParserContext, trace: TraceType): TraceLogging {
+  let { _debug } = state;
+  if (!trace && !_debug) {
+    return { tlog: () => {}, tstate: state };
+  }
+  if (!_debug && trace === "deep") {
+    _debug = { indent: 0 };
+  }
+  const pad = currentIndent(_debug);
+  function tlog(...msgs: any[]) {
+    parserLog(`${pad}${msgs[0]}`, ...msgs.slice(1));
+  }
+  const tstate = { ...state, _debug };
+  return { tlog, tstate };
 }
