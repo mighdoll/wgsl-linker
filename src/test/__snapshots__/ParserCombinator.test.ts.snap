@@ -19,3 +19,14 @@ exports[`seq() handles two element match 1`] = `
   ],
 }
 `;
+
+exports[`tracing 1`] = `
+"..repeat
+  ..wordz
+    ✓ kind 'word'
+  ✓ wordz
+  ..wordz
+    x kind 'word'
+  x wordz
+✓ repeat"
+`;

@@ -10,7 +10,7 @@ import {
   opt,
   or,
   repeat,
-  seq
+  seq,
 } from "../ParserCombinator.js";
 import { Token } from "../TokenMatcher.js";
 import { testParse } from "./TestParse.js";
@@ -140,14 +140,12 @@ test("recurse with fn()", () => {
   expect(app[0]).deep.equals(["a", "b"]);
 });
 
-test.only("quick indent test", () => {
+test("tracing", () => {
   const src = "a";
   const { log, logged } = logCatch();
-  const p = repeat(seq(m.word)).trace();
+  const p = repeat(seq(m.word).traceName("wordz")).trace();
   _withParserLog(log, () => {
     testParse(p, src);
   });
-
-  console.log("---")
-  console.log(logged());
+  expect(logged()).toMatchSnapshot();
 });
