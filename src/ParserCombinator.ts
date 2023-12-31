@@ -29,6 +29,13 @@ export interface ParserContext {
 
   /** handy place for user written parsers to accumulate application results */
   app: any[];
+
+  /** during execution, log debug tracing at this indent level */
+  _debug?: DebugContext;
+}
+
+interface DebugContext {
+  indent: number;
 }
 
 /** Result from a parser */
@@ -53,12 +60,13 @@ export type OptParserResult<T> = ParserResult<T> | null;
 export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
+  traceName(name: string): ParserStage<T>;
   map<U>(fn: (result: T) => U | null): ParserStage<U | true>;
   mapResults<U>(
     fn: (result: ExtendedResult<T>) => U | null
   ): ParserStage<U | true>;
   parserName?: string;
-  debug(name: string): ParserStage<T>;
+  trace(deep?: boolean): ParserStage<T>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -70,7 +78,8 @@ type ParserStageArg<T> = ParserStage<T> | string;
 // TODO consider dropping this
 /** Create a ParserStage from a function that parses and returns a value */
 export function parsing<T>(
-  fn: (state: ParserContext) => T | null | undefined
+  fn: (state: ParserContext) => T | null | undefined,
+  traceName?: string
 ): ParserStage<T> {
   const parserFn: StageFn<T> = (state: ParserContext) => {
     const r = fn(state);
@@ -81,24 +90,39 @@ export function parsing<T>(
     }
   };
 
-  return parserStage(parserFn);
+  return parserStage(parserFn, { traceName });
 }
+
+interface ParserArgs {
+  traceName?: string;
+  resultName?: string;
+  trace?: TraceType;
+}
+
+type TraceType = true | "deep" | undefined;
 
 /** Create a ParserStage from a full StageFn function that returns an OptParserResult */
 export function parserStage<T>(
   fn: StageFn<T>,
-  resultName?: string,
-  debug?:string
+  args = {} as ParserArgs
 ): ParserStage<T> {
+  const { traceName, resultName, trace } = args;
   const stageFn = (state: ParserContext): OptParserResult<T> => {
-    const position = state.lexer.position();
-    const result = fn(state);
+    const { lexer, _debug } = state;
+    const position = lexer.position();
+
+    const debug = _debug || trace === "deep" ? { indent: 0 } : undefined; // turn trace on for nested stages 
+    const log = trace || _debug; 
+    const pad = indent(_debug);
+
+    const result = fn({ ...state, _debug: debug });
+
     if (result === null || result === undefined) {
-      if (debug) console.log(`${debug} no match`);
-      state.lexer.position(position);
+      if (log) console.log(`${pad}!${traceName}`);
+      lexer.position(position);
       return null;
     } else {
-      if (debug) console.log(`${debug} matched`);
+      if (log) console.log(`${pad}>${traceName}`);
       if (resultName) {
         return {
           value: result.value,
@@ -108,11 +132,19 @@ export function parserStage<T>(
       return result;
     }
   };
+  
+  function indent(debug?: DebugContext) {
+    return "  ".repeat(debug?.indent || 0);
+  }
 
-  // TODO if name is unspecified use the name of the stage
-  stageFn.named = (name: string) => parserStage(fn, name);
+  // TODO make name optional and use the name from e.g. a text or kind match?
+  stageFn.named = (name: string) =>
+    parserStage(fn, { ...args, resultName: name });
+  stageFn.traceName = (name: string) =>
+    parserStage(fn, { ...args, traceName: name });
   stageFn.mapResults = mapResults;
-  stageFn.debug = (debugName: string) => parserStage(fn, resultName, debugName);
+  stageFn.trace = (deep = true) =>
+    parserStage(fn, { ...args, trace: deep ? "deep" : true });
 
   stageFn.map = <U>(fn: (result: T) => U | null) =>
     mapResults((results) => fn(results.value));
@@ -139,11 +171,11 @@ export function parserStage<T>(
 
 /** Parse for a particular kind of token,
  * @return the matching text */
-export function kind(kind: string): ParserStage<string> {
+export function kind(kindStr: string): ParserStage<string> {
   return parsing((state: ParserContext): string | null => {
     const next = state.lexer.next();
-    return next?.kind === kind ? next.text : null;
-  });
+    return next?.kind === kindStr ? next.text : null;
+  }, `kind '${kindStr}'`);
 }
 
 /** Parse for a token containing a text value
@@ -152,7 +184,7 @@ export function text(value: string): ParserStage<string> {
   return parsing((state: ParserContext): string | null => {
     const next = state.lexer.next();
     return next?.text === value ? next.kind : null;
-  });
+  }, `text '${value}'`);
 }
 
 /** Try parsing with one or more parsers,
@@ -196,16 +228,19 @@ export function or<
   f: ParserStageArg<Y>
 ): ParserStage<T | U | V | W | X | Y>;
 export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
-  return parserStage((state: ParserContext): ParserResult<any> | null => {
-    for (const stage of stages) {
-      const parser = parserArg(stage);
-      const result = parser(state);
-      if (result !== null) {
-        return result;
+  return parserStage(
+    (state: ParserContext): ParserResult<any> | null => {
+      for (const stage of stages) {
+        const parser = parserArg(stage);
+        const result = parser(state);
+        if (result !== null) {
+          return result;
+        }
       }
-    }
-    return null;
-  });
+      return null;
+    },
+    { traceName: "or" }
+  );
 }
 
 /** Parse a sequence of parsers
@@ -251,20 +286,25 @@ export function seq<
   f: ParserStageArg<Y>
 ): ParserStage<[T, U, V, W, X, Y]>;
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
-  return parserStage((state: ParserContext) => {
-    const values = [];
-    let namedResults = {};
-    for (const stage of stages) {
-      const parser = parserArg(stage);
-      const result = parser(state);
-      if (result === null) {
-        return null;
+  return parserStage(
+    (state: ParserContext) => {
+      const values = [];
+      let namedResults = {};
+      const {_debug} = state;
+      const debug = _debug ? { indent: _debug.indent + 1 } : undefined;
+      for (const stage of stages) {
+        const parser = parserArg(stage);
+        const result = parser({...state, _debug: debug});
+        if (result === null) {
+          return null;
+        }
+        namedResults = mergeNamed(namedResults, result.named);
+        values.push(result.value);
       }
-      namedResults = mergeNamed(namedResults, result.named);
-      values.push(result.value);
-    }
-    return { value: values, named: namedResults };
-  });
+      return { value: values, named: namedResults };
+    },
+    { traceName: "seq" }
+  );
 }
 
 /** Try a parser.
@@ -283,21 +323,25 @@ export function opt<T>(
       const parser = parserArg(stage);
       const result = parser(state);
       return result || { value: false, named: {} };
-    }
+    },
+    { traceName: "opt" }
   );
 }
 
 /** yield one token, unless it matches the provided parser */ // TODO shouldn't consume match..
 export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
-  return parserStage((state: ParserContext): OptParserResult<Token | true> => {
-    const result = parserArg(stage)(state);
-    if (result) {
-      return null;
-    } else {
-      const next = state.lexer.next();
-      return next ? { value: next, named: {} } : null;
-    }
-  });
+  return parserStage(
+    (state: ParserContext): OptParserResult<Token | true> => {
+      const result = parserArg(stage)(state);
+      if (result) {
+        return null;
+      } else {
+        const next = state.lexer.next();
+        return next ? { value: next, named: {} } : null;
+      }
+    },
+    { traceName: "not" }
+  );
 }
 
 /** yield next token, any token */
@@ -305,7 +349,7 @@ export function any(): ParserStage<Token> {
   return parsing((state: ParserContext): Token | null => {
     const next = state.lexer.next();
     return next || null;
-  });
+  }, "not");
 }
 
 export function repeat(stage: string): ParserStage<string[]>;
@@ -327,7 +371,8 @@ export function repeat<T>(
           return { value: values, named: results };
         }
       }
-    }
+    },
+    { traceName: "repeat" }
   );
 }
 
@@ -354,7 +399,7 @@ export function fn<T>(fn: () => ParserStage<T>): ParserStage<T | string> {
 
 /** yields true if parsing has reached the end of input */
 export function eof(): ParserStage<true> {
-  return parsing((state: ParserContext) => state.lexer.eof() || null);
+  return parsing((state: ParserContext) => state.lexer.eof() || null, "eof");
 }
 
 /** convert naked string arguments into kind() parsers */ // LATEr consider converting to text() parser instead
