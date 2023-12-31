@@ -22,7 +22,7 @@ export function matchingLexer(
     while (token && ignore.has(token.kind)) {
       token = matcher.next();
     }
-    // console.log({ token });
+    console.log(`: '${token?.text}' (${token?.kind}) ${matcher.position()}`);
     return token;
   }
 
