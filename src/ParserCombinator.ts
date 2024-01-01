@@ -389,11 +389,12 @@ export function tokens<T>(
   return parserStage(
     (state: ParserContext): OptParserResult<T | string> => {
       return state.lexer.withMatcher(matcher, () => {
+        const localState = traceIndent(state);
         const parser = parserArg(arg);
-        return parser(state);
+        return parser(localState);
       });
     },
-    { traceName: "tokens" }
+    { traceName: `tokens ${matcher.name}` }
   );
 }
 
@@ -401,7 +402,8 @@ export function tokens<T>(
 export function fn<T>(fn: () => ParserStage<T>): ParserStage<T | string> {
   return parserStage((state: ParserContext): OptParserResult<T | string> => {
     const stage = parserArg(fn());
-    return stage(state);
+    const localState = traceIndent(state);
+    return stage(localState);
   });
 }
 
