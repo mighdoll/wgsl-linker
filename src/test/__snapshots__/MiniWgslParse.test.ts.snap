@@ -125,6 +125,18 @@ exports[`parse fn with calls 1`] = `
 ]
 `;
 
+exports[`parse fn with line comment 1`] = `
+[
+  {
+    "children": [],
+    "end": 39,
+    "kind": "fn",
+    "name": "binaryOp",
+    "start": 0,
+  },
+]
+`;
+
 exports[`parse struct 1`] = `
 [
   {

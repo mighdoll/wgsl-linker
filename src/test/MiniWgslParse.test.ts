@@ -81,11 +81,10 @@ test("parse struct", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test.skip("parse fn with line comment", () => {
+test("parse fn with line comment", () => {
   const src = `
-    fn binaryOp(a: Elem, b: Elem) -> Elem {
-        return Elem(a.sum + b.sum); // binOpImpl
+    fn binaryOp() { // binOpImpl
     }`;
   const parsed = parseMiniWgsl(src);
-  console.log(parsed);
+  expect(parsed).toMatchSnapshot();
 });
