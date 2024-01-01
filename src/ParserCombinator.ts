@@ -114,10 +114,17 @@ export function parsing<T>(
 }
 
 interface ParserArgs {
-  resultName?: string; // name to use for result in named results
-  traceName?: string; // name to use for trace logging
-  trace?: TraceOptions; // enable trace logging
-  terminal?: boolean; // true for kind(), and text(), to avoid intro log statement
+  /** name to use for result in named results */
+  resultName?: string;
+
+  /** name to use for trace logging */
+  traceName?: string;
+
+  /** enable trace logging */
+  trace?: TraceOptions;
+
+  /** true for kind(), and text(), to avoid intro log statement */
+  terminal?: boolean;
 }
 
 /** Create a ParserStage from a full StageFn function that returns an OptParserResult */
@@ -321,15 +328,6 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   );
 }
 
-/** increase indent for debug trace logging, if tracing is active */
-function traceIndent(state: ParserContext): ParserContext {
-  let _debug = state._debug;
-  if (_debug) {
-    _debug = { ..._debug, indent: _debug.indent + 1 };
-  }
-  return { ...state, _debug };
-}
-
 /** Try a parser.
  *
  * If the parse succeeds, return the result.
@@ -449,10 +447,6 @@ function mergeNamed(
   return { ...a, ...b, ...shared }; // shared keys overwritten
 }
 
-function currentIndent(debug?: DebugContext) {
-  return "  ".repeat(debug?.indent || 0);
-}
-
 interface TraceLogging {
   tlog(...msgs: any[]): void;
   tstate: ParserContext;
@@ -466,31 +460,42 @@ function traceLogging(
   trace?: TraceOptions
 ): TraceLogging {
   let { _debug } = state;
+
+  // log if we're starting or inheriting a trace and we're in any position range
   let logging: boolean = !!_debug || !!trace;
   if (logging) {
     const { start = 0, end = 1e20 } = { ..._debug, ...trace };
     const pos = state.lexer.position();
     if (pos < start || pos > end) {
-      console.log("logging off out of range", pos, start, end);
-      // TODO need to propogate even if disabled due to position, nested state might advance
       logging = false;
     }
   }
 
+  // start inheriting tracing if deep trace is set on this stage
   if (!_debug && trace && !trace?.shallow) {
     _debug = { indent: 0, ...trace };
   }
-  const tstate = { ...state, _debug };
+
+  let tlog = () => {};
+
   if (logging) {
-    console.log("logging in range");
     const pad = currentIndent(_debug);
-    return {
-      tlog: (...msgs: any[]) => {
-        parserLog(`${pad}${msgs[0]}`, ...msgs.slice(1));
-      },
-      tstate,
+    tlog = (...msgs: any[]) => {
+      parserLog(`${pad}${msgs[0]}`, ...msgs.slice(1));
     };
-  } else {
-    return { tlog: () => {}, tstate };
   }
+  return { tlog, tstate: { ...state, _debug } };
+}
+
+function currentIndent(debug?: DebugContext) {
+  return "  ".repeat(debug?.indent || 0);
+}
+
+/** increase indent for debug trace logging, if tracing is active */
+function traceIndent(state: ParserContext): ParserContext {
+  let _debug = state._debug;
+  if (_debug) {
+    _debug = { ..._debug, indent: _debug.indent + 1 };
+  }
+  return { ...state, _debug };
 }
