@@ -32,7 +32,7 @@ export interface ParserContext {
   app: any[];
 
   /** during execution, debug trace logging */
-  _debug?: TraceContext;
+  _trace?: TraceContext;
 }
 
 /** Result from a parser */
