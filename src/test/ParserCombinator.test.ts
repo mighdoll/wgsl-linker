@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
-import { directiveArgsMatch, mainMatch } from "../MiniWgslMatch.js";
+import { directiveArgsTokens, mainTokens } from "../MiniWgslMatch.js";
 import {
   ParserStage,
   fn,
@@ -16,7 +16,7 @@ import { Token } from "../TokenMatcher.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
 
-const m = mainMatch;
+const m = mainTokens;
 
 test("or() finds first match", () => {
   const src = "#import";
@@ -81,7 +81,7 @@ test("opt() makes failing match ok", () => {
 
 test("repeat() to (1,2,3,4) via named", () => {
   const src = "(1,2,3,4)";
-  const lexer = matchingLexer(src, directiveArgsMatch);
+  const lexer = matchingLexer(src, directiveArgsTokens);
   const app: any[] = [];
   const wordNum = or("word", "digits").named("wn");
   const params = seq(opt(wordNum), opt(repeat(seq("comma", wordNum))));

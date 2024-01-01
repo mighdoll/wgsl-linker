@@ -39,7 +39,7 @@ const escaped = symbolList.map(escapeRegex);
 export const symbol = new RegExp(escaped.join("|"));
 
 /** matching tokens at wgsl root level */
-export const mainMatch = tokenMatcher(
+export const mainTokens = tokenMatcher(
   {
     ...directives,
     lineComment,
@@ -59,7 +59,7 @@ export const mainMatch = tokenMatcher(
 const eol = /\n/;
 
 /** matching tokens at the start of a '//' line comment */
-export const lineCommentMatch = tokenMatcher(
+export const lineCommentTokens = tokenMatcher(
   {
     ...directives,
     notDirective: /[^#\n]+/,
@@ -69,7 +69,7 @@ export const lineCommentMatch = tokenMatcher(
 );
 
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
-export const directiveArgsMatch = tokenMatcher(
+export const directiveArgsTokens = tokenMatcher(
   {
     lparen,
     rparen,

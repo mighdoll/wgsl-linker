@@ -1,5 +1,5 @@
 import { matchingLexer } from "../MatchingLexer.js";
-import { mainMatch } from "../MiniWgslMatch.js";
+import { mainTokens } from "../MiniWgslMatch.js";
 import { OptParserResult, ParserStage } from "../ParserCombinator.js";
 
 interface TestParseResult<T> {
@@ -12,7 +12,7 @@ interface TestParseResult<T> {
 export function testParse<T>(
   p: ParserStage<T>,
   src: string,
-  tokenMatcher = mainMatch
+  tokenMatcher = mainTokens
 ): TestParseResult<T> {
   const lexer = matchingLexer(src, tokenMatcher);
   const app: any[] = [];

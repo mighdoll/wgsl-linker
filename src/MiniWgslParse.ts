@@ -1,8 +1,8 @@
 import { matchingLexer } from "./MatchingLexer.js";
 import {
-  directiveArgsMatch,
-  lineCommentMatch,
-  mainMatch,
+  directiveArgsTokens,
+  lineCommentTokens,
+  mainTokens,
 } from "./MiniWgslMatch.js";
 import {
   ExtendedResult,
@@ -65,9 +65,9 @@ export interface ImportElem extends AbstractElemBase {
   from?: string;
 }
 
-const m = mainMatch;
-const a = directiveArgsMatch;
-const l = lineCommentMatch;
+const m = mainTokens;
+const a = directiveArgsTokens;
+const l = lineCommentTokens;
 
 const directiveArgs = seq(
   a.lparen,
@@ -82,7 +82,7 @@ const eol = or(a.eol, eof());
 const exportDirective = seq(
   m.exportD,
   tokens(
-    directiveArgsMatch,
+    directiveArgsTokens,
     seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), eol)
   )
 ).mapResults((r) => {
@@ -98,7 +98,7 @@ const exportDirective = seq(
 const importDirective = seq(
   text("#import"),
   tokens(
-    directiveArgsMatch,
+    directiveArgsTokens,
     seq(
       kind(a.word).named("name"),
       opt(directiveArgs.named("args")),
@@ -115,8 +115,8 @@ export const directive = or(exportDirective, importDirective);
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
-  m.lineComment,
-  tokens(lineCommentMatch, or(directive, l.notDirective))
+  text("//"),
+  tokens(lineCommentTokens, or(directive, l.notDirective)).trace()
 );
 
 const structDecl = seq(
@@ -172,7 +172,7 @@ const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 const root = repeat(rootDecl); // TODO check for EOF
 
 export function parseMiniWgsl(src: string): AbstractElem[] {
-  const lexer = matchingLexer(src, mainMatch);
+  const lexer = matchingLexer(src, mainTokens);
   const app: AbstractElem[] = [];
 
   const state: ParserContext = { lexer, app };
