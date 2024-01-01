@@ -1,27 +1,41 @@
-import { ParserContext, } from "./ParserCombinator.js";
+import { ParserContext } from "./ParserCombinator.js";
 
-export let parserLog = console.log; // exposed for testing
+let logger = console.log;
+export let parserLog = logger; // logger while tracing is active, otherwise noop
 
+/** options to .trace() on a parser stage */
 export interface TraceOptions {
   shallow?: boolean;
   start?: number;
   end?: number;
 }
 
+/** runtime stack info about currently active trace logging */
 export interface TraceContext {
   indent: number;
   start?: number;
   end?: number;
 }
 
-/** swap logger for tests */
-export function _withParserLog<T>(logFn: typeof console.log, fn: () => T): T {
+/** use temporary logger, to turn tracing on/off */
+export function withLogger<T>(logFn: typeof console.log, fn: () => T): T {
   const orig = parserLog;
   try {
     parserLog = logFn;
     return fn();
   } finally {
     parserLog = orig;
+  }
+}
+
+/** use temporary logger for tests */
+export function _withBaseLogger<T>(logFn: typeof console.log, fn: () => T): T {
+  const orig = logger;
+  try {
+    logger = logFn;
+    return fn();
+  } finally {
+    logger = orig;
   }
 }
 
@@ -35,24 +49,24 @@ export function traceIndent(state: ParserContext): ParserContext {
 }
 
 export interface TraceLogging {
-  tlog(...msgs: any[]): void;
   tstate: ParserContext;
 }
 
 /** setup trace logging inside a parser stage */
-export function traceLogging(
+export function withTraceLogging<T>(
   // _trace has trace settings from parent
-  state: ParserContext,
+  ctx: ParserContext,
   // trace has trace options set on this stage
-  trace?: TraceOptions
-): TraceLogging {
-  let { _trace } = state;
+  trace: TraceOptions | undefined,
+  fn: (ctxWithTracing: ParserContext) => T
+): T {
+  let { _trace } = ctx;
 
   // log if we're starting or inheriting a trace and we're in any position range
   let logging: boolean = !!_trace || !!trace;
   if (logging) {
     const { start = 0, end = 1e20 } = { ..._trace, ...trace };
-    const pos = state.lexer.position();
+    const pos = ctx.lexer.position();
     if (pos < start || pos > end) {
       logging = false;
     }
@@ -63,17 +77,19 @@ export function traceLogging(
     _trace = { indent: 0, ...trace };
   }
 
+  // setup appropriate logging for this stage
   let tlog = () => {};
-
   if (logging) {
     const pad = currentIndent(_trace);
     tlog = (...msgs: any[]) => {
-      parserLog(`${pad}${msgs[0]}`, ...msgs.slice(1));
+      logger(`${pad}${msgs[0]}`, ...msgs.slice(1));
     };
   }
-  return { tlog, tstate: { ...state, _trace: _trace } };
+
+  return withLogger(tlog, () => fn({ ...ctx, _trace }));
 }
 
+/** padding for current indent level */
 function currentIndent(debug?: TraceContext) {
   return "  ".repeat(debug?.indent || 0);
 }

@@ -1,5 +1,11 @@
 import { Lexer } from "./MatchingLexer.js";
-import { TraceContext as TraceContext, TraceOptions, parserLog, traceIndent, traceLogging } from "./ParserTracing.js";
+import {
+  TraceContext,
+  TraceOptions,
+  parserLog,
+  traceIndent,
+  withTraceLogging,
+} from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 /** Parsing Combinators
@@ -114,26 +120,25 @@ export function parserStage<T>(
     const { lexer } = state;
     const position = lexer.position();
 
-    // setup trace logging
-    const { tlog, tstate } = traceLogging(state, trace);
+    return withTraceLogging(state, trace, (tstate) => {
+      if (!terminal) parserLog(`..${traceName}`);
+      const result = fn(tstate);
 
-    if (!terminal) tlog(`..${traceName}`);
-    const result = fn(tstate);
-
-    if (result === null || result === undefined) {
-      tlog(`x ${traceName}`);
-      lexer.position(position);
-      return null;
-    } else {
-      tlog(`✓ ${traceName}`);
-      if (resultName) {
-        return {
-          value: result.value,
-          named: mergeNamed(result.named, { [resultName]: [result.value] }),
-        };
+      if (result === null || result === undefined) {
+        parserLog(`x ${traceName}`);
+        lexer.position(position);
+        return null;
+      } else {
+        parserLog(`✓ ${traceName}`);
+        if (resultName) {
+          return {
+            value: result.value,
+            named: mergeNamed(result.named, { [resultName]: [result.value] }),
+          };
+        }
+        return result;
       }
-      return result;
-    }
+    });
   };
 
   // TODO make name param optional and use the name from a text() or kind() match?
