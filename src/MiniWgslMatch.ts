@@ -62,6 +62,7 @@ const eol = /\n/;
 export const lineCommentTokens = tokenMatcher(
   {
     ...directives,
+    ws: /[ \t]+/,
     notDirective: /[^#\n]+/,
     eol,
   },

@@ -48,9 +48,17 @@ test("lineComment parse // foo bar", () => {
   expect(position).eq(src.length);
 });
 
+test("lineComment parse // foo bar \\n", () => {
+  const comment = "// foo bar";
+  const src = comment + "\n x";
+  const { position } = testParse(lineComment, src);
+  expect(position).eq(comment.length);
+});
+
 test("lineComment parse // #export foo", () => {
   const src = "// #export foo";
   const { position, app } = testParse(lineComment, src);
+  console.log({ position, app });
   expect(position).eq(src.length);
   expect(app).toMatchSnapshot();
 });
