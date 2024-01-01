@@ -3,7 +3,6 @@ import { matchingLexer } from "../MatchingLexer.js";
 import { directiveArgsMatch, mainMatch } from "../MiniWgslMatch.js";
 import {
   ParserStage,
-  _withParserLog,
   fn,
   kind,
   not,
@@ -12,9 +11,10 @@ import {
   repeat,
   seq,
 } from "../ParserCombinator.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 import { Token } from "../TokenMatcher.js";
-import { testParse } from "./TestParse.js";
 import { logCatch } from "./LogCatcher.js";
+import { testParse } from "./TestParse.js";
 
 const m = mainMatch;
 
@@ -144,7 +144,7 @@ test("tracing", () => {
   const src = "a";
   const { log, logged } = logCatch();
   const p = repeat(seq(m.word).traceName("wordz")).trace();
-  _withParserLog(log, () => {
+  _withBaseLogger(log, () => {
     testParse(p, src);
   });
   expect(logged()).toMatchSnapshot();
