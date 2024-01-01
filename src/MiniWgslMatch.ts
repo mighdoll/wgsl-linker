@@ -39,21 +39,23 @@ const escaped = symbolList.map(escapeRegex);
 export const symbol = new RegExp(escaped.join("|"));
 
 /** matching tokens at wgsl root level */
-export const mainMatch = tokenMatcher({
-  ...directives,
-  lineComment,
-  lparen,
-  lbrace: "{",
-  rbrace: "}",
-  commentStart: "/*",
-  commentEnd: "*/",
-  annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
-  word,
-  symbol,
-  ws,
-});
+export const mainMatch = tokenMatcher(
+  {
+    ...directives,
+    lineComment,
+    lparen,
+    lbrace: "{",
+    rbrace: "}",
+    commentStart: "/*",
+    commentEnd: "*/",
+    annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
+    word,
+    symbol,
+    ws,
+  },
+  "main"
+);
 
-const notDirective = /[^#]+$/;
 const eol = /\n/;
 
 /** matching tokens at the start of a '//' line comment */
@@ -64,19 +66,21 @@ export const lineCommentMatch = tokenMatcher({
 });
 
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
-export const directiveArgsMatch = tokenMatcher({
-  lparen,
-  rparen,
-  from: "from",
-  as: "as",
-  word,
-  digits,
-  comma,
-  equals,
-  eol,
-  ws,
-});
-
+export const directiveArgsMatch = tokenMatcher(
+  {
+    lparen,
+    rparen,
+    from: "from",
+    as: "as",
+    word,
+    digits,
+    comma,
+    equals,
+    eol,
+    ws,
+  },
+  "directiveArgs"
+);
 
 // export function regexOr(flags: string, ...exp: RegExp[]): RegExp {
 //   const concat = exp.map((e) => e.source).join("|");
