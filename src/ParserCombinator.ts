@@ -394,7 +394,7 @@ export function tokens<T>(
         return parser(localState);
       });
     },
-    { traceName: `tokens ${matcher.name}` }
+    { traceName: `tokens ${matcher._traceName}` }
   );
 }
 

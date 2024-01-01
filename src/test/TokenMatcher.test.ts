@@ -14,7 +14,7 @@ test("token matcher", () => {
   expect(c).toEqual({ kind: "name", text: "foo" });
 });
 
-test("token matcher autocomplete", () => {
+test("token matcher fields", () => {
   const m = tokenMatcher({
     name: /[a-z]+/,
     spaces: /\s+/,

@@ -11,12 +11,12 @@ export interface TokenMatcher {
   start(src: string, position?: number): void;
   next(): Token | undefined;
   position(position?: number): number;
-  name?: string;
+  _traceName?: string;
 }
 
 export function tokenMatcher<T extends Record<string, string | RegExp>>(
   matchers: T,
-  name = "matcher"
+  traceName = "matcher"
 ): FullTokenMatcher<T> {
   const groups: string[] = Object.keys(matchers);
   let src: string;
@@ -52,7 +52,13 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
 
   const keyEntries = groups.map((k) => [k, k]);
   const keys = Object.fromEntries(keyEntries);
-  return { ...keys, start, next, position, name } as FullTokenMatcher<T>;
+  return {
+    ...keys,
+    start,
+    next,
+    position,
+    _traceName: traceName,
+  } as FullTokenMatcher<T>;
 }
 
 interface MatchedIndex {
