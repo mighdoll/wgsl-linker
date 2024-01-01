@@ -48,6 +48,8 @@ export interface ParserContext {
 
 interface DebugContext {
   indent: number;
+  start?: number;
+  end?: number;
 }
 
 /** Result from a parser */
@@ -68,6 +70,12 @@ export interface ExtendedResult<T> extends ParserResult<T> {
 /** parsers return null if they don't match */
 export type OptParserResult<T> = ParserResult<T> | null;
 
+export interface TraceOptions {
+  shallow?: boolean;
+  start?: number;
+  end?: number;
+}
+
 /** a composable parsing element */
 export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
@@ -78,7 +86,7 @@ export interface ParserStage<T> {
     fn: (result: ExtendedResult<T>) => U | null
   ): ParserStage<U | true>;
   parserName?: string;
-  trace(deep?: boolean): ParserStage<T>;
+  trace(opts?: TraceOptions): ParserStage<T>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -108,11 +116,9 @@ export function parsing<T>(
 interface ParserArgs {
   resultName?: string; // name to use for result in named results
   traceName?: string; // name to use for trace logging
-  trace?: TraceType; // enable trace logging
+  trace?: TraceOptions; // enable trace logging
   terminal?: boolean; // true for kind(), and text(), to avoid intro log statement
 }
-
-type TraceType = true | "deep" | "surround" | undefined;
 
 /** Create a ParserStage from a full StageFn function that returns an OptParserResult */
 export function parserStage<T>(
@@ -152,8 +158,8 @@ export function parserStage<T>(
   stageFn.traceName = (name: string) =>
     parserStage(fn, { ...args, traceName: name });
   stageFn.mapResults = mapResults;
-  stageFn.trace = (deep = true) =>
-    parserStage(fn, { ...args, trace: deep ? "deep" : true });
+  stageFn.trace = (opts: TraceOptions = {}) =>
+    parserStage(fn, { ...args, trace: opts });
 
   stageFn.map = <U>(fn: (result: T) => U | null) =>
     mapResults((results) => fn(results.value));
@@ -319,7 +325,7 @@ export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
 function traceIndent(state: ParserContext): ParserContext {
   let _debug = state._debug;
   if (_debug) {
-    _debug = { indent: _debug.indent + 1 };
+    _debug = { ..._debug, indent: _debug.indent + 1 };
   }
   return { ...state, _debug };
 }
@@ -453,18 +459,38 @@ interface TraceLogging {
 }
 
 /** setup trace logging inside a parser stage */
-function traceLogging(state: ParserContext, trace: TraceType): TraceLogging {
+function traceLogging(
+  // _debug has trace settings from parent
+  state: ParserContext,
+  // trace has trace options set on this stage
+  trace?: TraceOptions
+): TraceLogging {
   let { _debug } = state;
-  if (!trace && !_debug) {
-    return { tlog: () => {}, tstate: state };
+  let logging: boolean = !!_debug || !!trace;
+  if (logging) {
+    const { start = 0, end = 1e20 } = { ..._debug, ...trace };
+    const pos = state.lexer.position();
+    if (pos < start || pos > end) {
+      console.log("logging off out of range", pos, start, end);
+      // TODO need to propogate even if disabled due to position, nested state might advance
+      logging = false;
+    }
   }
-  if (!_debug && trace === "deep") {
-    _debug = { indent: 0 };
-  }
-  const pad = currentIndent(_debug);
-  function tlog(...msgs: any[]) {
-    parserLog(`${pad}${msgs[0]}`, ...msgs.slice(1));
+
+  if (!_debug && trace && !trace?.shallow) {
+    _debug = { indent: 0, ...trace };
   }
   const tstate = { ...state, _debug };
-  return { tlog, tstate };
+  if (logging) {
+    console.log("logging in range");
+    const pad = currentIndent(_debug);
+    return {
+      tlog: (...msgs: any[]) => {
+        parserLog(`${pad}${msgs[0]}`, ...msgs.slice(1));
+      },
+      tstate,
+    };
+  } else {
+    return { tlog: () => {}, tstate };
+  }
 }
