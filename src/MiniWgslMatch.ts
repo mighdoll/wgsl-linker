@@ -59,11 +59,14 @@ export const mainMatch = tokenMatcher(
 const eol = /\n/;
 
 /** matching tokens at the start of a '//' line comment */
-export const lineCommentMatch = tokenMatcher({
-  ...directives,
-  notDirective,
-  eol,
-});
+export const lineCommentMatch = tokenMatcher(
+  {
+    ...directives,
+    notDirective: /[^#\n]+/,
+    eol,
+  },
+  "lineComment"
+);
 
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
 export const directiveArgsMatch = tokenMatcher(
