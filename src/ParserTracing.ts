@@ -1,7 +1,8 @@
 import { ParserContext } from "./ParserCombinator.js";
 
 let logger = console.log;
-export let parserLog = logger; // logger while tracing is active, otherwise noop
+export const noLog: typeof console.log = () => {};
+export let parserLog: typeof console.log = noLog; // logger while tracing is active, otherwise noop
 
 /** options to .trace() on a parser stage */
 export interface TraceOptions {
@@ -78,7 +79,7 @@ export function withTraceLogging<T>(
   }
 
   // setup appropriate logging for this stage
-  let tlog = () => {};
+  let tlog = noLog;
   if (logging) {
     const pad = currentIndent(_trace);
     tlog = (...msgs: any[]) => {
