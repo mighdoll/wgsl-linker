@@ -3,7 +3,6 @@ import {
   TraceContext,
   TraceOptions,
   parserLog,
-  traceIndent,
   withTraceLogging,
 } from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
@@ -234,10 +233,9 @@ export function or<
 export function or(...stages: ParserStageArg<any>[]): ParserStage<any> {
   return parserStage(
     (state: ParserContext): ParserResult<any> | null => {
-      const localState = traceIndent(state);
       for (const stage of stages) {
         const parser = parserArg(stage);
-        const result = parser(localState);
+        const result = parser(state);
         if (result !== null) {
           return result;
         }
@@ -293,12 +291,11 @@ export function seq<
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage(
     (state: ParserContext) => {
-      const localState = traceIndent(state);
       const values = [];
       let namedResults = {};
       for (const stage of stages) {
         const parser = parserArg(stage);
-        const result = parser(localState);
+        const result = parser(state);
         if (result === null) return null;
 
         namedResults = mergeNamed(namedResults, result.named);
@@ -323,9 +320,8 @@ export function opt<T>(
 ): ParserStage<T | string | boolean> {
   return parserStage(
     (state: ParserContext): OptParserResult<T | string | boolean> => {
-      const localState = traceIndent(state);
       const parser = parserArg(stage);
-      const result = parser(localState);
+      const result = parser(state);
       return result || { value: false, named: {} };
     },
     { traceName: "opt" }
@@ -336,8 +332,7 @@ export function opt<T>(
 export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
   return parserStage(
     (state: ParserContext): OptParserResult<Token | true> => {
-      const localState = traceIndent(state);
-      const result = parserArg(stage)(localState);
+      const result = parserArg(stage)(state);
       if (result) {
         return null;
       } else {
@@ -364,12 +359,11 @@ export function repeat<T>(
 ): ParserStage<(T | string)[]> {
   return parserStage(
     (state: ParserContext): OptParserResult<(T | string)[]> => {
-      const localState = traceIndent(state);
       const values: (T | string)[] = [];
       let results = {};
       while (true) {
         const parser = parserArg(stage);
-        const result = parser(localState);
+        const result = parser(state);
         if (result !== null) {
           values.push(result.value);
           results = mergeNamed(results, result.named);
@@ -390,9 +384,8 @@ export function tokens<T>(
   return parserStage(
     (state: ParserContext): OptParserResult<T | string> => {
       return state.lexer.withMatcher(matcher, () => {
-        const localState = traceIndent(state);
         const parser = parserArg(arg);
-        return parser(localState);
+        return parser(state);
       });
     },
     { traceName: `tokens ${matcher._traceName}` }
@@ -403,8 +396,7 @@ export function tokens<T>(
 export function fn<T>(fn: () => ParserStage<T>): ParserStage<T | string> {
   return parserStage((state: ParserContext): OptParserResult<T | string> => {
     const stage = parserArg(fn());
-    const localState = traceIndent(state);
-    return stage(localState);
+    return stage(state);
   });
 }
 

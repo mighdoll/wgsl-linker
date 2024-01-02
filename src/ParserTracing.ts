@@ -40,15 +40,6 @@ export function _withBaseLogger<T>(logFn: typeof console.log, fn: () => T): T {
   }
 }
 
-/** increase indent for debug trace logging, if tracing is active */
-export function traceIndent(state: ParserContext): ParserContext {
-  let _trace = state._trace;
-  if (_trace) {
-    _trace = { ..._trace, indent: _trace.indent + 1 };
-  }
-  return { ...state, _trace };
-}
-
 export interface TraceLogging {
   tstate: ParserContext;
 }
@@ -85,6 +76,11 @@ export function withTraceLogging<T>(
     tlog = (...msgs: any[]) => {
       logger(`${pad}${msgs[0]}`, ...msgs.slice(1));
     };
+  }
+
+  // indent further for nested stages
+  if (_trace) {
+    _trace = { ..._trace, indent: _trace.indent + 1 };
   }
 
   return withLogger(tlog, () => fn({ ...ctx, _trace }));
