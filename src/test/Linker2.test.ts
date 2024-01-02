@@ -38,31 +38,30 @@ test("#import with parameter", () => {
   expect(linked).includes("a: MyElem");
 });
 
-// test.only("transitive import", () => {
-//   const binOpModule = `
-//   // #export(Elem) 
-//   fn binaryOp(a: Elem, b: Elem) -> Elem {
-//       return Elem(a.sum + b.sum); // binOpImpl
-//   }
-//     `;
-//   const reduceModule = `
-//   #export(work)
-//   fn reduceWorkgroup(index:u32) {
-//       let combined = binaryOp(work[index], work[index + 1u]);
-//   }
+test("transitive import", () => {
+  const binOpModule = `
+    // #export(Elem) 
+    fn binaryOp(a: Elem, b: Elem) -> Elem {
+        return Elem(a.sum + b.sum); // binOpImpl
+    }`;
+  const reduceModule = `
+    #export(work)
+    fn reduceWorkgroup(index:u32) {
+        let combined = binaryOp(work[index], work[index + 1u]);
+    }
 
-//   #import binaryOp(MyElem)
-//   `;
-//   const src = `
-//     // #import reduceWorkgroup(myWork)
-//     reduceWorkgroup(localId); // call the imported function
-//   `;
-//   const registry = new ModuleRegistry2(binOpModule, reduceModule);
-//   const linked = linkWgsl2(src, registry);
-//   expect(linked).includes("myWork[index]");
-//   expect(linked).not.includes("work[");
-//   expect(linked).includes("binOpImpl");
-// });
+    #import binaryOp(MyElem)`;
+  const src = `
+    // #import reduceWorkgroup(myWork)
+    fn main() {
+      reduceWorkgroup(localId); // call the imported function
+    }`;
+  const registry = new ModuleRegistry2(binOpModule, reduceModule);
+  const linked = linkWgsl2(src, registry);
+  expect(linked).includes("myWork[index]");
+  expect(linked).not.includes("work[");
+  expect(linked).includes("binOpImpl");
+});
 
 // test("import with parameter", () => {
 //   const myModule = `
@@ -70,7 +69,7 @@ test("#import with parameter", () => {
 //   struct Elem {
 //     sum: f32,
 //   }
-//   var <workgroup> work: array<Elem, 64>; 
+//   var <workgroup> work: array<Elem, 64>;
 
 //   // #export (work)
 //   fn reduceWorkgroup(localId: u32) {
@@ -87,7 +86,7 @@ test("#import with parameter", () => {
 //     struct MyElem {
 //       sum: u32;
 //     }
-//     var <workgroup> myWork: array<MyElem, 128>; 
+//     var <workgroup> myWork: array<MyElem, 128>;
 
 //     // #import reduceWorkgroup(myWork)
 //     reduceWorkgroup(localId); // call the imported function
@@ -99,11 +98,10 @@ test("#import with parameter", () => {
 //   expect(linked).not.includes("work[");
 // });
 
-
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
-//     #export(threads) 
+//     #export(threads)
 //     fn foo() {
 //       for (var step = 0; step < 4; step++) { //#replace 4=threads
 //       }
@@ -161,11 +159,11 @@ test("#import with parameter", () => {
 
 // test("#import foo from zap (multiple modules)", () => {
 //   const module1 = `
-//     // #export 
+//     // #export
 //     fn foo() { /* module1 */ }
 //   `;
 //   const module2 = `
-//     // #export 
+//     // #export
 //     fn foo() { /* module2 */ }
 //   `;
 
@@ -184,13 +182,13 @@ test("#import with parameter", () => {
 
 // test("#import twice with different names", () => {
 //   const module1 = `
-//     #export 
+//     #export
 //     fn foo() { /* module1 */ }
 //   `;
 //   const src = `
 //     #import foo as bar
 //     #import foo as zap
-    
+
 //     foo();
 //     zap();
 //   `;
@@ -227,7 +225,7 @@ test("#import with parameter", () => {
 
 //     #template replacer
 //     #export log(logVar, logType)
-//       log(logVar); 
+//       log(logVar);
 //     #endInsert
 //     fn log(myVar: u32) {} // #replace u32=logType
 //   `;
@@ -247,8 +245,8 @@ test("#import with parameter", () => {
 
 // test("#import with different names, resolve conflicting support function", () => {
 //   const module1 = `
-//     #export 
-//     fn foo() { 
+//     #export
+//     fn foo() {
 //       support();
 //     }
 
@@ -257,7 +255,7 @@ test("#import with parameter", () => {
 //   const src = `
 //     #import foo as bar
 //     #import foo as zap
-    
+
 //     fn support() { }
 //     foo();
 //     zap();
@@ -274,24 +272,24 @@ test("#import with parameter", () => {
 
 // test("resolve conflicting import support struct imports", () => {
 //   const module1 = `
-//     #export 
+//     #export
 //     fn foo() {
-//       e: Elem = Elem(1); 
+//       e: Elem = Elem(1);
 //     }
-    
+
 //     struct Elem {
-//       v: i32, 
+//       v: i32,
 //     }
-    
+
 //     var <workgroup> a: array<Elem, 64>;
 //   `;
 
 //   const src = `
-//      #import foo 
+//      #import foo
 //      #import foo as bar
 
 //      struct Elem {
-//        other: f32; 
+//        other: f32;
 //      }
 
 //      foo();
@@ -350,7 +348,7 @@ test("#import with parameter", () => {
 //   const src = `
 //     fn foo() {
 //       let bar: i32 = 1
-//       #import log(bar, i32) 
+//       #import log(bar, i32)
 //     }
 //   `;
 //   const registry = new ModuleRegistry();
@@ -362,7 +360,7 @@ test("#import with parameter", () => {
 
 // test("import transitive conflicts with main", () => {
 //   const module1 = `
-//     #export 
+//     #export
 //     fn grand() {
 //       /* grandImpl */
 //     }
@@ -395,7 +393,7 @@ test("#import with parameter", () => {
 // test("external param applied to template", () => {
 //   const module1 = `
 //     #template replacer
-//     #export(threads) 
+//     #export(threads)
 //     fn foo() {
 //       for (var step = 0; step < 4; step++) { //#replace 4=threads
 //       }
