@@ -143,7 +143,7 @@ export function parserStage<T>(
 
   // TODO make name param optional and use the name from a text() or kind() match?
   stageFn.named = (name: string) =>
-    parserStage(fn, { ...args, resultName: name });
+    parserStage(fn, { ...args, resultName: name, traceName: name });
   stageFn.traceName = (name: string) =>
     parserStage(fn, { ...args, traceName: name });
   stageFn.mapResults = mapResults;
@@ -323,8 +323,9 @@ export function opt<T>(
 ): ParserStage<T | string | boolean> {
   return parserStage(
     (state: ParserContext): OptParserResult<T | string | boolean> => {
+      const localState = traceIndent(state);
       const parser = parserArg(stage);
-      const result = parser(state);
+      const result = parser(localState);
       return result || { value: false, named: {} };
     },
     { traceName: "opt" }
