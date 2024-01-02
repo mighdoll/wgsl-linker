@@ -14,17 +14,36 @@ export interface TokenMatcher {
   _traceName?: string;
 }
 
+/** size limited key value cache */
+class Cache<K, V> extends Map<K, V> {
+  constructor(readonly maxSize: number) {
+    super();
+  }
+
+  set(k: K, v: V): this {
+    if (this.size > this.maxSize) {
+      this.delete(this.keys().next().value);
+    }
+    return super.set(k, v);
+  }
+}
+
 export function tokenMatcher<T extends Record<string, string | RegExp>>(
   matchers: T,
   traceName = "matcher"
 ): FullTokenMatcher<T> {
   const groups: string[] = Object.keys(matchers);
   let src: string;
-
+  // cache of tokens by position, so we don't have to reparse after backtracking
+  const cache = new Cache<number, Token>(5);
   const expParts = Object.values(matchers).map(toRegexSource).join("|");
   const exp = new RegExp(expParts, "midg");
 
   function start(text: string, position: number = 0): void {
+    if (src !== text) {
+      console.log(`${traceName} start, clear cache`);
+      cache.clear();
+    }
     src = text;
     exp.lastIndex = position;
   }
@@ -33,13 +52,24 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
     if (src === undefined) {
       throw new Error("start() first");
     }
+    const startPos = exp.lastIndex;
+    const found = cache.get(startPos);
+    if (found) {
+      console.log(`${traceName} cache hit`, found)
+      exp.lastIndex += found.text.length;
+      return found;
+    }
+
     const matches = exp.exec(src);
     const matchedIndex = findGroupDex(matches?.indices);
     if (matchedIndex) {
       const { startEnd, groupDex } = matchedIndex;
       const kind = groups[groupDex];
       const text = src.slice(startEnd[0], startEnd[1]);
-      return { kind, text };
+      const token = { kind, text };
+      cache.set(startPos, token);
+      console.log(`${traceName} cache miss`, startPos, token )
+      return token;
     }
   }
 
