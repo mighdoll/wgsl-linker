@@ -81,7 +81,7 @@ export const directiveArgsTokens = tokenMatcher(
     comma,
     equals,
     eol,
-    ws,
+    ws: /[ \t]+/,
   },
   "directiveArgs"
 );

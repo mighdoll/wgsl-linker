@@ -87,3 +87,11 @@ test("parse fn with line comment", () => {
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
+
+test("parse #export(foo) with trailing space", () => {
+  const src = `
+    // #export (Elem) 
+    `;
+  const parsed = parseMiniWgsl(src);
+  expect(parsed).toMatchSnapshot();
+});
