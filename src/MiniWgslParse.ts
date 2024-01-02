@@ -85,15 +85,11 @@ const exportDirective = seq(
   m.exportD,
   tokens(
     directiveArgsTokens,
-    seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), eol)
+    seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
   ).traceName("exportDirective")
 ).mapResults((r) => {
-  // TODO shorten with makeElem
-  const { start, end, results } = r;
-  const { exp, args } = r.named;
-  const name = exp?.[0];
-  const e: ExportElem = { kind: "export", name, args, start, end };
-  results.push(e);
+  const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
+  r.results.push(e);
 });
 
 /** #import foo <(a,b)> <from bar> <as boo> EOL */
