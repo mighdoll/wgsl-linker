@@ -41,7 +41,6 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
 
   function start(text: string, position: number = 0): void {
     if (src !== text) {
-      console.log(`${traceName} start, clear cache`);
       cache.clear();
     }
     src = text;
@@ -55,7 +54,6 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
     const startPos = exp.lastIndex;
     const found = cache.get(startPos);
     if (found) {
-      console.log(`${traceName} cache hit`, found)
       exp.lastIndex += found.text.length;
       return found;
     }
@@ -68,7 +66,6 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
       const text = src.slice(startEnd[0], startEnd[1]);
       const token = { kind, text };
       cache.set(startPos, token);
-      console.log(`${traceName} cache miss`, startPos, token )
       return token;
     }
   }
