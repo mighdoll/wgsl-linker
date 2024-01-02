@@ -74,7 +74,9 @@ const directiveArgs = seq(
   kind(a.word).named("word"),
   repeat(seq(a.comma, kind(a.word).named("word"))),
   a.rparen
-).mapResults((r) => r.named.word);
+)
+  .traceName("directiveArgs")
+  .mapResults((r) => r.named.word);
 
 const eol = or(a.eol, eof());
 
@@ -84,7 +86,7 @@ const exportDirective = seq(
   tokens(
     directiveArgsTokens,
     seq(opt(kind(a.word).named("exp")), opt(directiveArgs.named("args")), eol)
-  )
+  ).traceName("exportDirective")
 ).mapResults((r) => {
   // TODO shorten with makeElem
   const { start, end, results } = r;
@@ -116,7 +118,7 @@ export const directive = or(exportDirective, importDirective);
 /** // <#import|#export|any> */
 export const lineComment = seq(
   text("//"),
-  tokens(lineCommentTokens, or(directive, l.notDirective)).trace()
+  tokens(lineCommentTokens, or(directive, l.notDirective))
 );
 
 const structDecl = seq(
@@ -132,6 +134,7 @@ const structDecl = seq(
 
 export const fnCall = seq(
   kind(m.word)
+    .traceName("fn-name")
     .mapResults(({ start, end, value }) => ({ start, end, call: value }))
     .named("call"),
   m.lparen
@@ -142,13 +145,13 @@ const block: ParserStage<any> = seq(
   repeat(
     or(
       lineComment,
-      fnCall,
-      fn(() => block),
+      fnCall.traceName("block.fnCall"),
+      fn(() => block.traceName("nestedBlock")).traceName("block.fn"),
       not(m.rbrace)
     )
   ),
   m.rbrace
-);
+).traceName("block");
 
 export const fnDecl = seq(
   text("fn"),
@@ -156,17 +159,20 @@ export const fnDecl = seq(
   "lparen",
   repeat(or(lineComment, not(m.lbrace))),
   block
-).mapResults((r) => {
-  const calls = r.named.call || [];
-  const callElems: CallElem[] = calls.map(({ start, end, call }) => {
-    return { kind: "call", start, end, call };
+)
+  .traceName("fnDecl")
+  .mapResults((r) => {
+    const calls = r.named.call || [];
+    const callElems: CallElem[] = calls.map(({ start, end, call }) => {
+      return { kind: "call", start, end, call };
+    });
+    const fn = makeElem<FnElem>("fn", r, ["name"]);
+    fn.children = callElems;
+    r.results.push(fn);
   });
-  const fn = makeElem<FnElem>("fn", r, ["name"]);
-  fn.children = callElems;
-  r.results.push(fn);
-});
 
 const unknown = any().map((t) => console.warn("???", t));
+// const unknown = any();
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
 const root = repeat(rootDecl); // TODO check for EOF
