@@ -6,7 +6,7 @@ Features include:
 - dynamic exports via pluggable template engines, or code generation functions
 - compatible with static wgsl tools like code formatters and wgsl-analyzer
 - supports #if #else #endif, and #replace
-- small (about 3kb). Link at runtime, no build step required.
+- small (about tbd kb). Link at runtime, no build step required.
 
 #### Simple Example
 
