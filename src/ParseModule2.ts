@@ -3,8 +3,8 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
-  parseMiniWgsl,
-} from "./MiniWgslParse.js";
+} from "./AbstractElems.js";
+import { parseMiniWgsl } from "./MiniWgslParse.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
@@ -42,14 +42,14 @@ export function parseModule2(
 // TODO consider how to export fields inside a struct.. currently indicated #export foo
 // should we still do text capture for fields? seems better to export (and merge?) the struct itself..
 
-function findExports(src:string, parsed: AbstractElem[]): TextExport2[] {
+function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
   const exports: TextExport2[] = [];
   parsed.forEach((elem, i) => {
     if (elem.kind === "export") {
       const next = parsed[i + 1];
       const args = elem.args ?? [];
       if (next?.kind === "fn") {
-        exports.push({ exp:elem, args, ref: next, name: next.name, src });
+        exports.push({ exp: elem, args, ref: next, name: next.name, src });
       }
     }
   });

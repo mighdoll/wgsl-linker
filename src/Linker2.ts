@@ -1,8 +1,7 @@
-import { ImportElem } from "./MiniWgslParse.js";
+import { ImportElem } from "./AbstractElems.js";
 import {
-  ModuleExport2,
   ModuleRegistry2,
-  TextModuleExport2,
+  TextModuleExport2
 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 
