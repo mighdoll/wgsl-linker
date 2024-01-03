@@ -171,10 +171,10 @@ export const fnDecl = seq(
   });
 
 const unknown = any().map((t) => console.warn("???", t));
-// const unknown = any();
+
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
-const root = repeat(rootDecl); // TODO check for EOF
+const root = seq(repeat(rootDecl), eof()); 
 
 export function parseMiniWgsl(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
