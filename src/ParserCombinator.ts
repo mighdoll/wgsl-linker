@@ -119,7 +119,7 @@ export function parserStage<T>(
     const { lexer } = state;
     const position = lexer.position();
 
-    return withTraceLogging(state, trace, (tstate) => {
+    return withTraceLogging()(state, trace, (tstate) => {
       if (!terminal) parserLog(`..${traceName}`);
       const result = fn(tstate);
 

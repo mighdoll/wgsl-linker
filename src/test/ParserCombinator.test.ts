@@ -11,7 +11,7 @@ import {
   repeat,
   seq,
 } from "../ParserCombinator.js";
-import { _withBaseLogger } from "../ParserTracing.js";
+import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { Token } from "../TokenMatcher.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
@@ -144,6 +144,7 @@ test("tracing", () => {
   const src = "a";
   const { log, logged } = logCatch();
   const p = repeat(seq(m.word).traceName("wordz")).trace();
+  enableTracing();
   _withBaseLogger(log, () => {
     testParse(p, src);
   });

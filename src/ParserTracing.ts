@@ -1,8 +1,20 @@
 import { ParserContext } from "./ParserCombinator.js";
 
+let enabled = false;
+
+/** enable tracing of parser activity via .trace() */
+export function enableTracing() {
+  enabled = true;
+}
+
+/** base logger when tracing is enabled. (can be overriden to a capturing logger for tests) */
 let logger = console.log;
-export const noLog: typeof console.log = () => {};
-export let parserLog: typeof console.log = noLog; // logger while tracing is active, otherwise noop
+
+/** no-op logger, for when tracing is disabled */
+const noLog: typeof console.log = () => {};
+
+/** logger while tracing is active, otherwise noop */
+export let parserLog: typeof console.log = noLog;
 
 /** options to .trace() on a parser stage */
 export interface TraceOptions {
@@ -16,17 +28,6 @@ export interface TraceContext {
   indent: number;
   start?: number;
   end?: number;
-}
-
-/** use temporary logger, to turn tracing on/off */
-export function withLogger<T>(logFn: typeof console.log, fn: () => T): T {
-  const orig = parserLog;
-  try {
-    parserLog = logFn;
-    return fn();
-  } finally {
-    parserLog = orig;
-  }
 }
 
 /** use temporary logger for tests */
@@ -44,8 +45,15 @@ export interface TraceLogging {
   tstate: ParserContext;
 }
 
+export let withTraceLogging = () =>
+  enabled ? withTraceLoggingInternal : stubTraceLogging;
+
+function stubTraceLogging<T>(ctx: any, trace: any, fn: (a: any) => T): T {
+  return fn(ctx);
+}
+
 /** setup trace logging inside a parser stage */
-export function withTraceLogging<T>(
+function withTraceLoggingInternal<T>(
   // _trace has trace settings from parent
   ctx: ParserContext,
   // trace has trace options set on this stage
@@ -89,4 +97,15 @@ export function withTraceLogging<T>(
 /** padding for current indent level */
 function currentIndent(debug?: TraceContext) {
   return "  ".repeat(debug?.indent || 0);
+}
+
+/** use temporary logger, to turn tracing on/off */
+function withLogger<T>(logFn: typeof console.log, fn: () => T): T {
+  const orig = parserLog;
+  try {
+    parserLog = logFn;
+    return fn();
+  } finally {
+    parserLog = orig;
+  }
 }
