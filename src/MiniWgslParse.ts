@@ -17,8 +17,7 @@ import {
   or,
   repeat,
   seq,
-  text,
-  tokens,
+  tokens
 } from "./ParserCombinator.js";
 
 export type AbstractElem =
@@ -70,19 +69,19 @@ const a = directiveArgsTokens;
 const l = lineCommentTokens;
 
 const directiveArgs = seq(
-  kind(a.lparen),
+  "(",
   kind(a.word).named("word"),
-  repeat(seq(kind(a.comma), kind(a.word).named("word"))),
-  kind(a.rparen)
+  repeat(seq(",", kind(a.word).named("word"))),
+  ")"
 )
   .traceName("directiveArgs")
   .mapResults((r) => r.named.word);
 
-const eol = or(kind(a.eol), eof());
+const eol = or("\n", eof());
 
 /** #export <foo> <(a,b)> EOL */
 const exportDirective = seq(
-  kind(m.exportD),
+  "#export",
   tokens(
     directiveArgsTokens,
     seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
@@ -94,14 +93,14 @@ const exportDirective = seq(
 
 /** #import foo <(a,b)> <from bar> <as boo> EOL */
 const importDirective = seq(
-  text("#import"),
+  "#import",
   tokens(
     directiveArgsTokens,
     seq(
       kind(a.word).named("name"),
       opt(directiveArgs.named("args")),
-      opt(seq(text("from"), kind(a.word).named("from"))),
-      opt(seq(kind(a.as), kind(a.word).named("as"))),
+      opt(seq("from", kind(a.word).named("from"))),
+      opt(seq("as", kind(a.word).named("as"))),
       eol
     )
   )
@@ -116,16 +115,16 @@ export const directive = or(exportDirective, importDirective);
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
-  text("//"),
+  "//",
   tokens(lineCommentTokens, or(directive, kind(l.notDirective)))
 );
 
 const structDecl = seq(
-  text("struct"),
+  "struct",
   kind(m.word),
-  kind(m.lbrace),
-  repeat(or(lineComment, not(kind(m.rbrace)))),
-  kind(m.rbrace)
+  "{",
+  repeat(or(lineComment, not("}"))),
+  "}"
 ).mapResults((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
   r.results.push(e);
@@ -136,27 +135,27 @@ export const fnCall = seq(
     .traceName("fn-name")
     .mapResults(({ start, end, value }) => ({ start, end, call: value }))
     .named("call"),
-  kind(m.lparen)
+  "("
 );
 
 const block: ParserStage<any> = seq(
-  kind(m.lbrace),
+  "{",
   repeat(
     or(
       lineComment,
       fnCall,
       fn(() => block),
-      not(kind(m.rbrace))
+      not("}")
     )
   ),
-  kind(m.rbrace)
+  "}"
 ).traceName("block");
 
 export const fnDecl = seq(
-  text("fn"),
+  "fn",
   kind(a.word).named("name"),
-  kind("lparen"),
-  repeat(or(lineComment, not(kind(m.lbrace)))),
+  "(",
+  repeat(or(lineComment, not("{"))),
   block
 )
   .traceName("fnDecl")

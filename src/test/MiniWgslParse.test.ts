@@ -65,7 +65,7 @@ test("lineComment parse // #export foo", () => {
   expect(app).toMatchSnapshot();
 });
 
-test.only("parse fn foo() { }", () => {
+test("parse fn foo() { }", () => {
   const src = "fn foo() { }";
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
