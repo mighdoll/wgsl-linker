@@ -86,7 +86,7 @@ const exportDirective = seq(
   tokens(
     directiveArgsTokens,
     seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
-  ).traceName("exportDirective")
+  ).traceName("export")
 ).mapResults((r) => {
   const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
   r.results.push(e);
@@ -105,10 +105,13 @@ const importDirective = seq(
       eol
     )
   )
-).mapResults((r) => {
-  const e = makeElem<ImportElem>("import", r, ["name", "from", "as"], ["args"]);
-  r.results.push(e);
-});
+)
+  .traceName("import")
+  .mapResults((r) => {
+    const named: (keyof ImportElem)[] = ["name", "from", "as"];
+    const e = makeElem<ImportElem>("import", r, named, ["args"]);
+    r.results.push(e);
+  });
 export const directive = or(exportDirective, importDirective);
 
 /** // <#import|#export|any> */
@@ -141,8 +144,8 @@ const block: ParserStage<any> = seq(
   repeat(
     or(
       lineComment,
-      fnCall.traceName("block.fnCall"),
-      fn(() => block.traceName("nestedBlock")).traceName("block.fn"),
+      fnCall,
+      fn(() => block),
       not(m.rbrace)
     )
   ),
