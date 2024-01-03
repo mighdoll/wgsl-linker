@@ -2,6 +2,9 @@ import { expect, test } from "vitest";
 import { directive, lineComment, parseMiniWgsl } from "../MiniWgslParse.js";
 import { testParse } from "./TestParse.js";
 
+// import { enableTracing } from "../ParserTracing.js";
+// enableTracing();
+
 test("parse empty string", () => {
   const parsed = parseMiniWgsl("");
   expect(parsed).toMatchSnapshot();
@@ -62,7 +65,7 @@ test("lineComment parse // #export foo", () => {
   expect(app).toMatchSnapshot();
 });
 
-test("parse fn foo() { }", () => {
+test.only("parse fn foo() { }", () => {
   const src = "fn foo() { }";
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();

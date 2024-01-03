@@ -70,19 +70,19 @@ const a = directiveArgsTokens;
 const l = lineCommentTokens;
 
 const directiveArgs = seq(
-  a.lparen,
+  kind(a.lparen),
   kind(a.word).named("word"),
-  repeat(seq(a.comma, kind(a.word).named("word"))),
-  a.rparen
+  repeat(seq(kind(a.comma), kind(a.word).named("word"))),
+  kind(a.rparen)
 )
   .traceName("directiveArgs")
   .mapResults((r) => r.named.word);
 
-const eol = or(a.eol, eof());
+const eol = or(kind(a.eol), eof());
 
 /** #export <foo> <(a,b)> EOL */
 const exportDirective = seq(
-  m.exportD,
+  kind(m.exportD),
   tokens(
     directiveArgsTokens,
     seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
@@ -101,7 +101,7 @@ const importDirective = seq(
       kind(a.word).named("name"),
       opt(directiveArgs.named("args")),
       opt(seq(text("from"), kind(a.word).named("from"))),
-      opt(seq(a.as, kind(a.word).named("as"))),
+      opt(seq(kind(a.as), kind(a.word).named("as"))),
       eol
     )
   )
@@ -117,15 +117,15 @@ export const directive = or(exportDirective, importDirective);
 /** // <#import|#export|any> */
 export const lineComment = seq(
   text("//"),
-  tokens(lineCommentTokens, or(directive, l.notDirective))
+  tokens(lineCommentTokens, or(directive, kind(l.notDirective)))
 );
 
 const structDecl = seq(
   text("struct"),
-  m.word,
-  m.lbrace,
-  repeat(or(lineComment, not(m.rbrace))),
-  m.rbrace
+  kind(m.word),
+  kind(m.lbrace),
+  repeat(or(lineComment, not(kind(m.rbrace)))),
+  kind(m.rbrace)
 ).mapResults((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
   r.results.push(e);
@@ -136,27 +136,27 @@ export const fnCall = seq(
     .traceName("fn-name")
     .mapResults(({ start, end, value }) => ({ start, end, call: value }))
     .named("call"),
-  m.lparen
+  kind(m.lparen)
 );
 
 const block: ParserStage<any> = seq(
-  m.lbrace,
+  kind(m.lbrace),
   repeat(
     or(
       lineComment,
       fnCall,
       fn(() => block),
-      not(m.rbrace)
+      not(kind(m.rbrace))
     )
   ),
-  m.rbrace
+  kind(m.rbrace)
 ).traceName("block");
 
 export const fnDecl = seq(
   text("fn"),
   kind(a.word).named("name"),
-  "lparen",
-  repeat(or(lineComment, not(m.lbrace))),
+  kind("lparen"),
+  repeat(or(lineComment, not(kind(m.lbrace)))),
   block
 )
   .traceName("fnDecl")

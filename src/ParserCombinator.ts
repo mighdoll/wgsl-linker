@@ -187,7 +187,7 @@ export function kind(kindStr: string): ParserStage<string> {
 export function text(value: string): ParserStage<string> {
   return parsing((state: ParserContext): string | null => {
     const next = state.lexer.next();
-    return next?.text === value ? next.kind : null;
+    return next?.text === value ? next.text : null;
   }, `text '${value}'`);
 }
 
@@ -406,11 +406,11 @@ export function eof(): ParserStage<true> {
   return parsing((state: ParserContext) => state.lexer.eof() || null, "eof");
 }
 
-/** convert naked string arguments into kind() parsers */ // LATEr consider converting to text() parser instead
+/** convert naked string arguments into text() parsers */ 
 function parserArg<T>(
   arg: ParserStageArg<T>
 ): ParserStage<T> | ParserStage<string> {
-  return typeof arg === "string" ? kind(arg) : arg;
+  return typeof arg === "string" ? text(arg) : arg;
 }
 
 /** merge arrays in liked named keys */
