@@ -97,9 +97,9 @@ const structDecl = seq(
 
 export const fnCall = seq(
   kind(m.word)
-    .traceName("fn-name")
-    .mapResults(({ start, end, value }) => ({ start, end, call: value }))
-    .named("call"), // we'll collect this in fnDecl, to attach to FnElem
+    .named("call")
+    .mapResults((r) => makeElem<CallElem>("call", r, ["call"]))
+    .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
 );
 
@@ -125,12 +125,8 @@ export const fnDecl = seq(
 )
   .traceName("fnDecl")
   .mapResults((r) => {
-    const calls = r.named.call || [];
-    const callElems: CallElem[] = calls.map(({ start, end, call }) => {
-      return { kind: "call", start, end, call };
-    });
     const fn = makeElem<FnElem>("fn", r, ["name"]);
-    fn.children = callElems;
+    fn.children = r.named.calls || [];
     r.results.push(fn);
   });
 
