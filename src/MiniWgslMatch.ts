@@ -32,25 +32,26 @@ const comma = ",";
 const equals = "=";
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - --" +
-  ". + ++ | || () ; * ~ ^ += -= *= /= %= &= |= ^= >>= <<= <<";
+  ". + ++ | || ( ) ; * ~ ^ += -= *= /= %= &= |= ^= >>= <<= <<";
 
-const symbolList = symbolSet.split(" ").sort((a, b) => b.length - a.length);
-const escaped = symbolList.map(escapeRegex);
-export const symbol = new RegExp(escaped.join("|"));
+function makeSymbols(syms: string): RegExp {
+  const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
+  const escaped = symbolList.map(escapeRegex);
+  return new RegExp(escaped.join("|"));
+}
 
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
   {
     ...directives,
     lineComment,
-    lparen,
     lbrace: "{",
     rbrace: "}",
     commentStart: "/*",
     commentEnd: "*/",
     annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
     word,
-    symbol,
+    symbol: makeSymbols(symbolSet),
     ws,
   },
   "main"
@@ -85,8 +86,3 @@ export const directiveArgsTokens = tokenMatcher(
   },
   "directiveArgs"
 );
-
-// export function regexOr(flags: string, ...exp: RegExp[]): RegExp {
-//   const concat = exp.map((e) => e.source).join("|");
-//   return new RegExp(concat, flags);
-// }
