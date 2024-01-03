@@ -1,5 +1,7 @@
 import { declAdd, globalDeclarations, resolveNameConflicts } from "./Declarations.js";
+import { linkWgsl2 } from "./Linker2.js";
 import { ModuleRegistry, TextModuleExport } from "./ModuleRegistry.js";
+import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { parseModule } from "./ParseModule.js";
 import { importRegex, replaceTokens } from "./Parsing.js";
 import { stripIfDirectives } from "./Preprocess.js";
@@ -81,6 +83,7 @@ export function linkWgsl(
   registry: ModuleRegistry,
   params: Record<string, any> = {}
 ): string {
+  linkWgsl2("", new ModuleRegistry2()); // temporary to check minified size of build. TODO remove
   return insertImportsRecursive(src, registry, new Set(), 0, params);
 }
 
