@@ -28,7 +28,7 @@ test("or() finds first match", () => {
 
 test("or() finds second match", () => {
   const src = "// #import";
-  const p = or(kind(m.importD), kind(m.lineComment));
+  const p = or("#import", "//");
   const { parsed, position } = testParse(p, src);
   expect(parsed?.value).toEqual("//");
   expect(position).toEqual("//".length);
@@ -36,7 +36,7 @@ test("or() finds second match", () => {
 
 test("or() finds no match ", () => {
   const src = "fn decl() {}";
-  const p = or(kind(m.importD), kind(m.lineComment));
+  const p = or("#import", "//");
   const { parsed, position } = testParse(p, src);
   expect(parsed).toEqual(null);
   expect(position).toEqual(0);
@@ -44,7 +44,7 @@ test("or() finds no match ", () => {
 
 test("seq() returns null with partial match", () => {
   const src = "#import";
-  const p = seq(kind("directive"), kind("word"));
+  const p = seq("#import", kind("word"));
   const { parsed, position } = testParse(p, src);
   expect(parsed).toEqual(null);
   expect(position).toEqual(0);
@@ -52,7 +52,7 @@ test("seq() returns null with partial match", () => {
 
 test("seq() handles two element match", () => {
   const src = "#import foo";
-  const p = seq(kind(m.importD), kind(m.word));
+  const p = seq("#import", kind(m.word));
   const { parsed } = testParse(p, src);
   expect(parsed).toMatchSnapshot();
 });
@@ -66,14 +66,14 @@ test("named kind match", () => {
 
 test("seq() with named result", () => {
   const src = "#import foo";
-  const p = seq(kind(m.importD), kind(m.word).named("yo"));
+  const p = seq("#import", kind(m.word).named("yo"));
   const { parsed } = testParse(p, src);
   expect(parsed?.named.yo).deep.equals(["foo"]);
 });
 
 test("opt() makes failing match ok", () => {
   const src = "foo";
-  const p = seq(opt(kind("directive")), kind("word"));
+  const p = seq(opt("#import"), kind("word"));
   const { parsed } = testParse(p, src);
   expect(parsed).not.null;
   expect(parsed).toMatchSnapshot();
@@ -85,7 +85,7 @@ test("repeat() to (1,2,3,4) via named", () => {
   const app: any[] = [];
   const wordNum = or(kind("word"), kind("digits")).named("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(kind("comma"), wordNum))));
-  const p = seq(kind("lparen"), params, kind("rparen"));
+  const p = seq("(", params, ")");
   const parsed = p({ lexer, app });
   expect(parsed).not.null;
   expect(parsed?.named.wn).deep.equals(["1", "2", "3", "4"]);
@@ -109,7 +109,7 @@ test("mapResults()", () => {
 
 test("not() success", () => {
   const src = "foo bar";
-  const p = repeat(not(kind(m.lbrace)));
+  const p = repeat(not("{"));
   const { parsed } = testParse(p, src);
 
   const values = parsed!.value as Token[];
@@ -126,14 +126,14 @@ test("not() failure", () => {
 test("recurse with fn()", () => {
   const src = "{ a { b } }";
   const p: ParserStage<any> = seq(
-    kind(m.lbrace),
+    "{",
     repeat(
       or(
         kind(m.word).named("word"),
         fn(() => p)
       )
     ),
-    kind(m.rbrace)
+    "}"
   );
   const wrap = or(p).mapResults((r) => r.results.push(r.named.word));
   const { app } = testParse(wrap, src);
