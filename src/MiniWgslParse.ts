@@ -1,3 +1,11 @@
+import {
+  ExportElem,
+  ImportElem,
+  StructElem,
+  CallElem,
+  FnElem,
+  AbstractElem,
+} from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import {
   directiveArgsTokens,
@@ -17,52 +25,8 @@ import {
   or,
   repeat,
   seq,
-  tokens
+  tokens,
 } from "./ParserCombinator.js";
-
-export type AbstractElem =
-  | ImportElem
-  | ExportElem
-  | FnElem
-  | CallElem
-  | StructElem;
-
-/** 'interesting' elements found in the source */
-export interface AbstractElemBase {
-  kind: string;
-  start: number;
-  end: number;
-}
-
-export interface CallElem extends AbstractElemBase {
-  kind: "call";
-  call: string;
-}
-
-export interface FnElem extends AbstractElemBase {
-  kind: "fn";
-  name: string;
-  children: (ImportElem | CallElem)[];
-}
-
-export interface StructElem extends AbstractElemBase {
-  kind: "struct";
-  name: string;
-}
-
-export interface ExportElem extends AbstractElemBase {
-  kind: "export";
-  name?: string;
-  args?: string[];
-}
-
-export interface ImportElem extends AbstractElemBase {
-  kind: "import";
-  name: string;
-  args?: string[];
-  as?: string;
-  from?: string;
-}
 
 const m = mainTokens;
 const a = directiveArgsTokens;
@@ -135,7 +99,7 @@ export const fnCall = seq(
   kind(m.word)
     .traceName("fn-name")
     .mapResults(({ start, end, value }) => ({ start, end, call: value }))
-    .named("call"),
+    .named("call"), // we'll collect this in fnDecl, to attach to FnElem
   "("
 );
 
@@ -174,7 +138,7 @@ const unknown = any().map((t) => console.warn("???", t));
 
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
-const root = seq(repeat(rootDecl), eof()); 
+const root = seq(repeat(rootDecl), eof());
 
 export function parseMiniWgsl(src: string): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
