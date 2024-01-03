@@ -21,16 +21,9 @@ StructConstruct()
 
 const directive = /#[a-zA-Z_]\w*/;
 const word = /[a-zA-Z_]\w*/;
-const ws = /\s+/;
-const digits = /[0-9]+/;
-const lparen = "(";
-const rparen = ")";
-const comma = ",";
-const equals = "=";
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
-
 
 function makeSymbols(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
@@ -45,7 +38,7 @@ export const mainTokens = tokenMatcher(
     annotation: /@[a-zA-Z_]\w*/,
     word,
     symbol: makeSymbols(symbolSet),
-    ws,
+    ws: /\s+/,
   },
   "main"
 );
@@ -56,7 +49,7 @@ const eol = /\n/;
 export const lineCommentTokens = tokenMatcher(
   {
     directive,
-    ws: /[ \t]+/,
+    ws: /[ \t]+/, // note ws must be before notDirective
     notDirective: /[^#\n]+/,
     eol,
   },
@@ -66,16 +59,11 @@ export const lineCommentTokens = tokenMatcher(
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
 export const directiveArgsTokens = tokenMatcher(
   {
-    lparen,
-    rparen,
-    from: "from",
-    as: "as",
     word,
-    digits,
-    comma,
-    equals,
-    eol,
+    digits: /[0-9]+/,
+    symbol: makeSymbols("( ) , ="),
     ws: /[ \t]+/,
+    eol,
   },
   "directiveArgs"
 );

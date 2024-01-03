@@ -84,7 +84,7 @@ test("repeat() to (1,2,3,4) via named", () => {
   const lexer = matchingLexer(src, directiveArgsTokens);
   const app: any[] = [];
   const wordNum = or(kind("word"), kind("digits")).named("wn");
-  const params = seq(opt(wordNum), opt(repeat(seq(kind("comma"), wordNum))));
+  const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));
   const p = seq("(", params, ")");
   const parsed = p({ lexer, app });
   expect(parsed).not.null;
