@@ -16,12 +16,12 @@ export interface TokenMatcher {
 
 /** size limited key value cache */
 class Cache<K, V> extends Map<K, V> {
-  constructor(readonly maxSize: number) {
+  constructor(private readonly max: number) {
     super();
   }
 
   set(k: K, v: V): this {
-    if (this.size > this.maxSize) {
+    if (this.size > this.max) {
       this.delete(this.keys().next().value);
     }
     return super.set(k, v);
