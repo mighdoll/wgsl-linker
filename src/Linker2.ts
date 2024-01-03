@@ -1,8 +1,5 @@
 import { ImportElem } from "./AbstractElems.js";
-import {
-  ModuleRegistry2,
-  TextModuleExport2
-} from "./ModuleRegistry2.js";
+import { ModuleRegistry2, TextModuleExport2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 
 /** parse source text for #import directives, return wgsl with all imports injected */
@@ -67,6 +64,7 @@ function loadImportText(
   /* replace export args with import arg values */
   const importArgs = importElem.args ?? [];
   const entries = exp.args.map((p, i) => [p, importArgs[i]]);
+  if (importElem.as) entries.push([exp.name, importElem.as]); // rename 'as' imports, e.g. #import foo as 'newName'
   const importParams = Object.fromEntries(entries);
   return replaceTokens2(importSrc, importParams);
 }

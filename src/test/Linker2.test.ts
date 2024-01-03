@@ -63,40 +63,23 @@ test("transitive import", () => {
   expect(linked).includes("binOpImpl");
 });
 
-// test("import with parameter", () => {
-//   const myModule = `
-//   // these are just for typechecking the module, they're not included when the export is imported
-//   struct Elem {
-//     sum: f32,
-//   }
-//   var <workgroup> work: array<Elem, 64>;
+test("#import foo as bar", () => {
+  const myModule = `
+    #export
+    fn foo() { /* fooImpl */ }
+   `;
 
-//   // #export (work)
-//   fn reduceWorkgroup(localId: u32) {
-//       let workDex = localId << 1u;
-//       for (var step = 1u; step < 4u; step <<= 1u) { //#replace 4=threads
-//           workgroupBarrier();
-//           if localId % step == 0u {
-//               work[workDex].sum = work[workDex].sum + work[workDex + step].sum);
-//           }
-//       }
-//   }`;
+  const src = `
+    #import foo as bar
 
-//   const src = `
-//     struct MyElem {
-//       sum: u32;
-//     }
-//     var <workgroup> myWork: array<MyElem, 128>;
-
-//     // #import reduceWorkgroup(myWork)
-//     reduceWorkgroup(localId); // call the imported function
-//   `;
-//   const registry = new ModuleRegistry(myModule);
-
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).includes("myWork[workDex]");
-//   expect(linked).not.includes("work[");
-// });
+    fn main() {
+      bar();
+    }
+   `;
+  const registry = new ModuleRegistry2(myModule);
+  const linked = linkWgsl2(src, registry);
+  expect(linked).contains("fn bar()");
+});
 
 // test("import with template replace", () => {
 //   const myModule = `
@@ -139,22 +122,6 @@ test("transitive import", () => {
 //   const linked = linkWgsl(src, registry);
 //   const matches = linked.matchAll(/fooImpl/g);
 //   expect([...matches].length).toBe(1);
-// });
-
-// test("#import foo as bar", () => {
-//   const myModule = `
-//     #export
-//     fn foo() { /* fooImpl */ }
-//    `;
-
-//   const src = `
-//     #import foo as bar
-
-//     bar();
-//    `;
-//   const registry = new ModuleRegistry(myModule);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).contains("fn bar()");
 // });
 
 // test("#import foo from zap (multiple modules)", () => {
