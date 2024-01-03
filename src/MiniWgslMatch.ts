@@ -22,7 +22,7 @@ StructConstruct()
 const exportD = "#export";
 const importD = "#import";
 const directives = { exportD, importD };
-const word = /[a-zA-Z_][a-zA-Z0-9_]*/;
+const word = /[a-zA-Z_]\w*/;
 const ws = /\s+/;
 const digits = /[0-9]+/;
 const lparen = "(";
@@ -43,7 +43,7 @@ function makeSymbols(syms: string): RegExp {
 export const mainTokens = tokenMatcher(
   {
     ...directives,
-    annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
+    annotation: /@[a-zA-Z_]\w*/,
     word,
     symbol: makeSymbols(symbolSet),
     ws,
