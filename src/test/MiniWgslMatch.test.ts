@@ -5,7 +5,7 @@ import { mainTokens } from "../MiniWgslMatch.js";
 test("lex #import foo", () => {
   const lexer = matchingLexer(`#import foo`, mainTokens);
   const tokens = [1, 2].map(lexer.next);
-  expect(tokens.map((t) => t?.kind)).toEqual(["importD", "word"]);
+  expect(tokens.map((t) => t?.kind)).toEqual(["directive", "word"]);
 });
 
 test("/* foo */", () => {

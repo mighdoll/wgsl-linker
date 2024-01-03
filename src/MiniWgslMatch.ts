@@ -19,9 +19,7 @@ StructConstruct()
 <Struct, ...>  
 */
 
-const exportD = "#export";
-const importD = "#import";
-const directives = { exportD, importD };
+const directive = /#[a-zA-Z_]\w*/;
 const word = /[a-zA-Z_]\w*/;
 const ws = /\s+/;
 const digits = /[0-9]+/;
@@ -33,6 +31,7 @@ const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
+
 function makeSymbols(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
   const escaped = symbolList.map(escapeRegex);
@@ -42,7 +41,7 @@ function makeSymbols(syms: string): RegExp {
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
   {
-    ...directives,
+    directive,
     annotation: /@[a-zA-Z_]\w*/,
     word,
     symbol: makeSymbols(symbolSet),
@@ -56,7 +55,7 @@ const eol = /\n/;
 /** matching tokens at the start of a '//' line comment */
 export const lineCommentTokens = tokenMatcher(
   {
-    ...directives,
+    directive,
     ws: /[ \t]+/,
     notDirective: /[^#\n]+/,
     eol,
