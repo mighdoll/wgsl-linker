@@ -24,15 +24,14 @@ const importD = "#import";
 const directives = { exportD, importD };
 const word = /[a-zA-Z_][a-zA-Z0-9_]*/;
 const ws = /\s+/;
-const lineComment = "//";
 const digits = /[0-9]+/;
 const lparen = "(";
 const rparen = ")";
 const comma = ",";
 const equals = "=";
 const symbolSet =
-  "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - --" +
-  ". + ++ | || ( ) ; * ~ ^ /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
+  "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
+  ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
 function makeSymbols(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
@@ -44,7 +43,6 @@ function makeSymbols(syms: string): RegExp {
 export const mainTokens = tokenMatcher(
   {
     ...directives,
-    lineComment,
     annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
     word,
     symbol: makeSymbols(symbolSet),

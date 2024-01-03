@@ -20,7 +20,7 @@ const m = mainTokens;
 
 test("or() finds first match", () => {
   const src = "#import";
-  const p = or(kind("importD"), kind("lineComment"));
+  const p = or("#import", "//");
   const { parsed, position } = testParse(p, src);
   expect(parsed?.value).toEqual("#import");
   expect(position).toEqual(src.length);
