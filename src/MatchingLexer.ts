@@ -1,4 +1,4 @@
-import { parserLog } from "./ParserTracing.js";
+import { tracing, parserLog } from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
@@ -23,7 +23,7 @@ export function matchingLexer(
     while (token && ignore.has(token.kind)) {
       token = matcher.next();
     }
-    parserLog(`: '${token?.text}' (${token?.kind}) ${matcher.position()}`);
+    tracing && parserLog(`: '${token?.text}' (${token?.kind}) ${matcher.position()}`);
     return token;
   }
 

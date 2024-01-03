@@ -3,6 +3,7 @@ import {
   TraceContext,
   TraceOptions,
   parserLog,
+  tracing,
   withTraceLogging,
 } from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
@@ -120,15 +121,15 @@ export function parserStage<T>(
     const position = lexer.position();
 
     return withTraceLogging()(state, trace, (tstate) => {
-      if (!terminal) parserLog(`..${traceName}`);
+      if (!terminal && tracing) parserLog(`..${traceName}`);
       const result = fn(tstate);
 
       if (result === null || result === undefined) {
-        parserLog(`x ${traceName}`);
+        tracing && parserLog(`x ${traceName}`);
         lexer.position(position);
         return null;
       } else {
-        parserLog(`✓ ${traceName}`);
+        tracing && parserLog(`✓ ${traceName}`);
         if (resultName) {
           return {
             value: result.value,

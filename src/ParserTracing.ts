@@ -1,10 +1,10 @@
 import { ParserContext } from "./ParserCombinator.js";
 
-let enabled = false;
+export let tracing = false;
 
 /** enable tracing of parser activity via .trace() */
 export function enableTracing() {
-  enabled = true;
+  tracing = true;
 }
 
 /** base logger when tracing is enabled. (can be overriden to a capturing logger for tests) */
@@ -46,7 +46,7 @@ export interface TraceLogging {
 }
 
 export let withTraceLogging = () =>
-  enabled ? withTraceLoggingInternal : stubTraceLogging;
+  tracing ? withTraceLoggingInternal : stubTraceLogging;
 
 function stubTraceLogging<T>(ctx: any, trace: any, fn: (a: any) => T): T {
   return fn(ctx);
