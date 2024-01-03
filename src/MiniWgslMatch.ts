@@ -32,7 +32,7 @@ const comma = ",";
 const equals = "=";
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - --" +
-  ". + ++ | || ( ) ; * ~ ^ += -= *= /= %= &= |= ^= >>= <<= <<";
+  ". + ++ | || ( ) ; * ~ ^ /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
 function makeSymbols(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
@@ -45,10 +45,6 @@ export const mainTokens = tokenMatcher(
   {
     ...directives,
     lineComment,
-    lbrace: "{",
-    rbrace: "}",
-    commentStart: "/*",
-    commentEnd: "*/",
     annotation: /@[a-zA-Z_][a-zA-Z0-9_]*/,
     word,
     symbol: makeSymbols(symbolSet),

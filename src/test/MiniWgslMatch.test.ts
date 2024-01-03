@@ -12,5 +12,5 @@ test("/* foo */", () => {
   const lexer = matchingLexer(`/* foo */`, mainTokens);
   const tokens = [1, 2, 3].map(lexer.next);
   const tokenKinds = tokens.map((t) => t?.kind);
-  expect(tokenKinds).toEqual(["commentStart", "word", "commentEnd"]);
+  expect(tokenKinds).toEqual(["symbol", "word", "symbol"]);
 });
