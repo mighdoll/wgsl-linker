@@ -22,34 +22,47 @@ export function linkWgsl2(
 interface ResolveArgs {
   /** load all imports specified in this module */
   srcModule: TextModule2;
+
   /** find imports in this registry */
   registry: ModuleRegistry2;
+
   /** imports already resolved (export name changed possibly changed by 'as', with import params) */
   imported: Set<string>;
+
   /** params provided by the linkWsgl caller */
   extParams: Record<string, any>;
 }
 
-/** load all the imports from a module returning the resolved text */
+/** load all the imports from a module, recursively loading imports from imported modules */
 function resolveImports(args: ResolveArgs): string {
   const { srcModule, registry } = args;
-  const imports = srcModule.imports.flatMap((imp) => {
+  const toResolve: TextModule2[] = [];
+
+  // note: we import breadth first so that parent fn names take precedence
+
+  // collect text from direct imports
+  const importedText = srcModule.imports.flatMap((imp) => {
     const importing = registry.getModuleExport(imp.name, imp.from);
     if (!importing) {
       console.error(`#import "${imp.name}" not found position ${imp.start}`); // LATER add source line number
       return [];
     } else if (importing.kind === "text") {
-      const imported = loadImportText(imp, importing);
-      const importedResolved = resolveImports({
-        ...args,
-        srcModule: importing.module,
-      });
-      return [imported, importedResolved];
+      const imported = loadExportText(imp, importing);
+      toResolve.push(importing.module);
+      return [imported];
     } else {
       throw new Error("NYI");
     }
   });
-  return imports.join("\n\n");
+
+  // collect text from imported module imports
+  const nestedImports = toResolve.map((importModule) => {
+    return resolveImports({
+      ...args,
+      srcModule: importModule,
+    });
+  });
+  return [importedText, nestedImports].join("\n\n");
 }
 
 /** edit src to remove #imports */
@@ -60,20 +73,26 @@ function rmImports(srcModule: TextModule2): string {
   const edits = grouped(slicePoints, 2);
   return edits.map(([start, end]) => src.slice(start, end)).join("\n");
 }
+
+/** extract some exported text from a module, replace export params with corresponding import arguments */
+function loadExportText(
   importElem: ImportElem,
   importing: TextModuleExport2
 ): string {
   const exp = importing.export;
-  const { src: importModuleSrc } = exp;
+  const { src: exportModuleSrc } = importing.module;
   const { start, end } = exp.ref;
-  const importSrc = importModuleSrc.slice(start, end);
+  const exportSrc = exportModuleSrc.slice(start, end);
 
   /* replace export args with import arg values */
   const importArgs = importElem.args ?? [];
   const entries = exp.args.map((p, i) => [p, importArgs[i]]);
   if (importElem.as) entries.push([exp.name, importElem.as]); // rename 'as' imports, e.g. #import foo as 'newName'
   const importParams = Object.fromEntries(entries);
-  return replaceTokens2(importSrc, importParams);
+  return replaceTokens2(exportSrc, importParams);
+
+  // TODO load referenced calls from the imported text..
+  // see exp.ref.children
 }
 
 const tokenRegex = /\b(\w+)\b/gi;

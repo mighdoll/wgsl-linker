@@ -17,6 +17,8 @@ test("simple #import", () => {
   const registry = new ModuleRegistry2(myModule);
   const linked = linkWgsl2(src, registry);
   expect(linked).includes("fooImpl");
+  expect(linked).not.includes("#import");
+  expect(linked).not.includes("#export");
 });
 
 test("#import with parameter", () => {
