@@ -83,6 +83,32 @@ test("#import foo as bar", () => {
   expect(linked).contains("fn bar()");
 });
 
+test("#import twice doesn't get two copies", () => {
+  const module1 = `
+    #export
+    fn foo() { /* fooImpl */ }
+  `;
+  const module2 = `
+    #export
+    fn bar() { foo(); }
+
+    #import foo
+  `;
+  const src = `
+    #import bar
+    #import foo
+
+    fn main() {
+      foo();
+      bar();
+    }
+  `;
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl2(src, registry);
+  const matches = linked.matchAll(/fooImpl/g);
+  expect([...matches].length).toBe(1);
+});
+
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
@@ -100,30 +126,6 @@ test("#import foo as bar", () => {
 //   registry.registerTemplate(replacerTemplate);
 //   const linked = linkWgsl(src, registry);
 //   expect(linked).includes("step < 128");
-// });
-
-// test("#import twice doesn't get two copies", () => {
-//   const module1 = `
-//     #export
-//     fn foo() { /* fooImpl */ }
-//   `;
-//   const module2 = `
-//     #export
-//     fn bar() { foo(); }
-
-//     #import foo
-//   `;
-//   const src = `
-//     #import bar
-//     #import foo
-
-//     foo();
-//     bar();
-//   `;
-//   const registry = new ModuleRegistry(module1, module2);
-//   const linked = linkWgsl(src, registry);
-//   const matches = linked.matchAll(/fooImpl/g);
-//   expect([...matches].length).toBe(1);
 // });
 
 // test("#import foo from zap (multiple modules)", () => {

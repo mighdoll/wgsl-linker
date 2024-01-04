@@ -35,21 +35,21 @@ interface ResolveArgs {
 
 /** load all the imports from a module, recursively loading imports from imported modules */
 function resolveImports(args: ResolveArgs): string {
-  const { srcModule, registry } = args;
+  const { imported, srcModule, registry } = args;
   const toResolve: TextModule2[] = [];
 
   // note: we import breadth first so that parent fn names take precedence
 
   // collect text from direct imports
   const importedTexts = srcModule.imports.flatMap((imp) => {
-    const importing = registry.getModuleExport(imp.name, imp.from);
-    if (!importing) {
+    const moduleExport = registry.getModuleExport(imp.name, imp.from);
+    if (!moduleExport) {
       console.error(`#import "${imp.name}" not found position ${imp.start}`); // LATER add source line number
       return [];
-    } else if (importing.kind === "text") {
-      const imported = loadExportText(imp, importing);
-      toResolve.push(importing.module);
-      return [imported];
+    } else if (moduleExport.kind === "text") {
+      const exportText = loadExportText(imp, moduleExport, imported);
+      toResolve.push(moduleExport.module);
+      return [exportText];
     } else {
       throw new Error("NYI");
     }
@@ -77,12 +77,18 @@ function rmImports(srcModule: TextModule2): string {
 /** extract some exported text from a module, replace export params with corresponding import arguments */
 function loadExportText(
   importElem: ImportElem,
-  importing: TextModuleExport2
+  exporting: TextModuleExport2,
+  imported: Set<string>
 ): string {
-  const exp = importing.export;
-  const { src: exportModuleSrc } = importing.module;
+  const exp = exporting.export;
+  // save the import name so we can deduplicate
+  const { as = exp.name, args = [] } = importElem;
+  const fullName = fullImportName(as, exporting.module.name, args);
+  if (imported.has(fullName)) return ""; // already imported, skip
+  imported.add(fullName);
+  
   const { start, end } = exp.ref;
-  const exportSrc = exportModuleSrc.slice(start, end);
+  const exportSrc = exporting.module.src.slice(start, end);
 
   /* replace export args with import arg values */
   const importArgs = importElem.args ?? [];
@@ -110,4 +116,13 @@ function grouped<T>(a: T[], size: number, stride = size): T[][] {
     groups.push(a.slice(i, i + size));
   }
   return groups;
+}
+
+/** @return string of a named import with parameters, for deduplication */
+function fullImportName(
+  moduleName: string,
+  importName: string,
+  params: string[]
+): string {
+  return `${moduleName}.${importName}(${params.join(",")})`;
 }
