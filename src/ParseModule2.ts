@@ -13,12 +13,12 @@ export interface TextModule2 {
   fns: FnElem[];
   imports: ImportElem[];
   name: string;
+  src: string;
 }
 
 export interface TextExport2 {
   name: string;
   ref: FnElem; // TODO | StructElem (| global var?)
-  src: string;
   exp: ExportElem;
   args: string[];
 }
@@ -36,7 +36,7 @@ export function parseModule2(
   const moduleName = undefined; // TODO parse #module
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
-  return { name, exports, fns, imports };
+  return { name, exports, fns, imports, src };
 }
 
 // TODO consider how to export fields inside a struct.. currently indicated #export foo
@@ -49,7 +49,7 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
       const next = parsed[i + 1];
       const args = elem.args ?? [];
       if (next?.kind === "fn") {
-        exports.push({ exp: elem, args, ref: next, name: next.name, src });
+        exports.push({ exp: elem, args, ref: next, name: next.name });
       }
     }
   });
