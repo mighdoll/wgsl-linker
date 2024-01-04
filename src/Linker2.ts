@@ -41,7 +41,7 @@ function resolveImports(args: ResolveArgs): string {
   // note: we import breadth first so that parent fn names take precedence
 
   // collect text from direct imports
-  const importedText = srcModule.imports.flatMap((imp) => {
+  const importedTexts = srcModule.imports.flatMap((imp) => {
     const importing = registry.getModuleExport(imp.name, imp.from);
     if (!importing) {
       console.error(`#import "${imp.name}" not found position ${imp.start}`); // LATER add source line number
@@ -62,7 +62,7 @@ function resolveImports(args: ResolveArgs): string {
       srcModule: importModule,
     });
   });
-  return [importedText, nestedImports].join("\n\n");
+  return [...importedTexts, nestedImports].join("\n\n");
 }
 
 /** edit src to remove #imports */
