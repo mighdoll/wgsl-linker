@@ -9,13 +9,14 @@ export function linkWgsl2(
   extParams: Record<string, any> = {}
 ): string {
   const srcModule = parseModule2(src);
-  const imports = resolveImports({
+  const srcNoImports = rmImports(srcModule);
+  const importedText = resolveImports({
     srcModule,
     registry,
     extParams,
     imported: new Set(),
   });
-  return src + "\n\n" + imports;
+  return srcNoImports + "\n\n" + importedText;
 }
 
 interface ResolveArgs {
