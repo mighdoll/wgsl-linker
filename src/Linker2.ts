@@ -15,6 +15,8 @@ export function linkWgsl2(
     registry,
     extParams,
     imported: new Set(),
+    fnDecls: new Set(srcModule.fns.map((fn) => fn.name)),
+    conflicts: 0,
   });
   return srcNoImports + "\n\n" + importedText;
 }
@@ -31,12 +33,19 @@ interface ResolveArgs {
 
   /** params provided by the linkWsgl caller */
   extParams: Record<string, any>;
+
+  /** function declarations visible in the linked src so far */
+  fnDecls: Set<string>;
+
+  /** number of conflicting names, used as a unique suffix for deconflicting */
+  conflicts: number;
 }
 
 /** load all the imports from a module, recursively loading imports from imported modules */
 function resolveImports(args: ResolveArgs): string {
-  const { imported, srcModule, registry } = args;
+  const { fnDecls, srcModule, registry } = args;
   const toResolve: TextModule2[] = [];
+  console.log("fnDecls", fnDecls);
 
   // note: we import breadth first so that parent fn names take precedence
 
@@ -47,7 +56,8 @@ function resolveImports(args: ResolveArgs): string {
       console.error(`#import "${imp.name}" not found position ${imp.start}`); // LATER add source line number
       return [];
     } else if (moduleExport.kind === "text") {
-      const exportText = loadExportText(imp, moduleExport, imported);
+      const exportText = loadExportText(imp, moduleExport, args);
+      console.log("exportText", exportText);
       toResolve.push(moduleExport.module);
       return [exportText];
     } else {
@@ -56,12 +66,9 @@ function resolveImports(args: ResolveArgs): string {
   });
 
   // collect text from imported module imports
-  const nestedImports = toResolve.map((importModule) => {
-    return resolveImports({
-      ...args,
-      srcModule: importModule,
-    });
-  });
+  const nestedImports = toResolve.map((m) =>
+    resolveImports({ ...args, srcModule: m })
+  );
   return [...importedTexts, nestedImports].join("\n\n");
 }
 
@@ -78,27 +85,51 @@ function rmImports(srcModule: TextModule2): string {
 function loadExportText(
   importElem: ImportElem,
   exporting: TextModuleExport2,
-  imported: Set<string>
+  resolveArgs: ResolveArgs
 ): string {
+  const { imported } = resolveArgs;
+
   const exp = exporting.export;
   // save the import name so we can deduplicate
-  const { as = exp.name, args = [] } = importElem;
+
+  const { as = exp.name } = importElem;
+  const { args = [] } = importElem;
   const fullName = fullImportName(as, exporting.module.name, args);
-  if (imported.has(fullName)) return ""; // already imported, skip
+  if (imported.has(fullName)) {
+    return ""; // already imported, we're done
+  }
   imported.add(fullName);
-  
+
   const { start, end } = exp.ref;
   const exportSrc = exporting.module.src.slice(start, end);
+
+  const renamed = uniqueFnName(as, resolveArgs);
+
+  // TODO how to rename calls to the new name?
 
   /* replace export args with import arg values */
   const importArgs = importElem.args ?? [];
   const entries = exp.args.map((p, i) => [p, importArgs[i]]);
-  if (importElem.as) entries.push([exp.name, importElem.as]); // rename 'as' imports, e.g. #import foo as 'newName'
+  // rename 'as' imports too, e.g. #import foo as 'newName'
+  if (renamed !== exp.name) entries.push([exp.name, renamed]);
   const importParams = Object.fromEntries(entries);
   return replaceTokens2(exportSrc, importParams);
 
   // TODO load referenced calls from the imported text..
   // see exp.ref.children
+}
+
+function uniqueFnName(fnName: string, resolveArgs: ResolveArgs): string {
+  const { fnDecls } = resolveArgs;
+  // a fn with the same name as the import already exists, so rename it
+  let renamed = fnName;
+  while (fnDecls.has(renamed)) {
+    renamed = renamed + resolveArgs.conflicts++;
+  }
+  if (renamed !== fnName) {
+    fnDecls.add(renamed);
+  }
+  return renamed;
 }
 
 const tokenRegex = /\b(\w+)\b/gi;

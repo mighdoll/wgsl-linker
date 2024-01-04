@@ -109,6 +109,36 @@ test("#import twice doesn't get two copies", () => {
   expect([...matches].length).toBe(1);
 });
 
+test.only("import transitive conflicts with main", () => {
+  const module1 = `
+    #export
+    fn grand() {
+      /* grandImpl */
+    }
+  `;
+  const module2 = `
+    #export
+    fn mid() { grand(); }
+
+    #import grand
+  `;
+  const src = `
+    #import mid
+
+    fn main() {
+      mid();
+    }
+
+    fn grand() {
+      /* main impl */
+    }
+  `;
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl2(src, registry);
+  console.log("linked",linked);
+  expect(linked).includes("mid() { grand_0(); }");
+});
+
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
@@ -329,37 +359,6 @@ test("#import twice doesn't get two copies", () => {
 //   expect(linked).contains("fn log(logVar: i32) {}");
 // });
 
-// test("import transitive conflicts with main", () => {
-//   const module1 = `
-//     #export
-//     fn grand() {
-//       /* grandImpl */
-//     }
-//   `;
-//   const module2 = `
-//     #export
-//     fn mid() { grand(); }
-
-//     #import grand
-//     #if not
-//       fn grand() {/* placeholder */}
-//     #endif
-//   `;
-//   const src = `
-//     #import mid
-
-//     fn main() {
-//       mid();
-//     }
-
-//     fn grand() {
-//       /* main impl */
-//     }
-//   `;
-//   const registry = new ModuleRegistry(module1, module2);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).includes("mid() { grand_0(); }");
-// });
 
 // test("external param applied to template", () => {
 //   const module1 = `
