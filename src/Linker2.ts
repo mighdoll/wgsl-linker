@@ -51,8 +51,14 @@ function resolveImports(args: ResolveArgs): string {
   return imports.join("\n\n");
 }
 
-/** extract the import text from a module, replace export params with corresponding import arguments */
-function loadImportText(
+/** edit src to remove #imports */
+function rmImports(srcModule: TextModule2): string {
+  const src = srcModule.src;
+  const startEnds = srcModule.imports.flatMap((imp) => [imp.start, imp.end]);
+  const slicePoints = [0, ...startEnds, src.length];
+  const edits = grouped(slicePoints, 2);
+  return edits.map(([start, end]) => src.slice(start, end)).join("\n");
+}
   importElem: ImportElem,
   importing: TextModuleExport2
 ): string {
@@ -75,4 +81,13 @@ export function replaceTokens2(
   replace: Record<string, string>
 ): string {
   return text.replaceAll(tokenRegex, (s) => (s in replace ? replace[s] : s));
+}
+
+/** return an array partitioned into possibly overlapping groups */
+function grouped<T>(a: T[], size: number, stride = size): T[][] {
+  const groups = [];
+  for (let i = 0; i < a.length; i += stride) {
+    groups.push(a.slice(i, i + size));
+  }
+  return groups;
 }
