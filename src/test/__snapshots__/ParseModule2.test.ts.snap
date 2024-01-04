@@ -8,29 +8,33 @@ exports[`read simple #fn import 1`] = `
       "children": [
         {
           "call": "foo",
-          "end": 34,
+          "end": 38,
           "kind": "call",
-          "start": 30,
+          "start": 34,
         },
       ],
-      "end": 39,
+      "end": 43,
       "kind": "fn",
       "name": "bar",
-      "start": 18,
+      "start": 20,
     },
   ],
   "imports": [
     {
       "args": undefined,
       "as": undefined,
-      "end": 18,
+      "end": 20,
       "from": undefined,
       "kind": "import",
       "name": "foo",
-      "start": 5,
+      "start": 7,
     },
   ],
   "name": "my.module",
+  "src": "
+    // #import foo
+    fn bar() { foo(); }
+  ",
 }
 `;
 
@@ -54,12 +58,6 @@ exports[`read simple fn export 1`] = `
         "name": "one",
         "start": 16,
       },
-      "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
-  ",
     },
   ],
   "fns": [
@@ -73,5 +71,11 @@ exports[`read simple fn export 1`] = `
   ],
   "imports": [],
   "name": "my.module",
+  "src": "
+    // #export
+    fn one() -> i32 {
+      return 1;
+    }
+  ",
 }
 `;

@@ -9,18 +9,21 @@ test("read simple fn export", () => {
     }
   `;
   const module = parseModule2(src, "my.module");
+  expect(module.exports.length).toBe(1);
+  expect(module.exports[0].name).toBe("one");
   expect(module).toMatchSnapshot();
 });
 
 test("read simple #fn import", () => {
   const src = `
-  // #import foo
-  fn bar() { foo(); }
-  `
+    // #import foo
+    fn bar() { foo(); }
+  `;
   const module = parseModule2(src, "my.module");
+  expect(module.imports.length).toBe(1);
+  expect(module.imports[0].name).toBe("foo");
   expect(module).toMatchSnapshot();
 });
-
 
 // test("read simple struct export", () => {
 //   const exportPrefix = `// #export`;
