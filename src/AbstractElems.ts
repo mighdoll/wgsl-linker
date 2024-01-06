@@ -22,7 +22,7 @@ export interface CallElem extends AbstractElemBase {
 export interface FnElem extends AbstractElemBase {
   kind: "fn";
   name: string;
-  children: (ImportElem | CallElem)[];
+  children: CallElem[];
 }
 
 export interface StructElem extends AbstractElemBase {

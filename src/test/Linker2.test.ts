@@ -117,10 +117,10 @@ test.only("import transitive conflicts with main", () => {
     }
   `;
   const module2 = `
+    #import grand
+    
     #export
     fn mid() { grand(); }
-
-    #import grand
   `;
   const src = `
     #import mid
