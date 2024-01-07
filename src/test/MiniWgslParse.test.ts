@@ -40,8 +40,8 @@ test("parse #import foo", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("parse #import foo(a,b) from bar as baz", () => {
-  const parsed = parseMiniWgsl("#import foo from bar as baz");
+test("parse #import foo(a,b) as baz from bar", () => {
+  const parsed = parseMiniWgsl("#import foo as baz from bar");
   expect(parsed).toMatchSnapshot();
 });
 
