@@ -159,7 +159,7 @@ test("#import twice with different names", () => {
   expect([...matches].length).toBe(2);
 });
 
-test.only("#import foo from zap (multiple modules)", () => {
+test("#import foo from zap (multiple modules)", () => {
   const module1 = `
     // #export
     fn foo() { /* module1 */ }
@@ -181,27 +181,28 @@ test.only("#import foo from zap (multiple modules)", () => {
   registry.registerOneModule(module1, "module1");
   registry.registerOneModule(module2, "module2");
   const linked = linkWgsl2(src, registry);
-  console.log("linked", linked);
   expect(linked).contains("/* module2 */");
 });
 
-// test("multiple exports", () => {
-//   const module1 = `
-//     #export
-//     fn foo() { }
-//     #export
-//     fn bar() { }
-//   `;
-//   const src = `
-//     #import foo
-//     #import bar
-//     foo();
-//     bar();
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).toMatchSnapshot();
-// });
+test("multiple exports from the same module", () => {
+  const module1 = `
+    #export
+    fn foo() { }
+    #export
+    fn bar() { }
+  `;
+  const src = `
+    #import foo
+    #import bar
+    fn main() {
+      foo();
+      bar();
+    }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl2(src, registry);
+  expect(linked).toMatchSnapshot();
+});
 
 // test("#import with different names, resolve conflicting support function", () => {
 //   const module1 = `
@@ -249,7 +250,6 @@ test.only("#import foo from zap (multiple modules)", () => {
 //   expect(linked).includes("step < 128");
 // });
 
-
 // test("#import snippet w/o support functions", () => {
 //   const module1 = `
 //     var logVar: u32;
@@ -294,7 +294,6 @@ test.only("#import foo from zap (multiple modules)", () => {
 //   expect(linked).includes("log(myVar);");
 //   expect(linked).includes("fn log(myVar: i32) {}");
 // });
-
 
 // test("resolve conflicting import support struct imports", () => {
 //   const module1 = `
@@ -403,7 +402,6 @@ test.only("#import foo from zap (multiple modules)", () => {
 //   const linked = linkWgsl(src, registry, params);
 //   expect(linked).includes("step < 128");
 // });
-
 
 // test("#if", () => {
 //   const src = `
