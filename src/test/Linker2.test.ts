@@ -105,11 +105,12 @@ test("#import twice doesn't get two copies", () => {
   `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl2(src, registry);
+  console.log("linked", linked);
   const matches = linked.matchAll(/fooImpl/g);
   expect([...matches].length).toBe(1);
 });
 
-test.only("import transitive conflicts with main", () => {
+test("import transitive conflicts with main", () => {
   const module1 = `
     #export
     fn grand() {
@@ -135,8 +136,8 @@ test.only("import transitive conflicts with main", () => {
   `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl2(src, registry);
-  console.log("linked",linked);
-  expect(linked).includes("mid() { grand_0(); }");
+  console.log("linked", linked);
+  expect(linked).includes("mid() { grand0(); }");
 });
 
 // test("import with template replace", () => {
@@ -358,7 +359,6 @@ test.only("import transitive conflicts with main", () => {
 //   expect(linked).contains("log(bar);");
 //   expect(linked).contains("fn log(logVar: i32) {}");
 // });
-
 
 // test("external param applied to template", () => {
 //   const module1 = `

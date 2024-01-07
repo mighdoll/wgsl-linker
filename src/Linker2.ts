@@ -1,3 +1,4 @@
+import { M } from "vitest/dist/reporters-O4LBziQ_.js";
 import { ImportElem } from "./AbstractElems.js";
 import { fnDecls } from "./Declarations.js";
 import {
@@ -18,39 +19,23 @@ export function linkWgsl2(
     srcModule,
     registry,
     extParams,
-    imported: new Map(),
+    importing: new Map(),
     fnDecls: new Set(srcModule.fns.map((fn) => fn.name)),
     renames: new Map(),
     conflicts: 0,
+    toLoad: [],
   };
-  const pending: ToResolve[] = [];
-  const importedText = srcModule.imports
-    .map((imp) => {
-      const r = resolveImport(imp, srcModule, resolveArgs);
-      if (r) {
-        const { text, toResolve } = r;
-        pending.push(...toResolve);
-        return text;
-      }
-    })
-    
-
-  while (pending.length) {
-    const todo = pending.shift();
-    if (!todo)  break;
-    console.log("pending to import", todo.imp.name, "from", todo.moduleExport.module.name);
-    const {imp, moduleExport} = todo;
-    if (moduleExport.kind !== "text") throw new Error("NYI");
-    const r = resolveImport(imp, moduleExport.module, resolveArgs);
-    if (r) {
-      const { text, toResolve } = r;
-      pending.push(...toResolve);
-      importedText.push(text);
-    }
-  }
-
-  return rmImports(srcModule) + "\n\n" + importedText.join("\n\n");
+  resolveImportList(srcModule.imports, srcModule, resolveArgs);
+  const importedText = exportTexts(resolveArgs.toLoad, resolveArgs.renames);
+  return rmImports(srcModule) + "\n\n" + importedText;
 }
+
+function exportTexts(toLoad: ToLoad[], renames: RenameMap): string {
+  const texts = toLoad.map((l) => loadExportText(l, renames));
+  return texts.join("\n\n");
+}
+
+type RenameMap = Map<string, Map<string, string>>;
 
 interface ResolveArgs {
   /** load all imports specified in this module */
@@ -61,8 +46,8 @@ interface ResolveArgs {
 
   /** import full names already resolved
    * key is the export name with import params,
-   * value is the linked name, (possibly export name,  or 'as' name or deconflicted name) */
-  imported: Map<string, string>;
+   * value is the linked name, (possibly export name, or 'as' name, possibly with deconflicted suffix) */
+  importing: Map<string, string>;
 
   /** params provided by the linkWsgl caller */
   extParams: Record<string, any>;
@@ -73,8 +58,20 @@ interface ResolveArgs {
   /** number of conflicting names, used as a unique suffix for deconflicting */
   conflicts: number;
 
-  /** renames per module */
-  renames: Map<string, Map<string, string>>;
+  /** Renames per module.
+   * In the importing module the key is the 'as' name, the value is the linked name
+   * In the export module the key is the export name, the value is the linked name
+   */
+  renames: RenameMap;
+
+  /** export elements to be copied into the linked output */
+  toLoad: ToLoad[];
+}
+
+interface ToLoad {
+  linkName: string;
+  importArgs: string[];
+  moduleExport: TextModuleExport2;
 }
 
 /*
@@ -84,20 +81,20 @@ Two modules may internally use the same name for a function, but when linked tog
 We resolve the names of imported functions first before importing/generating text for the importing function, 
 so that we can rewrite to deconflicted names if necessary.
 
-When we have a request in module A to import a function f as 'g' exported from module B
-. First we check to see whether f has already been imported with the same input parameters.
-  . If it's already been imported:
-    . we don't import any text for the import
-    . (if it was renamed, we'll have already caught that earlier, we deconflict names before importing text)
-  . If not, we'll import the function text, but with deconfliction checks as follows
+We scan through every referenced function declaration, 
+including referenced functions in other modules. Every referenced function is assigned a unique
+name. 
+  . rename map gets an entry for both the importing module and the exporting module
+  . toLoad: queue of export fns to load (we'll use rename map to modify them as we load)
+  . fnDecls: holds list of all root level function names (after renaming)
+  . importing: full name of exports already resolved, mapped to their possibly renamed root name
+
+When we find a request in module A to import a function f as 'g' exported from module B
 . We check to see if the 'as' name 'g' is already in use in the linked result (via the fnDecls Set)
-  . If there's a conflict, we create a unique name, say f2 and add it to the fnDecls Set
+  . If there's a conflict, we create a unique name, say f2 
     . we add a rename mapping in A from the 'as' name 'g' to f2
     . we add a rename mapping in B from the export name to the unique name, 'f' to 'f2'
-  . Check all the imports in B referenced by 'f', say 'x' as 'y' from C
-    . handle as above, creating rename mappings in B and C
-    . queue import of 'x' as 'y' from C
-. Import text of f from B
+
 */
 
 interface ToResolve {
@@ -105,42 +102,51 @@ interface ToResolve {
   moduleExport: ModuleExport2;
 }
 
-interface ResolvedImport {
-  text: string;
-  toResolve: any[];
+function resolveImportList(
+  imps: ImportElem[],
+  importingModule: TextModule2,
+  resolveArgs: ResolveArgs
+): void {
+  const toResolve: ToResolve[] = imps.flatMap((imp) =>
+    resolveImport(imp, importingModule, resolveArgs)
+  );
+
+  while (toResolve.length) {
+    const todo = toResolve.shift();
+    if (!todo) break;
+    const { imp, moduleExport } = todo;
+    if (moduleExport.kind !== "text") throw new Error("NYI");
+
+    const r = resolveImport(imp, moduleExport.module, resolveArgs);
+    toResolve.push(...r);
+  }
 }
 
+/** resolve an import
+ *  . find the export requested by this import
+ *  . choose a unique name for the exported element, updating the rename map
+ *  . update the list of exports to load
+ *  . return a list of nested imports to resolve later
+ */
 function resolveImport(
   imp: ImportElem,
   importingModule: TextModule2,
   resolveArgs: ResolveArgs
-): ResolvedImport | null {
-  const toResolve: ToResolve[] = [];
-
-  // TODO all nested imports will have already been registered, 
-  // this calls register again which creates a second name
-  
+): ToResolve[] {
   const result = registerImport(imp, importingModule, resolveArgs);
-  if (!result) return null;
-  const { name: importingName, moduleExport } = result;
+  if (!result) return [];
+  const { name: linkName, moduleExport } = result;
   if (moduleExport.kind !== "text") {
     throw new Error("NYI");
   }
+  const { toLoad } = resolveArgs;
+  toLoad.push({ linkName, importArgs: imp.args ?? [], moduleExport });
 
   const nestedImports = importsFromFn(moduleExport);
-  nestedImports.forEach((nestedImp) => {
-    const registered = registerImport(
-      nestedImp,
-      moduleExport.module,
-      resolveArgs
-    );
-    if (registered) {
-      toResolve.push({ imp: nestedImp, moduleExport: registered.moduleExport });
-    }
-  });
-
-  const text = loadExportText(imp, moduleExport, resolveArgs);
-  return { text, toResolve };
+  return nestedImports.map((nestedImp) => ({
+    imp: nestedImp,
+    moduleExport,
+  }));
 }
 
 interface RegisteredExport {
@@ -148,27 +154,49 @@ interface RegisteredExport {
   moduleExport: ModuleExport2;
 }
 
+/**
+ * Find a unique name for this import to appear in the final link
+ * Register a rename to the final link name in both the importing and exporting modules.
+ *
+ * If the corresponding export hasn't been seen before return a reference to the export
+ */
 function registerImport(
   imp: ImportElem,
   impModule: TextModule2,
   resolveArgs: ResolveArgs
 ): RegisteredExport | null {
   console.log("registerImport", imp.name, "from", impModule.name);
-  const { registry, imported, renames } = resolveArgs;
-  // if we've already imported this export, we're done
-  const moduleExport = findExport(imp, registry, imported);
-  if (!moduleExport) return null;
+  const { registry, importing, renames } = resolveArgs;
+  const moduleExport = findExport(imp, registry, importing);
+  if (!moduleExport) return null; // unexpected error 
 
-  const exportingModule = moduleExport.module;
-  const asName = importName(imp);
-  const uniquedName = registerName(asName, resolveArgs);
-  if (uniquedName) {
-    // record rename for this import in both importing module and exporting module
-    multiKeySet(renames, impModule.name, asName, uniquedName);
-    multiKeySet(renames, exportingModule.name, imp.name, uniquedName);
+  const expName = fullExportName(moduleExport, imp.args);
+  const proposedName = importName(imp);
+
+  const linkName = importing.get(expName);
+  console.log("linkName", linkName, "expName", expName); 
+  if (linkName) {
+    // we've already registered this export elsewhere
+    // make sure there's a renaming mapping for this module's import to this 
+    multiKeySet(renames, impModule.name, proposedName, linkName);
+    return null;
   }
 
-  return { name: uniquedName ?? asName, moduleExport };
+  const exportingModule = moduleExport.module;
+  const uniquedName = registerUniquedName(proposedName, resolveArgs);
+  importing.set(expName, uniquedName);
+
+  // record rename for this import the importing module
+  if (proposedName !== uniquedName) {
+    multiKeySet(renames, impModule.name, proposedName, uniquedName);
+  }
+  // record rename for this import in the exporting module
+  if (imp.name !== moduleExport.export.name) {
+    const expName = moduleExport.export.name;
+    multiKeySet(renames, exportingModule.name, expName, uniquedName);
+  }
+
+  return { name: uniquedName, moduleExport };
 }
 
 function importsFromFn(expModule: ModuleExport2): ImportElem[] {
@@ -187,24 +215,17 @@ function importsFromFn(expModule: ModuleExport2): ImportElem[] {
   return [];
 }
 
-/** find export entry for an import */
+/** find an export entry for an import, unless its aready on the importing list */
 function findExport(
   imp: ImportElem,
   registry: ModuleRegistry2,
-  imported: Map<string, string>
+  importing: Map<string, string>
 ): ModuleExport2 | null {
   const moduleExport = registry.getModuleExport(imp.name, imp.from);
   if (!moduleExport) {
     console.error(`#import "${imp.name}" not found position ${imp.start}`); // LATER add source line number
     return null;
   }
-  const fullName = fullImportName(
-    imp.name,
-    moduleExport.module.name,
-    imp.args ?? []
-  );
-  if (imported.has(fullName)) return null; // already imported, we're done
-
   return moduleExport;
 }
 
@@ -226,44 +247,39 @@ function rmImports(srcModule: TextModule2): string {
  * As a side effect, add the import name to the imported set
  */
 function loadExportText(
-  importElem: ImportElem,
-  moduleExport: TextModuleExport2,
-  resolveArgs: ResolveArgs
+  load: ToLoad,
+  renames: Map<string, Map<string, string>>
 ): string {
-  const { renames } = resolveArgs;
+  const { linkName, importArgs, moduleExport } = load;
 
   const exp = moduleExport.export;
 
   const { start, end } = exp.ref;
   const exportSrc = moduleExport.module.src.slice(start, end);
 
-  console.log(renames);
-  const as = importName(importElem);
-  const renamed = renames.get(moduleExport.module.name)?.entries() ?? [];
-  console.log("renamed", renamed);
+  const moduleRenames = renames.get(moduleExport.module.name)?.entries() ?? [];
+  console.log("moduleRenames", moduleRenames);
 
   /* replace export args with import arg values */
-  const importArgs = importElem.args ?? [];
   const entries = exp.args.map((p, i) => [p, importArgs[i]]);
   // rename 'as' imports too, e.g. #import foo as 'newName'
-  // if (renamed !== exp.name) entries.push([exp.name, renamed]);
-  
+  if (linkName !== exp.name) entries.push([exp.name, linkName]);
+
   // LATER be more precise with replacing e.g. rename for call sites, etc.
-  const importParams = Object.fromEntries([...entries, ...renamed]);
+  const importParams = Object.fromEntries([...entries, ...moduleRenames]);
   console.log("exportSrc", exportSrc, importParams);
   return replaceTokens2(exportSrc, importParams);
 }
 
 /**
  * Record a fn name, possibly creating a rename mapping to avoid conflict.
- * updates the fnDecls with the uniquified name, and update the rename map as appropriate.
+ * updates the fnDecls with the uniquified name as this name will appear in the linked result.
  */
-function registerName(
+function registerUniquedName(
   /** proposed name for this fn in the linked results (e.g. import as name) */
   proposedName: string,
   args: ResolveArgs
-  /** renames for this module */
-): string | null {
+): string {
   const { fnDecls } = args;
   let renamed = proposedName;
   if (fnDecls.has(proposedName)) {
@@ -274,38 +290,13 @@ function registerName(
   }
 
   fnDecls.add(renamed);
-  return renamed === proposedName ? null : renamed;
+  return renamed;
 }
 
 function multiKeySet<A, B, V>(m: Map<A, Map<B, V>>, a: A, b: B, v: V): void {
   const bMap = m.get(a) || new Map();
   m.set(a, bMap);
   bMap.set(b, v);
-}
-
-function uniquifyFn(imp: ImportElem, resolveArgs: ResolveArgs): ImportElem {
-  const { fnDecls } = resolveArgs;
-  const name = imp.as || imp.name;
-  // a fn with the same name as the import already exists, so rename it
-  let renamed = name;
-  while (fnDecls.has(renamed)) {
-    renamed = renamed + resolveArgs.conflicts++;
-  }
-  fnDecls.add(renamed);
-  return { ...imp, as: renamed };
-}
-
-function uniqueFnName(fnName: string, resolveArgs: ResolveArgs): string {
-  const { fnDecls } = resolveArgs;
-  // a fn with the same name as the import already exists, so rename it
-  let renamed = fnName;
-  while (fnDecls.has(renamed)) {
-    renamed = renamed + resolveArgs.conflicts++;
-  }
-  if (renamed !== fnName) {
-    fnDecls.add(renamed);
-  }
-  return renamed;
 }
 
 const tokenRegex = /\b(\w+)\b/gi;
@@ -325,11 +316,12 @@ function grouped<T>(a: T[], size: number, stride = size): T[][] {
   return groups;
 }
 
-/** @return string of a named import with parameters, for deduplication */
-function fullImportName(
-  moduleName: string,
-  importName: string,
-  params: string[]
+/** @return string of the export name plus with import parameters,
+ * for detecting imports already processed */
+function fullExportName(
+  moduleExport: ModuleExport2,
+  args: string[] = []
 ): string {
-  return `${moduleName}.${importName}(${params.join(",")})`;
+  const { export: exp, module } = moduleExport;
+  return `${module.name}.${exp.name}(${args.join(",")})`;
 }
