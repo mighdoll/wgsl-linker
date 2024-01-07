@@ -63,8 +63,8 @@ const importDirective = seq(
     seq(
       kind(a.word).named("name"),
       opt(directiveArgs.named("args")),
-      opt(seq("from", kind(a.word).named("from"))),
       opt(seq("as", kind(a.word).named("as"))),
+      opt(seq("from", kind(a.word).named("from"))),
       eol
     )
   )

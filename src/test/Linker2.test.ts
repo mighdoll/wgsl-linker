@@ -159,6 +159,77 @@ test("#import twice with different names", () => {
   expect([...matches].length).toBe(2);
 });
 
+test.only("#import foo from zap (multiple modules)", () => {
+  const module1 = `
+    // #export
+    fn foo() { /* module1 */ }
+  `;
+  const module2 = `
+    // #export
+    fn foo() { /* module2 */ }
+  `;
+
+  const src = `
+    #import foo as baz from module2
+
+    fn main() {
+      baz();
+    }
+  `;
+
+  const registry = new ModuleRegistry2();
+  registry.registerOneModule(module1, "module1");
+  registry.registerOneModule(module2, "module2");
+  const linked = linkWgsl2(src, registry);
+  console.log("linked", linked);
+  expect(linked).contains("/* module2 */");
+});
+
+// test("multiple exports", () => {
+//   const module1 = `
+//     #export
+//     fn foo() { }
+//     #export
+//     fn bar() { }
+//   `;
+//   const src = `
+//     #import foo
+//     #import bar
+//     foo();
+//     bar();
+//   `;
+//   const registry = new ModuleRegistry(module1);
+//   const linked = linkWgsl(src, registry);
+//   expect(linked).toMatchSnapshot();
+// });
+
+// test("#import with different names, resolve conflicting support function", () => {
+//   const module1 = `
+//     #export
+//     fn foo() {
+//       support();
+//     }
+
+//     fn support() { }
+//   `;
+//   const src = `
+//     #import foo as bar
+//     #import foo as zap
+
+//     fn support() { }
+//     foo();
+//     zap();
+//   `;
+//   const registry = new ModuleRegistry(module1);
+//   const linked = linkWgsl(src, registry);
+//   const origMatch = linked.matchAll(/\bsupport\b/g);
+//   expect([...origMatch].length).toBe(1);
+//   const module1Match = linked.matchAll(/\bsupport_0\b/g);
+//   expect([...module1Match].length).toBe(2);
+//   const module2Match = linked.matchAll(/\bsupport_1\b/g);
+//   expect([...module2Match].length).toBe(2);
+// });
+
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
@@ -178,28 +249,6 @@ test("#import twice with different names", () => {
 //   expect(linked).includes("step < 128");
 // });
 
-// test("#import foo from zap (multiple modules)", () => {
-//   const module1 = `
-//     // #export
-//     fn foo() { /* module1 */ }
-//   `;
-//   const module2 = `
-//     // #export
-//     fn foo() { /* module2 */ }
-//   `;
-
-//   const src = `
-//     #import foo as baz from module2
-
-//     baz();
-//   `;
-
-//   const registry = new ModuleRegistry();
-//   registry.registerOneModule(module1, "module1");
-//   registry.registerOneModule(module2, "module2");
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).contains("/* module2 */");
-// });
 
 // test("#import snippet w/o support functions", () => {
 //   const module1 = `
@@ -246,32 +295,6 @@ test("#import twice with different names", () => {
 //   expect(linked).includes("fn log(myVar: i32) {}");
 // });
 
-// test("#import with different names, resolve conflicting support function", () => {
-//   const module1 = `
-//     #export
-//     fn foo() {
-//       support();
-//     }
-
-//     fn support() { }
-//   `;
-//   const src = `
-//     #import foo as bar
-//     #import foo as zap
-
-//     fn support() { }
-//     foo();
-//     zap();
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   const origMatch = linked.matchAll(/\bsupport\b/g);
-//   expect([...origMatch].length).toBe(1);
-//   const module1Match = linked.matchAll(/\bsupport_0\b/g);
-//   expect([...module1Match].length).toBe(2);
-//   const module2Match = linked.matchAll(/\bsupport_1\b/g);
-//   expect([...module2Match].length).toBe(2);
-// });
 
 // test("resolve conflicting import support struct imports", () => {
 //   const module1 = `
@@ -381,23 +404,6 @@ test("#import twice with different names", () => {
 //   expect(linked).includes("step < 128");
 // });
 
-// test("multiple exports", () => {
-//   const module1 = `
-//     #export
-//     fn foo() { }
-//     #export
-//     fn bar() { }
-//   `;
-//   const src = `
-//     #import foo
-//     #import bar
-//     foo();
-//     bar();
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).toMatchSnapshot();
-// });
 
 // test("#if", () => {
 //   const src = `
