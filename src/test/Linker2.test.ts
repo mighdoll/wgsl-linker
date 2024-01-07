@@ -136,8 +136,27 @@ test("import transitive conflicts with main", () => {
   `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl2(src, registry);
-  console.log("linked", linked);
   expect(linked).includes("mid() { grand0(); }");
+});
+
+test("#import twice with different names", () => {
+  const module1 = `
+    #export
+    fn foo(a) { /* module1 */ }
+  `;
+  const src = `
+    #import foo(b) as bar
+    #import foo(z) as zap
+
+    fn main() {
+      foo();
+      zap();
+    }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl2(src, registry);
+  const matches = linked.matchAll(/module1/g);
+  expect([...matches].length).toBe(2);
 });
 
 // test("import with template replace", () => {
@@ -180,24 +199,6 @@ test("import transitive conflicts with main", () => {
 //   registry.registerOneModule(module2, "module2");
 //   const linked = linkWgsl(src, registry);
 //   expect(linked).contains("/* module2 */");
-// });
-
-// test("#import twice with different names", () => {
-//   const module1 = `
-//     #export
-//     fn foo() { /* module1 */ }
-//   `;
-//   const src = `
-//     #import foo as bar
-//     #import foo as zap
-
-//     foo();
-//     zap();
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   const matches = linked.matchAll(/module1/g);
-//   expect([...matches].length).toBe(2);
 // });
 
 // test("#import snippet w/o support functions", () => {
