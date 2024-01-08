@@ -138,7 +138,7 @@ export const fnDecl = seq(
     r.app.push(fn);
   });
 
-const unknown = any().map((t) => console.warn("???", t));
+const unknown = any().mapResults((r) => console.warn("???", r.value));
 
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 

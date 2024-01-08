@@ -68,7 +68,6 @@ export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
   traceName(name: string): ParserStage<T>;
-  map<U>(fn: (result: T) => U | null): ParserStage<U | true>;
   mapResults<U>(
     fn: (result: ExtendedResult<T>) => U | null
   ): ParserStage<U | true>;
@@ -153,9 +152,6 @@ export function parserStage<T>(
   stageFn.mapResults = mapResults;
   stageFn.trace = (opts: TraceOptions = {}) =>
     parserStage(fn, { ...args, trace: opts });
-
-  stageFn.map = <U>(fn: (result: T) => U | null) =>
-    mapResults((results) => fn(results.value));
 
   function mapResults<U>(
     fn: (results: ExtendedResult<T>) => U | null

@@ -86,16 +86,9 @@ test("repeat() to (1,2,3,4) via named", () => {
   const wordNum = or(kind("word"), kind("digits")).named("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));
   const p = seq("(", params, ")");
-  const parsed = p({ lexer, app });
+  const parsed = p({ lexer, app, appState: {} });
   expect(parsed).not.null;
   expect(parsed?.named.wn).deep.equals(["1", "2", "3", "4"]);
-});
-
-test("map()", () => {
-  const src = "foo";
-  const p = kind(m.word).map((r) => r + "!");
-  const { parsed } = testParse(p, src);
-  expect(parsed?.value).equals("foo!");
 });
 
 test("mapResults()", () => {
