@@ -257,8 +257,7 @@ test("#import support fn that references another import", () => {
 
     fn support() { }
   `;
-  
-  
+
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl2(src, registry);
   console.log("linked", linked);
@@ -269,6 +268,35 @@ test("#import support fn that references another import", () => {
   expect([...module1Match].length).toBe(2);
   const module2Match = linked.matchAll(/\bsupport1\b/g);
   expect([...module2Match].length).toBe(2);
+});
+
+test("#import support fn from two exports", () => {
+  const src = `
+    #import foo
+    #import bar 
+    fn main() {
+      foo();
+      bar();
+    }
+  `;
+  const module1 = `
+    #export
+    fn foo() {
+      support();
+    }
+
+    #export
+    fn bar() {
+      support();
+    }
+
+    fn support() { }
+  `;
+
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl2(src, registry);
+  const supportMatch = linked.matchAll(/\bsupport\b/g);
+  expect([...supportMatch].length).toBe(3);
 });
 
 // test("import with template replace", () => {

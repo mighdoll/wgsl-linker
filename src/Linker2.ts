@@ -193,8 +193,9 @@ function resolveFn(
  * @return true if we haven't seen this fn before */
 function registerFn(fn:FnElem, mod: TextModule2, resolveArgs: ResolveArgs): boolean {
   const { importing, renames } = resolveArgs;
-  const fullName = fullSrcElemName(fn.name, mod.name);
+  const fullName = fullSrcElemName(mod.name, fn.name);
   const linkName = importing.get(fullName);
+  console.log("registerFn", fullName, importing);
   if (linkName) {
     // we've already registered this elsewhere
     // make sure there's a renaming mapping for this module's import to this
@@ -204,6 +205,7 @@ function registerFn(fn:FnElem, mod: TextModule2, resolveArgs: ResolveArgs): bool
   }
   
   const uniquedName = registerUniquedName(fn.name, resolveArgs); // DRY with registerImport
+  importing.set(fullName, uniquedName);
   if (fn.name !== uniquedName) {
     multiKeySet(renames, mod.name, fn.name, uniquedName);
   }
