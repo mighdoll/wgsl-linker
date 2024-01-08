@@ -1,5 +1,5 @@
 import { M } from "vitest/dist/reporters-O4LBziQ_.js";
-import { ImportElem } from "./AbstractElems.js";
+import { FnElem, ImportElem } from "./AbstractElems.js";
 import { fnDecls } from "./Declarations.js";
 import {
   ModuleExport2,
@@ -31,7 +31,12 @@ export function linkWgsl2(
 }
 
 function exportTexts(toLoad: ToLoad[], renames: RenameMap): string {
-  const texts = toLoad.map((l) => loadExportText(l, renames));
+  const texts = toLoad.map((l) => {
+    if (l.kind === "fn") return loadFnText(l, renames);
+    if (l.kind === "export") return loadExportText(l, renames);
+    throw new Error("NYI");
+  });
+
   return texts.join("\n\n");
 }
 
@@ -68,7 +73,16 @@ interface ResolveArgs {
   toLoad: ToLoad[];
 }
 
-interface ToLoad {
+type ToLoad = ToLoadExport | ModuleFn;
+
+interface ModuleFn {
+  kind: "fn";
+  mod: TextModule2;
+  fn: FnElem;
+}
+
+interface ToLoadExport {
+  kind: "export";
   linkName: string;
   importArgs: string[];
   moduleExport: TextModuleExport2;
@@ -97,9 +111,18 @@ When we find a request in module A to import a function f as 'g' exported from m
 
 */
 
-interface ToResolve {
+type ToResolve = ImportToResolve | CallToResolve;
+
+interface ImportToResolve {
+  kind: "imp";
   imp: ImportElem;
-  moduleExport: ModuleExport2;
+  mod: TextModule2;
+}
+
+interface CallToResolve {
+  kind: "fn";
+  fn: FnElem;
+  mod: TextModule2;
 }
 
 function resolveImportList(
@@ -114,11 +137,16 @@ function resolveImportList(
   while (toResolve.length) {
     const todo = toResolve.shift();
     if (!todo) break;
-    const { imp, moduleExport } = todo;
-    if (moduleExport.kind !== "text") throw new Error("NYI");
 
-    const r = resolveImport(imp, moduleExport.module, resolveArgs);
-    toResolve.push(...r);
+    if (todo.kind === "imp") {
+      const { imp, mod } = todo;
+      const r = resolveImport(imp, mod, resolveArgs);
+      toResolve.push(...r);
+    } else if (todo.kind === "fn") {
+      const { fn, mod } = todo;
+      const r = resolveFn(fn, mod, resolveArgs);
+      toResolve.push(...r);
+    }
   }
 }
 
@@ -126,7 +154,7 @@ function resolveImportList(
  *  . find the export requested by this import
  *  . choose a unique name for the exported element, updating the rename map
  *  . update the list of exports to load
- *  . return a list of nested imports to resolve later
+ *  . return a list of referenced imports and support fns to resolve later
  */
 function resolveImport(
   imp: ImportElem,
@@ -140,13 +168,47 @@ function resolveImport(
     throw new Error("NYI");
   }
   const { toLoad } = resolveArgs;
-  toLoad.push({ linkName, importArgs: imp.args ?? [], moduleExport });
+  const importArgs = imp.args ?? [];
+  toLoad.push({ kind: "export", linkName, importArgs, moduleExport });
+  const fnElem = moduleExport.export.ref;
 
-  const nestedImports = importsFromFn(moduleExport);
-  return nestedImports.map((nestedImp) => ({
-    imp: nestedImp,
-    moduleExport,
-  }));
+  return refsFromFn(fnElem, moduleExport.module);
+}
+
+/** resolve a support fn */
+function resolveFn(
+  fn: FnElem,
+  mod: TextModule2,
+  resolveArgs: ResolveArgs
+): ToResolve[] {
+  const result = registerFn(fn, mod, resolveArgs);
+  if (!result) return [];
+
+  resolveArgs.toLoad.push({ kind: "fn", mod, fn })
+
+  return refsFromFn(fn, mod);
+}
+
+/** 
+ * @return true if we haven't seen this fn before */
+function registerFn(fn:FnElem, mod: TextModule2, resolveArgs: ResolveArgs): boolean {
+  const { importing, renames } = resolveArgs;
+  const fullName = fullSrcElemName(fn.name, mod.name);
+  const linkName = importing.get(fullName);
+  if (linkName) {
+    // we've already registered this elsewhere
+    // make sure there's a renaming mapping for this module's import to this
+    const verify = renames.get(mod.name)?.get(fn.name);  
+    console.log("verify fn mapping", verify, ":", linkName);
+    return false;
+  }
+  
+  const uniquedName = registerUniquedName(fn.name, resolveArgs); // DRY with registerImport
+  if (fn.name !== uniquedName) {
+    multiKeySet(renames, mod.name, fn.name, uniquedName);
+  }
+
+  return true;
 }
 
 interface RegisteredExport {
@@ -167,22 +229,23 @@ function registerImport(
 ): RegisteredExport | null {
   console.log("registerImport", imp.name, "from", impModule.name);
   const { registry, importing, renames } = resolveArgs;
-  const moduleExport = findExport(imp, registry, importing);
-  if (!moduleExport) return null; // unexpected error 
+  const modEx = findExport(imp, registry, importing);
+  if (!modEx) return null; // unexpected error
 
-  const expName = fullExportName(moduleExport, imp.args);
+  const modName = modEx.module.name;
+  const expName = fullSrcElemName(modName, modEx.export.name, imp.args);
   const proposedName = importName(imp);
 
   const linkName = importing.get(expName);
-  console.log("linkName", linkName, "expName", expName); 
+  console.log("linkName", linkName, "expName", expName);
   if (linkName) {
     // we've already registered this export elsewhere
-    // make sure there's a renaming mapping for this module's import to this 
+    // make sure there's a renaming mapping for this module's import to this
     multiKeySet(renames, impModule.name, proposedName, linkName);
     return null;
   }
 
-  const exportingModule = moduleExport.module;
+  const exportingModule = modEx.module;
   const uniquedName = registerUniquedName(proposedName, resolveArgs);
   importing.set(expName, uniquedName);
 
@@ -191,12 +254,34 @@ function registerImport(
     multiKeySet(renames, impModule.name, proposedName, uniquedName);
   }
   // record rename for this import in the exporting module
-  if (imp.name !== moduleExport.export.name) {
-    const expName = moduleExport.export.name;
+  if (imp.name !== modEx.export.name) {
+    const expName = modEx.export.name;
     multiKeySet(renames, exportingModule.name, expName, uniquedName);
   }
 
-  return { name: uniquedName, moduleExport };
+  return { name: uniquedName, moduleExport: modEx };
+}
+
+function refsFromFn(fnElem: FnElem, mod: TextModule2): ToResolve[] {
+  const allImports = mod.imports;
+  const allFns = mod.fns;
+  const calls = fnElem.children.filter((child) => child.kind === "call");
+
+  const toResolve: ToResolve[] = [];
+  calls.forEach((callElem) => {
+    const imp = allImports.find((imp) => imp.name === callElem.call);
+    if (imp) {
+      toResolve.push({ kind: "imp", imp, mod });
+    } else {
+      const fn = allFns.find((fn) => fn.name === callElem.call);
+      if (fn) {
+        toResolve.push({ kind: "fn", fn, mod });
+      } else {
+        console.warn("ref not found", callElem, "from module", mod.name);
+      }
+    }
+  });
+  return toResolve;
 }
 
 function importsFromFn(expModule: ModuleExport2): ImportElem[] {
@@ -246,29 +331,45 @@ function rmImports(srcModule: TextModule2): string {
 /** extract some exported text from a module, replace export params with corresponding import arguments
  * As a side effect, add the import name to the imported set
  */
-function loadExportText(
-  load: ToLoad,
-  renames: Map<string, Map<string, string>>
-): string {
+function loadExportText(load: ToLoadExport, renames: RenameMap): string {
   const { linkName, importArgs, moduleExport } = load;
 
   const exp = moduleExport.export;
 
   const { start, end } = exp.ref;
-  const exportSrc = moduleExport.module.src.slice(start, end);
-
-  const moduleRenames = renames.get(moduleExport.module.name)?.entries() ?? [];
-  console.log("moduleRenames", moduleRenames);
 
   /* replace export args with import arg values */
-  const entries = exp.args.map((p, i) => [p, importArgs[i]]);
+  const entries: [string, string][] = exp.args.map((p, i) => [
+    p,
+    importArgs[i],
+  ]);
   // rename 'as' imports too, e.g. #import foo as 'newName'
   if (linkName !== exp.name) entries.push([exp.name, linkName]);
 
+  return loadModuleSlice(moduleExport.module, start, end, renames, entries);
+}
+
+function loadModuleSlice(
+  mod: TextModule2,
+  start: number,
+  end: number,
+  renames: RenameMap,
+  replaces: [string, string][] = []
+): string {
+  const slice = mod.src.slice(start, end);
+
+  const moduleRenames = renames.get(mod.name)?.entries() ?? [];
+  console.log("loadModuleSlice : moduleRenames", moduleRenames);
+
   // LATER be more precise with replacing e.g. rename for call sites, etc.
-  const importParams = Object.fromEntries([...entries, ...moduleRenames]);
-  console.log("exportSrc", exportSrc, importParams);
-  return replaceTokens2(exportSrc, importParams);
+  const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
+  console.log("loadModuleSlice", slice, "\n  rewrite", rewrite);
+  return replaceTokens2(slice, rewrite);
+}
+
+function loadFnText(moduleFn: ModuleFn, renames: RenameMap): string {
+  const { start, end } = moduleFn.fn;
+  return loadModuleSlice(moduleFn.mod, start, end, renames);
 }
 
 /**
@@ -316,12 +417,12 @@ function grouped<T>(a: T[], size: number, stride = size): T[][] {
   return groups;
 }
 
-/** @return string of the export name plus with import parameters,
- * for detecting imports already processed */
-function fullExportName(
-  moduleExport: ModuleExport2,
+/** @return string of the fn or struct name plus import parameters,
+ * for detecting src elements already processed */
+function fullSrcElemName(
+  moduleName: string,
+  elemName: string,
   args: string[] = []
 ): string {
-  const { export: exp, module } = moduleExport;
-  return `${module.name}.${exp.name}(${args.join(",")})`;
+  return `${moduleName}.${elemName}(${args.join(",")})`;
 }

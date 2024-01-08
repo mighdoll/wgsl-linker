@@ -204,32 +204,32 @@ test("multiple exports from the same module", () => {
   expect(linked).toMatchSnapshot();
 });
 
-// test("#import with different names, resolve conflicting support function", () => {
-//   const module1 = `
-//     #export
-//     fn foo() {
-//       support();
-//     }
+test("#import and resolve conflicting support function", () => {
+  const module1 = `
+    #export
+    fn foo() {
+      support();
+    }
 
-//     fn support() { }
-//   `;
-//   const src = `
-//     #import foo as bar
-//     #import foo as zap
+    fn support() { }
+  `;
+  const src = `
+    #import foo as bar
 
-//     fn support() { }
-//     foo();
-//     zap();
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   const origMatch = linked.matchAll(/\bsupport\b/g);
-//   expect([...origMatch].length).toBe(1);
-//   const module1Match = linked.matchAll(/\bsupport_0\b/g);
-//   expect([...module1Match].length).toBe(2);
-//   const module2Match = linked.matchAll(/\bsupport_1\b/g);
-//   expect([...module2Match].length).toBe(2);
-// });
+    fn support() { 
+      bar();
+    }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl2(src, registry);
+  console.log("linked", linked);
+  const origMatch = linked.matchAll(/\bsupport\b/g);
+  expect([...origMatch].length).toBe(1);
+  const module1Match = linked.matchAll(/\bsupport0\b/g);
+  expect([...module1Match].length).toBe(2);
+  const barMatch = linked.matchAll(/\bbar\b/g);
+  expect([...barMatch].length).toBe(2);
+});
 
 // test("import with template replace", () => {
 //   const myModule = `
