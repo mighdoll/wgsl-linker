@@ -21,10 +21,10 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  *
  * Built in parsers and combinators are available:
  *  kind() recognizes tokens of a particular type.
- *  or(), seq(), opt(), map(), and repeat() combine other stages.
+ *  or(), seq(), opt(), map() and repeat() combine other stages.
  *
  * Users construct their own parsers by combining other parser stages
- * and typically use mapResults() to report results. Results can be stored
+ * and typically use map() to report results. Results can be stored
  * in the array app[], which is provided by the user and available for
  * all user constructed parsers.
  */
@@ -68,7 +68,7 @@ export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
   traceName(name: string): ParserStage<T>;
-  mapResults<U>(
+  map<U>(
     fn: (result: ExtendedResult<T>) => U | null
   ): ParserStage<U | true>;
   parserName?: string;
@@ -149,11 +149,11 @@ export function parserStage<T>(
     parserStage(fn, { ...args, resultName: name, traceName: name });
   stageFn.traceName = (name: string) =>
     parserStage(fn, { ...args, traceName: name });
-  stageFn.mapResults = mapResults;
+  stageFn.map = map;
   stageFn.trace = (opts: TraceOptions = {}) =>
     parserStage(fn, { ...args, trace: opts });
 
-  function mapResults<U>(
+  function map<U>(
     fn: (results: ExtendedResult<T>) => U | null
   ): ParserStage<U | true> {
     return parserStage((state: ParserContext): OptParserResult<U | true> => {

@@ -91,11 +91,11 @@ test("repeat() to (1,2,3,4) via named", () => {
   expect(parsed?.named.wn).deep.equals(["1", "2", "3", "4"]);
 });
 
-test("mapResults()", () => {
+test("map()", () => {
   const src = "foo";
   const p = kind(m.word)
     .named("word")
-    .mapResults((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
+    .map((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
   const { parsed } = testParse(p, src);
   expect(parsed?.value).equals("found");
 });
@@ -128,7 +128,7 @@ test("recurse with fn()", () => {
     ),
     "}"
   );
-  const wrap = or(p).mapResults((r) => r.app.push(r.named.word));
+  const wrap = or(p).map((r) => r.app.push(r.named.word));
   const { app } = testParse(wrap, src);
   expect(app[0]).deep.equals(["a", "b"]);
 });

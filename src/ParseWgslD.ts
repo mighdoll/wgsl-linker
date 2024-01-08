@@ -41,7 +41,7 @@ const directiveArgs = seq(
   ")"
 )
   .traceName("directiveArgs")
-  .mapResults((r) => r.named.word);
+  .map((r) => r.named.word);
 
 const eol = or("\n", eof());
 
@@ -52,7 +52,7 @@ const exportDirective = seq(
     directiveArgsTokens,
     seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
   ).traceName("export")
-).mapResults((r) => {
+).map((r) => {
   const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
   r.app.push(e);
 });
@@ -72,7 +72,7 @@ const importDirective = seq(
   )
 )
   .traceName("import")
-  .mapResults((r) => {
+  .map((r) => {
     const named: (keyof ImportElem)[] = ["name", "from", "as"];
     const e = makeElem<ImportElem>("import", r, named, ["args"]);
     r.app.push(e);
@@ -80,7 +80,7 @@ const importDirective = seq(
 
 const ifDirective = seq(
   "#if",
-  tokens(directiveArgsTokens, seq(opt("!"), kind(m.word).named("name"), eol)).mapResults((r) => {
+  tokens(directiveArgsTokens, seq(opt("!"), kind(m.word).named("name"), eol)).map((r) => {
   })
 );
 
@@ -98,7 +98,7 @@ const structDecl = seq(
   "{",
   repeat(or(lineComment, not("}"))),
   "}"
-).mapResults((r) => {
+).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
   r.app.push(e);
 });
@@ -106,7 +106,7 @@ const structDecl = seq(
 export const fnCall = seq(
   kind(m.word)
     .named("call")
-    .mapResults((r) => makeElem<CallElem>("call", r, ["call"]))
+    .map((r) => makeElem<CallElem>("call", r, ["call"]))
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
 );
@@ -132,13 +132,13 @@ export const fnDecl = seq(
   block
 )
   .traceName("fnDecl")
-  .mapResults((r) => {
+  .map((r) => {
     const fn = makeElem<FnElem>("fn", r, ["name"]);
     fn.children = r.named.calls || [];
     r.app.push(fn);
   });
 
-const unknown = any().mapResults((r) => console.warn("???", r.value));
+const unknown = any().map((r) => console.warn("???", r.value));
 
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
