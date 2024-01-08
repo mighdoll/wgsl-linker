@@ -222,13 +222,53 @@ test("#import and resolve conflicting support function", () => {
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl2(src, registry);
-  console.log("linked", linked);
   const origMatch = linked.matchAll(/\bsupport\b/g);
   expect([...origMatch].length).toBe(1);
   const module1Match = linked.matchAll(/\bsupport0\b/g);
   expect([...module1Match].length).toBe(2);
   const barMatch = linked.matchAll(/\bbar\b/g);
   expect([...barMatch].length).toBe(2);
+});
+
+test("#import support fn that references another import", () => {
+  const src = `
+    #import foo 
+
+    fn support() { 
+      foo();
+    }
+  `;
+  const module1 = `
+    #import bar
+
+    #export
+    fn foo() {
+      support();
+      bar();
+    }
+
+    fn support() { }
+  `;
+  const module2 = `
+    #export
+    fn bar() {
+      support();
+    }
+
+    fn support() { }
+  `;
+  
+  
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl2(src, registry);
+  console.log("linked", linked);
+
+  const origMatch = linked.matchAll(/\bsupport\b/g);
+  expect([...origMatch].length).toBe(1);
+  const module1Match = linked.matchAll(/\bsupport0\b/g);
+  expect([...module1Match].length).toBe(2);
+  const module2Match = linked.matchAll(/\bsupport1\b/g);
+  expect([...module2Match].length).toBe(2);
 });
 
 // test("import with template replace", () => {
