@@ -11,7 +11,7 @@ import {
   directiveArgsTokens,
   lineCommentTokens,
   mainTokens,
-} from "./MiniWgslMatch.js";
+} from "./MatchWgslD.js";
 import {
   ExtendedResult,
   ParserContext,
@@ -27,6 +27,8 @@ import {
   seq,
   tokens,
 } from "./ParserCombinator.js";
+
+/** parser that recognizes key parts of WGSL and also directives like #import */
 
 const m = mainTokens;
 const a = directiveArgsTokens;

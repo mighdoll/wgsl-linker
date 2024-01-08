@@ -1,5 +1,5 @@
 import { matchingLexer } from "../MatchingLexer.js";
-import { mainTokens } from "../MiniWgslMatch.js";
+import { mainTokens } from "../MatchWgslD.js";
 import { OptParserResult, ParserStage } from "../ParserCombinator.js";
 
 interface TestParseResult<T> {

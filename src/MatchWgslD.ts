@@ -1,6 +1,7 @@
 import { escapeRegex, tokenMatcher } from "./TokenMatcher.js";
 
-/** token matchers for parrts of wgsl and #directives */
+/** token matchers for parts of wgsl with #directives */
+
 /*
 syntax we aim to parse:
 

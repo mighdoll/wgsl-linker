@@ -4,7 +4,7 @@ import {
   FnElem,
   ImportElem,
 } from "./AbstractElems.js";
-import { parseMiniWgsl } from "./MiniWgslParse.js";
+import { parseMiniWgsl } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {

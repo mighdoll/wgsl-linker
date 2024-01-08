@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { directive, lineComment, parseMiniWgsl } from "../MiniWgslParse.js";
+import { directive, lineComment, parseMiniWgsl } from "../ParseWgslD.js";
 import { testParse } from "./TestParse.js";
 
 // import { enableTracing } from "../ParserTracing.js";

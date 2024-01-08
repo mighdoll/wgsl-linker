@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
-import { directiveArgsTokens, mainTokens } from "../MiniWgslMatch.js";
+import { directiveArgsTokens, mainTokens } from "../MatchWgslD.js";
 import {
   ParserStage,
   fn,

@@ -1,5 +1,5 @@
 import { TextExport, TextModule } from "./Linker.js";
-import { parseMiniWgsl } from "./MiniWgslParse.js";
+import { parseMiniWgsl } from "./ParseWgslD.js";
 import {
   endExportRegex,
   endInsertRegex,
