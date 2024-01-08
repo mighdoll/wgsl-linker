@@ -80,11 +80,38 @@ const importDirective = seq(
 
 const ifDirective = seq(
   "#if",
-  tokens(directiveArgsTokens, seq(opt("!"), kind(m.word).named("name"), eol)).map((r) => {
+  tokens(
+    directiveArgsTokens,
+    seq(opt("!"), kind(m.word).named("name"), eol)
+  ).map((r) => {
+    const { ifStack, params } = r.appState as ParseState;
+    const ifArg = r.named["name"]?.[0] as string;
+    const truthy = !!params[ifArg];
+    console.log("if", ifArg, truthy);
+    ifStack.push(truthy);
   })
 );
+const elseDirective = seq("#else", eol).map((r) => {
+  const { ifStack, params } = r.appState as ParseState;
+  const ifState = ifStack.pop();
+  if (ifState === undefined) console.warn("unmatched #else", r.start);
+  ifStack.push(!ifState);
+  console.log("else", !ifState);
+});
+const endifDirective = seq("#endif", eol).map((r) => {
+  const { ifStack, params } = r.appState as ParseState;
+  const ifState = ifStack.pop();
+  if (ifState === undefined) console.warn("unmatched #endif", r.start);
+  console.log("endif", ifStack[0]);
+});
 
-export const directive = or(exportDirective, importDirective, ifDirective);
+export const directive = or(
+  exportDirective,
+  importDirective,
+  ifDirective,
+  elseDirective,
+  endifDirective
+);
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
@@ -144,14 +171,24 @@ const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
 const root = seq(repeat(rootDecl), eof());
 
-export function parseMiniWgsl(src: string, params:Record<string, any> = {}): AbstractElem[] {
+interface ParseState {
+  ifStack: boolean[];
+  params: Record<string, any>;
+}
+
+export function parseMiniWgsl(
+  src: string,
+  params: Record<string, any> = {}
+): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
   const app: AbstractElem[] = [];
 
-  const state: ParserContext = { lexer, app, appState: params };
-  root(state);
+  const appState: ParseState = { ifStack: [], params };
+  const context: ParserContext = { lexer, app, appState: appState };
 
-  return state.app;
+  root(context);
+
+  return context.app;
 }
 
 /** creat an AbstractElem by pulling fields from named parse results */
