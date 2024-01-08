@@ -98,3 +98,15 @@ test("parse #export(foo) with trailing space", () => {
   const parsed = parseMiniWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
+
+test("parse #if !foo #else #endif", () => {
+  const src = `
+    // #if !foo
+      fn f() { notfoo(); }
+    // #else
+      fn f() { foo(); }
+    // #endif 
+    `;
+  const parsed = parseMiniWgsl(src, { foo: true });
+  console.log(parsed);
+});

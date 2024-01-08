@@ -54,7 +54,7 @@ const exportDirective = seq(
   ).traceName("export")
 ).mapResults((r) => {
   const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
-  r.results.push(e);
+  r.app.push(e);
 });
 
 /** #import foo <(a,b)> <from bar> <as boo> EOL */
@@ -75,10 +75,16 @@ const importDirective = seq(
   .mapResults((r) => {
     const named: (keyof ImportElem)[] = ["name", "from", "as"];
     const e = makeElem<ImportElem>("import", r, named, ["args"]);
-    r.results.push(e);
+    r.app.push(e);
   });
 
-export const directive = or(exportDirective, importDirective);
+const ifDirective = seq(
+  "#if",
+  tokens(directiveArgsTokens, seq(opt("!"), kind(m.word).named("name"), eol)).mapResults((r) => {
+  })
+);
+
+export const directive = or(exportDirective, importDirective, ifDirective);
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
@@ -94,7 +100,7 @@ const structDecl = seq(
   "}"
 ).mapResults((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
-  r.results.push(e);
+  r.app.push(e);
 });
 
 export const fnCall = seq(
@@ -129,7 +135,7 @@ export const fnDecl = seq(
   .mapResults((r) => {
     const fn = makeElem<FnElem>("fn", r, ["name"]);
     fn.children = r.named.calls || [];
-    r.results.push(fn);
+    r.app.push(fn);
   });
 
 const unknown = any().map((t) => console.warn("???", t));
@@ -138,11 +144,11 @@ const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
 const root = seq(repeat(rootDecl), eof());
 
-export function parseMiniWgsl(src: string): AbstractElem[] {
+export function parseMiniWgsl(src: string, params:Record<string, any> = {}): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
   const app: AbstractElem[] = [];
 
-  const state: ParserContext = { lexer, app };
+  const state: ParserContext = { lexer, app, appState: params };
   root(state);
 
   return state.app;

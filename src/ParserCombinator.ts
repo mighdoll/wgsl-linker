@@ -36,6 +36,9 @@ export interface ParserContext {
 
   /** handy place for user written parsers to accumulate application results */
   app: any[];
+  
+  /** handy place for user written parsers to keep or accept context */
+  appState: any;
 
   /** during execution, debug trace logging */
   _trace?: TraceContext;
@@ -53,7 +56,8 @@ export interface ParserResult<T> {
 export interface ExtendedResult<T> extends ParserResult<T> {
   start: number;
   end: number;
-  results: any[];
+  app: any[];
+  appState: any;
 }
 
 /** parsers return null if they don't match */
@@ -161,7 +165,7 @@ export function parserStage<T>(
       const origResults = stageFn(state);
       if (origResults === null) return null;
       const end = state.lexer.position();
-      const extended = { ...origResults, start, end, results: state.app };
+      const extended = { ...origResults, start, end, app: state.app, appState: state.appState };
       const mappedValue = fn(extended);
       if (mappedValue === null) return null;
       const value = mappedValue === undefined ? true : mappedValue;

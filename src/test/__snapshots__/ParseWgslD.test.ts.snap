@@ -74,6 +74,10 @@ exports[`parse #export(foo) with trailing space 1`] = `
 ]
 `;
 
+exports[`parse #if foo #else #endif 1`] = `[]`;
+
+exports[`parse #if foo #endif 1`] = `[]`;
+
 exports[`parse #import foo 1`] = `
 [
   {

@@ -62,7 +62,7 @@ export const directiveArgsTokens = tokenMatcher(
   {
     word,
     digits: /[0-9]+/,
-    symbol: makeSymbols("( ) , ="),
+    symbol: makeSymbols("( ) , = !"),
     ws: /[ \t]+/,
     eol,
   },
