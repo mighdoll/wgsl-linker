@@ -36,7 +36,7 @@ export interface ParserContext {
 
   /** handy place for user written parsers to accumulate application results */
   app: any[];
-  
+
   /** handy place for user written parsers to keep or accept context */
   appState: any;
 
@@ -68,9 +68,7 @@ export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
   traceName(name: string): ParserStage<T>;
-  map<U>(
-    fn: (result: ExtendedResult<T>) => U | null
-  ): ParserStage<U | true>;
+  map<U>(fn: (result: ExtendedResult<T>) => U | null): ParserStage<U | true>;
   parserName?: string;
   trace(opts?: TraceOptions): ParserStage<T>;
 }
@@ -156,12 +154,13 @@ export function parserStage<T>(
   function map<U>(
     fn: (results: ExtendedResult<T>) => U | null
   ): ParserStage<U | true> {
-    return parserStage((state: ParserContext): OptParserResult<U | true> => {
-      const start = state.lexer.position();
-      const origResults = stageFn(state);
+    return parserStage((ctx: ParserContext): OptParserResult<U | true> => {
+      const start = ctx.lexer.position();
+      const origResults = stageFn(ctx);
       if (origResults === null) return null;
-      const end = state.lexer.position();
-      const extended = { ...origResults, start, end, app: state.app, appState: state.appState };
+      const end = ctx.lexer.position();
+      const { app, appState } = ctx;
+      const extended = { ...origResults, start, end, app, appState };
       const mappedValue = fn(extended);
       if (mappedValue === null) return null;
       const value = mappedValue === undefined ? true : mappedValue;
@@ -408,7 +407,7 @@ export function eof(): ParserStage<true> {
   return parsing((state: ParserContext) => state.lexer.eof() || null, "eof");
 }
 
-/** convert naked string arguments into text() parsers */ 
+/** convert naked string arguments into text() parsers */
 function parserArg<T>(
   arg: ParserStageArg<T>
 ): ParserStage<T> | ParserStage<string> {
