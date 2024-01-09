@@ -299,6 +299,29 @@ test("#import support fn from two exports", () => {
   expect([...supportMatch].length).toBe(3);
 });
 
+test.only("#import uses previous #export params", () => {
+  const module1 = `
+    #export(a, b)
+    fn foo(a,b) { bar(a); }
+
+    #import bar(a)
+  `;
+  const module2 = `
+    #export(x)
+    fn bar(x) { }
+  `;
+  const src = `
+    #import foo(k,l)
+    fn main {
+      foo(k,l);
+    }
+  `;
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl2(src, registry);
+  console.log("linked", linked);
+  expect(linked).contains("fn bar(k)");
+});
+
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
