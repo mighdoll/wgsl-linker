@@ -159,25 +159,35 @@ export function parserStage<T>(
     fn: (results: ExtendedResult<T>) => U | null
   ): ParserStage<U | true> {
     return parserStage((ctx: ParserContext): OptParserResult<U | true> => {
-      const start = ctx.lexer.position();
-      const origResults = stageFn(ctx);
-      if (origResults === null) return null;
-      const end = ctx.lexer.position();
-      const { app, appState } = ctx;
-      const extended = { ...origResults, start, end, app, appState };
+      const extended = runExtended(ctx);
+      if (!extended) return null;
+
       const mappedValue = fn(extended);
       if (mappedValue === null) return null;
-      const value = mappedValue === undefined ? true : mappedValue;
 
-      return { value, named: origResults.named };
+      const value = mappedValue === undefined ? true : mappedValue;
+      return { value, named: extended.named };
     });
   }
 
   function toParser<N>(
     fn: (results: ExtendedResult<T>) => ParserStage<N>
   ): ParserStage<N> {
-    return parserStage((ctx: ParserContext): OptParserResult<any> => {
-      // run our parser
+    return parserStage((ctx: ParserContext): OptParserResult<N> => {
+      const extended = runExtended(ctx);
+      if (!extended) return null;
+
+      // run the supplied function to get a parser
+      const p = fn(extended);
+
+      // run the parser returned by the supplied function
+      const nextResult = p(ctx);
+      return nextResult;
+    });
+  }
+  
+  /** run local parser, return extended results */
+  function runExtended(ctx:ParserContext):ExtendedResult<T> | null{
       const start = ctx.lexer.position();
       const origResults = stageFn(ctx);
       if (origResults === null) return null;
@@ -185,15 +195,7 @@ export function parserStage<T>(
       const end = ctx.lexer.position();
       const { app, appState } = ctx;
       const extended = { ...origResults, start, end, app, appState };
-
-      // run the supplied function to get a parser
-      const p = fn(extended);
-
-      // run the parser returned by the supplied function
-      const nextResult = p(ctx);
-      console.log("nextResult", nextResult);
-      return nextResult;
-    });
+      return extended;
   }
 
   return stageFn;
