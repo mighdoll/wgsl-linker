@@ -1,6 +1,4 @@
-import { M } from "vitest/dist/reporters-O4LBziQ_.js";
 import { FnElem, ImportElem } from "./AbstractElems.js";
-import { fnDecls } from "./Declarations.js";
 import {
   ModuleExport2,
   ModuleRegistry2,
