@@ -23,7 +23,7 @@ export function matchingLexer(
     while (token && ignore.has(token.kind)) {
       token = matcher.next();
     }
-    tracing && parserLog(`: '${token?.text}' (${token?.kind}) ${matcher.position()}`);
+    tracing && parserLog(`: ${JSON.stringify(token?.text)} (${token?.kind}) ${matcher.position()}`);
     return token;
   }
 
