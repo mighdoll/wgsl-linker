@@ -310,7 +310,6 @@ function rmImports(srcModule: TextModule2): string {
 }
 
 /** extract some exported text from a module, replace export params with corresponding import arguments
- * As a side effect, add the import name to the imported set
  */
 function loadExportText(load: ToLoadExport, renames: RenameMap): string {
   const { linkName, importArgs, moduleExport } = load;
@@ -319,6 +318,9 @@ function loadExportText(load: ToLoadExport, renames: RenameMap): string {
 
   const { start, end } = exp.ref;
 
+  // TODO here's where we find match import/export arguments
+  // we want to check for a lexically earlier export
+  
   /* replace export args with import arg values */
   const entries: [string, string][] = exp.args.map((p, i) => [
     p,

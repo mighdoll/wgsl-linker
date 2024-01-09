@@ -301,10 +301,9 @@ test("#import support fn from two exports", () => {
 
 test.only("#import uses previous #export params", () => {
   const module1 = `
-    #export(a, b)
+    #export(a, b) import bar(a)
     fn foo(a,b) { bar(a); }
 
-    #import bar(a)
   `;
   const module2 = `
     #export(x)
