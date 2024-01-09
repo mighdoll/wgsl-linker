@@ -91,7 +91,6 @@ const ifDirective: ParserStage<any> = seq(
     const invert = r.named["invert"]?.[0] === "!";
     const arg = !!params[ifArg];
     const truthy = invert ? !arg : arg;
-    console.log("if", ifArg, truthy);
     return ifBody(r, truthy);
   })
 ).traceName("#if");
@@ -101,7 +100,6 @@ const elseDirective = seq("#else", tokens(directiveArgsTokens, eol))
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
     if (ifState === undefined) console.warn("unmatched #else", r.start);
-    console.log("in else", !ifState);
     return ifBody(r, !ifState);
   })
   .traceName("#else");
@@ -112,10 +110,7 @@ function ifBody(
 ): ParserStage<any> | undefined {
   const { ifStack } = r.appState as ParseState;
   ifStack.push(truthy);
-  if (!truthy) {
-    console.log("skipping in if or else");
-    return skipUntilElseEndif;
-  }
+  if (!truthy) return skipUntilElseEndif;
 }
 
 const endifDirective = seq("#endif", tokens(directiveArgsTokens, eol))
@@ -123,7 +118,6 @@ const endifDirective = seq("#endif", tokens(directiveArgsTokens, eol))
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
     if (ifState === undefined) console.warn("unmatched #endif", r.start);
-    console.log("endif", ifStack[0]);
   })
   .traceName("#endif");
 

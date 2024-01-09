@@ -108,12 +108,11 @@ test("parse #if #endif", () => {
     #endif
     `;
   const parsed = parseMiniWgsl(src, {foo: true});
-  console.log(parsed);
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("f")
 });
 
-test.only("parse #if !foo #else #endif", () => {
+test("parse #if !foo #else #endif", () => {
   const src = `
     // #if !foo
       fn f() { notfoo(); }
@@ -122,7 +121,6 @@ test.only("parse #if !foo #else #endif", () => {
     // #endif 
     `;
   const parsed = parseMiniWgsl(src, { foo: true });
-  console.log(parsed);
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("g")
 });
