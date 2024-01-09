@@ -281,22 +281,6 @@ function refsFromFn(fnElem: FnElem, mod: TextModule2): ToResolve[] {
   return toResolve;
 }
 
-function importsFromFn(expModule: ModuleExport2): ImportElem[] {
-  if (expModule.kind === "text") {
-    const allImports = expModule.module.imports;
-    const fnElem = expModule.export.ref;
-    const calls = fnElem.children
-      .filter((child) => child.kind === "call")
-      .map((callElem) => callElem.call);
-    const calledImports = calls.flatMap(
-      (name) => allImports.find((imp) => imp.name === name) ?? []
-    );
-    return calledImports;
-  }
-
-  return [];
-}
-
 /** find an export entry for an import, unless its aready on the importing list */
 function findExport(
   imp: ImportElem,
