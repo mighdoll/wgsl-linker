@@ -94,12 +94,12 @@ const ifDirective: ParserStage<any> = seq(
   })
 ).traceName("#if");
 
-const elseDirective = seq("#else", eol)
+const elseDirective = seq("#else", tokens(directiveArgsTokens, eol))
   .toParser((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
     if (ifState === undefined) console.warn("unmatched #else", r.start);
-    console.log("else", !ifState);
+    console.log("in else", !ifState);
     return ifBody(r, !ifState);
   })
   .traceName("#else");
@@ -111,12 +111,12 @@ function ifBody(
   const { ifStack } = r.appState as ParseState;
   ifStack.push(truthy);
   if (!truthy) {
-    console.log("skipping");
+    console.log("skipping in if");
     return skipUntilElseEndif;
   }
 }
 
-const endifDirective = seq("#endif", eol)
+const endifDirective = seq("#endif", tokens(directiveArgsTokens, eol))
   .map((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
@@ -131,7 +131,9 @@ export const directive = or(
   ifDirective,
   elseDirective,
   endifDirective
-).traceName("directive or").trace({start:7});
+)
+  .traceName("directive or");
+  // .trace({});
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
