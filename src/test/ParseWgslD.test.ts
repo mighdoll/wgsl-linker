@@ -1,9 +1,10 @@
 import { expect, test } from "vitest";
 import { directive, lineComment, parseMiniWgsl } from "../ParseWgslD.js";
 import { testParse } from "./TestParse.js";
+import { FnElem } from "../AbstractElems.js";
 
-// import { enableTracing } from "../ParserTracing.js";
-// enableTracing();
+import { enableTracing } from "../ParserTracing.js";
+enableTracing();
 
 test("parse empty string", () => {
   const parsed = parseMiniWgsl("");

@@ -40,8 +40,8 @@ const directiveArgs = seq(
   repeat(seq(",", kind(a.word).named("word"))),
   ")"
 )
-  .traceName("directiveArgs")
-  .map((r) => r.named.word);
+  .map((r) => r.named.word)
+  .traceName("directiveArgs");
 
 const eol = or("\n", eof());
 
@@ -51,11 +51,13 @@ const exportDirective = seq(
   tokens(
     directiveArgsTokens,
     seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
-  ).traceName("export")
-).map((r) => {
-  const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
-  r.app.push(e);
-});
+  )
+)
+  .map((r) => {
+    const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
+    r.app.push(e);
+  })
+  .traceName("export");
 
 /** #import foo <(a,b)> <from bar> <as boo> EOL */
 const importDirective = seq(
@@ -71,39 +73,57 @@ const importDirective = seq(
     )
   )
 )
-  .traceName("import")
   .map((r) => {
     const named: (keyof ImportElem)[] = ["name", "from", "as"];
     const e = makeElem<ImportElem>("import", r, named, ["args"]);
     r.app.push(e);
-  });
+  })
+  .traceName("import");
 
-const ifDirective = seq(
+const ifDirective: ParserStage<any> = seq(
   "#if",
   tokens(
     directiveArgsTokens,
     seq(opt("!"), kind(m.word).named("name"), eol)
-  ).map((r) => {
-    const { ifStack, params } = r.appState as ParseState;
+  ).toParser((r) => {
+    const { params } = r.appState as ParseState;
     const ifArg = r.named["name"]?.[0] as string;
     const truthy = !!params[ifArg];
     console.log("if", ifArg, truthy);
-    ifStack.push(truthy);
+    return ifBody(r, truthy);
   })
-);
-const elseDirective = seq("#else", eol).map((r) => {
-  const { ifStack, params } = r.appState as ParseState;
-  const ifState = ifStack.pop();
-  if (ifState === undefined) console.warn("unmatched #else", r.start);
-  ifStack.push(!ifState);
-  console.log("else", !ifState);
-});
-const endifDirective = seq("#endif", eol).map((r) => {
-  const { ifStack, params } = r.appState as ParseState;
-  const ifState = ifStack.pop();
-  if (ifState === undefined) console.warn("unmatched #endif", r.start);
-  console.log("endif", ifStack[0]);
-});
+).traceName("#if");
+
+const elseDirective = seq("#else", eol)
+  .toParser((r) => {
+    const { ifStack } = r.appState as ParseState;
+    const ifState = ifStack.pop();
+    if (ifState === undefined) console.warn("unmatched #else", r.start);
+    console.log("else", !ifState);
+    return ifBody(r, !ifState);
+  })
+  .traceName("#else");
+
+function ifBody(
+  r: ExtendedResult<any>,
+  truthy: boolean
+): ParserStage<any> | undefined {
+  const { ifStack } = r.appState as ParseState;
+  ifStack.push(truthy);
+  if (!truthy) {
+    console.log("skipping");
+    return skipUntilElseEndif;
+  }
+}
+
+const endifDirective = seq("#endif", eol)
+  .map((r) => {
+    const { ifStack } = r.appState as ParseState;
+    const ifState = ifStack.pop();
+    if (ifState === undefined) console.warn("unmatched #endif", r.start);
+    console.log("endif", ifStack[0]);
+  })
+  .traceName("#endif");
 
 export const directive = or(
   exportDirective,
@@ -111,13 +131,27 @@ export const directive = or(
   ifDirective,
   elseDirective,
   endifDirective
-);
+).traceName("directive or").trace({start:7});
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
   "//",
   tokens(lineCommentTokens, or(directive, kind(l.notDirective)))
-);
+).traceName("lineComment");
+
+// prettier-ignore
+const skipUntilElseEndif = repeat(
+  seq(
+    or(
+      lineComment, 
+      seq(
+        not("#else"), 
+        not("#endif"),
+        any()
+      ), 
+    )
+  )
+).traceName("skipTo #else/#endif");
 
 const structDecl = seq(
   "struct",
@@ -165,7 +199,7 @@ export const fnDecl = seq(
     r.app.push(fn);
   });
 
-const unknown = any().map((r) => console.warn("???", r.value));
+const unknown = any().map((r) => console.warn("???", r.value, r.start));
 
 const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
 
