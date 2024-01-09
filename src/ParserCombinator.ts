@@ -70,9 +70,8 @@ export interface ParserStage<T> {
   traceName(name: string): ParserStage<T>;
   map<U>(fn: (result: ExtendedResult<T>) => U | null): ParserStage<U | true>;
   toParser<N>(
-    fn: (result: ExtendedResult<T>) => ParserStage<N>
-  ): ParserStage<N>;
-  parserName?: string;
+    fn: (result: ExtendedResult<T>) => ParserStage<N> | undefined
+  ): ParserStage<T | N>;
   trace(opts?: TraceOptions): ParserStage<T>;
 }
 
@@ -158,44 +157,53 @@ export function parserStage<T>(
   function map<U>(
     fn: (results: ExtendedResult<T>) => U | null
   ): ParserStage<U | true> {
-    return parserStage((ctx: ParserContext): OptParserResult<U | true> => {
-      const extended = runExtended(ctx);
-      if (!extended) return null;
+    return parserStage(
+      (ctx: ParserContext): OptParserResult<U | true> => {
+        const extended = runInternal(ctx);
+        if (!extended) return null;
 
-      const mappedValue = fn(extended);
-      if (mappedValue === null) return null;
+        const mappedValue = fn(extended);
+        if (mappedValue === null) return null;
 
-      const value = mappedValue === undefined ? true : mappedValue;
-      return { value, named: extended.named };
-    });
+        const value = mappedValue === undefined ? true : mappedValue;
+        return { value, named: extended.named };
+      },
+      { traceName: "map" }
+    );
   }
 
   function toParser<N>(
-    fn: (results: ExtendedResult<T>) => ParserStage<N>
-  ): ParserStage<N> {
-    return parserStage((ctx: ParserContext): OptParserResult<N> => {
-      const extended = runExtended(ctx);
-      if (!extended) return null;
+    fn: (results: ExtendedResult<T>) => ParserStage<N> | undefined
+  ): ParserStage<T | N> {
+    return parserStage(
+      (ctx: ParserContext): OptParserResult<T | N> => {
+        const extended = runInternal(ctx);
+        if (!extended) return null;
 
-      // run the supplied function to get a parser
-      const p = fn(extended);
+        // run the supplied function to get a parser
+        const p = fn(extended);
 
-      // run the parser returned by the supplied function
-      const nextResult = p(ctx);
-      return nextResult;
-    });
+        if (p === undefined) {
+          return extended;
+        }
+
+        // run the parser returned by the supplied function
+        const nextResult = p(ctx);
+        return nextResult;
+      },
+      { traceName: "toParser" }
+    );
   }
-  
+
   /** run local parser, return extended results */
-  function runExtended(ctx:ParserContext):ExtendedResult<T> | null{
-      const start = ctx.lexer.position();
-      const origResults = stageFn(ctx);
-      if (origResults === null) return null;
-      console.log("origResults", origResults);
-      const end = ctx.lexer.position();
-      const { app, appState } = ctx;
-      const extended = { ...origResults, start, end, app, appState };
-      return extended;
+  function runInternal(ctx: ParserContext): ExtendedResult<T> | null {
+    const start = ctx.lexer.position();
+    const origResults = stageFn(ctx);
+    if (origResults === null) return null;
+    const end = ctx.lexer.position();
+    const { app, appState } = ctx;
+    const extended = { ...origResults, start, end, app, appState };
+    return extended;
   }
 
   return stageFn;
@@ -415,8 +423,8 @@ export function tokens<T>(
   return parserStage(
     (state: ParserContext): OptParserResult<T | string> => {
       return state.lexer.withMatcher(matcher, () => {
-        const parser = parserArg(arg);
-        return parser(state);
+        const p = parserArg(arg);
+        return p(state);
       });
     },
     { traceName: `tokens ${matcher._traceName}` }
