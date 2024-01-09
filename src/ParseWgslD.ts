@@ -88,7 +88,7 @@ const ifDirective: ParserStage<any> = seq(
   ).toParser((r) => {
     const { params } = r.appState as ParseState;
     const ifArg = r.named["name"]?.[0] as string;
-    const invert = !!r.named["invert"];
+    const invert = r.named["invert"]?.[0] === "!";
     const arg = !!params[ifArg];
     const truthy = invert ? !arg : arg;
     console.log("if", ifArg, truthy);
