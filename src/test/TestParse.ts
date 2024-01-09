@@ -16,6 +16,7 @@ export function testParse<T>(
 ): TestParseResult<T> {
   const lexer = matchingLexer(src, tokenMatcher);
   const app: any[] = [];
-  const parsed = p({ lexer, app });
+  const appState = {};
+  const parsed = p({ lexer, app, appState });
   return { parsed, position: lexer.position(), app };
 }
