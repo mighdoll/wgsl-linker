@@ -68,7 +68,7 @@ export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
   named(name: string): ParserStage<T>;
   traceName(name: string): ParserStage<T>;
-  map<U>(fn: (result: ExtendedResult<T>) => U | null): ParserStage<U | true>;
+  map<U>(fn: (result: ExtendedResult<T>) => U | null): ParserStage<U>;
   toParser<N>(
     fn: (result: ExtendedResult<T>) => ParserStage<N> | undefined
   ): ParserStage<T | N>;
@@ -156,17 +156,16 @@ export function parserStage<T>(
 
   function map<U>(
     fn: (results: ExtendedResult<T>) => U | null
-  ): ParserStage<U | true> {
+  ): ParserStage<U> {
     return parserStage(
-      (ctx: ParserContext): OptParserResult<U | true> => {
+      (ctx: ParserContext): OptParserResult<U> => {
         const extended = runInternal(ctx);
         if (!extended) return null;
 
         const mappedValue = fn(extended);
         if (mappedValue === null) return null;
 
-        const value = mappedValue === undefined ? true : mappedValue;
-        return { value, named: extended.named };
+        return { value:mappedValue, named: extended.named };
       },
       { traceName: "map" }
     );
