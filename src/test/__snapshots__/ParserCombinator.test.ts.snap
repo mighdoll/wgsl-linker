@@ -1,5 +1,24 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`not() success 1`] = `
+[
+  [
+    true,
+    {
+      "kind": "word",
+      "text": "foo",
+    },
+  ],
+  [
+    true,
+    {
+      "kind": "word",
+      "text": "bar",
+    },
+  ],
+]
+`;
+
 exports[`opt() makes failing match ok 1`] = `
 {
   "named": {},

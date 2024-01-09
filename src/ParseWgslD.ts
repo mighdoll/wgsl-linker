@@ -123,7 +123,7 @@ const structDecl = seq(
   "struct",
   kind(m.word),
   "{",
-  repeat(or(lineComment, not("}"))),
+  repeat(or(lineComment, seq(not("}"), any()))),
   "}"
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
@@ -145,7 +145,7 @@ const block: ParserStage<any> = seq(
       lineComment,
       fnCall,
       fn(() => block),
-      not("}")
+      seq(not("}"), any())
     )
   ),
   "}"
@@ -155,7 +155,7 @@ export const fnDecl = seq(
   "fn",
   kind(a.word).named("name"),
   "(",
-  repeat(or(lineComment, not("{"))),
+  repeat(or(lineComment, seq(not("{"), any()))),
   block
 )
   .traceName("fnDecl")

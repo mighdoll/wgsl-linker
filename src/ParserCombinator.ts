@@ -329,17 +329,19 @@ export function opt<T>(
   );
 }
 
-/** yield one token, unless it matches the provided parser */ // TODO shouldn't consume match..
-export function not<T>(stage: ParserStageArg<T>): ParserStage<Token | true> {
+/** return true if the provided parser _doesn't_ match
+ * does not consume any tokens
+ * */
+export function not<T>(stage: ParserStageArg<T>): ParserStage<true> {
   return parserStage(
-    (state: ParserContext): OptParserResult<Token | true> => {
+    (state: ParserContext): OptParserResult<true> => {
+      const pos = state.lexer.position();
       const result = parserArg(stage)(state);
-      if (result) {
-        return null;
-      } else {
-        const next = state.lexer.next();
-        return next ? { value: next, named: {} } : null;
+      if (!result) {
+        return { value: true, named: {} };
       }
+      state.lexer.position(pos);
+      return null;
     },
     { traceName: "not" }
   );

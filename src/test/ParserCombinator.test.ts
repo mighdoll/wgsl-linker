@@ -3,6 +3,7 @@ import { matchingLexer } from "../MatchingLexer.js";
 import { directiveArgsTokens, mainTokens } from "../MatchWgslD.js";
 import {
   ParserStage,
+  any,
   fn,
   kind,
   not,
@@ -102,16 +103,16 @@ test("map()", () => {
 
 test("not() success", () => {
   const src = "foo bar";
-  const p = repeat(not("{"));
+  const p = repeat(seq(not("{"), any()));
   const { parsed } = testParse(p, src);
 
-  const values = parsed!.value as Token[];
-  expect(values.map((v) => v.text)).deep.equals(["foo", "bar"]);
+  const values = parsed!.value;
+  expect(values).toMatchSnapshot();
 });
 
 test("not() failure", () => {
   const src = "foo";
-  const p = seq(not(kind(m.word)));
+  const p = not(kind(m.word));
   const { parsed } = testParse(p, src);
   expect(parsed).null;
 });
