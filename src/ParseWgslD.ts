@@ -84,11 +84,13 @@ const ifDirective: ParserStage<any> = seq(
   "#if",
   tokens(
     directiveArgsTokens,
-    seq(opt("!"), kind(m.word).named("name"), eol)
+    seq(opt("!").named("invert"), kind(m.word).named("name"), eol)
   ).toParser((r) => {
     const { params } = r.appState as ParseState;
     const ifArg = r.named["name"]?.[0] as string;
-    const truthy = !!params[ifArg];
+    const invert = !!r.named["invert"];
+    const arg = !!params[ifArg];
+    const truthy = invert ? !arg : arg;
     console.log("if", ifArg, truthy);
     return ifBody(r, truthy);
   })
@@ -111,7 +113,7 @@ function ifBody(
   const { ifStack } = r.appState as ParseState;
   ifStack.push(truthy);
   if (!truthy) {
-    console.log("skipping in if");
+    console.log("skipping in if or else");
     return skipUntilElseEndif;
   }
 }
@@ -131,9 +133,8 @@ export const directive = or(
   ifDirective,
   elseDirective,
   endifDirective
-)
-  .traceName("directive or");
-  // .trace({});
+).traceName("directive or");
+// .trace();
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
