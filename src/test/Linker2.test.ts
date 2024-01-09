@@ -312,7 +312,7 @@ test.only("#import uses previous #export params", () => {
   `;
   const src = `
     #import foo(k,l)
-    fn main {
+    fn main() {
       foo(k,l);
     }
   `;

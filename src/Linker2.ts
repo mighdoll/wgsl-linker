@@ -195,7 +195,6 @@ function registerFn(fn:FnElem, mod: TextModule2, resolveArgs: ResolveArgs): bool
   const { importing, renames } = resolveArgs;
   const fullName = fullSrcElemName(mod.name, fn.name);
   const linkName = importing.get(fullName);
-  console.log("registerFn", fullName, importing);
   if (linkName) {
     // we've already registered this elsewhere
     // make sure there's a renaming mapping for this module's import to this
@@ -229,7 +228,6 @@ function registerImport(
   impModule: TextModule2,
   resolveArgs: ResolveArgs
 ): RegisteredExport | null {
-  console.log("registerImport", imp.name, "from", impModule.name);
   const { registry, importing, renames } = resolveArgs;
   const modEx = findExport(imp, registry, importing);
   if (!modEx) return null; // unexpected error
@@ -239,7 +237,6 @@ function registerImport(
   const proposedName = importName(imp);
 
   const linkName = importing.get(expName);
-  console.log("linkName", linkName, "expName", expName);
   if (linkName) {
     // we've already registered this export elsewhere
     // make sure there's a renaming mapping for this module's import to this
@@ -361,11 +358,9 @@ function loadModuleSlice(
   const slice = mod.src.slice(start, end);
 
   const moduleRenames = renames.get(mod.name)?.entries() ?? [];
-  console.log("loadModuleSlice : moduleRenames", moduleRenames);
 
   // LATER be more precise with replacing e.g. rename for call sites, etc.
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
-  console.log("loadModuleSlice", slice, "\n  rewrite", rewrite);
   return replaceTokens2(slice, rewrite);
 }
 
