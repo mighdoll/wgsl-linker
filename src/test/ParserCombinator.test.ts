@@ -11,6 +11,7 @@ import {
   or,
   repeat,
   seq,
+  text,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { Token } from "../TokenMatcher.js";
@@ -99,6 +100,16 @@ test("map()", () => {
     .map((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
   const { parsed } = testParse(p, src);
   expect(parsed?.value).equals("found");
+});
+
+test("toParser()", () => {
+  const src = "foo !";
+  const bang = text("!").named("bang");
+  const p = kind("word")
+    .named("word")
+    .toParser(() => bang);
+  const { parsed } = testParse(p, src);
+  expect(parsed?.named.bang).deep.equals(["!"]);
 });
 
 test("not() success", () => {

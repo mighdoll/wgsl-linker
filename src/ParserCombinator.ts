@@ -69,6 +69,9 @@ export interface ParserStage<T> {
   named(name: string): ParserStage<T>;
   traceName(name: string): ParserStage<T>;
   map<U>(fn: (result: ExtendedResult<T>) => U | null): ParserStage<U | true>;
+  toParser<N>(
+    fn: (result: ExtendedResult<T>) => ParserStage<N>
+  ): ParserStage<N>;
   parserName?: string;
   trace(opts?: TraceOptions): ParserStage<T>;
 }
@@ -148,6 +151,7 @@ export function parserStage<T>(
   stageFn.traceName = (name: string) =>
     parserStage(fn, { ...args, traceName: name });
   stageFn.map = map;
+  stageFn.toParser = toParser;
   stageFn.trace = (opts: TraceOptions = {}) =>
     parserStage(fn, { ...args, trace: opts });
 
@@ -166,6 +170,29 @@ export function parserStage<T>(
       const value = mappedValue === undefined ? true : mappedValue;
 
       return { value, named: origResults.named };
+    });
+  }
+
+  function toParser<N>(
+    fn: (results: ExtendedResult<T>) => ParserStage<N>
+  ): ParserStage<N> {
+    return parserStage((ctx: ParserContext): OptParserResult<any> => {
+      // run our parser
+      const start = ctx.lexer.position();
+      const origResults = stageFn(ctx);
+      if (origResults === null) return null;
+      console.log("origResults", origResults);
+      const end = ctx.lexer.position();
+      const { app, appState } = ctx;
+      const extended = { ...origResults, start, end, app, appState };
+
+      // run the supplied function to get a parser
+      const p = fn(extended);
+
+      // run the parser returned by the supplied function
+      const nextResult = p(ctx);
+      console.log("nextResult", nextResult);
+      return nextResult;
     });
   }
 
