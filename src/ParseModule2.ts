@@ -50,6 +50,8 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
       const args = elem.args ?? [];
       if (next?.kind === "fn") {
         exports.push({ exp: elem, args, ref: next, name: next.name });
+      } else {
+        console.warn(`#export what at pos: ${elem.start}? not followed by fn`);
       }
     }
   });
