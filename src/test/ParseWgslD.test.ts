@@ -100,16 +100,15 @@ test("parse #export(foo) with trailing space", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-
 test("parse #if #endif", () => {
   const src = `
     #if foo
     fn f() { }
     #endif
     `;
-  const parsed = parseMiniWgsl(src, {foo: true});
+  const parsed = parseMiniWgsl(src, { foo: true });
   expect(parsed.length).eq(1);
-  expect((parsed[0] as FnElem).name).eq("f")
+  expect((parsed[0] as FnElem).name).eq("f");
 });
 
 test("parse #if !foo #else #endif", () => {
@@ -122,6 +121,8 @@ test("parse #if !foo #else #endif", () => {
     `;
   const parsed = parseMiniWgsl(src, { foo: true });
   expect(parsed.length).eq(1);
+  expect((parsed[0] as FnElem).name).eq("g");
+});
 
 test("importing parses importing bar(A) fog(B)", () => {
   const src = `

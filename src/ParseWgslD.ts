@@ -34,13 +34,14 @@ const m = mainTokens;
 const a = directiveArgsTokens;
 const l = lineCommentTokens;
 
-const directiveArgs = seq(
+/** ( <a> <,b>* ) */
+const directiveArgs: ParserStage<string[]> = seq(
   "(",
   kind(a.word).named("word"),
   repeat(seq(",", kind(a.word).named("word"))),
   ")"
 )
-  .map((r) => r.named.word)
+  .map((r) => r.named.word as string[])
   .traceName("directiveArgs");
 
 const eol = or("\n", eof());
