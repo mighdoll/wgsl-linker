@@ -1,4 +1,3 @@
-import { dlog, dlogOpt } from "berry-pretty";
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
 import {
