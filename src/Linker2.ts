@@ -1,10 +1,10 @@
-import { FnElem, ImportElem } from "./AbstractElems.js";
+import { FnElem, ImportElem, ImportingItem } from "./AbstractElems.js";
 import {
   ModuleExport2,
   ModuleRegistry2,
   TextModuleExport2,
 } from "./ModuleRegistry2.js";
-import { TextModule2, parseModule2 } from "./ParseModule2.js";
+import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
 
 /** parse source text for #import directives, return wgsl with all imports injected */
 export function linkWgsl2(
@@ -109,7 +109,7 @@ When we find a request in module A to import a function f as 'g' exported from m
 
 */
 
-type ToResolve = ImportToResolve | CallToResolve;
+type ToResolve = ImportToResolve | CallToResolve | ImportingToResolve;
 
 interface ImportToResolve {
   kind: "imp";
@@ -120,6 +120,13 @@ interface ImportToResolve {
 interface CallToResolve {
   kind: "fn";
   fn: FnElem;
+  mod: TextModule2;
+}
+
+interface ImportingToResolve {
+  kind: "expImp";
+  exp: TextExport2;
+  importing: ImportingItem;
   mod: TextModule2;
 }
 
@@ -144,6 +151,14 @@ function resolveImportList(
       const { fn, mod } = todo;
       const r = resolveFn(fn, mod, resolveArgs);
       toResolve.push(...r);
+    } else if (todo.kind === "expImp") {
+      const { exp, importing, mod } = todo;
+      console.log("expImp todokj")
+      // const r = resolveExpImporting(exp, importing, mod, resolveArgs);
+      // toResolve.push(...r);
+    } else {
+      console.warn("NYI", todo);
+      throw new Error("NYI");
     }
   }
 }
@@ -159,17 +174,21 @@ function resolveImport(
   importingModule: TextModule2,
   resolveArgs: ResolveArgs
 ): ToResolve[] {
+  // find and register matching export
   const result = registerImport(imp, importingModule, resolveArgs);
   if (!result) return [];
   const { name: linkName, moduleExport } = result;
   if (moduleExport.kind !== "text") {
     throw new Error("NYI");
   }
+
+  // queue loading of the exported text
   const { toLoad } = resolveArgs;
   const importArgs = imp.args ?? [];
   toLoad.push({ kind: "export", linkName, importArgs, moduleExport });
   const fnElem = moduleExport.export.ref;
 
+  // queue resolution of other imports and fns referenced by the export
   return refsFromFn(fnElem, moduleExport.module);
 }
 
@@ -186,6 +205,36 @@ function resolveFn(
 
   return refsFromFn(fn, mod);
 }
+
+// function resolveExpImporting(
+//   exp: TextExport2,
+//   importing: ImportingItem,
+//   mod: TextModule2,
+//   resolveArgs: ResolveArgs
+// ): ToResolve[] {
+//   const { registry, importing: importingMap, renames } = resolveArgs;
+//   const { moduleExport } = exp;
+//   const { module: exportingModule } = moduleExport;
+//   const { name: expName } = moduleExport.export;
+
+//   const expImp = importingMap.get(expName);
+//   if (!expImp) {
+//     throw new Error("NYI");
+//   }
+//   const linkName = importingMap.get(expImp);
+//   if (!linkName) {
+//     throw new Error("NYI");
+//   }
+
+//   // record rename for this import the importing module
+//   if (expImp !== linkName) {
+//     multiKeySet(renames, mod.name, expImp, linkName);
+//   }
+//   // record rename for this import in the exporting module
+//   if (expName !== linkName) {
+//     multiKeySet(renames, exportingModule.name, expName, linkName);
+//   }
+// }
 
 /**
  * @return true if we haven't seen this fn before */
@@ -219,12 +268,14 @@ interface RegisteredExport {
   moduleExport: ModuleExport2;
 }
 
+
 /**
- * Find the publishing export for this import.
+ * Find the export that matches this import.
+ *
  * Find a unique name for this import to appear in the final link
  * Register a rename to the final link name in both the importing and exporting modules.
  *
- * If the corresponding export hasn't been seen before return a reference to the export
+ * @return the corresponding export if it hasn't been seen before
  */
 function registerImport(
   imp: ImportElem,
@@ -264,22 +315,36 @@ function registerImport(
   return { name: uniquedName, moduleExport: modEx };
 }
 
+/**
+ *  returns the 
+ */
 function refsFromFn(fnElem: FnElem, mod: TextModule2): ToResolve[] {
-  const allImports = mod.imports;
-  const allFns = mod.fns;
   const calls = fnElem.children.filter((child) => child.kind === "call");
 
   const toResolve: ToResolve[] = [];
   calls.forEach((callElem) => {
-    const imp = allImports.find((imp) => imp.name === callElem.call);
+    const imp = mod.imports.find((imp) => imp.name === callElem.call);
     if (imp) {
       toResolve.push({ kind: "imp", imp, mod });
     } else {
-      const fn = allFns.find((fn) => fn.name === callElem.call);
+      const fn = mod.fns.find((fn) => fn.name === callElem.call);
       if (fn) {
         toResolve.push({ kind: "fn", fn, mod });
       } else {
-        console.warn("ref not found", callElem, "from module", mod.name);
+        let importing: ImportingItem | undefined;
+        const exp = mod.exports.find((e) =>
+          e.importing.find((imp) => {
+            if (imp.importing === callElem.call) {
+              importing = imp;
+              return true;
+            }
+          })
+        );
+        if (exp && importing) {
+          toResolve.push({ kind: "expImp", exp, importing, mod });
+        } else {
+          console.warn("ref not found", callElem, "from module", mod.name);
+        }
       }
     }
   });
@@ -323,7 +388,8 @@ function loadExportText(load: ToLoadExport, renames: RenameMap): string {
   const { start, end } = exp.ref;
 
   // TODO here's where we find match import/export arguments
-  // we want to check for a lexically earlier export
+  // we need to match the 'importing' args through one extra layer
+  // maybe we could do the matching earlier rather than maintaining the impexp distinction here
 
   /* replace export args with import arg values */
   const entries: [string, string][] = exp.args.map((p, i) => [

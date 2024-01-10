@@ -45,6 +45,7 @@ exports[`read simple fn export 1`] = `
         "kind": "export",
         "start": 7,
       },
+      "importing": [],
       "name": "one",
       "ref": {
         "children": [],

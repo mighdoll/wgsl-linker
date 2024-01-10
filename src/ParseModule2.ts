@@ -3,6 +3,7 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
+  ImportingItem,
 } from "./AbstractElems.js";
 import { parseMiniWgsl } from "./ParseWgslD.js";
 
@@ -21,6 +22,7 @@ export interface TextExport2 {
   ref: FnElem; // TODO | StructElem (| global var?)
   exp: ExportElem;
   args: string[];
+  importing: ImportingItem[];
 }
 
 let unnamedModuleDex = 0;
@@ -48,8 +50,10 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
     if (elem.kind === "export") {
       const next = parsed[i + 1];
       const args = elem.args ?? [];
+      const { importing = [] } = elem;
       if (next?.kind === "fn") {
-        exports.push({ exp: elem, args, ref: next, name: next.name });
+        const { name } = next;
+        exports.push({ exp: elem, args, ref: next, name, importing });
       } else {
         console.warn(`#export what at pos: ${elem.start}? not followed by fn`);
       }
