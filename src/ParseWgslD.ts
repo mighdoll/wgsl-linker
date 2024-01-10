@@ -45,7 +45,22 @@ const directiveArgs = seq(
 
 const eol = or("\n", eof());
 
-/** #export <foo> <(a,b)> EOL */
+export interface ImportingItem {
+  importing: string;
+  args: string[];
+}
+
+const importingElem = seq(kind(a.word), directiveArgs)
+  .map((r) => ({ importing: r.value[0], args: r.value[1] } as ImportingItem))
+  .traceName("importingElem");
+
+export const importing = seq(
+  "importing",
+  seq(importingElem.named("elem"), repeat(importingElem.named("elem")))
+)
+  .map((r) => r.named["elem"] as ImportingItem[])
+  .traceName("importing");
+
 const exportDirective = seq(
   "#export",
   tokens(
