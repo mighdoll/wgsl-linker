@@ -182,25 +182,29 @@ function resolveFn(
   const result = registerFn(fn, mod, resolveArgs);
   if (!result) return [];
 
-  resolveArgs.toLoad.push({ kind: "fn", mod, fn })
+  resolveArgs.toLoad.push({ kind: "fn", mod, fn });
 
   return refsFromFn(fn, mod);
 }
 
-/** 
+/**
  * @return true if we haven't seen this fn before */
-function registerFn(fn:FnElem, mod: TextModule2, resolveArgs: ResolveArgs): boolean {
+function registerFn(
+  fn: FnElem,
+  mod: TextModule2,
+  resolveArgs: ResolveArgs
+): boolean {
   const { importing, renames } = resolveArgs;
   const fullName = fullSrcElemName(mod.name, fn.name);
   const linkName = importing.get(fullName);
   if (linkName) {
     // we've already registered this elsewhere
     // make sure there's a renaming mapping for this module's import to this
-    const verify = renames.get(mod.name)?.get(fn.name);  
+    const verify = renames.get(mod.name)?.get(fn.name);
     console.log("verify fn mapping", verify, ":", linkName);
     return false;
   }
-  
+
   const uniquedName = registerUniquedName(fn.name, resolveArgs); // DRY with registerImport
   importing.set(fullName, uniquedName);
   if (fn.name !== uniquedName) {
@@ -216,6 +220,7 @@ interface RegisteredExport {
 }
 
 /**
+ * Find the publishing export for this import.
  * Find a unique name for this import to appear in the final link
  * Register a rename to the final link name in both the importing and exporting modules.
  *
@@ -227,7 +232,7 @@ function registerImport(
   resolveArgs: ResolveArgs
 ): RegisteredExport | null {
   const { registry, importing, renames } = resolveArgs;
-  const modEx = findExport(imp, registry, importing);
+  const modEx = findExport(imp, registry);
   if (!modEx) return null; // unexpected error
 
   const modName = modEx.module.name;
@@ -284,8 +289,7 @@ function refsFromFn(fnElem: FnElem, mod: TextModule2): ToResolve[] {
 /** find an export entry for an import, unless its aready on the importing list */
 function findExport(
   imp: ImportElem,
-  registry: ModuleRegistry2,
-  importing: Map<string, string>
+  registry: ModuleRegistry2
 ): ModuleExport2 | null {
   const moduleExport = registry.getModuleExport(imp.name, imp.from);
   if (!moduleExport) {
@@ -320,7 +324,7 @@ function loadExportText(load: ToLoadExport, renames: RenameMap): string {
 
   // TODO here's where we find match import/export arguments
   // we want to check for a lexically earlier export
-  
+
   /* replace export args with import arg values */
   const entries: [string, string][] = exp.args.map((p, i) => [
     p,
