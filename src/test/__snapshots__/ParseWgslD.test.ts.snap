@@ -1,9 +1,25 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`importing parses importing bar(A) fog(B) 1`] = `
+[
+  {
+    "args": [
+      "A",
+    ],
+    "importing": "bar",
+  },
+  {
+    "args": [
+      "B",
+    ],
+    "importing": "fog",
+  },
+]
+`;
+
 exports[`lineComment parse // #export foo 1`] = `
 [
   {
-    "args": undefined,
     "end": 14,
     "kind": "export",
     "name": "foo",
@@ -15,7 +31,6 @@ exports[`lineComment parse // #export foo 1`] = `
 exports[`parse #export foo 1`] = `
 [
   {
-    "args": undefined,
     "end": 11,
     "kind": "export",
     "name": "foo",
@@ -58,6 +73,28 @@ exports[`parse #export foo(bar, baz, boo) 1`] = `
 ]
 `;
 
+exports[`parse #export(A, B) importing bar(A) 1`] = `
+{
+  "args": [
+    [
+      "A",
+      "B",
+    ],
+  ],
+  "end": 36,
+  "importing": [
+    {
+      "args": [
+        "A",
+      ],
+      "importing": "bar",
+    },
+  ],
+  "kind": "export",
+  "start": 0,
+}
+`;
+
 exports[`parse #export(foo) with trailing space 1`] = `
 [
   {
@@ -68,23 +105,15 @@ exports[`parse #export(foo) with trailing space 1`] = `
     ],
     "end": 24,
     "kind": "export",
-    "name": undefined,
     "start": 7,
   },
 ]
 `;
 
-exports[`parse #if foo #else #endif 1`] = `[]`;
-
-exports[`parse #if foo #endif 1`] = `[]`;
-
 exports[`parse #import foo 1`] = `
 [
   {
-    "args": undefined,
-    "as": undefined,
     "end": 11,
-    "from": undefined,
     "kind": "import",
     "name": "foo",
     "start": 0,
@@ -95,7 +124,6 @@ exports[`parse #import foo 1`] = `
 exports[`parse #import foo(a,b) as baz from bar 1`] = `
 [
   {
-    "args": undefined,
     "as": "baz",
     "end": 27,
     "from": "bar",
@@ -162,7 +190,6 @@ exports[`parse struct 1`] = `
   {
     "end": 30,
     "kind": "struct",
-    "name": undefined,
     "start": 0,
   },
 ]

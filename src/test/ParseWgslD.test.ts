@@ -1,7 +1,13 @@
+import { dlog, dlogOpt } from "berry-pretty";
 import { expect, test } from "vitest";
-import { directive, lineComment, parseMiniWgsl } from "../ParseWgslD.js";
-import { testParse } from "./TestParse.js";
 import { FnElem } from "../AbstractElems.js";
+import {
+  directive,
+  importing,
+  lineComment,
+  parseMiniWgsl,
+} from "../ParseWgslD.js";
+import { testParse } from "./TestParse.js";
 
 import { enableTracing } from "../ParserTracing.js";
 enableTracing();
@@ -128,7 +134,16 @@ test("importing parses importing bar(A) fog(B)", () => {
   const src = `
     importing bar(A) fog(B)
   `;
-  const {parsed} = testParse(importing, src);
-  expect(parsed?.value).toMatchSnapshot();  
+  const { parsed } = testParse(importing, src);
+  expect(parsed?.value).toMatchSnapshot();
 });
 
+test("parse #export(A, B) importing bar(A)", () => {
+  const src = `
+    #export(A, B) importing bar(A)
+    fn foo(a:A, b:B) { bar(a); }
+  `;
+  const parsed = parseMiniWgsl(src, { foo: true });
+  console.log(parsed[0]);
+  expect(parsed[0]).toMatchSnapshot();
+});

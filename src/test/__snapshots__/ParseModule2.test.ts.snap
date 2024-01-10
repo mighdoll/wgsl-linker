@@ -21,10 +21,7 @@ exports[`read simple #fn import 1`] = `
   ],
   "imports": [
     {
-      "args": undefined,
-      "as": undefined,
       "end": 20,
-      "from": undefined,
       "kind": "import",
       "name": "foo",
       "start": 7,
@@ -44,10 +41,8 @@ exports[`read simple fn export 1`] = `
     {
       "args": [],
       "exp": {
-        "args": undefined,
         "end": 16,
         "kind": "export",
-        "name": undefined,
         "start": 7,
       },
       "name": "one",

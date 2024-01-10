@@ -5,6 +5,7 @@ import {
   CallElem,
   FnElem,
   AbstractElem,
+  ImportingItem,
 } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import {
@@ -46,11 +47,6 @@ const directiveArgs: ParserStage<string[]> = seq(
 
 const eol = or("\n", eof());
 
-export interface ImportingItem {
-  importing: string;
-  args: string[];
-}
-
 const importingElem = seq(kind(a.word), directiveArgs)
   .map((r) => ({ importing: r.value[0], args: r.value[1] } as ImportingItem))
   .traceName("importingElem");
@@ -62,15 +58,22 @@ export const importing = seq(
   .map((r) => r.named["elem"] as ImportingItem[])
   .traceName("importing");
 
+/** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
+// prettier-ignore
 const exportDirective = seq(
   "#export",
   tokens(
     directiveArgsTokens,
-    seq(opt(kind(a.word).named("name")), opt(directiveArgs.named("args")), eol)
+    seq(
+      opt(kind(a.word).named("name")), 
+      opt(directiveArgs.named("args")), 
+      opt(importing.named("importing")), 
+      eol
+    )
   )
 )
   .map((r) => {
-    const e = makeElem<ExportElem>("export", r, ["name"], ["args"]);
+    const e = makeElem<ExportElem>("export", r, ["name", "importing"], ["args"]);
     r.app.push(e);
   })
   .traceName("export");
@@ -246,11 +249,24 @@ function makeElem<U extends AbstractElem>(
   namedArrays: (keyof U)[] = []
 ): U {
   const { start, end } = er;
-  const nameds = named as string[];
-  const namedSArrays = namedArrays as string[];
-  const nameValues = nameds.map((n) => [n, er.named[n]?.[0]]);
-  const arrayValues = namedSArrays.map((n) => [n, er.named[n]]);
-  const nv = Object.fromEntries(nameValues);
-  const av = Object.fromEntries(arrayValues);
-  return { kind, start, end, ...nv, ...av };
+  const nv = mapIfDefined(named, er.named as NameRecord<U>, true);
+  const av = mapIfDefined(namedArrays, er.named as NameRecord<U>);
+  return { kind, start, end, ...nv, ...av } as U;
+}
+
+type NameRecord<A> = Record<keyof A, string[]>;
+
+function mapIfDefined<A>(
+  keys: (keyof A)[],
+  array: Record<keyof A, string[]>,
+  firstElem?: boolean
+): Partial<Record<keyof A, string>> {
+  const entries = keys.flatMap((k) => {
+    const ak = array[k];
+    const v = firstElem ? ak?.[0] : ak;
+
+    if (v === undefined) return [];
+    else return [[k, v]];
+  });
+  return Object.fromEntries(entries);
 }
