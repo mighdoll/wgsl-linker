@@ -38,11 +38,11 @@ const l = lineCommentTokens;
 /** ( <a> <,b>* ) */
 const directiveArgs: ParserStage<string[]> = seq(
   "(",
-  kind(a.word).named("word"),
-  repeat(seq(",", kind(a.word).named("word"))),
+  kind(a.word).named("words"),
+  repeat(seq(",", kind(a.word).named("words"))),
   ")"
 )
-  .map((r) => r.named.word as string[])
+  .map((r) => r.named.words as string[])
   .traceName("directiveArgs");
 
 const eol = or("\n", eof());
@@ -73,7 +73,8 @@ const exportDirective = seq(
   )
 )
   .map((r) => {
-    const e = makeElem<ExportElem>("export", r, ["name", "importing"], ["args"]);
+    // flatten 'args' by putting it with the other extracted names
+    const e = makeElem<ExportElem>("export", r, ["name", "importing", "args"]);
     r.app.push(e);
   })
   .traceName("export");
@@ -93,8 +94,9 @@ const importDirective = seq(
   )
 )
   .map((r) => {
-    const named: (keyof ImportElem)[] = ["name", "from", "as"];
-    const e = makeElem<ImportElem>("import", r, named, ["args"]);
+    // flatten 'args' by putting it with the other extracted names
+    const named: (keyof ImportElem)[] = ["name", "from", "as", "args"];
+    const e = makeElem<ImportElem>("import", r, named, []);
     r.app.push(e);
   })
   .traceName("import");

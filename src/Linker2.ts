@@ -21,7 +21,7 @@ export function linkWgsl2(
   const srcModule = parseModule2(src);
 
   recursiveRefs(srcModule.fns, srcModule, registry, (ref) => {
-    dlogOpt({ maxDepth: 2 }, "ref:", ref);
+    dlogOpt({ maxDepth: 4 }, "ref:", ref);
     return true;
   });
 
@@ -186,15 +186,23 @@ function recursiveRefs(
   srcElems: FnElem[],
   mod: TextModule2,
   registry: ModuleRegistry2,
-  fn: (ref: FoundRef) => void
+  fn: (ref: FoundRef) => boolean
 ): void {
+  if (!srcElems.length) return;
   const calls = srcElems.flatMap((fn) => fn.children);
   const refs = calls.flatMap((callElem) => {
     const foundRef =
       importRef(callElem, mod, registry) ?? localRef(callElem, mod, registry);
     return foundRef ? [foundRef] : [];
   });
-  const results = refs.map(fn);
+
+  // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
+  const results = refs.filter((r) => fn(r));
+  const modGroups = groupBy(results, (r) => r.expMod);
+  [...modGroups.entries()].forEach(([m, refs]) => {
+    const fnElems = refs.map((r) => r.fn);
+    recursiveRefs(fnElems, m, registry, fn);
+  });
 }
 
 function importRef(
@@ -208,24 +216,17 @@ function importRef(
 
     const modExp = registry.getModuleExport(imp.name, imp.from);
     if (!modExp) {
-      console.log(
-        "export not found for import",
-        imp.name,
-        "in module:",
-        mod.name,
-        imp.start
-      );
+      // prettier-ignore
+      console.log( "export not found for import", imp.name, "in module:", mod.name, imp.start);
       return;
     }
     const expMod = modExp.module as TextModule2;
     const exp = modExp.export as TextExport2;
     const impArgs = imp.args ?? [];
-    const expImpArgs: [string, string][] = exp.args.map((p, i) => [
-      p,
-      impArgs[i],
-    ]);
     const fn = exp.ref;
-
+    // prettier-ignore
+    const expImpArgs: [string, string][] = 
+      exp.args.map((p, i) => [p, impArgs[i]]);
     return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
   }
 }

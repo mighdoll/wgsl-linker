@@ -55,7 +55,7 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
         const { name } = next;
         exports.push({ exp: elem, args, ref: next, name, importing });
       } else {
-        console.warn(`#export what at pos: ${elem.start}? not followed by fn`);
+        console.warn(`#export what at pos: ${elem.start}? (#export not followed by fn)`);
       }
     }
   });

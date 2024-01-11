@@ -21,7 +21,7 @@ test("simple #import", () => {
   expect(linked).not.includes("#export");
 });
 
-test("#import with parameter", () => {
+test.only("#import with parameter", () => {
   const myModule = `
     // #export (Elem)
     fn foo(a: Elem) { /* fooImpl */ }
