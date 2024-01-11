@@ -11,6 +11,7 @@ import {
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
 import { dlog, dlogOpt } from "berry-pretty";
+import { recursiveRefs } from "./TraverseRefs.js";
 
 /** parse source text for #import directives, return wgsl with all imports injected */
 export function linkWgsl2(
@@ -143,24 +144,6 @@ interface ImportingToResolve {
   mod: TextModule2;
 }
 
-type FoundRef = ImportRef | LocalRef;
-
-interface LocalRef {
-  kind: "fn";
-  fromCall: CallElem;
-  expMod: TextModule2;
-  fn: FnElem;
-}
-
-interface ImportRef {
-  kind: "imp";
-  fromImport: ImportElem;
-  impMod: TextModule2;
-  expMod: TextModule2;
-  expImpArgs: [string, string][];
-  fn: FnElem;
-}
-
 // function recursiveRefsFromImports(
 //   imps: ImportElem[],
 //   mod: TextModule2,
@@ -176,71 +159,6 @@ interface ImportRef {
 //     recursiveRefs(fnElems, mod as TextModule2, registry, fn);
 //   });
 // }
-
-/*
- * traversal of the wgsl src reference graph:
- *  fn -> calls -> local fn or import+export+fn
- *
- */
-function recursiveRefs(
-  srcElems: FnElem[],
-  mod: TextModule2,
-  registry: ModuleRegistry2,
-  fn: (ref: FoundRef) => boolean
-): void {
-  if (!srcElems.length) return;
-  const calls = srcElems.flatMap((fn) => fn.children);
-  const refs = calls.flatMap((callElem) => {
-    const foundRef =
-      importRef(callElem, mod, registry) ?? localRef(callElem, mod, registry);
-    return foundRef ? [foundRef] : [];
-  });
-
-  // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
-  const results = refs.filter((r) => fn(r));
-  const modGroups = groupBy(results, (r) => r.expMod);
-  [...modGroups.entries()].forEach(([m, refs]) => {
-    const fnElems = refs.map((r) => r.fn);
-    recursiveRefs(fnElems, m, registry, fn);
-  });
-}
-
-function importRef(
-  callElem: CallElem,
-  mod: TextModule2,
-  registry: ModuleRegistry2
-): ImportRef | undefined {
-  const imp = mod.imports.find((imp) => imp.name === callElem.call);
-  if (imp) {
-    const kind = "imp";
-
-    const modExp = registry.getModuleExport(imp.name, imp.from);
-    if (!modExp) {
-      // prettier-ignore
-      console.log( "export not found for import", imp.name, "in module:", mod.name, imp.start);
-      return;
-    }
-    const expMod = modExp.module as TextModule2;
-    const exp = modExp.export as TextExport2;
-    const impArgs = imp.args ?? [];
-    const fn = exp.ref;
-    // prettier-ignore
-    const expImpArgs: [string, string][] = 
-      exp.args.map((p, i) => [p, impArgs[i]]);
-    return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
-  }
-}
-
-function localRef(
-  callElem: CallElem,
-  mod: TextModule2,
-  registry: ModuleRegistry2
-): LocalRef | undefined {
-  const fnElem = mod.fns.find((fn) => fn.name === callElem.call);
-  if (fnElem) {
-    return { kind: "fn", fromCall: callElem, expMod: mod, fn: fnElem };
-  }
-}
 
 function resolveImportList(
   imps: ImportElem[],
@@ -575,18 +493,6 @@ function grouped<T>(a: T[], size: number, stride = size): T[][] {
   const groups = [];
   for (let i = 0; i < a.length; i += stride) {
     groups.push(a.slice(i, i + size));
-  }
-  return groups;
-}
-
-/** group an array into subarrays by a key function */
-function groupBy<T, K>(a: T[], key: (t: T) => K): Map<K, T[]> {
-  const groups = new Map<K, T[]>();
-  for (const t of a) {
-    const k = key(t);
-    const group = groups.get(k) || [];
-    group.push(t);
-    groups.set(k, group);
   }
   return groups;
 }
