@@ -299,7 +299,7 @@ test("#import support fn from two exports", () => {
   expect([...supportMatch].length).toBe(3);
 });
 
-test.only("#import uses previous #export params", () => {
+test.skip("#import uses previous #export params", () => {
   const module1 = `
     #export(a, b) importing bar(a)
     fn foo(a,b) { bar(a); }

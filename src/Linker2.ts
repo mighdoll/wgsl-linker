@@ -1,10 +1,16 @@
-import { FnElem, ImportElem, ImportingItem } from "./AbstractElems.js";
+import {
+  CallElem,
+  FnElem,
+  ImportElem,
+  ImportingItem,
+} from "./AbstractElems.js";
 import {
   ModuleExport2,
   ModuleRegistry2,
   TextModuleExport2,
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
+import { dlog, dlogOpt } from "berry-pretty";
 
 /** parse source text for #import directives, return wgsl with all imports injected */
 export function linkWgsl2(
@@ -13,6 +19,12 @@ export function linkWgsl2(
   extParams: Record<string, any> = {}
 ): string {
   const srcModule = parseModule2(src);
+
+  recursiveRefs(srcModule.fns, srcModule, registry, (ref) => {
+    dlogOpt({ maxDepth: 2 }, "ref:", ref);
+    return true;
+  });
+
   const resolveArgs: ResolveArgs = {
     srcModule,
     registry,
@@ -24,6 +36,7 @@ export function linkWgsl2(
     toLoad: [],
   };
   resolveImportList(srcModule.imports, srcModule, resolveArgs);
+
   const importedText = exportTexts(resolveArgs.toLoad, resolveArgs.renames);
   return rmImports(srcModule) + "\n\n" + importedText;
 }
@@ -130,6 +143,104 @@ interface ImportingToResolve {
   mod: TextModule2;
 }
 
+type FoundRef = ImportRef | LocalRef;
+
+interface LocalRef {
+  kind: "fn";
+  fromCall: CallElem;
+  expMod: TextModule2;
+  fn: FnElem;
+}
+
+interface ImportRef {
+  kind: "imp";
+  fromImport: ImportElem;
+  impMod: TextModule2;
+  expMod: TextModule2;
+  expImpArgs: [string, string][];
+  fn: FnElem;
+}
+
+// function recursiveRefsFromImports(
+//   imps: ImportElem[],
+//   mod: TextModule2,
+//   registry: ModuleRegistry2,
+//   fn: (ref: FoundRef) => boolean
+// ): void {
+//   const modExps = imps.flatMap((imp) => {
+//     const e = findExport(imp, registry);
+//     return e ? [e] : ([] as TextModuleExport2[]);
+//   });
+//   groupBy(modExps, (e) => e.module).forEach((modExp, mod) => {
+//     const fnElems = (modExp as TextModuleExport2[]).map((e) => e.export.ref); // TODO we need to imp/exp too
+//     recursiveRefs(fnElems, mod as TextModule2, registry, fn);
+//   });
+// }
+
+/*
+ * traversal of the wgsl src reference graph:
+ *  fn -> calls -> local fn or import+export+fn
+ *
+ */
+function recursiveRefs(
+  srcElems: FnElem[],
+  mod: TextModule2,
+  registry: ModuleRegistry2,
+  fn: (ref: FoundRef) => void
+): void {
+  const calls = srcElems.flatMap((fn) => fn.children);
+  const refs = calls.flatMap((callElem) => {
+    const foundRef =
+      importRef(callElem, mod, registry) ?? localRef(callElem, mod, registry);
+    return foundRef ? [foundRef] : [];
+  });
+  const results = refs.map(fn);
+}
+
+function importRef(
+  callElem: CallElem,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): ImportRef | undefined {
+  const imp = mod.imports.find((imp) => imp.name === callElem.call);
+  if (imp) {
+    const kind = "imp";
+
+    const modExp = registry.getModuleExport(imp.name, imp.from);
+    if (!modExp) {
+      console.log(
+        "export not found for import",
+        imp.name,
+        "in module:",
+        mod.name,
+        imp.start
+      );
+      return;
+    }
+    const expMod = modExp.module as TextModule2;
+    const exp = modExp.export as TextExport2;
+    const impArgs = imp.args ?? [];
+    const expImpArgs: [string, string][] = exp.args.map((p, i) => [
+      p,
+      impArgs[i],
+    ]);
+    const fn = exp.ref;
+
+    return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
+  }
+}
+
+function localRef(
+  callElem: CallElem,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): LocalRef | undefined {
+  const fnElem = mod.fns.find((fn) => fn.name === callElem.call);
+  if (fnElem) {
+    return { kind: "fn", fromCall: callElem, expMod: mod, fn: fnElem };
+  }
+}
+
 function resolveImportList(
   imps: ImportElem[],
   importingModule: TextModule2,
@@ -153,7 +264,7 @@ function resolveImportList(
       toResolve.push(...r);
     } else if (todo.kind === "expImp") {
       const { exp, importing, mod } = todo;
-      console.log("expImp todokj")
+      console.log("expImp todo");
       // const r = resolveExpImporting(exp, importing, mod, resolveArgs);
       // toResolve.push(...r);
     } else {
@@ -268,7 +379,6 @@ interface RegisteredExport {
   moduleExport: ModuleExport2;
 }
 
-
 /**
  * Find the export that matches this import.
  *
@@ -316,7 +426,7 @@ function registerImport(
 }
 
 /**
- *  returns the 
+ *  returns the
  */
 function refsFromFn(fnElem: FnElem, mod: TextModule2): ToResolve[] {
   const calls = fnElem.children.filter((child) => child.kind === "call");
@@ -351,7 +461,7 @@ function refsFromFn(fnElem: FnElem, mod: TextModule2): ToResolve[] {
   return toResolve;
 }
 
-/** find an export entry for an import, unless its aready on the importing list */
+/** find an export entry for an import */
 function findExport(
   imp: ImportElem,
   registry: ModuleRegistry2
@@ -464,6 +574,18 @@ function grouped<T>(a: T[], size: number, stride = size): T[][] {
   const groups = [];
   for (let i = 0; i < a.length; i += stride) {
     groups.push(a.slice(i, i + size));
+  }
+  return groups;
+}
+
+/** group an array into subarrays by a key function */
+function groupBy<T, K>(a: T[], key: (t: T) => K): Map<K, T[]> {
+  const groups = new Map<K, T[]>();
+  for (const t of a) {
+    const k = key(t);
+    const group = groups.get(k) || [];
+    group.push(t);
+    groups.set(k, group);
   }
   return groups;
 }

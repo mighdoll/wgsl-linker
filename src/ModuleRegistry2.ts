@@ -1,9 +1,7 @@
 import {
   CodeGenFn,
   GeneratorExport,
-  GeneratorModule,
-  TextExport,
-  TextModule,
+  GeneratorModule
 } from "./Linker.js";
 import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
 
