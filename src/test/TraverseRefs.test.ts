@@ -1,12 +1,14 @@
 import { expect, test } from "vitest";
-import { linkWgsl2 } from "../Linker2.js";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule2 } from "../ParseModule2.js";
-import { FoundRef, recursiveRefs } from "../TraverseRefs.js";
-import { dlogOpt } from "berry-pretty";
+import {
+  ExportRef,
+  FoundRef,
+  LocalRef,
+  recursiveRefs,
+} from "../TraverseRefs.js";
 
 test("traverse nested import with params and support fn", () => {
-  
   const src = `
     // #import foo(u32)
     fn bar() {
@@ -39,5 +41,10 @@ test("traverse nested import with params and support fn", () => {
     refs.push(ref);
     return true;
   });
-  console.log("refs", refs);
+  const first = refs[0] as ExportRef;
+  const second = refs[1] as LocalRef;
+  expect(first.kind).toBe("exp");
+  expect(first.expImpArgs).deep.eq([["A", "u32"]]);
+  expect(second.kind).toBe("fn");
+  expect(second.fn.name).eq("support");
 });

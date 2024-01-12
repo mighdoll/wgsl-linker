@@ -8,7 +8,7 @@ import {
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 
-export type FoundRef = ImportRef | LocalRef;
+export type FoundRef = ExportRef | LocalRef;
 
 export interface LocalRef {
   kind: "fn";
@@ -17,8 +17,8 @@ export interface LocalRef {
   fn: FnElem;
 }
 
-export interface ImportRef {
-  kind: "imp";
+export interface ExportRef {
+  kind: "exp";
   fromImport: ImportElem;
   impMod: TextModule2;
   expMod: TextModule2;
@@ -58,10 +58,10 @@ function importRef(
   callElem: CallElem,
   mod: TextModule2,
   registry: ModuleRegistry2
-): ImportRef | undefined {
+): ExportRef | undefined {
   const imp = mod.imports.find((imp) => imp.name === callElem.call);
   if (imp) {
-    const kind = "imp";
+    const kind = "exp";
 
     const modExp = registry.getModuleExport(imp.name, imp.from);
     if (!modExp) {
