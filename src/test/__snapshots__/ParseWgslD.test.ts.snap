@@ -43,9 +43,7 @@ exports[`parse #export foo(bar) 1`] = `
 [
   {
     "args": [
-      [
-        "bar",
-      ],
+      "bar",
     ],
     "end": 16,
     "kind": "export",
@@ -59,11 +57,9 @@ exports[`parse #export foo(bar, baz, boo) 1`] = `
 [
   {
     "args": [
-      [
-        "bar",
-        "baz",
-        "boo",
-      ],
+      "bar",
+      "baz",
+      "boo",
     ],
     "end": 26,
     "kind": "export",
@@ -76,10 +72,8 @@ exports[`parse #export foo(bar, baz, boo) 1`] = `
 exports[`parse #export(A, B) importing bar(A) 1`] = `
 {
   "args": [
-    [
-      "A",
-      "B",
-    ],
+    "A",
+    "B",
   ],
   "end": 36,
   "importing": [
@@ -99,9 +93,7 @@ exports[`parse #export(foo) with trailing space 1`] = `
 [
   {
     "args": [
-      [
-        "Elem",
-      ],
+      "Elem",
     ],
     "end": 24,
     "kind": "export",
