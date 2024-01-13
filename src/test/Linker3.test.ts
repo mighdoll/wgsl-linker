@@ -131,7 +131,6 @@ test("#import twice doesn't get two copies", () => {
   `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
-  console.log("linked", linked);
   const matches = linked.matchAll(/fooImpl/g);
   expect([...matches].length).toBe(1);
 });
@@ -286,7 +285,6 @@ test("#import support fn that references another import", () => {
 
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
-  console.log("linked", linked);
 
   const origMatch = linked.matchAll(/\bsupport\b/g);
   expect([...origMatch].length).toBe(1);
