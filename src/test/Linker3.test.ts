@@ -300,20 +300,20 @@ test("#import support fn from two exports", () => {
   expect([...supportMatch].length).toBe(3);
 });
 
-test.skip("#import uses previous #export params", () => {
+test.only("#export importing", () => {
   const module1 = `
-    #export(a, b) importing bar(a)
-    fn foo(a,b) { bar(a); }
+    #export(A, B) importing bar(A)
+    fn foo(a:A, b:B) { bar(a); }
 
   `;
   const module2 = `
-    #export(x)
-    fn bar(x) { }
+    #export(X)
+    fn bar(x:X) { }
   `;
   const src = `
-    #import foo(k,l)
+    #import foo(K, L)
     fn main() {
-      foo(k,l);
+      foo(k, l);
     }
   `;
   const registry = new ModuleRegistry2(module1, module2);

@@ -48,4 +48,6 @@ export interface ImportElem extends AbstractElemBase {
 export interface ImportingItem {
   importing: string;
   args: string[];
+  as?: string;
+  from?: string;
 }

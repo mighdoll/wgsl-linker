@@ -42,7 +42,9 @@ export function recursiveRefs(
   const calls = srcElems.flatMap((fn) => fn.children);
   const refs = calls.flatMap((callElem) => {
     const foundRef =
-      importRef(callElem, mod, registry) ?? localRef(callElem, mod, registry);
+      importRef(callElem, mod, registry) ??
+      importingRef(callElem, mod, registry) ??
+      localRef(callElem, mod, registry);
     if (!foundRef) {
       console.error("reference not found for:", callElem);
     }
@@ -58,6 +60,12 @@ export function recursiveRefs(
   });
 }
 
+// we need to find and report 'importing' refs.
+// should we attach them to an existin ExportRef or make a new entry?
+// let's try making a new entry, and then we can handle the arg matching here
+
+/** If this call element references an #import function
+ * @return an ExportRef describing the export to link */
 function importRef(
   callElem: CallElem,
   mod: TextModule2,
@@ -85,6 +93,19 @@ function importRef(
   }
 }
 
+/** If this call element references an #export.. importing function
+ * @return an ExportRef describing the export to link */
+function importingRef(
+  callElem: CallElem,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): ExportRef | undefined {
+  return undefined;
+  // mod.exports.find(e => {
+  //   e.importing.find(i => i.importing === )
+  // })
+}
+
 function localRef(
   callElem: CallElem,
   mod: TextModule2,
@@ -96,6 +117,11 @@ function localRef(
   }
 }
 
-function importName(imp: ImportElem): string {
-  return imp.as || imp.name;
+interface AsNamed {
+  as?: string; 
+  name:string;
+}
+
+function importName(asNamed: AsNamed): string {
+  return asNamed.as || asNamed.name;
 }
