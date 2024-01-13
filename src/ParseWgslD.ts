@@ -228,7 +228,7 @@ interface ParseState {
   params: Record<string, any>;
 }
 
-export function parseMiniWgsl(
+export function parseWgslD(
   src: string,
   params: Record<string, any> = {}
 ): AbstractElem[] {

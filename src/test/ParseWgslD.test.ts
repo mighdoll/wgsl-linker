@@ -4,7 +4,7 @@ import {
   directive,
   importing,
   lineComment,
-  parseMiniWgsl,
+  parseWgslD,
 } from "../ParseWgslD.js";
 import { testParse } from "./TestParse.js";
 
@@ -12,7 +12,7 @@ import { enableTracing } from "../ParserTracing.js";
 enableTracing();
 
 test("parse empty string", () => {
-  const parsed = parseMiniWgsl("");
+  const parsed = parseWgslD("");
   expect(parsed).toMatchSnapshot();
 });
 
@@ -22,32 +22,32 @@ test("directive parses #export", () => {
 });
 
 test("parse #export", () => {
-  const parsed = parseMiniWgsl("#export");
+  const parsed = parseWgslD("#export");
   expect(parsed[0].kind).equals("export");
 });
 
 test("parse #export foo", () => {
-  const parsed = parseMiniWgsl("#export foo");
+  const parsed = parseWgslD("#export foo");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #export foo(bar)", () => {
-  const parsed = parseMiniWgsl("#export foo(bar)");
+  const parsed = parseWgslD("#export foo(bar)");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #export foo(bar, baz, boo)", () => {
-  const parsed = parseMiniWgsl("#export foo(bar, baz, boo)");
+  const parsed = parseWgslD("#export foo(bar, baz, boo)");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #import foo", () => {
-  const parsed = parseMiniWgsl("#import foo");
+  const parsed = parseWgslD("#import foo");
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse #import foo(a,b) as baz from bar", () => {
-  const parsed = parseMiniWgsl("#import foo as baz from bar");
+  const parsed = parseWgslD("#import foo as baz from bar");
   expect(parsed).toMatchSnapshot();
 });
 
@@ -73,19 +73,19 @@ test("lineComment parse // #export foo", () => {
 
 test("parse fn foo() { }", () => {
   const src = "fn foo() { }";
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse fn with calls", () => {
   const src = "fn foo() { foo(); bar(); }";
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
 
 test("parse struct", () => {
   const src = "struct Foo { a: f32; b: i32; }";
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
 
@@ -93,7 +93,7 @@ test("parse fn with line comment", () => {
   const src = `
     fn binaryOp() { // binOpImpl
     }`;
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
 
@@ -101,7 +101,7 @@ test("parse #export(foo) with trailing space", () => {
   const src = `
     // #export (Elem) 
     `;
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
 
@@ -111,7 +111,7 @@ test("parse #if #endif", () => {
     fn f() { }
     #endif
     `;
-  const parsed = parseMiniWgsl(src, { foo: true });
+  const parsed = parseWgslD(src, { foo: true });
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("f");
 });
@@ -124,7 +124,7 @@ test("parse #if !foo #else #endif", () => {
       fn g() { foo(); }
     // #endif 
     `;
-  const parsed = parseMiniWgsl(src, { foo: true });
+  const parsed = parseWgslD(src, { foo: true });
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("g");
 });
@@ -142,7 +142,7 @@ test("parse #export(A, B) importing bar(A)", () => {
     #export(A, B) importing bar(A)
     fn foo(a:A, b:B) { bar(a); }
   `;
-  const parsed = parseMiniWgsl(src, { foo: true });
+  const parsed = parseWgslD(src, { foo: true });
   expect(parsed[0]).toMatchSnapshot();
 });
 
@@ -151,6 +151,6 @@ test("parse top level var", () => {
   const src = `
     var <workgroup> myWork:array<Output, workgroupThreads>; 
   `
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   console.log(parsed);
 });

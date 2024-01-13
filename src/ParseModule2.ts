@@ -5,7 +5,7 @@ import {
   ImportElem,
   ImportingItem,
 } from "./AbstractElems.js";
-import { parseMiniWgsl } from "./ParseWgslD.js";
+import { parseWgslD } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
@@ -31,7 +31,7 @@ export function parseModule2(
   src: string,
   defaultModuleName?: string
 ): TextModule2 {
-  const parsed = parseMiniWgsl(src);
+  const parsed = parseWgslD(src);
   const exports = findExports(src, parsed);
   const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
   const imports = parsed.filter((e) => e.kind === "import") as ImportElem[];

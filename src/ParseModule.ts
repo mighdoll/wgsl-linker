@@ -1,5 +1,5 @@
 import { TextExport, TextModule } from "./Linker.js";
-import { parseMiniWgsl } from "./ParseWgslD.js";
+import { parseWgslD } from "./ParseWgslD.js";
 import {
   endExportRegex,
   endInsertRegex,
@@ -20,7 +20,7 @@ export function parseModule(src: string, defaultModuleName?: string): TextModule
   let moduleName: string | undefined;
   let rootLines: string[] | undefined;
 
-  parseMiniWgsl(""); // temporary to check minified size of build. TODO remove
+  parseWgslD(""); // temporary to check minified size of build. TODO remove
   src.split("\n").forEach(line => {
     const matches = matchModuleDirectives(line);
     const { exportMatch, endInsertMatch, endExportMatch } = matches;
