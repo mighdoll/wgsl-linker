@@ -43,6 +43,29 @@ test("#import with parameter", () => {
   expect(linked).includes("a: MyElem");
 });
 
+// TODO test importing a struct constructor
+test.skip("import fn with support struct constructor", () => {
+  const src = `
+    #import zero
+    fn main() {
+      let ze = zero();
+    }
+  `
+  const module1 = `
+    struct Elem {
+      sum: u32;
+    }
+
+    #export 
+    fn zero() -> Elem {
+      return Elem(0u);
+    }
+  `
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  console.log(linked);
+});
+
 test("transitive import", () => {
   const binOpModule = `
     // #export(Elem) 
