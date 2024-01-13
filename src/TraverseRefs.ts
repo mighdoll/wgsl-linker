@@ -7,6 +7,7 @@ import {
   ModuleRegistry2
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
+import { groupBy } from "./Util.js";
 
 export type FoundRef = ExportRef | LocalRef;
 
@@ -95,14 +96,6 @@ function localRef(
   }
 }
 
-/** group an array into subarrays by a key function */
-function groupBy<T, K>(a: T[], key: (t: T) => K): Map<K, T[]> {
-  const groups = new Map<K, T[]>();
-  for (const t of a) {
-    const k = key(t);
-    const group = groups.get(k) || [];
-    group.push(t);
-    groups.set(k, group);
-  }
-  return groups;
+function importName(imp: ImportElem): string {
+  return imp.as || imp.name;
 }

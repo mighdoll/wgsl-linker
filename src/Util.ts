@@ -22,3 +22,14 @@ export function grouped<T>(a: T[], size: number, stride = size): T[][] {
   }
   return groups;
 }
+/** group an array into subarrays by a key function */
+export function groupBy<T, K>(a: T[], key: (t: T) => K): Map<K, T[]> {
+  const groups = new Map<K, T[]>();
+  for (const t of a) {
+    const k = key(t);
+    const group = groups.get(k) || [];
+    group.push(t);
+    groups.set(k, group);
+  }
+  return groups;
+}
