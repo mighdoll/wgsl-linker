@@ -2,6 +2,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { linkWgsl3 } from "../Linker3.js";
+import { dlog } from "berry-pretty";
 
 test("simple #import", () => {
   const myModule = `
@@ -57,6 +58,7 @@ test("transitive import", () => {
     #import binaryOp(MyElem)`;
   const src = `
     // #import reduceWorkgroup(myWork)
+  
     fn main() {
       reduceWorkgroup(localId); // call the imported function
     }`;

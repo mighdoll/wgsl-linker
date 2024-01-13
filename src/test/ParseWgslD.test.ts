@@ -143,6 +143,14 @@ test("parse #export(A, B) importing bar(A)", () => {
     fn foo(a:A, b:B) { bar(a); }
   `;
   const parsed = parseMiniWgsl(src, { foo: true });
-  console.log(parsed[0]);
   expect(parsed[0]).toMatchSnapshot();
+});
+
+// TODO
+test("parse top level var", () => {
+  const src = `
+    var <workgroup> myWork:array<Output, workgroupThreads>; 
+  `
+  const parsed = parseMiniWgsl(src);
+  console.log(parsed);
 });
