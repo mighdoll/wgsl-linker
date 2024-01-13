@@ -1,18 +1,8 @@
-import {
-  CallElem,
-  FnElem,
-  ImportElem,
-  ImportingItem,
-} from "./AbstractElems.js";
-import {
-  ModuleExport2,
-  ModuleRegistry2,
-  TextModuleExport2,
-} from "./ModuleRegistry2.js";
-import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
-import { dlog, dlogOpt } from "berry-pretty";
-import { FoundRef, recursiveRefs } from "./TraverseRefs.js";
-import { grouped, replaceTokens3 } from "./Util.js";
+import { FnElem } from "./AbstractElems.js";
+import { ModuleRegistry2 } from "./ModuleRegistry2.js";
+import { TextModule2, parseModule2 } from "./ParseModule2.js";
+import { BothRefs, FoundRef, recursiveRefs } from "./TraverseRefs.js";
+import { grouped, multiKeySet, replaceTokens3 } from "./Util.js";
 
 export function linkWgsl3(
   src: string,
@@ -21,9 +11,11 @@ export function linkWgsl3(
 ): string {
   const srcModule = parseModule2(src);
   const refs = findReferences(srcModule, registry);
-  const renames = uniquify(refs);
+
+  const fnDecls = new Set(srcModule.fns.map(f => f.name));
+  const renames = uniquify(refs, fnDecls);
+
   const importedText = extractTexts(refs, renames);
-  // const importedText = exportTexts(resolveArgs.toLoad, resolveArgs.renames);
   return rmImports(srcModule) + "\n\n" + importedText;
 }
 
@@ -52,10 +44,16 @@ function findReferences(
 
 type RenameMap = Map<string, Map<string, string>>;
 
-function uniquify(refs: FoundRef[]): RenameMap {
-  /** function declarations visible in the linked src so far */
-  const fnDecls = new Set<string>();
-
+/**
+ * Calculate and @return a renaming map so that all the found top level elements
+ * will have unique, non conflicting names.
+ *
+ * The rename map includes entries to rename references in both the exporting module
+ * and the importing module.
+ *
+ * @param fnDecls declarations visible in the linked src so far
+ */
+function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
   /** number of conflicting names, used as a unique suffix for deconflicting */
   let conflicts = 0;
 
@@ -65,7 +63,43 @@ function uniquify(refs: FoundRef[]): RenameMap {
    */
   const renames: RenameMap = new Map();
 
+  refs.forEach((r) => {
+    const ref = r as BothRefs;
+
+    // name proposed in the importing module (or in the local module for a support fn)
+    const proposedName = ref.fromImport?.as ?? ref.fn.name;
+
+    // name we'll actually use in the linked result
+    const linkName = uniquifyName(proposedName);
+    fnDecls.add(linkName);
+
+    // record rename for this import in the exporting module
+    if (linkName !== ref.fn.name) {
+      multiKeySet(renames, ref.expMod.name, ref.fn.name, linkName);
+    }
+    //
+    // record rename for this import in the importing module
+    if (ref.impMod && linkName !== proposedName) {
+      multiKeySet(renames, ref.impMod.name, proposedName, linkName);
+    }
+  });
+
   return renames;
+
+  function uniquifyName(
+    /** proposed name for this fn in the linked results (e.g. import as name) */
+    proposedName: string
+  ): string {
+    let renamed = proposedName;
+    if (fnDecls.has(proposedName)) {
+      // create a unique name
+      while (fnDecls.has(renamed)) {
+        renamed = renamed + conflicts++;
+      }
+    }
+
+    return renamed;
+  }
 }
 
 function extractTexts(refs: FoundRef[], renames: RenameMap): string {
