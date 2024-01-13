@@ -10,6 +10,10 @@ import { TextExport2, TextModule2 } from "./ParseModule2.js";
 
 export type FoundRef = ExportRef | LocalRef;
 
+export type BothRefs = Partial<Omit<LocalRef, "kind">> &
+  Partial<Omit<ExportRef, "kind">> &
+  Pick<LocalRef, "fn" | "expMod">;
+
 export interface LocalRef {
   kind: "fn";
   fromCall: CallElem;
