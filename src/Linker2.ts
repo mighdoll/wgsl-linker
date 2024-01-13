@@ -1,8 +1,7 @@
 import {
-  CallElem,
   FnElem,
   ImportElem,
-  ImportingItem,
+  ImportingItem
 } from "./AbstractElems.js";
 import {
   ModuleExport2,
@@ -10,8 +9,6 @@ import {
   TextModuleExport2,
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
-import { dlog, dlogOpt } from "berry-pretty";
-import { recursiveRefs } from "./TraverseRefs.js";
 
 /** parse source text for #import directives, return wgsl with all imports injected */
 export function linkWgsl2(
@@ -19,12 +16,8 @@ export function linkWgsl2(
   registry: ModuleRegistry2,
   extParams: Record<string, any> = {}
 ): string {
-  const srcModule = parseModule2(src);
 
-  recursiveRefs(srcModule.fns, srcModule, registry, (ref) => {
-    dlogOpt({ maxDepth: 4 }, "ref:", ref);
-    return true;
-  });
+  const srcModule = parseModule2(src);
 
   const resolveArgs: ResolveArgs = {
     srcModule,
@@ -41,6 +34,7 @@ export function linkWgsl2(
   const importedText = exportTexts(resolveArgs.toLoad, resolveArgs.renames);
   return rmImports(srcModule) + "\n\n" + importedText;
 }
+
 
 function exportTexts(toLoad: ToLoad[], renames: RenameMap): string {
   const texts = toLoad.map((l) => {
