@@ -1,11 +1,5 @@
-import {
-  CallElem,
-  FnElem,
-  ImportElem
-} from "./AbstractElems.js";
-import {
-  ModuleRegistry2
-} from "./ModuleRegistry2.js";
+import { CallElem, FnElem, ImportElem } from "./AbstractElems.js";
+import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
 
@@ -17,7 +11,7 @@ export type BothRefs = Partial<Omit<LocalRef, "kind">> &
 
 export interface LocalRef {
   kind: "fn";
-  fromCall: CallElem;
+  fromCall: CallElem; // TODO fromCall[]? drop this?
   expMod: TextModule2;
   fn: FnElem;
 }
@@ -47,6 +41,9 @@ export function recursiveRefs(
   const refs = calls.flatMap((callElem) => {
     const foundRef =
       importRef(callElem, mod, registry) ?? localRef(callElem, mod, registry);
+    if (!foundRef) {
+      console.error("reference not found for:", callElem);
+    }
     return foundRef ? [foundRef] : [];
   });
 
@@ -64,7 +61,7 @@ function importRef(
   mod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
-  const imp = mod.imports.find((imp) => imp.name === callElem.call);
+  const imp = mod.imports.find((imp) => importName(imp) == callElem.call);
   if (imp) {
     const kind = "exp";
 
