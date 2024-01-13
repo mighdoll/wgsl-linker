@@ -42,29 +42,6 @@ test("#import with parameter", () => {
   expect(linked).includes("a: MyElem");
 });
 
-// TODO test importing a struct constructor
-test.skip("import fn with support struct constructor", () => {
-  const src = `
-    #import zero
-    fn main() {
-      let ze = zero();
-    }
-  `
-  const module1 = `
-    struct Elem {
-      sum: u32;
-    }
-
-    #export 
-    fn zero() -> Elem {
-      return Elem(0u);
-    }
-  `
-  const registry = new ModuleRegistry2(module1);
-  const linked = linkWgsl3(src, registry);
-  console.log(linked);
-});
-
 test("transitive import", () => {
   const binOpModule = `
     // #export(Elem) 
@@ -166,15 +143,15 @@ test("import transitive conflicts with main", () => {
 
 test("#import twice with different names", () => {
   const module1 = `
-    #export
-    fn foo(a) { /* module1 */ }
+    #export(A)
+    fn foo(a:A) { /* module1 */ }
   `;
   const src = `
     #import foo(b) as bar
     #import foo(z) as zap
 
     fn main() {
-      foo();
+      bar();
       zap();
     }
   `;
@@ -344,6 +321,30 @@ test.skip("#import uses previous #export params", () => {
   console.log("linked", linked);
   expect(linked).contains("fn bar(k)");
 });
+//
+// TODO test importing a struct constructor
+test.skip("import fn with support struct constructor", () => {
+  const src = `
+    #import zero
+    fn main() {
+      let ze = zero();
+    }
+  `
+  const module1 = `
+    struct Elem {
+      sum: u32;
+    }
+
+    #export 
+    fn zero() -> Elem {
+      return Elem(0u);
+    }
+  `
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  console.log(linked);
+});
+
 
 // test("import with template replace", () => {
 //   const myModule = `

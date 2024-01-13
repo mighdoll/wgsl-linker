@@ -5,6 +5,8 @@ import { groupBy } from "./Util.js";
 
 export type FoundRef = ExportRef | LocalRef;
 
+export type StringPairs = [string, string][];
+
 export type BothRefs = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<ExportRef, "kind">> &
   Pick<LocalRef, "fn" | "expMod">;
@@ -75,9 +77,10 @@ function importRef(
     const exp = modExp.export as TextExport2;
     const impArgs = imp.args ?? [];
     const fn = exp.ref;
-    // prettier-ignore
-    const expImpArgs: [string, string][] = 
-      exp.args.map((p, i) => [p, impArgs[i]]);
+    if (exp.args.length !== impArgs.length) {
+      console.error("mismatched import and export params", imp, exp);
+    }
+    const expImpArgs: StringPairs = exp.args.map((p, i) => [p, impArgs[i]]);
     return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
   }
 }
