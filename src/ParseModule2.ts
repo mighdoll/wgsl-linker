@@ -3,7 +3,6 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
-  ImportingItem,
 } from "./AbstractElems.js";
 import { parseWgslD } from "./ParseWgslD.js";
 
@@ -22,7 +21,7 @@ export interface TextExport2 {
   ref: FnElem; // TODO | StructElem (| global var?)
   exp: ExportElem;
   args: string[];
-  importing: ImportingItem[];
+  importing: ImportElem[];
 }
 
 let unnamedModuleDex = 0;
