@@ -9,6 +9,7 @@ import {
 import { testParse } from "./TestParse.js";
 
 import { enableTracing } from "../ParserTracing.js";
+import { dlog } from "berry-pretty";
 enableTracing();
 
 test("parse empty string", () => {
@@ -131,10 +132,10 @@ test("parse #if !foo #else #endif", () => {
 
 test("importing parses importing bar(A) fog(B)", () => {
   const src = `
-    importing bar(A) fog(B)
+    importing bar(A), fog(B)
   `;
   const { parsed } = testParse(importing, src);
-  expect(parsed?.value).toMatchSnapshot();
+  expect(parsed?.named.importing).toMatchSnapshot();
 });
 
 test("parse #export(A, B) importing bar(A)", () => {
@@ -143,6 +144,7 @@ test("parse #export(A, B) importing bar(A)", () => {
     fn foo(a:A, b:B) { bar(a); }
   `;
   const parsed = parseWgslD(src, { foo: true });
+  console.log(parsed);
   expect(parsed[0]).toMatchSnapshot();
 });
 

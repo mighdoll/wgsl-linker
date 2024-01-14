@@ -34,20 +34,13 @@ export interface ExportElem extends AbstractElemBase {
   kind: "export";
   name?: string;
   args?: string[];
-  importing?: ImportingItem[];
+  importing?: ImportElem[];
 }
 
 export interface ImportElem extends AbstractElemBase {
   kind: "import";
   name: string;
   args?: string[];
-  as?: string;
-  from?: string;
-}
-
-export interface ImportingItem {
-  importing: string;
-  args: string[];
   as?: string;
   from?: string;
 }

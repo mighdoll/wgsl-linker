@@ -6,13 +6,19 @@ exports[`importing parses importing bar(A) fog(B) 1`] = `
     "args": [
       "A",
     ],
-    "importing": "bar",
+    "end": 21,
+    "kind": "import",
+    "name": "bar",
+    "start": 14,
   },
   {
     "args": [
       "B",
     ],
-    "importing": "fog",
+    "end": 29,
+    "kind": "import",
+    "name": "fog",
+    "start": 22,
   },
 ]
 `;
@@ -73,19 +79,11 @@ exports[`parse #export(A, B) importing bar(A) 1`] = `
 {
   "args": [
     "A",
-    "B",
   ],
-  "end": 36,
-  "importing": [
-    {
-      "args": [
-        "A",
-      ],
-      "importing": "bar",
-    },
-  ],
-  "kind": "export",
-  "start": 0,
+  "end": 35,
+  "kind": "import",
+  "name": "bar",
+  "start": 28,
 }
 `;
 
@@ -108,7 +106,7 @@ exports[`parse #import foo 1`] = `
     "end": 11,
     "kind": "import",
     "name": "foo",
-    "start": 0,
+    "start": 7,
   },
 ]
 `;
@@ -121,7 +119,7 @@ exports[`parse #import foo(a,b) as baz from bar 1`] = `
     "from": "bar",
     "kind": "import",
     "name": "foo",
-    "start": 0,
+    "start": 7,
   },
 ]
 `;

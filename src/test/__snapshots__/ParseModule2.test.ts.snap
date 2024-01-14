@@ -21,10 +21,10 @@ exports[`read simple #fn import 1`] = `
   ],
   "imports": [
     {
-      "end": 20,
+      "end": 19,
       "kind": "import",
       "name": "foo",
-      "start": 7,
+      "start": 15,
     },
   ],
   "name": "my.module",

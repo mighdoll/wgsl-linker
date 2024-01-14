@@ -5,7 +5,6 @@ import {
   CallElem,
   FnElem,
   AbstractElem,
-  ImportingItem,
 } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import {
@@ -47,16 +46,33 @@ const directiveArgs: ParserStage<string[]> = seq(
 
 const eol = or("\n", eof());
 
-const importingElem = seq(kind(a.word), directiveArgs)
-  .map((r) => ({ importing: r.value[0], args: r.value[1] } as ImportingItem))
-  .traceName("importingElem");
+/** foo <(A,B)> <as boo> <from bar>  EOL */
+const importPhrase = seq(
+  kind(a.word).named("name"),
+  opt(directiveArgs.named("args")),
+  opt(seq("as", kind(a.word).named("as"))),
+  opt(seq("from", kind(a.word).named("from")))
+)
+  .map((r) => {
+    // flatten 'args' by putting it with the other extracted names
+    const named: (keyof ImportElem)[] = ["name", "from", "as", "args"];
+    const e = makeElem<ImportElem>("import", r, named, []);
+    r.app.push(e);
+    return e;
+  })
+  .traceName("importElem");
 
 export const importing = seq(
   "importing",
-  seq(importingElem.named("elem"), repeat(importingElem.named("elem")))
-)
-  .map((r) => r.named["elem"] as ImportingItem[])
-  .traceName("importing");
+  seq(importPhrase.named("importing")),
+  repeat(seq(",", importPhrase.named("importing")))
+).traceName("importing");
+
+/** #import foo <(a,b)> <as boo> <from bar>  EOL */
+const importDirective = seq(
+  "#import",
+  tokens(directiveArgsTokens, seq(importPhrase, eol))
+).traceName("import");
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 // prettier-ignore
@@ -78,29 +94,6 @@ const exportDirective = seq(
     r.app.push(e);
   })
   .traceName("export");
-
-/** #import foo <(a,b)> <from bar> <as boo> EOL */
-const importDirective = seq(
-  "#import",
-  tokens(
-    directiveArgsTokens,
-    seq(
-      kind(a.word).named("name"),
-      opt(directiveArgs.named("args")),
-      opt(seq("as", kind(a.word).named("as"))),
-      opt(seq("from", kind(a.word).named("from"))),
-      eol
-    )
-  )
-)
-  .map((r) => {
-    // flatten 'args' by putting it with the other extracted names
-    const named: (keyof ImportElem)[] = ["name", "from", "as", "args"];
-    const e = makeElem<ImportElem>("import", r, named, []);
-    r.app.push(e);
-  })
-  .traceName("import");
-
 const ifDirective: ParserStage<any> = seq(
   "#if",
   tokens(
