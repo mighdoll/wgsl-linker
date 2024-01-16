@@ -13,7 +13,6 @@ export type BothRefs = Partial<Omit<LocalRef, "kind">> &
 
 export interface LocalRef {
   kind: "fn";
-  fromCall: CallElem; // TODO fromCall[]? drop this?
   expMod: TextModule2;
   fn: FnElem;
 }
@@ -113,7 +112,7 @@ function localRef(
 ): LocalRef | undefined {
   const fnElem = mod.fns.find((fn) => fn.name === callElem.call);
   if (fnElem) {
-    return { kind: "fn", fromCall: callElem, expMod: mod, fn: fnElem };
+    return { kind: "fn", expMod: mod, fn: fnElem };
   }
 }
 
