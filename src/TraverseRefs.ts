@@ -117,8 +117,8 @@ function localRef(
 }
 
 interface AsNamed {
-  as?: string; 
-  name:string;
+  as?: string;
+  name: string;
 }
 
 function importName(asNamed: AsNamed): string {
