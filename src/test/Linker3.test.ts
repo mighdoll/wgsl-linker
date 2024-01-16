@@ -301,25 +301,21 @@ test("#import support fn from two exports", () => {
 });
 
 test("#export importing", () => {
-  const module1 = `
-    #export(A, B) importing bar(B)
-    fn foo(a:A, b:B) { bar(b:B); }
-
-  `;
-  const module2 = `
-    #export(X)
-    fn bar(x:X) { }
-  `;
   const src = `
-    #import foo(K, L)
+    #import foo(A, B)
     fn main() {
       foo(k, l);
-    }
-  `;
+    } `;
+  const module1 = `
+    #export(C, D) importing bar(D)
+    fn foo(c:C, d:D) { bar(d); } `;
+  const module2 = `
+    #export(X)
+    fn bar(x:X) { } `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
-  console.log("linked", linked);
-  expect(linked).contains("fn bar(b:L)");
+  // console.log("linked", linked);
+  expect(linked).contains("fn bar(x:B)");
 });
 
 // TODO test importing a struct constructor
