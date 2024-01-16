@@ -18,22 +18,29 @@ export interface LocalRef {
   fn: FnElem;
 }
 
-/**  */
+/** found reference to an exported function */
 export interface ExportRef {
   kind: "exp";
+
   /** module containing the exported funciton */
   expMod: TextModule2;
 
   /** reference to the exported function  */
   fn: FnElem;
 
-  /** import elem that resolved to this export  */
+  // fromExp:ExportRef;
+
+  /** import elem that resolved to this export  (so we can get 'as' name ) */
   fromImport: ImportElem;
+
+  /** proposed name to use for this export, either fn name or 'as' name from the import.
+   * name might still be rewritten by global uniqueness remapping */
+  proposedName: string;
 
   /** module containing the import that requested this export */
   impMod: TextModule2;
 
-  /** mapping from export arguments to import arguments */
+  /** mapping from export arguments to import arguments (could be prior) */
   expImpArgs: [string, string][];
 }
 
@@ -85,18 +92,22 @@ export function recursiveRefs(
  * @return an ExportRef describing the export to link */
 function importRef(
   fnName: string,
-  mod: TextModule2,
+  impMod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
-  const imp = mod.imports.find((imp) => importName(imp) == fnName);
-  const modExp = matchingExport(imp, mod, registry);
-  if (!modExp || !imp) return;
-  const expMod = modExp.module as TextModule2;
+  const fromImport = impMod.imports.find((imp) => importName(imp) == fnName);
+  const modExp = matchingExport(fromImport, impMod, registry);
+  if (!modExp || !fromImport) return;
   const exp = modExp.export as TextExport2;
-  const expImpArgs = matchImportExportArgs(imp, exp);
-  const kind = "exp";
-  const fn = exp.ref;
-  return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
+  return {
+    kind: "exp",
+    fromImport,
+    impMod,
+    expMod: modExp.module as TextModule2,
+    expImpArgs: matchImportExportArgs(fromImport, exp),
+    fn: exp.ref,
+    proposedName: fromImport.as ?? exp.ref.name,
+  };
 }
 
 function matchImportExportArgs(imp: ImportElem, exp: ExportElem): StringPairs {
@@ -113,65 +124,75 @@ function matchImportExportArgs(imp: ImportElem, exp: ExportElem): StringPairs {
 function importingRef(
   srcRef: FoundRef,
   callElem: CallElem,
-  mod: TextModule2,
+  impMod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
-  let importing: ImportElem | undefined;
+  let fromImport: ImportElem | undefined;
   // find a matching 'importing' phrase in an #export
-  const textExport = mod.exports.find((exp) => {
-    importing = exp.importing?.find((i) => i.name === callElem.call);
-    return !!importing;
+  const textExport = impMod.exports.find((exp) => {
+    fromImport = exp.importing?.find((i) => i.name === callElem.call);
+    return !!fromImport;
   });
   // find the export for the importing
-  const modExp = matchingExport(importing, mod, registry);
+  const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp) return;
-  isDefined(importing);
+  isDefined(fromImport);
   isDefined(textExport);
 
   if (srcRef.kind === "exp") {
     const expMod = modExp.module as TextModule2;
     const exp = modExp.export as TextExport2;
 
-    const expImpArgs = importingArgs(srcRef.fromImport, textExport, importing, exp);
-    const kind = "exp";
-    const fn = exp.ref;
-    return { kind, fromImport: importing, impMod: mod, expMod, expImpArgs, fn };
+    const expImpArgs = importingArgs(
+      srcRef.fromImport,
+      textExport,
+      fromImport,
+      exp
+    );
+    return {
+      kind: "exp",
+      fromImport,
+      impMod,
+      expMod,
+      expImpArgs,
+      fn: exp.ref,
+      proposedName: fromImport.as ?? exp.ref.name,
+    };
   } else {
     // prettier-ignore
-    console.error("unexpected srcRef not an export", srcRef, "for", callElem, textExport, importing);
+    console.error("unexpected srcRef not an export", srcRef, "for", callElem, textExport, fromImport);
   }
 
   return undefined;
 }
 
 /**
-  * @return the arguments for an importing reference, mapping through the 
-  * export and the original import directives.
-  *
-  * e.g. we're tracking a fn call that references through an 'importing':
-import1 -> export2 -> importing3 -> export4
-  * and we want to find the mapping from export4 args to import1 args
-  *
-  * for example:
-  *   #import foo(A, B) // import args: A,B
-  *   #export foo(C, D) importing bar(D) // exporting args C,D  importing args: D
-  *   #export bar(X)  // exporting
-  * we want to return mapping of X -> B for the importing clasue
-  *
-  * TODO chase the import chain to its origin, this is just one level
-  */
+ * @return the arguments for an importing reference, mapping through the
+ * export and the original import directives.
+ *
+ * e.g. we're tracking a fn call that references through an 'importing':
+ *   import1 -> export2 -> importing3 -> export4
+ * and we want to find the mapping from export4 args to import1 args
+ *
+ * for example:
+ *   #import foo(A, B) // import args: A,B
+ *   #export foo(C, D) importing bar(D) // exporting args C,D  importing args: D
+ *   #export bar(X)  // exporting
+ * we want to return mapping of X -> B for the importing clasue
+ *
+ * TODO chase the import chain to its origin, this is just one level
+ */
 function importingArgs(
   imp: ImportElem,
   exp: ExportElem,
   importing: ImportElem,
-  importingExp: ExportElem,
+  importingExp: ExportElem
 ): StringPairs {
-  
   const expImp = matchImportExportArgs(imp, exp); // C->A, D->B
   const importingExpImp = matchImportExportArgs(importing, importingExp); // X->D
 
   return importingExpImp.flatMap(([iExp, iImp]) => {
-    const pair = expImp.find(([expArg]) => expArg === iImp);  // D->B
+    const pair = expImp.find(([expArg]) => expArg === iImp); // D->B
     if (!pair) {
       console.error("importing arg not found", iExp, exp, imp);
       return [];

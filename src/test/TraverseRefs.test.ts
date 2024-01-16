@@ -7,6 +7,7 @@ import {
   LocalRef,
   traverseRefs,
 } from "../TraverseRefs.js";
+import { dlog } from "berry-pretty";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -71,4 +72,37 @@ test("traverse importing", () => {
   });
   const importingRef = refs[1] as ExportRef;
   expect(importingRef.expImpArgs).deep.eq([["X", "B"]]);
+});
+
+test("traverse double importing", () => {
+  const src = `
+    #import foo(A, B)
+    fn main() {
+      foo(k, l);
+    } `;
+  const module1 = `
+    #export(C, D) importing bar(D)
+    fn foo(c:C, d:D) { bar(d); } `;
+  const module2 = `
+    #export(X) importing zap(X)
+    fn bar(x:X) { zap(x); } `;
+  const module3 = `
+    #export(Y) 
+    fn zap(y:Y) { } `;
+
+  const registry = new ModuleRegistry2(module1, module2, module3);
+  const srcModule = parseModule2(src);
+  const refs: FoundRef[] = [];
+  traverseRefs(srcModule, registry, (ref) => {
+    refs.push(ref);
+    return true;
+  });
+  const expImpArgs = refs.flatMap(r => {
+    const er=  (r as ExportRef);
+    return er ? [er.expImpArgs] : []; }
+  );
+  const s = expImpArgs.join("\n");
+  console.log(expImpArgs);
+  expect(expImpArgs[1]).deep.eq([["X", "B"]])
+  // expect(importingRef.expImpArgs).deep.eq([["X", "B"]]);
 });

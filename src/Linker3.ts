@@ -64,20 +64,19 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
   const renames: RenameMap = new Map();
 
   refs.forEach((r) => {
-    const ref = r as BothRefs;
-
     // name proposed in the importing module (or in the local module for a support fn)
-    const proposedName = ref.fromImport?.as ?? ref.fn.name;
+    const proposedName = r.kind === "fn" ? r.fn.name : r.proposedName;
 
     // name we'll actually use in the linked result
     const linkName = uniquifyName(proposedName);
     fnDecls.add(linkName);
 
     // record rename for this import in the exporting module
-    if (linkName !== ref.fn.name) {
-      multiKeySet(renames, ref.expMod.name, ref.fn.name, linkName);
+    if (linkName !== r.fn.name) {
+      multiKeySet(renames, r.expMod.name, r.fn.name, linkName);
     }
     
+    const ref = r as BothRefs;
     // record rename for this import in the importing module
     if (ref.impMod && linkName !== proposedName) {
       multiKeySet(renames, ref.impMod.name, proposedName, linkName);
