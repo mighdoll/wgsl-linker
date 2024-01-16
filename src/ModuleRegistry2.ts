@@ -122,12 +122,21 @@ export class ModuleRegistry2 {
   }
 
   private addModuleExport(moduleExport: ModuleExport2): void {
-    const exportName = moduleExport.export.name;
-    const existing = this.exports.get(exportName);
+    const expName = exportName(moduleExport);
+    const existing = this.exports.get(expName);
     if (existing) {
       existing.push(moduleExport);
     } else {
-      this.exports.set(exportName, [moduleExport]);
+      this.exports.set(expName, [moduleExport]);
     }
   }
+}
+
+function exportName(moduleExport: ModuleExport2):string {
+  if (moduleExport.kind === "text") {
+    return moduleExport.export.ref.name;
+  } else {
+    return moduleExport.export.name;
+  }
+  
 }
