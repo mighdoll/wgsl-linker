@@ -28,9 +28,10 @@ export interface ExportRef {
   /** reference to the exported function  */
   fn: FnElem;
 
-  // fromExp:ExportRef;
+  /** reference that led us to find this ref (for mapping imp/exp args) */
+  fromRef: FoundRef;
 
-  /** import elem that resolved to this export  (so we can get 'as' name ) */
+  /** import elem that resolved to this export  TODO remove */
   fromImport: ImportElem;
 
   /** proposed name to use for this export, either fn name or 'as' name from the import.
@@ -40,7 +41,8 @@ export interface ExportRef {
   /** module containing the import that requested this export */
   impMod: TextModule2;
 
-  /** mapping from export arguments to import arguments (could be prior) */
+  /** mapping from export arguments to import arguments
+   * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
 }
 
@@ -70,7 +72,7 @@ export function recursiveRefs(
     // find a reference for each call in each srcRef
     return srcRef.fn.children.flatMap((callElem) => {
       const foundRef =
-        importRef(callElem.call, mod, registry) ??
+        importRef(srcRef, callElem.call, mod, registry) ??
         importingRef(srcRef, callElem, mod, registry) ??
         localRef(callElem, mod, registry);
       if (!foundRef) {
@@ -91,6 +93,7 @@ export function recursiveRefs(
 /** If this call element references an #import function
  * @return an ExportRef describing the export to link */
 function importRef(
+  fromRef: FoundRef,
   fnName: string,
   impMod: TextModule2,
   registry: ModuleRegistry2
@@ -101,6 +104,7 @@ function importRef(
   const exp = modExp.export as TextExport2;
   return {
     kind: "exp",
+    fromRef,
     fromImport,
     impMod,
     expMod: modExp.module as TextModule2,
@@ -151,6 +155,7 @@ function importingRef(
     );
     return {
       kind: "exp",
+      fromRef: srcRef,
       fromImport,
       impMod,
       expMod,
