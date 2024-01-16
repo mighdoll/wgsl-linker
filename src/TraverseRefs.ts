@@ -17,13 +17,23 @@ export interface LocalRef {
   fn: FnElem;
 }
 
+/**  */
 export interface ExportRef {
   kind: "exp";
-  fromImport: ImportElem;
-  impMod: TextModule2;
+  /** module containing the exported funciton */
   expMod: TextModule2;
-  expImpArgs: [string, string][];
+
+  /** reference to the exported function  */
   fn: FnElem;
+
+  /** import elem that resolved to this export  */
+  fromImport: ImportElem;
+
+  /** module containing the import that requested this export */
+  impMod: TextModule2;
+
+  /** mapping from export arguments to import arguments */
+  expImpArgs: [string, string][];
 }
 
 export function traverseRefs(
