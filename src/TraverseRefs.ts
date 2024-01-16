@@ -58,16 +58,8 @@ export function recursiveRefs(
   fn: (ref: FoundRef) => boolean
 ): void {
   if (!srcRefs.length) return;
-  const calls = srcRefs.flatMap((r) => r.fn.children);
-  const refs = calls.flatMap((callElem) => {
-    const foundRef =
-      importRef(callElem, mod, registry) ??
-      importingRef(callElem, mod, registry) ??
-      localRef(callElem, mod, registry);
-    if (!foundRef) {
-      console.error("reference not found for:", callElem);
-    }
-    return foundRef ? [foundRef] : [];
+        importRef(callElem.call, mod, registry) ??
+        importingRef(srcRef, callElem, mod, registry) ??
   });
 
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
@@ -81,11 +73,11 @@ export function recursiveRefs(
 /** If this call element references an #import function
  * @return an ExportRef describing the export to link */
 function importRef(
-  callElem: CallElem,
+  fnName: string,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
-  const imp = mod.imports.find((imp) => importName(imp) == callElem.call);
+  const imp = mod.imports.find((imp) => importName(imp) == fnName);
   const modExp = matchingExport(imp, mod, registry);
   if (!modExp || !imp) return;
   const expMod = modExp.module as TextModule2;
