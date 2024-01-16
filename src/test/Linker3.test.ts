@@ -18,7 +18,6 @@ test("simple #import", () => {
   `;
   const registry = new ModuleRegistry2(myModule);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
   expect(linked).not.includes("#export");
@@ -204,7 +203,6 @@ test("multiple exports from the same module", () => {
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  dlog(linked);
   expect(linked).toMatchSnapshot();
 });
 

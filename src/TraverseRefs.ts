@@ -135,7 +135,6 @@ function importingRef(
     const expImpArgs = importingArgs(srcRef.fromImport, textExport, importing, exp);
     const kind = "exp";
     const fn = exp.ref;
-    dlog("ref\n", {expImpArgs, fn:fn.name, expMod:expMod.name })
     return { kind, fromImport: importing, impMod: mod, expMod, expImpArgs, fn };
   } else {
     // prettier-ignore
