@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
@@ -58,8 +59,18 @@ export function recursiveRefs(
   fn: (ref: FoundRef) => boolean
 ): void {
   if (!srcRefs.length) return;
+  const refs = srcRefs.flatMap((srcRef) => {
+    // find a reference for each call in each srcRef
+    return srcRef.fn.children.flatMap((callElem) => {
+      const foundRef =
         importRef(callElem.call, mod, registry) ??
         importingRef(srcRef, callElem, mod, registry) ??
+        localRef(callElem, mod, registry);
+      if (!foundRef) {
+        console.error("reference not found for:", callElem);
+      }
+      return foundRef ? [foundRef] : [];
+    });
   });
 
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
@@ -100,27 +111,36 @@ function matchImportExportArgs(imp: ImportElem, exp: ExportElem): StringPairs {
 /** If this call element references an #export.. importing function
  * @return an ExportRef describing the export to link */
 function importingRef(
+  srcRef: FoundRef,
   callElem: CallElem,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
   let importing: ImportElem | undefined;
+  // find a matching 'importing' phrase in an #export
   const textExport = mod.exports.find((exp) => {
-    console.log("exp", exp);
     importing = exp.importing?.find((i) => i.name === callElem.call);
     return !!importing;
   });
+  // find the export for the importing
   const modExp = matchingExport(importing, mod, registry);
   if (!modExp) return;
   isDefined(importing);
   isDefined(textExport);
 
-  // how are we going to to get the original import (for its args?)
-  const origImport = null as any as ImportElem;
-  // we record it with export, but need to propogate it
-  //
+  if (srcRef.kind === "exp") {
+    const expMod = modExp.module as TextModule2;
+    const exp = modExp.export as TextExport2;
 
-  const exImpArgs = importingArgs(origImport, textExport, importing);
+    const expImpArgs = importingArgs(srcRef.fromImport, textExport, importing, exp);
+    const kind = "exp";
+    const fn = exp.ref;
+    dlog("ref\n", {expImpArgs, fn:fn.name, expMod:expMod.name })
+    return { kind, fromImport: importing, impMod: mod, expMod, expImpArgs, fn };
+  } else {
+    // prettier-ignore
+    console.error("unexpected srcRef not an export", srcRef, "for", callElem, textExport, importing);
+  }
 
   return undefined;
 }
@@ -128,18 +148,38 @@ function importingRef(
 /**
   * @return the arguments for an importing reference, mapping through the 
   * export and the original import directives.
-
+  *
+  * e.g. we're tracking a fn call that references through an 'importing':
+import1 -> export2 -> importing3 -> export4
+  * and we want to find the mapping from export4 args to import1 args
+  *
   * for example:
   *   #import foo(A, B) // import args: A,B
   *   #export foo(C, D) importing bar(D) // exporting args C,D  importing args: D
-  * we want to return mapping of D -> B for the importing clasue
-   */
+  *   #export bar(X)  // exporting
+  * we want to return mapping of X -> B for the importing clasue
+  *
+  * TODO chase the import chain to its origin, this is just one level
+  */
 function importingArgs(
   imp: ImportElem,
   exp: ExportElem,
-  importing: ImportElem
-): any {
-  const exImpArgs = importing.args ?? [];
+  importing: ImportElem,
+  importingExp: ExportElem,
+): StringPairs {
+  
+  const expImp = matchImportExportArgs(imp, exp); // C->A, D->B
+  const importingExpImp = matchImportExportArgs(importing, importingExp); // X->D
+
+  return importingExpImp.flatMap(([iExp, iImp]) => {
+    const pair = expImp.find(([expArg]) => expArg === iImp);  // D->B
+    if (!pair) {
+      console.error("importing arg not found", iExp, exp, imp);
+      return [];
+    }
+    const [, impArg] = pair;
+    return [[iExp, impArg]] as [string, string][]; // X->B
+  });
 }
 
 function isDefined<T>(a: T | undefined): asserts a is T {}

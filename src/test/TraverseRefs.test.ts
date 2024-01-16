@@ -5,7 +5,7 @@ import {
   ExportRef,
   FoundRef,
   LocalRef,
-  traverseRefs
+  traverseRefs,
 } from "../TraverseRefs.js";
 
 test("traverse nested import with params and support fn", () => {
@@ -47,4 +47,28 @@ test("traverse nested import with params and support fn", () => {
   expect(first.expImpArgs).deep.eq([["A", "u32"]]);
   expect(second.kind).toBe("fn");
   expect(second.fn.name).eq("support");
+});
+
+test("traverse importing", () => {
+  const src = `
+    #import foo(A, B)
+    fn main() {
+      foo(k, l);
+    } `;
+  const module1 = `
+    #export(C, D) importing bar(D)
+    fn foo(c:C, d:D) { bar(d); } `;
+  const module2 = `
+    #export(X)
+    fn bar(x:X) { } `;
+
+  const registry = new ModuleRegistry2(module1, module2);
+  const srcModule = parseModule2(src);
+  const refs: FoundRef[] = [];
+  traverseRefs(srcModule, registry, (ref) => {
+    refs.push(ref);
+    return true;
+  });
+  const importingRef = refs[1] as ExportRef;
+  expect(importingRef.expImpArgs).deep.eq([["X", "B"]]);
 });
