@@ -56,9 +56,7 @@ const importPhrase = seq(
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
     const named: (keyof ImportElem)[] = ["name", "from", "as", "args"];
-    const e = makeElem<ImportElem>("import", r, named, []);
-    r.app.push(e);
-    return e;
+    return makeElem<ImportElem>("import", r, named, []);
   })
   .traceName("importElem");
 
@@ -71,8 +69,14 @@ export const importing = seq(
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  tokens(directiveArgsTokens, seq(importPhrase, eol))
-).traceName("import");
+  tokens(directiveArgsTokens, seq(importPhrase.named("i"), eol))
+)
+  .map((r) => {
+    const imp: ImportElem = r.named.i[0];
+    imp.start = r.start; // use start of #import, not import phrase
+    r.app.push(imp);
+  })
+  .traceName("import");
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 // prettier-ignore
@@ -83,14 +87,14 @@ const exportDirective = seq(
     seq(
       opt(kind(a.word).named("name")), 
       opt(directiveArgs.named("args")), 
-      opt(importing.named("importing")), 
+      opt(importing), 
       eol
     )
   )
 )
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
-    const e = makeElem<ExportElem>("export", r, ["name", "importing", "args"]);
+    const e = makeElem<ExportElem>("export", r, ["name", "args"], ["importing"]);
     r.app.push(e);
   })
   .traceName("export");
