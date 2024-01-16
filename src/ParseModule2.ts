@@ -16,12 +16,8 @@ export interface TextModule2 {
   src: string;
 }
 
-export interface TextExport2 {
-  name: string;
+export interface TextExport2 extends ExportElem {
   ref: FnElem; // TODO | StructElem (| global var?)
-  exp: ExportElem;
-  args: string[];
-  importing: ImportElem[];
 }
 
 let unnamedModuleDex = 0;
@@ -48,13 +44,12 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
   parsed.forEach((elem, i) => {
     if (elem.kind === "export") {
       const next = parsed[i + 1];
-      const args = elem.args ?? [];
-      const { importing = [] } = elem;
       if (next?.kind === "fn") {
-        const { name } = next;
-        exports.push({ exp: elem, args, ref: next, name, importing });
+        exports.push({ ...elem, ref: next });
       } else {
-        console.warn(`#export what at pos: ${elem.start}? (#export not followed by fn)`);
+        console.warn(
+          `#export what at pos: ${elem.start}? (#export not followed by fn)`
+        );
       }
     }
   });
