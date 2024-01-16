@@ -77,7 +77,7 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
     if (linkName !== ref.fn.name) {
       multiKeySet(renames, ref.expMod.name, ref.fn.name, linkName);
     }
-    //
+    
     // record rename for this import in the importing module
     if (ref.impMod && linkName !== proposedName) {
       multiKeySet(renames, ref.impMod.name, proposedName, linkName);
