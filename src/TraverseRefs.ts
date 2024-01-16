@@ -82,15 +82,19 @@ function importRef(
   if (!modExp || !imp) return;
   const expMod = modExp.module as TextModule2;
   const exp = modExp.export as TextExport2;
+  const expImpArgs = matchImportExportArgs(imp, exp);
+  const kind = "exp";
+  const fn = exp.ref;
+  return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
+}
+
+function matchImportExportArgs(imp: ImportElem, exp: ExportElem): StringPairs {
   const impArgs = imp.args ?? [];
   const expArgs = exp.args ?? [];
-  const fn = exp.ref;
   if (expArgs.length !== impArgs.length) {
     console.error("mismatched import and export params", imp, exp);
   }
-  const expImpArgs: StringPairs = expArgs.map((p, i) => [p, impArgs[i]]);
-  const kind = "exp";
-  return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
+  return expArgs.map((p, i) => [p, impArgs[i]]);
 }
 
 /** If this call element references an #export.. importing function
