@@ -1,5 +1,5 @@
-import { CallElem, FnElem, ImportElem } from "./AbstractElems.js";
-import { ModuleRegistry2 } from "./ModuleRegistry2.js";
+import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
+import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
 
@@ -26,19 +26,29 @@ export interface ExportRef {
   fn: FnElem;
 }
 
+export function traverseRefs(
+  srcModule: TextModule2,
+  registry: ModuleRegistry2,
+  fn: (ref: FoundRef) => boolean
+): void {
+  const { fns } = srcModule;
+  const expMod = srcModule;
+  const refs: FoundRef[] = fns.map((fn) => ({ kind: "fn", expMod, fn }));
+  recursiveRefs(refs, srcModule, registry, fn);
+}
+
 /*
  * traversal of the wgsl src reference graph:
  *  fn -> calls -> local fn or import+export+fn
- *
  */
 export function recursiveRefs(
-  srcElems: FnElem[],
+  srcRefs: FoundRef[],
   mod: TextModule2,
   registry: ModuleRegistry2,
   fn: (ref: FoundRef) => boolean
 ): void {
-  if (!srcElems.length) return;
-  const calls = srcElems.flatMap((fn) => fn.children);
+  if (!srcRefs.length) return;
+  const calls = srcRefs.flatMap((r) => r.fn.children);
   const refs = calls.flatMap((callElem) => {
     const foundRef =
       importRef(callElem, mod, registry) ??
@@ -54,14 +64,9 @@ export function recursiveRefs(
   const results = refs.filter((r) => fn(r));
   const modGroups = groupBy(results, (r) => r.expMod);
   [...modGroups.entries()].forEach(([m, refs]) => {
-    const fnElems = refs.map((r) => r.fn);
-    recursiveRefs(fnElems, m, registry, fn);
+    recursiveRefs(refs, m, registry, fn);
   });
 }
-
-// we need to find and report 'importing' refs.
-// should we attach them to an existin ExportRef or make a new entry?
-// let's try making a new entry, and then we can handle the arg matching here
 
 /** If this call element references an #import function
  * @return an ExportRef describing the export to link */
@@ -71,25 +76,19 @@ function importRef(
   registry: ModuleRegistry2
 ): ExportRef | undefined {
   const imp = mod.imports.find((imp) => importName(imp) == callElem.call);
-  if (imp) {
-    const kind = "exp";
-
-    const modExp = registry.getModuleExport(imp.name, imp.from);
-    if (!modExp) {
-      // prettier-ignore
-      console.log( "export not found for import", imp.name, "in module:", mod.name, imp.start);
-      return;
-    }
-    const expMod = modExp.module as TextModule2;
-    const exp = modExp.export as TextExport2;
-    const impArgs = imp.args ?? [];
-    const fn = exp.ref;
-    if (exp.args.length !== impArgs.length) {
-      console.error("mismatched import and export params", imp, exp);
-    }
-    const expImpArgs: StringPairs = exp.args.map((p, i) => [p, impArgs[i]]);
-    return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
+  const modExp = matchingExport(imp, mod, registry);
+  if (!modExp || !imp) return;
+  const expMod = modExp.module as TextModule2;
+  const exp = modExp.export as TextExport2;
+  const impArgs = imp.args ?? [];
+  const expArgs = exp.args ?? [];
+  const fn = exp.ref;
+  if (expArgs.length !== impArgs.length) {
+    console.error("mismatched import and export params", imp, exp);
   }
+  const expImpArgs: StringPairs = expArgs.map((p, i) => [p, impArgs[i]]);
+  const kind = "exp";
+  return { kind, fromImport: imp, impMod: mod, expMod, expImpArgs, fn };
 }
 
 /** If this call element references an #export.. importing function
@@ -99,10 +98,59 @@ function importingRef(
   mod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
+  let importing: ImportElem | undefined;
+  const textExport = mod.exports.find((exp) => {
+    console.log("exp", exp);
+    importing = exp.importing?.find((i) => i.name === callElem.call);
+    return !!importing;
+  });
+  const modExp = matchingExport(importing, mod, registry);
+  if (!modExp) return;
+  isDefined(importing);
+  isDefined(textExport);
+
+  // how are we going to to get the original import (for its args?)
+  const origImport = null as any as ImportElem;
+  // we record it with export, but need to propogate it
+  //
+
+  const exImpArgs = importingArgs(origImport, textExport, importing);
+
   return undefined;
-  // mod.exports.find(e => {
-  //   e.importing.find(i => i.importing === )
-  // })
+}
+
+/**
+  * @return the arguments for an importing reference, mapping through the 
+  * export and the original import directives.
+
+  * for example:
+  *   #import foo(A, B) // import args: A,B
+  *   #export foo(C, D) importing bar(D) // exporting args C,D  importing args: D
+  * we want to return mapping of D -> B for the importing clasue
+   */
+function importingArgs(
+  imp: ImportElem,
+  exp: ExportElem,
+  importing: ImportElem
+): any {
+  const exImpArgs = importing.args ?? [];
+}
+
+function isDefined<T>(a: T | undefined): asserts a is T {}
+
+function matchingExport(
+  imp: ImportElem | undefined,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): ModuleExport2 | undefined {
+  if (!imp) return;
+
+  const modExp = registry.getModuleExport(imp.name, imp.from);
+  if (!modExp) {
+    // prettier-ignore
+    console.log( "export not found for import", imp.name, "in module:", mod.name, imp.start);
+  }
+  return modExp;
 }
 
 function localRef(

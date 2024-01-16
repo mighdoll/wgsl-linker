@@ -1,7 +1,7 @@
 import { FnElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
-import { BothRefs, FoundRef, recursiveRefs } from "./TraverseRefs.js";
+import { BothRefs, FoundRef, recursiveRefs, traverseRefs } from "./TraverseRefs.js";
 import { grouped, multiKeySet, replaceTokens3 } from "./Util.js";
 
 export function linkWgsl3(
@@ -25,7 +25,7 @@ function findReferences(
 ): FoundRef[] {
   const visited = new Set<string>();
   const found: FoundRef[] = [];
-  recursiveRefs(srcModule.fns, srcModule, registry, handleRef);
+  traverseRefs(srcModule, registry, handleRef);
 
   function handleRef(ref: FoundRef): boolean {
     const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
