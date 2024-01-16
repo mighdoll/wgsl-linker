@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { parseModule2 } from "../ParseModule2.js";
 
-test("read simple fn export", () => {
+test("simple fn export", () => {
   const src = `
     // #export
     fn one() -> i32 {
@@ -9,17 +9,18 @@ test("read simple fn export", () => {
     }
   `;
   const module = parseModule2(src, "my.module");
+  console.log(module.exports);
   expect(module.exports.length).toBe(1);
-  expect(module.exports[0].name).toBe("one");
   expect(module).toMatchSnapshot();
 });
 
-test("read simple #fn import", () => {
+test("simple fn import", () => {
   const src = `
     // #import foo
     fn bar() { foo(); }
   `;
   const module = parseModule2(src, "my.module");
+  console.log(module);
   expect(module.imports.length).toBe(1);
   expect(module.imports[0].name).toBe("foo");
   expect(module).toMatchSnapshot();

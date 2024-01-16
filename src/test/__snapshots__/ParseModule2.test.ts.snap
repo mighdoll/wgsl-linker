@@ -1,6 +1,42 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`read simple #fn import 1`] = `
+exports[`simple fn export 1`] = `
+{
+  "exports": [
+    {
+      "end": 16,
+      "kind": "export",
+      "ref": {
+        "children": [],
+        "end": 59,
+        "kind": "fn",
+        "name": "one",
+        "start": 16,
+      },
+      "start": 7,
+    },
+  ],
+  "fns": [
+    {
+      "children": [],
+      "end": 59,
+      "kind": "fn",
+      "name": "one",
+      "start": 16,
+    },
+  ],
+  "imports": [],
+  "name": "my.module",
+  "src": "
+    // #export
+    fn one() -> i32 {
+      return 1;
+    }
+  ",
+}
+`;
+
+exports[`simple fn import 1`] = `
 {
   "exports": [],
   "fns": [
@@ -24,54 +60,13 @@ exports[`read simple #fn import 1`] = `
       "end": 19,
       "kind": "import",
       "name": "foo",
-      "start": 15,
+      "start": 7,
     },
   ],
   "name": "my.module",
   "src": "
     // #import foo
     fn bar() { foo(); }
-  ",
-}
-`;
-
-exports[`read simple fn export 1`] = `
-{
-  "exports": [
-    {
-      "args": [],
-      "exp": {
-        "end": 16,
-        "kind": "export",
-        "start": 7,
-      },
-      "importing": [],
-      "name": "one",
-      "ref": {
-        "children": [],
-        "end": 59,
-        "kind": "fn",
-        "name": "one",
-        "start": 16,
-      },
-    },
-  ],
-  "fns": [
-    {
-      "children": [],
-      "end": 59,
-      "kind": "fn",
-      "name": "one",
-      "start": 16,
-    },
-  ],
-  "imports": [],
-  "name": "my.module",
-  "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
   ",
 }
 `;

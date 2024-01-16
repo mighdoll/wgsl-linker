@@ -18,6 +18,7 @@ test("simple #import", () => {
   `;
   const registry = new ModuleRegistry2(myModule);
   const linked = linkWgsl3(src, registry);
+  console.log(linked);
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
   expect(linked).not.includes("#export");
@@ -203,6 +204,7 @@ test("multiple exports from the same module", () => {
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
+  dlog(linked);
   expect(linked).toMatchSnapshot();
 });
 
@@ -300,10 +302,10 @@ test("#import support fn from two exports", () => {
   expect([...supportMatch].length).toBe(3);
 });
 
-test.only("#export importing", () => {
+test("#export importing", () => {
   const module1 = `
-    #export(A, B) importing bar(A)
-    fn foo(a:A, b:B) { bar(a); }
+    #export(A, B) importing bar(B)
+    fn foo(a:A, b:B) { bar(b:B); }
 
   `;
   const module2 = `
@@ -319,9 +321,9 @@ test.only("#export importing", () => {
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
   console.log("linked", linked);
-  expect(linked).contains("fn bar(k)");
+  expect(linked).contains("fn bar(b:L)");
 });
-//
+
 // TODO test importing a struct constructor
 test.skip("import fn with support struct constructor", () => {
   const src = `

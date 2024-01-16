@@ -3,6 +3,8 @@
 exports[`multiple exports from the same module 1`] = `
 "
 
+
+
     fn main() {
       foo();
       bar();

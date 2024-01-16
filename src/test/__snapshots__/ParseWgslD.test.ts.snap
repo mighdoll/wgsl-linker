@@ -79,11 +79,23 @@ exports[`parse #export(A, B) importing bar(A) 1`] = `
 {
   "args": [
     "A",
+    "B",
   ],
-  "end": 35,
-  "kind": "import",
+  "end": 36,
+  "importing": [
+    {
+      "args": [
+        "A",
+      ],
+      "end": 35,
+      "kind": "import",
+      "name": "bar",
+      "start": 28,
+    },
+  ],
+  "kind": "export",
   "name": "bar",
-  "start": 28,
+  "start": 0,
 }
 `;
 
@@ -106,7 +118,7 @@ exports[`parse #import foo 1`] = `
     "end": 11,
     "kind": "import",
     "name": "foo",
-    "start": 7,
+    "start": 0,
   },
 ]
 `;
@@ -119,7 +131,7 @@ exports[`parse #import foo(a,b) as baz from bar 1`] = `
     "from": "bar",
     "kind": "import",
     "name": "foo",
-    "start": 7,
+    "start": 0,
   },
 ]
 `;

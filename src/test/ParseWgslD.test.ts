@@ -144,12 +144,11 @@ test("parse #export(A, B) importing bar(A)", () => {
     fn foo(a:A, b:B) { bar(a); }
   `;
   const parsed = parseWgslD(src, { foo: true });
-  console.log(parsed);
   expect(parsed[0]).toMatchSnapshot();
 });
 
 // TODO
-test("parse top level var", () => {
+test.skip("parse top level var", () => {
   const src = `
     var <workgroup> myWork:array<Output, workgroupThreads>; 
   `

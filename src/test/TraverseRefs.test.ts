@@ -5,7 +5,7 @@ import {
   ExportRef,
   FoundRef,
   LocalRef,
-  recursiveRefs,
+  traverseRefs
 } from "../TraverseRefs.js";
 
 test("traverse nested import with params and support fn", () => {
@@ -37,7 +37,7 @@ test("traverse nested import with params and support fn", () => {
   const srcModule = parseModule2(src);
 
   const refs: FoundRef[] = [];
-  recursiveRefs(srcModule.fns, srcModule, registry, (ref) => {
+  traverseRefs(srcModule, registry, (ref) => {
     refs.push(ref);
     return true;
   });
