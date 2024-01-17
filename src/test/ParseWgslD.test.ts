@@ -213,11 +213,14 @@ test("parse and ignore const_assert", () => {
   });
 });
 
-// TODO
-test.skip("parse top level var", () => {
+test("parse top level var", () => {
   const src = `
-    var <workgroup> myWork:array<Output, workgroupThreads>; 
+    @group(0) @binding(0) var<uniform> u: Uniforms;      
+
+    fn main() {}
   `;
-  const parsed = parseWgslD(src);
-  console.log(parsed);
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
 });

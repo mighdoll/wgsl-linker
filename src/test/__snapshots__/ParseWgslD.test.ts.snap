@@ -245,6 +245,18 @@ exports[`parse struct 1`] = `
 ]
 `;
 
+exports[`parse top level var 1`] = `
+[
+  {
+    "children": [],
+    "end": 76,
+    "kind": "fn",
+    "name": "main",
+    "start": 52,
+  },
+]
+`;
+
 exports[`wordNumArgs parses (a, b, 1) 1`] = `
 [
   "a",

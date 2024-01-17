@@ -38,16 +38,18 @@ const l = lineCommentTokens;
 
 const eol = or("\n", eof());
 
+const unknown = any().map((r) => logErr("???", r.value, r.start));
+
 // prettier-ignore
-const ignoreComment = seq(
+const skipLineComment = seq(
   "//",
   tokens(lineCommentTokens, seq(
     repeat(
       seq(not(eol), any())
     ), eol)
   )
-);
-const comment = opt(ignoreComment); // LATER block comments too
+).traceName("skipLineComment");
+const comment = opt(skipLineComment); // LATER block comments too
 
 /** ( <a> <,b>* ) */
 const wordArgs: ParserStage<string[]> = seq(
@@ -88,11 +90,18 @@ function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
   return seq(...newArgs);
 }
 
+function anyUntil(arg: ParserStageArg<any>): ParserStage<any> {
+  return seq(
+    repeat(seqWithComments(not(arg), any())),
+    arg
+  );
+}
+
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),
-  repeat(seqWithComments(not(";"), any())),
-  ";"
+  anyUntil(";")
 );
+
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
@@ -235,7 +244,7 @@ export const fnCall = seq(
   "("
 );
 
-const attribute = seq(kind(m.attr), opt(wordNumArgs));
+const attributes = repeat(seq(kind(m.attr), opt(wordNumArgs)));
 
 const block: ParserStage<any> = seq(
   "{",
@@ -251,7 +260,7 @@ const block: ParserStage<any> = seq(
 ).traceName("block");
 
 export const fnDecl = seq(
-  repeat(attribute),
+  attributes,
   "fn",
   kind(a.word).named("name"),
   "(",
@@ -265,17 +274,21 @@ export const fnDecl = seq(
     r.app.push(fn);
   });
 
-const unknown = any().map((r) => logErr("???", r.value, r.start));
+const globalVarDecl = seq(
+  attributes,
+  "var",
+  anyUntil(";")
+).traceName("globalVarDecl");
 
 const globalDecl = or(
   ";",
-  // globalVarDecl
+  globalVarDecl,
   // globalValDecl
   // typeAliasDecl
   structDecl,
-  fnDecl,
+  fnDecl
   // const assert decl
-)
+);
 
 const rootDecl = or(
   globalDirectiveOrAssert,
@@ -284,7 +297,6 @@ const rootDecl = or(
   directive,
   unknown
 );
-
 
 const root = seq(repeat(rootDecl), eof());
 
