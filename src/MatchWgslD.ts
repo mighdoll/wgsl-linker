@@ -36,7 +36,7 @@ function makeSymbols(syms: string): RegExp {
 export const mainTokens = tokenMatcher(
   {
     directive,
-    annotation: /@[a-zA-Z_]\w*/,
+    attr: /@[a-zA-Z_]\w*/,
     word,
     symbol: makeSymbols(symbolSet),
     ws: /\s+/,

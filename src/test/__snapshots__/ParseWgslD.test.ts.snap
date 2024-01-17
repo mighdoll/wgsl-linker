@@ -136,6 +136,30 @@ exports[`parse #import foo(a,b) as baz from bar 1`] = `
 ]
 `;
 
+exports[`parse @attribute before fn 1`] = `
+[
+  {
+    "children": [],
+    "end": 31,
+    "kind": "fn",
+    "name": "main",
+    "start": 0,
+  },
+]
+`;
+
+exports[`parse @workgroup_size(a, b, 1) before fn 1`] = `
+[
+  {
+    "children": [],
+    "end": 47,
+    "kind": "fn",
+    "name": "main",
+    "start": 29,
+  },
+]
+`;
+
 exports[`parse empty string 1`] = `[]`;
 
 exports[`parse fn foo() { } 1`] = `

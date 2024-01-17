@@ -187,6 +187,8 @@ export const fnCall = seq(
   "("
 );
 
+const attribute = seq(kind(m.attr), opt(directiveArgs))
+
 const block: ParserStage<any> = seq(
   "{",
   repeat(
@@ -201,6 +203,7 @@ const block: ParserStage<any> = seq(
 ).traceName("block");
 
 export const fnDecl = seq(
+  repeat(attribute),
   "fn",
   kind(a.word).named("name"),
   "(",

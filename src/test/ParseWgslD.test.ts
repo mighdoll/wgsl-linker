@@ -147,6 +147,25 @@ test("parse #export(A, B) importing bar(A)", () => {
   expect(parsed[0]).toMatchSnapshot();
 });
 
+test.only("parse @attribute before fn", () => {
+  const src = `
+    @compute 
+    fn main() {}
+    `
+  const parsed = parseWgslD(src);
+  expect(parsed).toMatchSnapshot();
+});
+
+test.skip("parse @workgroup_size(a, b, 1) before fn", () => {
+  const src = `
+    @workgroup_size(a, b, 1) 
+    fn main() {}
+    `
+  const parsed = parseWgslD(src);
+  expect(parsed).toMatchSnapshot();
+});
+
+
 // TODO
 test.skip("parse top level var", () => {
   const src = `
@@ -155,3 +174,4 @@ test.skip("parse top level var", () => {
   const parsed = parseWgslD(src);
   console.log(parsed);
 });
+
