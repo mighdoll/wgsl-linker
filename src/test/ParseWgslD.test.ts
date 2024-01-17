@@ -5,7 +5,6 @@ import {
   importing,
   lineComment,
   parseWgslD,
-  skipBlockComment,
   wordNumArgs,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
@@ -14,6 +13,7 @@ import { enableTracing } from "../ParserTracing.js";
 import { dlog } from "berry-pretty";
 import { logCatch } from "./LogCatcher.js";
 import { _withErrLogger } from "../TraverseRefs.js";
+import { skipBlockComment } from "../ParseSupport.js";
 enableTracing();
 
 test("parse empty string", () => {
