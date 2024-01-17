@@ -163,6 +163,20 @@ test("wordNumArgs parses (a, b, 1)", () => {
   expect(parsed?.value).toMatchSnapshot();
 });
 
+test("wordNumArgs parses (a, b, 1) with line comments everywhere", () => {
+  const src = `(
+    // aah
+    a, 
+    // boh
+    b, 
+    // oneness
+    1
+    // satsified
+    )`
+  const {parsed} = testParse(wordNumArgs, src);
+  expect(parsed?.value).toMatchSnapshot();
+});
+
 test("parse @compute @workgroup_size(a, b, 1) before fn", () => {
   const src = `
     @compute 

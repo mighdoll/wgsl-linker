@@ -37,6 +37,17 @@ const l = lineCommentTokens;
 
 const eol = or("\n", eof());
 
+// prettier-ignore
+const ignoreComment = seq(
+  "//",
+  tokens(lineCommentTokens, seq(
+    repeat(
+      seq(not(eol), any())
+    ), eol)
+  )
+);
+const comment = opt(ignoreComment); // LATER block comments too
+
 /** ( <a> <,b>* ) */
 const wordArgs: ParserStage<string[]> = seq(
   "(",
@@ -48,19 +59,24 @@ const wordArgs: ParserStage<string[]> = seq(
 
 const wordNum = or(kind(a.word), kind(a.digits));
 
-export const wordNumArgs: ParserStage<string[]> = seq("(", withSep(",", wordNum), ")")
+export const wordNumArgs: ParserStage<string[]> = seq(
+  "(",
+  withSep(",", wordNum),
+  ")"
+)
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
-
-const comment = opt(fn(() => lineComment)); // LATER block comments too
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 function withSep<T>(
   sep: ParserStageArg<any>,
   p: ParserStage<T>
 ): ParserStage<T[]> {
-  // TODO add optional comments
-  return seq(p.named("elem"), repeat(seq(sep, p.named("elem"))))
+  return seq(
+    comment,
+    p.named("elem"),
+    repeat(seq(comment, sep, comment, p.named("elem"), comment))
+  )
     .map((r) => r.named.elem as T[])
     .traceName("withSep");
 }

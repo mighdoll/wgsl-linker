@@ -240,3 +240,11 @@ exports[`wordNumArgs parses (a, b, 1) 1`] = `
   "1",
 ]
 `;
+
+exports[`wordNumArgs parses (a, b, 1) with line comments everywhere 1`] = `
+[
+  "a",
+  "b",
+  "1",
+]
+`;
