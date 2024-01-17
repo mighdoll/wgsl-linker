@@ -273,6 +273,25 @@ exports[`parse top level var 1`] = `
 ]
 `;
 
+exports[`skipBlockComment parses /* comment */ 1`] = `
+{
+  "named": {},
+  "value": [
+    "/*",
+    [
+      [
+        true,
+        {
+          "kind": "word",
+          "text": "comment",
+        },
+      ],
+    ],
+    "*/",
+  ],
+}
+`;
+
 exports[`wordNumArgs parses (a, b, 1) 1`] = `
 [
   "a",

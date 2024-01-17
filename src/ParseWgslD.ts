@@ -49,6 +49,18 @@ const skipLineComment = seq(
     ), eol)
   )
 ).traceName("skipLineComment");
+
+export const skipBlockComment: ParserStage<any> = seq(
+  "/*",
+  repeat(
+    or(
+      fn(() => skipBlockComment),
+      seq(not("*/"), any())
+    )
+  ),
+  "*/"
+);
+
 const comment = opt(skipLineComment); // LATER block comments too
 
 /** ( <a> <,b>* ) */
@@ -91,17 +103,13 @@ function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
 }
 
 function anyUntil(arg: ParserStageArg<any>): ParserStage<any> {
-  return seq(
-    repeat(seqWithComments(not(arg), any())),
-    arg
-  );
+  return seq(repeat(seqWithComments(not(arg), any())), arg);
 }
 
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),
   anyUntil(";")
 );
-
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
@@ -274,19 +282,13 @@ export const fnDecl = seq(
     r.app.push(fn);
   });
 
-
 const globalValVarOrAlias = seq(
   attributes,
   or("const", "override", "var", "alias"),
   anyUntil(";")
 );
 
-const globalDecl = or(
-  fnDecl,
-  globalValVarOrAlias,
-  ";",
-  structDecl,
-);
+const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl);
 
 const rootDecl = or(
   globalDirectiveOrAssert,

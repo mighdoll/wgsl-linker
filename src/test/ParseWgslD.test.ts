@@ -5,6 +5,7 @@ import {
   importing,
   lineComment,
   parseWgslD,
+  skipBlockComment,
   wordNumArgs,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
@@ -255,3 +256,12 @@ test("parse alias", () => {
     expect(parsed).toMatchSnapshot();
   });
 });
+
+
+test.only("skipBlockComment parses /* comment */", () => {
+  const src = "/* comment */"
+  expectNoLogErr(() => {
+    const {parsed} = testParse(skipBlockComment, src);
+    expect(parsed).toMatchSnapshot();
+  });
+})
