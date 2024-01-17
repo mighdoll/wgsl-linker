@@ -1,5 +1,4 @@
 import { declAdd, globalDeclarations, resolveNameConflicts } from "./Declarations.js";
-import { linkWgsl2 } from "./Linker2.js";
 import { linkWgsl3 } from "./Linker3.js";
 import { ModuleRegistry, TextModuleExport } from "./ModuleRegistry.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
