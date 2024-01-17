@@ -237,3 +237,12 @@ test("parse top level override and const", () => {
     expect(parsed).toMatchSnapshot();
   });
 });
+
+test("parse root level ;;", ()=> {
+  const src = ";;"
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
+  
+})

@@ -293,7 +293,6 @@ const globalDecl = or(
   // typeAliasDecl
   structDecl,
   fnDecl
-  // const assert decl
 );
 
 const rootDecl = or(

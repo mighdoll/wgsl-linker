@@ -235,6 +235,8 @@ exports[`parse fn with line comment 1`] = `
 ]
 `;
 
+exports[`parse root level ;; 1`] = `[]`;
+
 exports[`parse struct 1`] = `
 [
   {
