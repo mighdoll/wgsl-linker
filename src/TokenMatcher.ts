@@ -65,6 +65,11 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
       const kind = groups[groupDex];
       const text = src.slice(startEnd[0], startEnd[1]);
       const token = { kind, text };
+      if (startPos != startEnd[0]) {
+        console.warn(
+          `skipped '${src.slice(startPos, startEnd[0])}' to get to: '${text}' at ${startPos}`
+        );
+      }
       cache.set(startPos, token);
       return token;
     }
