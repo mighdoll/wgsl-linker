@@ -1,24 +1,6 @@
 import { escapeRegex, tokenMatcher } from "./TokenMatcher.js";
 
-/** token matchers for parts of wgsl with #directives */
-
-/*
-syntax we aim to parse:
-
-#import name <(arg1, arg2)> <from moduleName> <as rename>
-#export <name> <(arg1, arg2)>
-#replace 128=workgroupSize 
-// 
-/* * /
-
-fn decl() 
-struct decl { }
-
-fnCall()
-StructConstruct()
-: StructType
-<Struct, ...>  
-*/
+/** token matchers for wgsl with #directives */
 
 const directive = /#[a-zA-Z_]\w*/;
 const word = /[a-zA-Z_]\w*/;
@@ -26,7 +8,7 @@ const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
-function makeSymbols(syms: string): RegExp {
+function matchOneOf(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
   const escaped = symbolList.map(escapeRegex);
   return new RegExp(escaped.join("|"));
@@ -38,7 +20,7 @@ export const mainTokens = tokenMatcher(
     directive,
     attr: /@[a-zA-Z_]\w*/,
     word,
-    symbol: makeSymbols(symbolSet),
+    symbol: matchOneOf(symbolSet),
     ws: /\s+/,
   },
   "main"
@@ -62,7 +44,7 @@ export const directiveArgsTokens = tokenMatcher(
   {
     word,
     digits: /[0-9]+/,
-    symbol: makeSymbols("( ) , = !"),
+    symbol: matchOneOf("( ) , = !"),
     ws: /[ \t]+/,
     eol,
   },
