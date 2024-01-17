@@ -52,10 +52,14 @@ export const wordNumArgs: ParserStage<string[]> = seq("(", withSep(",", wordNum)
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
 
+const comment = opt(fn(() => lineComment)); // LATER block comments too
+
+/** match an optional series of elements separated by a delimiter (e.g. a comma) */
 function withSep<T>(
   sep: ParserStageArg<any>,
   p: ParserStage<T>
 ): ParserStage<T[]> {
+  // TODO add optional comments
   return seq(p.named("elem"), repeat(seq(sep, p.named("elem"))))
     .map((r) => r.named.elem as T[])
     .traceName("withSep");
@@ -113,6 +117,7 @@ const exportDirective = seq(
     r.app.push(e);
   })
   .traceName("export");
+
 const ifDirective: ParserStage<any> = seq(
   "#if",
   tokens(
@@ -161,7 +166,6 @@ export const directive = or(
   elseDirective,
   endifDirective
 ).traceName("directive or");
-// .trace();
 
 /** // <#import|#export|any> */
 export const lineComment = seq(
@@ -202,7 +206,7 @@ export const fnCall = seq(
   "("
 );
 
-const attribute = seq(kind(m.attr), opt(directiveArgs))
+const attribute = seq(kind(m.attr), opt(wordNumArgs));
 
 const block: ParserStage<any> = seq(
   "{",

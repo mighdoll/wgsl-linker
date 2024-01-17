@@ -163,13 +163,14 @@ test("wordNumArgs parses (a, b, 1)", () => {
   expect(parsed?.value).toMatchSnapshot();
 });
 
-test.skip("parse @workgroup_size(a, b, 1) before fn", () => {
+test("parse @compute @workgroup_size(a, b, 1) before fn", () => {
   const src = `
+    @compute 
     @workgroup_size(a, b, 1) 
     fn main() {}
     `
   const parsed = parseWgslD(src);
-  console.log(parsed)
+  expect(parsed).toMatchSnapshot();
 });
 
 
