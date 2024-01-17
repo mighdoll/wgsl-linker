@@ -187,6 +187,16 @@ test("parse @compute @workgroup_size(a, b, 1) before fn", () => {
   expect(parsed).toMatchSnapshot();
 });
 
+test("parse and ignore global diagnostic", () => {
+  const src = `
+    diagnostic(off,derivative_uniformity);
+
+    fn main() {}
+    `
+  const parsed = parseWgslD(src);
+  expect(parsed).toMatchSnapshot();
+});
+
 
 // TODO
 test.skip("parse top level var", () => {

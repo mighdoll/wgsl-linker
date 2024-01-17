@@ -75,11 +75,23 @@ function withSep<T>(
   return seq(
     comment,
     p.named("elem"),
-    repeat(seq(comment, sep, comment, p.named("elem"), comment))
+    repeat(seqWithComments(sep, p.named("elem")))
   )
     .map((r) => r.named.elem as T[])
     .traceName("withSep");
 }
+
+function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
+  const commentsAfter = args.flatMap((a) => [a, comment]);
+  const newArgs = [comment, ...commentsAfter];
+  return seq(...newArgs);
+}
+
+const globalDirective = seqWithComments(
+  or("diagnostic", "enable", "requires"),
+  repeat(seqWithComments(not(";"), any())),
+  ";"
+);
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
@@ -254,7 +266,24 @@ export const fnDecl = seq(
 
 const unknown = any().map((r) => console.warn("???", r.value, r.start));
 
-const rootDecl = or(fnDecl, directive, structDecl, lineComment, unknown);
+const globalDecl = or(
+  ";",
+  // globalVarDecl
+  // globalValDecl
+  // typeAliasDecl
+  structDecl,
+  fnDecl,
+  // fnDecl
+)
+
+const rootDecl = or(
+  globalDirective,
+  globalDecl,
+  lineComment,
+  directive,
+  unknown
+);
+
 
 const root = seq(repeat(rootDecl), eof());
 

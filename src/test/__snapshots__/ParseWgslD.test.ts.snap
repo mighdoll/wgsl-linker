@@ -172,6 +172,18 @@ exports[`parse @workgroup_size(a, b, 1) before fn 1`] = `
 ]
 `;
 
+exports[`parse and ignore global diagnostic 1`] = `
+[
+  {
+    "children": [],
+    "end": 61,
+    "kind": "fn",
+    "name": "main",
+    "start": 43,
+  },
+]
+`;
+
 exports[`parse empty string 1`] = `[]`;
 
 exports[`parse fn foo() { } 1`] = `
