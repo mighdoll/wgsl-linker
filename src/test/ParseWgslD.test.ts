@@ -238,11 +238,20 @@ test("parse top level override and const", () => {
   });
 });
 
-test("parse root level ;;", ()=> {
-  const src = ";;"
+test("parse root level ;;", () => {
+  const src = ";;";
   expectNoLogErr(() => {
     const parsed = parseWgslD(src);
     expect(parsed).toMatchSnapshot();
   });
-  
-})
+});
+
+test("parse alias", () => {
+  const src = `
+    alias RTArr = array<vec4<f32>>;
+  `;
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
+});

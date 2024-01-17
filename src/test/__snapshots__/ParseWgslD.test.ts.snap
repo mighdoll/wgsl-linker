@@ -160,6 +160,8 @@ exports[`parse @compute @workgroup_size(a, b, 1) before fn 1`] = `
 ]
 `;
 
+exports[`parse alias 1`] = `[]`;
+
 exports[`parse and ignore const_assert 1`] = `
 [
   {

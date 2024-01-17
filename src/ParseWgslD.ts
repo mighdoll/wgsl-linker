@@ -274,25 +274,18 @@ export const fnDecl = seq(
     r.app.push(fn);
   });
 
-const globalVarDecl = seq(
-  attributes,
-  "var",
-  anyUntil(";")
-).traceName("globalVarDecl");
 
-const globalValDecl = seq(
+const globalValVarOrAlias = seq(
   attributes,
-  or("const", "override"),
+  or("const", "override", "var", "alias"),
   anyUntil(";")
-).traceName("globalValDecl");
+);
 
 const globalDecl = or(
+  fnDecl,
+  globalValVarOrAlias,
   ";",
-  globalVarDecl,
-  globalValDecl,
-  // typeAliasDecl
   structDecl,
-  fnDecl
 );
 
 const rootDecl = or(
