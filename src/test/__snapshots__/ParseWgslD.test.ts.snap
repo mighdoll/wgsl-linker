@@ -160,14 +160,14 @@ exports[`parse @compute @workgroup_size(a, b, 1) before fn 1`] = `
 ]
 `;
 
-exports[`parse @workgroup_size(a, b, 1) before fn 1`] = `
+exports[`parse and ignore const_assert 1`] = `
 [
   {
     "children": [],
-    "end": 47,
+    "end": 42,
     "kind": "fn",
     "name": "main",
-    "start": 29,
+    "start": 24,
   },
 ]
 `;

@@ -88,8 +88,8 @@ function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
   return seq(...newArgs);
 }
 
-const globalDirective = seqWithComments(
-  or("diagnostic", "enable", "requires"),
+const globalDirectiveOrAssert = seqWithComments(
+  or("diagnostic", "enable", "requires", "const_assert"),
   repeat(seqWithComments(not(";"), any())),
   ";"
 );
@@ -274,11 +274,11 @@ const globalDecl = or(
   // typeAliasDecl
   structDecl,
   fnDecl,
-  // fnDecl
+  // const assert decl
 )
 
 const rootDecl = or(
-  globalDirective,
+  globalDirectiveOrAssert,
   globalDecl,
   lineComment,
   directive,

@@ -7,10 +7,12 @@ import {
   parseWgslD,
   wordNumArgs,
 } from "../ParseWgslD.js";
-import { testParse } from "./TestParse.js";
+import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import { enableTracing } from "../ParserTracing.js";
 import { dlog } from "berry-pretty";
+import { logCatch } from "./LogCatcher.js";
+import { _withErrLogger } from "../TraverseRefs.js";
 enableTracing();
 
 test("parse empty string", () => {
@@ -152,14 +154,14 @@ test("parse @attribute before fn", () => {
   const src = `
     @compute 
     fn main() {}
-    `
+    `;
   const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
 
 test("wordNumArgs parses (a, b, 1)", () => {
-  const src = `(a, b, 1)`
-  const {parsed} = testParse(wordNumArgs, src);
+  const src = `(a, b, 1)`;
+  const { parsed } = testParse(wordNumArgs, src);
   expect(parsed?.value).toMatchSnapshot();
 });
 
@@ -172,8 +174,8 @@ test("wordNumArgs parses (a, b, 1) with line comments everywhere", () => {
     // oneness
     1
     // satsified
-    )`
-  const {parsed} = testParse(wordNumArgs, src);
+    )`;
+  const { parsed } = testParse(wordNumArgs, src);
   expect(parsed?.value).toMatchSnapshot();
 });
 
@@ -182,7 +184,7 @@ test("parse @compute @workgroup_size(a, b, 1) before fn", () => {
     @compute 
     @workgroup_size(a, b, 1) 
     fn main() {}
-    `
+    `;
   const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
@@ -192,18 +194,30 @@ test("parse and ignore global diagnostic", () => {
     diagnostic(off,derivative_uniformity);
 
     fn main() {}
-    `
-  const parsed = parseWgslD(src);
-  expect(parsed).toMatchSnapshot();
+    `;
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
 });
 
+test("parse and ignore const_assert", () => {
+  const src = `
+    const_assert x < y;
+
+    fn main() {}
+    `;
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
+});
 
 // TODO
 test.skip("parse top level var", () => {
   const src = `
     var <workgroup> myWork:array<Output, workgroupThreads>; 
-  `
+  `;
   const parsed = parseWgslD(src);
   console.log(parsed);
 });
-
