@@ -9,7 +9,6 @@ test("simple fn export", () => {
     }
   `;
   const module = parseModule2(src, "my.module");
-  console.log(module.exports);
   expect(module.exports.length).toBe(1);
   expect(module).toMatchSnapshot();
 });
@@ -20,7 +19,6 @@ test("simple fn import", () => {
     fn bar() { foo(); }
   `;
   const module = parseModule2(src, "my.module");
-  console.log(module);
   expect(module.imports.length).toBe(1);
   expect(module.imports[0].name).toBe("foo");
   expect(module).toMatchSnapshot();
