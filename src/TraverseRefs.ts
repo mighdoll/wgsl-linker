@@ -46,6 +46,20 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
+let logErr = console.error;
+
+/** use temporary logger for tests */
+export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
+  const orig = logErr;
+  try {
+    logErr = logFn;
+    return fn();
+  } finally {
+    logErr = orig;
+  }
+}
+
+
 export function traverseRefs(
   srcModule: TextModule2,
   registry: ModuleRegistry2,
@@ -76,7 +90,7 @@ export function recursiveRefs(
         importingRef(srcRef, callElem, mod, registry) ??
         localRef(callElem, mod, registry);
       if (!foundRef) {
-        console.error("reference not found for:", callElem);
+        logErr("reference not found for:", callElem);
       }
       return foundRef ? [foundRef] : [];
     });
@@ -118,7 +132,7 @@ function matchImportExportArgs(imp: ImportElem, exp: ExportElem): StringPairs {
   const impArgs = imp.args ?? [];
   const expArgs = exp.args ?? [];
   if (expArgs.length !== impArgs.length) {
-    console.error("mismatched import and export params", imp, exp);
+    logErr("mismatched import and export params", imp, exp);
   }
   return expArgs.map((p, i) => [p, impArgs[i]]);
 }
@@ -158,7 +172,7 @@ function importingRef(
     };
   } else {
     // prettier-ignore
-    console.error("unexpected srcRef not an export", srcRef, "for", callElem, textExport, fromImport);
+    logErr("unexpected srcRef not an export", srcRef, "for", callElem, textExport, fromImport);
   }
 
   return undefined;
@@ -177,31 +191,27 @@ function importingRef(
  *   #export foo(C, D) importing bar(D)
  *   #export bar(X)
  * we want to return mapping of X -> B for the importing clasue
+ *
+ * @param imp - the importing clause
+ * @param exp - export matching the importing clause
+ * @param srcRef - reference that led us to this import
  */
 function importingArgs(
-  /** importing clause */
   imp: ImportElem,
-
-  /**  export matching for importing clause */
   exp: ExportElem,
-
-  /** reference that led us to this import */
-  srcRef: FoundRef
+  srcRef: ExportRef
 ): StringPairs {
   const expImp = matchImportExportArgs(imp, exp); // X -> D
-  if (srcRef.kind === "exp") {
-    const srcExpImp = srcRef.expImpArgs;
-    return expImp.flatMap(([iExp, iImp]) => {
-      const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
-      if (!pair) {
-        console.error("importing arg doesn't match", imp, exp, srcRef);
-        return [];
-      }
-      const [, impArg] = pair;
-      return [[iExp, impArg]] as [string, string][]; // X -> B
-    });
-  }
-  return [];
+  const srcExpImp = srcRef.expImpArgs;
+  return expImp.flatMap(([iExp, iImp]) => {
+    const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
+    if (!pair) {
+      logErr("importing arg doesn't match", imp, exp, srcRef);
+      return [];
+    }
+    const [, impArg] = pair;
+    return [[iExp, impArg]] as [string, string][]; // X -> B
+  });
 }
 
 function isDefined<T>(a: T | undefined): asserts a is T {}
@@ -216,7 +226,7 @@ function matchingExport(
   const modExp = registry.getModuleExport(imp.name, imp.from);
   if (!modExp) {
     // prettier-ignore
-    console.log( "export not found for import", imp.name, "in module:", mod.name, imp.start);
+    logErr( "export not found for import", imp.name, "in module:", mod.name, imp.start);
   }
   return modExp;
 }
