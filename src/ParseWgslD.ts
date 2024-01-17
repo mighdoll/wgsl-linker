@@ -46,10 +46,11 @@ const wordArgs: ParserStage<string[]> = seq(
   .map((r) => r.value[1])
   .traceName("wordArgs");
 
-const wordNum = or(a.word, a.digits);
-  ")"
-)
-  .map((r) => r.named.words as string[])
+const wordNum = or(kind(a.word), kind(a.digits));
+
+export const wordNumArgs: ParserStage<string[]> = seq("(", withSep(",", wordNum), ")")
+  .map((r) => r.value[1])
+  .traceName("wordNumArgs");
 
 function withSep<T>(
   sep: ParserStageArg<any>,

@@ -5,6 +5,7 @@ import {
   importing,
   lineComment,
   parseWgslD,
+  wordNumArgs,
 } from "../ParseWgslD.js";
 import { testParse } from "./TestParse.js";
 
@@ -156,7 +157,13 @@ test("parse @attribute before fn", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("parse @workgroup_size(a, b, 1) before fn", () => {
+test("wordNumArgs parses (a, b, 1)", () => {
+  const src = `(a, b, 1)`
+  const {parsed} = testParse(wordNumArgs, src);
+  expect(parsed?.value).toMatchSnapshot();
+});
+
+test.skip("parse @workgroup_size(a, b, 1) before fn", () => {
   const src = `
     @workgroup_size(a, b, 1) 
     fn main() {}

@@ -14,12 +14,16 @@ function matchOneOf(syms: string): RegExp {
   return new RegExp(escaped.join("|"));
 }
 
+const digits = /[0-9]+/;
+// TODO consider parsing size suffixes to numbers, e.g. 10u
+
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
   {
     directive,
     attr: /@[a-zA-Z_]\w*/,
     word,
+    digits,
     symbol: matchOneOf(symbolSet),
     ws: /\s+/,
   },
@@ -43,9 +47,9 @@ export const lineCommentTokens = tokenMatcher(
 export const directiveArgsTokens = tokenMatcher(
   {
     word,
-    digits: /[0-9]+/,
+    digits,
     symbol: matchOneOf("( ) , = !"),
-    ws: /[ \t]+/,
+    ws: /[ \t]+/, // don't include \n, so we can find eol separately
     eol,
   },
   "directiveArgs"
