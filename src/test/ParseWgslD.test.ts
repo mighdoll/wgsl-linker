@@ -257,11 +257,17 @@ test("parse alias", () => {
   });
 });
 
-
-test.only("skipBlockComment parses /* comment */", () => {
-  const src = "/* comment */"
+test("skipBlockComment parses /* comment */", () => {
+  const src = "/* comment */";
   expectNoLogErr(() => {
-    const {parsed} = testParse(skipBlockComment, src);
+    const { parsed } = testParse(skipBlockComment, src);
     expect(parsed).toMatchSnapshot();
   });
-})
+});
+
+test("skipBlockComment parses nested comment", () => {
+  const src = "/** comment1 /* comment2 */ */";
+  expectNoLogErr(() => {
+    testParse(skipBlockComment, src);
+  });
+});

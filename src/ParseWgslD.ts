@@ -59,7 +59,7 @@ export const skipBlockComment: ParserStage<any> = seq(
     )
   ),
   "*/"
-);
+).traceName("skipBlockComment");
 
 const comment = opt(skipLineComment); // LATER block comments too
 
