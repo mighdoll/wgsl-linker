@@ -61,7 +61,35 @@ export const skipBlockComment: ParserStage<any> = seq(
   "*/"
 ).traceName("skipBlockComment");
 
-const comment = opt(skipLineComment); // LATER block comments too
+const comment = opt(or(skipLineComment, skipBlockComment));
+
+/** match an optional series of elements separated by a delimiter (e.g. a comma) 
+ * also skips embedded comments
+*/
+function withSep<T>(
+  sep: ParserStageArg<any>,
+  p: ParserStage<T>
+): ParserStage<T[]> {
+  return seq(
+    comment,
+    p.named("elem"),
+    repeat(seqWithComments(sep, p.named("elem")))
+  )
+    .map((r) => r.named.elem as T[])
+    .traceName("withSep");
+}
+
+/** match a sequence with optional embedded comments */
+function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
+  const commentsAfter = args.flatMap((a) => [a, comment]);
+  const newArgs = [comment, ...commentsAfter];
+  return seq(...newArgs);
+}
+
+/** match everything until a terminator (and the terminator too), with optional embedded comments */
+function anyUntil(arg: ParserStageArg<any>): ParserStage<any> {
+  return seq(repeat(seqWithComments(not(arg), any())), arg);
+}
 
 /** ( <a> <,b>* ) */
 const wordArgs: ParserStage<string[]> = seq(
@@ -82,29 +110,6 @@ export const wordNumArgs: ParserStage<string[]> = seq(
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
 
-/** match an optional series of elements separated by a delimiter (e.g. a comma) */
-function withSep<T>(
-  sep: ParserStageArg<any>,
-  p: ParserStage<T>
-): ParserStage<T[]> {
-  return seq(
-    comment,
-    p.named("elem"),
-    repeat(seqWithComments(sep, p.named("elem")))
-  )
-    .map((r) => r.named.elem as T[])
-    .traceName("withSep");
-}
-
-function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
-  const commentsAfter = args.flatMap((a) => [a, comment]);
-  const newArgs = [comment, ...commentsAfter];
-  return seq(...newArgs);
-}
-
-function anyUntil(arg: ParserStageArg<any>): ParserStage<any> {
-  return seq(repeat(seqWithComments(not(arg), any())), arg);
-}
 
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),
