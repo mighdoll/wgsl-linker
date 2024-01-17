@@ -280,10 +280,16 @@ const globalVarDecl = seq(
   anyUntil(";")
 ).traceName("globalVarDecl");
 
+const globalValDecl = seq(
+  attributes,
+  or("const", "override"),
+  anyUntil(";")
+).traceName("globalValDecl");
+
 const globalDecl = or(
   ";",
   globalVarDecl,
-  // globalValDecl
+  globalValDecl,
   // typeAliasDecl
   structDecl,
   fnDecl

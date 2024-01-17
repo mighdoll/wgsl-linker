@@ -3,7 +3,7 @@ import { escapeRegex, tokenMatcher } from "./TokenMatcher.js";
 /** token matchers for wgsl with #directives */
 
 const directive = /#[a-zA-Z_]\w*/;
-const word = /[a-zA-Z_]\w*/;
+const word = /[a-zA-Z_]\w*/; // consider making this 'ident' per wgsl spec (incl. non-ascii)
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";

@@ -245,6 +245,18 @@ exports[`parse struct 1`] = `
 ]
 `;
 
+exports[`parse top level override and const 1`] = `
+[
+  {
+    "children": [],
+    "end": 56,
+    "kind": "fn",
+    "name": "main",
+    "start": 38,
+  },
+]
+`;
+
 exports[`parse top level var 1`] = `
 [
   {

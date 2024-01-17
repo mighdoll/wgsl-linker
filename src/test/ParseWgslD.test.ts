@@ -224,3 +224,16 @@ test("parse top level var", () => {
     expect(parsed).toMatchSnapshot();
   });
 });
+
+test("parse top level override and const", () => {
+  const src = `
+    override x = 21;
+    const y = 1;
+
+    fn main() {}
+  `;
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
+});
