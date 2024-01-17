@@ -144,41 +144,15 @@ function importingRef(
   isDefined(textExport);
 
   if (srcRef.kind === "exp") {
-    const expMod = modExp.module as TextModule2;
     const exp = modExp.export as TextExport2;
 
-    const srcFrom = srcRef.fromRef as ExportRef;
-    dlog({
-      srcFrom: srcFrom.proposedName,
-      srcFromArgs: srcFrom.expImpArgs, // this one (can get via srcRef)
-      srcFromFrom: srcFrom.fromRef?.fn.name,
-    });
-    dlog({
-      callElem: callElem.call,
-      exp: exp.ref.name,
-      srcRef: srcRef.fn.name,
-      srcRefArgs: srcRef.expImpArgs, // this one
-    });
-    dlog({
-      expArgs: exp.args, // this one
-      impArgs: fromImport.args, // this one
-    });
-    console.log();
-    const expImpArgs = importingArgs(
-      srcRef.fromImport,
-      textExport,
-      fromImport,
-      exp
-    );
-    const args2 = importingArgs2(fromImport, exp, srcRef);
-    dlog("xx", { expImpArgs, args2 });
     return {
       kind: "exp",
       fromRef: srcRef,
       fromImport,
       impMod,
-      expMod,
-      expImpArgs: importingArgs2(fromImport, exp, srcRef),
+      expMod: modExp.module as TextModule2,
+      expImpArgs: importingArgs(fromImport, exp, srcRef),
       fn: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
@@ -190,29 +164,6 @@ function importingRef(
   return undefined;
 }
 
-function importingArgs2(
-  imp: ImportElem,
-  exp: ExportElem,
-  srcRef: FoundRef
-): StringPairs {
-  const expImp = matchImportExportArgs(imp, exp);
-  if (srcRef.kind === "exp") {
-    const srcExpImp = srcRef.expImpArgs;
-    dlog({ expImp, srcExpImp });
-    return expImp.flatMap(([iExp, iImp]) => {
-      const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp);
-      if (!pair) {
-        console.error("importing arg not found", exp, imp);
-        return [];
-      }
-      const [, impArg] = pair;
-      dlog({ pair, iExp, impArg });
-      return [[iExp, impArg]] as [string, string][];
-    });
-  } 
-  return [];
-}
-
 /**
  * @return the arguments for an importing reference, mapping through the
  * export and the original import directives.
@@ -222,31 +173,35 @@ function importingArgs2(
  * and we want to find the mapping from export4 args to import1 args
  *
  * for example:
- *   #import foo(A, B) // import args: A,B
- *   #export foo(C, D) importing bar(D) // exporting args C,D  importing args: D
- *   #export bar(X)  // exporting
+ *   #import foo(A, B)
+ *   #export foo(C, D) importing bar(D)
+ *   #export bar(X)
  * we want to return mapping of X -> B for the importing clasue
- *
- * TODO chase the import chain to its origin, this is just one level
  */
 function importingArgs(
+  /** importing clause */
   imp: ImportElem,
-  exp: ExportElem,
-  importing: ImportElem,
-  importingExp: ExportElem
-): StringPairs {
-  const expImp = matchImportExportArgs(imp, exp); // C->A, D->B
-  const importingExpImp = matchImportExportArgs(importing, importingExp); // X->D
 
-  return importingExpImp.flatMap(([iExp, iImp]) => {
-    const pair = expImp.find(([expArg]) => expArg === iImp); // D->B
-    if (!pair) {
-      console.error("importing arg not found", iExp, exp, imp);
-      return [];
-    }
-    const [, impArg] = pair;
-    return [[iExp, impArg]] as [string, string][]; // X->B
-  });
+  /**  export matching for importing clause */
+  exp: ExportElem,
+
+  /** reference that led us to this import */
+  srcRef: FoundRef
+): StringPairs {
+  const expImp = matchImportExportArgs(imp, exp); // X -> D
+  if (srcRef.kind === "exp") {
+    const srcExpImp = srcRef.expImpArgs;
+    return expImp.flatMap(([iExp, iImp]) => {
+      const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
+      if (!pair) {
+        console.error("importing arg doesn't match", imp, exp, srcRef);
+        return [];
+      }
+      const [, impArg] = pair;
+      return [[iExp, impArg]] as [string, string][]; // X -> B
+    });
+  }
+  return [];
 }
 
 function isDefined<T>(a: T | undefined): asserts a is T {}
