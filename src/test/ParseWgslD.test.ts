@@ -147,7 +147,7 @@ test("parse #export(A, B) importing bar(A)", () => {
   expect(parsed[0]).toMatchSnapshot();
 });
 
-test.only("parse @attribute before fn", () => {
+test("parse @attribute before fn", () => {
   const src = `
     @compute 
     fn main() {}
@@ -156,13 +156,13 @@ test.only("parse @attribute before fn", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test.skip("parse @workgroup_size(a, b, 1) before fn", () => {
+test("parse @workgroup_size(a, b, 1) before fn", () => {
   const src = `
     @workgroup_size(a, b, 1) 
     fn main() {}
     `
   const parsed = parseWgslD(src);
-  expect(parsed).toMatchSnapshot();
+  console.log(parsed)
 });
 
 

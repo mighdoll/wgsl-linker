@@ -16,6 +16,7 @@ import {
   ExtendedResult,
   ParserContext,
   ParserStage,
+  ParserStageArg,
   any,
   eof,
   fn,
@@ -34,22 +35,35 @@ const m = mainTokens;
 const a = directiveArgsTokens;
 const l = lineCommentTokens;
 
+const eol = or("\n", eof());
+
 /** ( <a> <,b>* ) */
-const directiveArgs: ParserStage<string[]> = seq(
+const wordArgs: ParserStage<string[]> = seq(
   "(",
-  kind(a.word).named("words"),
-  repeat(seq(",", kind(a.word).named("words"))),
+  withSep(",", kind(a.word)),
+  ")"
+)
+  .map((r) => r.value[1])
+  .traceName("wordArgs");
+
+const wordNum = or(a.word, a.digits);
   ")"
 )
   .map((r) => r.named.words as string[])
-  .traceName("directiveArgs");
 
-const eol = or("\n", eof());
+function withSep<T>(
+  sep: ParserStageArg<any>,
+  p: ParserStage<T>
+): ParserStage<T[]> {
+  return seq(p.named("elem"), repeat(seq(sep, p.named("elem"))))
+    .map((r) => r.named.elem as T[])
+    .traceName("withSep");
+}
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
   kind(a.word).named("name"),
-  opt(directiveArgs.named("args")),
+  opt(wordArgs.named("args")),
   opt(seq("as", kind(a.word).named("as"))),
   opt(seq("from", kind(a.word).named("from")))
 )
@@ -86,7 +100,7 @@ const exportDirective = seq(
     directiveArgsTokens,
     seq(
       opt(kind(a.word).named("name")), 
-      opt(directiveArgs.named("args")), 
+      opt(wordArgs.named("args")), 
       opt(importing), 
       eol
     )

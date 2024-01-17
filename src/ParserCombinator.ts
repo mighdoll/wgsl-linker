@@ -79,7 +79,7 @@ export interface ParserStage<T> {
 type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
 
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
-type ParserStageArg<T> = ParserStage<T> | string;
+export type ParserStageArg<T> = ParserStage<T> | string;
 
 // TODO consider dropping this
 /** Create a ParserStage from a function that parses and returns a value */
@@ -444,7 +444,7 @@ export function eof(): ParserStage<true> {
 }
 
 /** convert naked string arguments into text() parsers */
-function parserArg<T>(
+export function parserArg<T>(
   arg: ParserStageArg<T>
 ): ParserStage<T> | ParserStage<string> {
   return typeof arg === "string" ? text(arg) : arg;
