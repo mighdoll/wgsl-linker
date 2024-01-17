@@ -28,6 +28,7 @@ import {
   seq,
   tokens,
 } from "./ParserCombinator.js";
+import { logErr } from "./TraverseRefs.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -264,7 +265,7 @@ export const fnDecl = seq(
     r.app.push(fn);
   });
 
-const unknown = any().map((r) => console.warn("???", r.value, r.start));
+const unknown = any().map((r) => logErr("???", r.value, r.start));
 
 const globalDecl = or(
   ";",

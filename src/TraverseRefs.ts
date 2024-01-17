@@ -46,7 +46,7 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
-let logErr = console.error;
+export let logErr = console.error;
 
 /** use temporary logger for tests */
 export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
