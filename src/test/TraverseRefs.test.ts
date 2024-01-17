@@ -101,8 +101,7 @@ test("traverse double importing", () => {
     const er=  (r as ExportRef);
     return er ? [er.expImpArgs] : []; }
   );
-  const s = expImpArgs.join("\n");
-  console.log(expImpArgs);
+  expImpArgs.forEach(e => console.log(e));
   expect(expImpArgs[1]).deep.eq([["X", "B"]])
-  // expect(importingRef.expImpArgs).deep.eq([["X", "B"]]);
+  expect(expImpArgs[2]).deep.eq([["Y", "B"]])
 });

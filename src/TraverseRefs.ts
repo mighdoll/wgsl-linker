@@ -1,4 +1,4 @@
-import { dlog } from "berry-pretty";
+import { dlog, dlogOpt } from "berry-pretty";
 import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
@@ -147,19 +147,38 @@ function importingRef(
     const expMod = modExp.module as TextModule2;
     const exp = modExp.export as TextExport2;
 
+    const srcFrom = srcRef.fromRef as ExportRef;
+    dlog({
+      srcFrom: srcFrom.proposedName,
+      srcFromArgs: srcFrom.expImpArgs, // this one (can get via srcRef)
+      srcFromFrom: srcFrom.fromRef?.fn.name,
+    });
+    dlog({
+      callElem: callElem.call,
+      exp: exp.ref.name,
+      srcRef: srcRef.fn.name,
+      srcRefArgs: srcRef.expImpArgs, // this one
+    });
+    dlog({
+      expArgs: exp.args, // this one
+      impArgs: fromImport.args, // this one
+    });
+    console.log();
     const expImpArgs = importingArgs(
       srcRef.fromImport,
       textExport,
       fromImport,
       exp
     );
+    const args2 = importingArgs2(fromImport, exp, srcRef);
+    dlog("xx", { expImpArgs, args2 });
     return {
       kind: "exp",
       fromRef: srcRef,
       fromImport,
       impMod,
       expMod,
-      expImpArgs,
+      expImpArgs: importingArgs2(fromImport, exp, srcRef),
       fn: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
@@ -169,6 +188,29 @@ function importingRef(
   }
 
   return undefined;
+}
+
+function importingArgs2(
+  imp: ImportElem,
+  exp: ExportElem,
+  srcRef: FoundRef
+): StringPairs {
+  const expImp = matchImportExportArgs(imp, exp);
+  if (srcRef.kind === "exp") {
+    const srcExpImp = srcRef.expImpArgs;
+    dlog({ expImp, srcExpImp });
+    return expImp.flatMap(([iExp, iImp]) => {
+      const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp);
+      if (!pair) {
+        console.error("importing arg not found", exp, imp);
+        return [];
+      }
+      const [, impArg] = pair;
+      dlog({ pair, iExp, impArg });
+      return [[iExp, impArg]] as [string, string][];
+    });
+  } 
+  return [];
 }
 
 /**
