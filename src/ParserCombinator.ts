@@ -324,6 +324,7 @@ export function seq<
   e: ParserStageArg<X>,
   f: ParserStageArg<Y>
 ): ParserStage<[T, U, V, W, X, Y]>;
+export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]>; 
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage(
     (state: ParserContext) => {
