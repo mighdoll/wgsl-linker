@@ -5,9 +5,11 @@ import {
   ExportRef,
   FoundRef,
   LocalRef,
+  _withErrLogger,
   traverseRefs,
 } from "../TraverseRefs.js";
 import { dlog } from "berry-pretty";
+import { logCatch } from "./LogCatcher.js";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -97,11 +99,72 @@ test("traverse double importing", () => {
     refs.push(ref);
     return true;
   });
-  const expImpArgs = refs.flatMap(r => {
-    const er=  (r as ExportRef);
-    return er ? [er.expImpArgs] : []; }
-  );
-  expImpArgs.forEach(e => console.log(e));
-  expect(expImpArgs[1]).deep.eq([["X", "B"]])
-  expect(expImpArgs[2]).deep.eq([["Y", "B"]])
+  const expImpArgs = refs.flatMap((r) => {
+    const er = r as ExportRef;
+    return er ? [er.expImpArgs] : [];
+  });
+  expect(expImpArgs[1]).deep.eq([["X", "B"]]);
+  expect(expImpArgs[2]).deep.eq([["Y", "B"]]);
+});
+
+test("traverse importing from a support fn", () => {
+  const src = `
+    #import foo(A, B)
+    fn main() {
+      foo(k, l);
+    } `;
+  const module1 = `
+    #export(C, D) importing support(D)
+    fn foo(c:C, d:D) { support(d); } 
+    
+    #export(D) importing bar(D)
+    fn support(d:D) { bar(d); }
+    `;
+  const module2 = `
+    #export(X)
+    fn bar(x:X) { } `;
+
+  const registry = new ModuleRegistry2(module1, module2);
+  const srcModule = parseModule2(src);
+  const refs: FoundRef[] = [];
+  traverseRefs(srcModule, registry, (ref) => {
+    refs.push(ref);
+    return true;
+  });
+
+  const expImpArgs = refs.flatMap((r) => {
+    const er = r as ExportRef;
+    return er ? [{ name: er.fn.name, args: er.expImpArgs }] : [];
+  });
+  expect(expImpArgs).toMatchSnapshot();
+});
+
+test("traverse importing from a local call fails", () => {
+  const src = `
+    #import foo(A, B)
+    fn main() {
+      foo(k, l);
+    } `;
+  const module1 = `
+    #export(C, D) importing bar(D)
+    fn foo(c:C, d:D) { support(d); } 
+    
+    fn support(d:D) { bar(d); }
+    `;
+  const module2 = `
+    #export(X)
+    fn bar(x:X) { } `;
+
+  const registry = new ModuleRegistry2(module1, module2);
+  const srcModule = parseModule2(src);
+  const refs: FoundRef[] = [];
+  const { log, logged } = logCatch();
+  _withErrLogger(log, () => {
+    traverseRefs(srcModule, registry, (ref) => {
+      refs.push(ref);
+      return true;
+    });
+  });
+
+  expect(logged().length).not.eq(0);
 });
