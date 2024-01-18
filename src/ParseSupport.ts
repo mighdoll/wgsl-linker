@@ -1,4 +1,5 @@
 import { argsTokens, lineCommentTokens } from "./MatchWgslD.js";
+import { lineCommentOptDirective } from "./ParseDirective.js";
 import {
   ParserStage,
   ParserStageArg,
@@ -21,16 +22,6 @@ export const eol = or("\n", eof());
 
 export const unknown = any().map((r) => logErr("???", r.value, r.start));
 
-// prettier-ignore
-export const skipLineComment = seq(
-  "//",
-  tokens(lineCommentTokens, seq(
-    repeat(
-      seq(not(eol), any())
-    ), eol)
-  )
-).traceName("skipLineComment");
-
 export const skipBlockComment: ParserStage<any> = seq(
   "/*",
   repeat(
@@ -42,7 +33,7 @@ export const skipBlockComment: ParserStage<any> = seq(
   "*/"
 ).traceName("skipBlockComment");
 
-export const comment = opt(or(skipLineComment, skipBlockComment));
+export const comment = opt(or(fn(() => lineCommentOptDirective), skipBlockComment));
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
@@ -69,7 +60,7 @@ export const wordNumArgs: ParserStage<string[]> = seq(
   .traceName("wordNumArgs");
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma)
- * also skips embedded comments
+ * handles embedded comments
  */
 export function withSep<T>(
   sep: ParserStageArg<any>,
@@ -93,7 +84,8 @@ export function seqWithComments(
   return seq(...newArgs);
 }
 
-/** match everything until a terminator (and the terminator too), with optional embedded comments */
+/** match everything until a terminator (and the terminator too)
+ * including optional embedded comments */
 export function anyUntil(arg: ParserStageArg<any>): ParserStage<any> {
   return seq(repeat(seqWithComments(not(arg), any())), arg);
 }

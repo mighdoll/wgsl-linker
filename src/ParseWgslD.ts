@@ -1,7 +1,7 @@
 import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
-import { directive, lineCommentOrDirective } from "./ParseDirective.js";
+import { directive, lineCommentOptDirective } from "./ParseDirective.js";
 import {
   any,
   eof,
@@ -30,16 +30,16 @@ export interface ParseState {
   params: Record<string, any>;
 }
 
-const globalDirectiveOrAssert = seqWithComments(
+const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
   anyUntil(";")
-);
+).traceName("globalDirectiveOrAssert");
 
 const structDecl = seq(
   "struct",
   kind(mainTokens.word),
   "{",
-  repeat(or(lineCommentOrDirective, seq(not("}"), any()))),
+  repeat(or(lineCommentOptDirective, seq(not("}"), any()))),
   "}"
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
@@ -60,7 +60,7 @@ const block: ParserStage<any> = seq(
   "{",
   repeat(
     or(
-      lineCommentOrDirective,
+      lineCommentOptDirective,
       fnCall,
       fn(() => block),
       seq(not("}"), any())
@@ -74,7 +74,7 @@ export const fnDecl = seq(
   "fn",
   kind(mainTokens.word).named("name"),
   "(",
-  repeat(or(lineCommentOrDirective, seq(not("{"), any()))),
+  repeat(or(lineCommentOptDirective, seq(not("{"), any()))),
   block
 )
   .traceName("fnDecl")
@@ -90,15 +90,18 @@ const globalValVarOrAlias = seq(
   anyUntil(";")
 );
 
-const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl);
+const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl).traceName(
+  "globalDecl"
+);
 
 const rootDecl = or(
   globalDirectiveOrAssert,
   globalDecl,
-  lineCommentOrDirective,
   directive,
+  lineCommentOptDirective,
   unknown
-);
+)
+  .traceName("rootDecl");
 
 const root = seq(repeat(rootDecl), eof());
 

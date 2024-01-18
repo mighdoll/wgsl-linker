@@ -103,7 +103,7 @@ const elseDirective = seq("#else", tokens(argsTokens, eol))
 const skipUntilElseEndif = repeat(
   seq(
     or(
-      fn(() => lineCommentOrDirective),  
+      fn(() => lineCommentOptDirective),  
       seq(
         not("#else"), 
         not("#endif"),
@@ -142,7 +142,7 @@ export const directive = or(
  *    // <#import|#export|any>
  * if a directive is found it is handled internally (e.g.
  * by pushing an AbstractElem to the app context) */
-export const lineCommentOrDirective = seq(
+export const lineCommentOptDirective = seq(
   "//",
   tokens(lineCommentTokens, or(directive, kind(lineCommentTokens.notDirective)))
-).traceName("lineComment");
+).traceName("lineComment").trace();

@@ -149,6 +149,7 @@ test("tracing", () => {
   const src = "a";
   const { log, logged } = logCatch();
   const p = repeat(seq(kind(m.word)).traceName("wordz")).trace();
+
   enableTracing();
   _withBaseLogger(log, () => {
     testParse(p, src);
