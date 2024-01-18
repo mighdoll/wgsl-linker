@@ -1,10 +1,12 @@
 import {
+  directiveArgsTokens,
   lineCommentTokens
 } from "./MatchWgslD.js";
 import {
   any,
   eof,
   fn,
+  kind,
   not,
   opt,
   or,
@@ -44,6 +46,29 @@ export const skipBlockComment: ParserStage<any> = seq(
 ).traceName("skipBlockComment");
 
 export const comment = opt(or(skipLineComment, skipBlockComment));
+
+
+const a = directiveArgsTokens;
+
+/** ( <a> <,b>* )  with optional comments interspersed */
+export const wordArgs: ParserStage<string[]> = seq( // TODO specify tokenizer for this
+  "(",
+  withSep(",", kind(a.word)), 
+  ")"
+)
+  .map((r) => r.value[1])
+  .traceName("wordArgs");
+
+const wordNum = or(kind(a.word), kind(a.digits));
+
+export const wordNumArgs: ParserStage<string[]> = seq(// TODO specify tokenizer for this
+  "(",
+  withSep(",", wordNum),
+  ")"
+)
+  .map((r) => r.value[1])
+  .traceName("wordNumArgs");
+
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) 
  * also skips embedded comments

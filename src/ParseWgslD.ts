@@ -25,35 +25,22 @@ import {
   ParserStage,
   repeat,
   seq,
-  tokens
+  tokens,
 } from "./ParserCombinator.js";
-import { anyUntil, eol, seqWithComments, unknown, withSep } from "./ParseSupport.js";
+import {
+  anyUntil,
+  eol,
+  seqWithComments,
+  unknown,
+  wordArgs,
+  wordNumArgs
+} from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
 const m = mainTokens;
 const a = directiveArgsTokens;
 const l = lineCommentTokens;
-
-/** ( <a> <,b>* ) */
-const wordArgs: ParserStage<string[]> = seq(
-  "(",
-  withSep(",", kind(a.word)),
-  ")"
-)
-  .map((r) => r.value[1])
-  .traceName("wordArgs");
-
-const wordNum = or(kind(a.word), kind(a.digits));
-
-export const wordNumArgs: ParserStage<string[]> = seq(
-  "(",
-  withSep(",", wordNum),
-  ")"
-)
-  .map((r) => r.value[1])
-  .traceName("wordNumArgs");
-
 
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),
