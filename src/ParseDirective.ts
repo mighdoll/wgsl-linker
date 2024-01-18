@@ -22,14 +22,12 @@ import { makeElem, ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
-const a = argsTokens;
-
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
-  kind(a.word).named("name"),
+  kind(argsTokens.word).named("name"),
   opt(wordArgsLine.named("args")),
-  opt(seq("as", kind(a.word).named("as"))),
-  opt(seq("from", kind(a.word).named("from")))
+  opt(seq("as", kind(argsTokens.word).named("as"))),
+  opt(seq("from", kind(argsTokens.word).named("from")))
 )
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
@@ -63,7 +61,7 @@ const exportDirective = seq(
   tokens(
     argsTokens,
     seq(
-      opt(kind(a.word).named("name")), 
+      opt(kind(argsTokens.word).named("name")), 
       opt(wordArgsLine.named("args")), 
       opt(importing), 
       eol

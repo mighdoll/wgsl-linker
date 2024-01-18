@@ -30,9 +30,6 @@ export interface ParseState {
   params: Record<string, any>;
 }
 
-const m = mainTokens;
-const a = argsTokens;
-
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),
   anyUntil(";")
@@ -40,7 +37,7 @@ const globalDirectiveOrAssert = seqWithComments(
 
 const structDecl = seq(
   "struct",
-  kind(m.word),
+  kind(mainTokens.word),
   "{",
   repeat(or(lineCommentOrDirective, seq(not("}"), any()))),
   "}"
@@ -50,14 +47,14 @@ const structDecl = seq(
 });
 
 export const fnCall = seq(
-  kind(m.word)
+  kind(mainTokens.word)
     .named("call")
     .map((r) => makeElem<CallElem>("call", r, ["call"]))
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
 );
 
-const attributes = repeat(seq(kind(m.attr), opt(wordNumArgs)));
+const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 
 const block: ParserStage<any> = seq(
   "{",
@@ -75,7 +72,7 @@ const block: ParserStage<any> = seq(
 export const fnDecl = seq(
   attributes,
   "fn",
-  kind(a.word).named("name"),
+  kind(mainTokens.word).named("name"),
   "(",
   repeat(or(lineCommentOrDirective, seq(not("{"), any()))),
   block
