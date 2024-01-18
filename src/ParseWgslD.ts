@@ -1,18 +1,7 @@
-import {
-  AbstractElem,
-  CallElem,
-  ExportElem,
-  FnElem,
-  ImportElem,
-  StructElem,
-} from "./AbstractElems.js";
+import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
-import {
-  directiveArgsTokens,
-  lineCommentTokens,
-  mainTokens,
-} from "./MatchWgslD.js";
-import { directive, lineComment, } from "./ParseDirective.js";
+import { directiveArgsTokens, mainTokens } from "./MatchWgslD.js";
+import { directive, lineCommentOrDirective } from "./ParseDirective.js";
 import {
   any,
   eof,
@@ -26,15 +15,12 @@ import {
   ParserStage,
   repeat,
   seq,
-  tokens,
 } from "./ParserCombinator.js";
 import {
   anyUntil,
-  eol,
   seqWithComments,
   unknown,
-  wordArgs,
-  wordNumArgs
+  wordNumArgs,
 } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
@@ -56,7 +42,7 @@ const structDecl = seq(
   "struct",
   kind(m.word),
   "{",
-  repeat(or(lineComment, seq(not("}"), any()))),
+  repeat(or(lineCommentOrDirective, seq(not("}"), any()))),
   "}"
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
@@ -77,7 +63,7 @@ const block: ParserStage<any> = seq(
   "{",
   repeat(
     or(
-      lineComment,
+      lineCommentOrDirective,
       fnCall,
       fn(() => block),
       seq(not("}"), any())
@@ -91,7 +77,7 @@ export const fnDecl = seq(
   "fn",
   kind(a.word).named("name"),
   "(",
-  repeat(or(lineComment, seq(not("{"), any()))),
+  repeat(or(lineCommentOrDirective, seq(not("{"), any()))),
   block
 )
   .traceName("fnDecl")
@@ -112,7 +98,7 @@ const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl);
 const rootDecl = or(
   globalDirectiveOrAssert,
   globalDecl,
-  lineComment,
+  lineCommentOrDirective,
   directive,
   unknown
 );

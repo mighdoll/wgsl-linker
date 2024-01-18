@@ -20,7 +20,7 @@ import {
 import { eol, wordArgs } from "./ParseSupport.js";
 import { makeElem, ParseState } from "./ParseWgslD.js";
 
-/* parse directives added to wgsl like #import, #export, #if, and #else */
+/* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
 const a = directiveArgsTokens;
 
@@ -105,7 +105,7 @@ const elseDirective = seq("#else", tokens(directiveArgsTokens, eol))
 const skipUntilElseEndif = repeat(
   seq(
     or(
-      fn(() => lineComment),  // LATER shouldn't need the fn wrap
+      fn(() => lineCommentOrDirective),  
       seq(
         not("#else"), 
         not("#endif"),
@@ -138,11 +138,13 @@ export const directive = or(
   ifDirective,
   elseDirective,
   endifDirective
-).traceName("directive or");
+).traceName("directive");
 
-/** // <#import|#export|any> */
-export const lineComment = seq(
-  // TODO mv this to directives
+/** parse a line comment possibly containg a #directive
+ *    // <#import|#export|any>
+ * if a directive is found it is handled internally (e.g.
+ * by pushing an AbstractElem to the app context) */
+export const lineCommentOrDirective = seq(
   "//",
   tokens(lineCommentTokens, or(directive, kind(lineCommentTokens.notDirective)))
 ).traceName("lineComment");

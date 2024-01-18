@@ -5,7 +5,7 @@ import {
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
-import { directive, importing, lineComment } from "../ParseDirective.js";
+import { directive, importing, lineCommentOrDirective } from "../ParseDirective.js";
 import { skipBlockComment, wordNumArgs } from "../ParseSupport.js";
 import { enableTracing } from "../ParserTracing.js";
 enableTracing();
@@ -52,20 +52,20 @@ test("parse #import foo(a,b) as baz from bar", () => {
 
 test("lineComment parse // foo bar", () => {
   const src = "// foo bar";
-  const { position } = testParse(lineComment, src);
+  const { position } = testParse(lineCommentOrDirective, src);
   expect(position).eq(src.length);
 });
 
 test("lineComment parse // foo bar \\n", () => {
   const comment = "// foo bar";
   const src = comment + "\n x";
-  const { position } = testParse(lineComment, src);
+  const { position } = testParse(lineCommentOrDirective, src);
   expect(position).eq(comment.length);
 });
 
 test("lineComment parse // #export foo", () => {
   const src = "// #export foo";
-  const { position, app } = testParse(lineComment, src);
+  const { position, app } = testParse(lineCommentOrDirective, src);
   expect(position).eq(src.length);
   expect(app).toMatchSnapshot();
 });
