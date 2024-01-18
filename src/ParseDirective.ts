@@ -145,4 +145,4 @@ export const directive = or(
 export const lineCommentOptDirective = seq(
   "//",
   tokens(lineCommentTokens, or(directive, kind(lineCommentTokens.notDirective)))
-).traceName("lineComment").trace();
+).traceName("lineComment");

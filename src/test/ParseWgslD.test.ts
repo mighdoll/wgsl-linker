@@ -101,7 +101,6 @@ test("parse #export(foo) with trailing space", () => {
     // #export (Elem) 
     `;
   const parsed = parseWgslD(src);
-  console.log(parsed);
   expect(parsed).toMatchSnapshot();
 });
 
