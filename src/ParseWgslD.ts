@@ -1,6 +1,6 @@
 import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
-import { directiveArgsTokens, mainTokens } from "./MatchWgslD.js";
+import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { directive, lineCommentOrDirective } from "./ParseDirective.js";
 import {
   any,
@@ -31,7 +31,7 @@ export interface ParseState {
 }
 
 const m = mainTokens;
-const a = directiveArgsTokens;
+const a = argsTokens;
 
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),

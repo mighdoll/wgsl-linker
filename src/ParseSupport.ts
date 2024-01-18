@@ -1,5 +1,5 @@
 import {
-  directiveArgsTokens,
+  argsTokens,
   lineCommentTokens
 } from "./MatchWgslD.js";
 import {
@@ -48,7 +48,7 @@ export const skipBlockComment: ParserStage<any> = seq(
 export const comment = opt(or(skipLineComment, skipBlockComment));
 
 
-const a = directiveArgsTokens;
+const a = argsTokens;
 
 /** ( <a> <,b>* )  with optional comments interspersed */
 export const wordArgs: ParserStage<string[]> = seq( // TODO specify tokenizer for this

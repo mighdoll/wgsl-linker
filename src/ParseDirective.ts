@@ -1,6 +1,6 @@
 import { ExportElem, ImportElem } from "./AbstractElems.js";
 import {
-  directiveArgsTokens,
+  argsTokens,
   lineCommentTokens,
   mainTokens,
 } from "./MatchWgslD.js";
@@ -22,7 +22,7 @@ import { makeElem, ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
-const a = directiveArgsTokens;
+const a = argsTokens;
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
@@ -47,7 +47,7 @@ export const importing = seq(
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  tokens(directiveArgsTokens, seq(importPhrase.named("i"), eol))
+  tokens(argsTokens, seq(importPhrase.named("i"), eol))
 )
   .map((r) => {
     const imp: ImportElem = r.named.i[0];
@@ -61,7 +61,7 @@ const importDirective = seq(
 const exportDirective = seq(
   "#export",
   tokens(
-    directiveArgsTokens,
+    argsTokens,
     seq(
       opt(kind(a.word).named("name")), 
       opt(wordArgs.named("args")), 
@@ -80,7 +80,7 @@ const exportDirective = seq(
 const ifDirective: ParserStage<any> = seq(
   "#if",
   tokens(
-    directiveArgsTokens,
+    argsTokens,
     seq(opt("!").named("invert"), kind(mainTokens.word).named("name"), eol)
   ).toParser((r) => {
     const { params } = r.appState as ParseState;
@@ -92,7 +92,7 @@ const ifDirective: ParserStage<any> = seq(
   })
 ).traceName("#if");
 
-const elseDirective = seq("#else", tokens(directiveArgsTokens, eol))
+const elseDirective = seq("#else", tokens(argsTokens, eol))
   .toParser((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
@@ -124,7 +124,7 @@ function ifBody(
   if (!truthy) return skipUntilElseEndif;
 }
 
-const endifDirective = seq("#endif", tokens(directiveArgsTokens, eol))
+const endifDirective = seq("#endif", tokens(argsTokens, eol))
   .map((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();

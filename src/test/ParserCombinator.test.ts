@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
-import { directiveArgsTokens, mainTokens } from "../MatchWgslD.js";
+import { argsTokens, mainTokens } from "../MatchWgslD.js";
 import {
   ParserStage,
   any,
@@ -83,7 +83,7 @@ test("opt() makes failing match ok", () => {
 
 test("repeat() to (1,2,3,4) via named", () => {
   const src = "(1,2,3,4)";
-  const lexer = matchingLexer(src, directiveArgsTokens);
+  const lexer = matchingLexer(src, argsTokens);
   const app: any[] = [];
   const wordNum = or(kind("word"), kind("digits")).named("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));

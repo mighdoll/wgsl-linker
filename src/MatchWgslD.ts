@@ -44,7 +44,7 @@ export const lineCommentTokens = tokenMatcher(
 );
 
 /** matching tokens while parsing directive parameters #export foo(param1, param2) */
-export const directiveArgsTokens = tokenMatcher(
+export const argsTokens = tokenMatcher(
   {
     word,
     digits,
