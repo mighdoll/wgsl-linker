@@ -8,6 +8,11 @@ const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
+/** @return a regexp to match any of the space separated tokens in the provided string.
+ *
+ * regex special characters are escaped in strings are escaped, and the matchers
+ * are sorted by length so that longer matches are preferred.
+ */
 function matchOneOf(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
   const escaped = symbolList.map(escapeRegex);
@@ -32,7 +37,7 @@ export const mainTokens = tokenMatcher(
 
 const eol = /\n/;
 
-/** matching tokens at the start of a '//' line comment */
+/** matching tokens at the start of a '//' line comment that might contain #directives */
 export const lineCommentTokens = tokenMatcher(
   {
     directive,
