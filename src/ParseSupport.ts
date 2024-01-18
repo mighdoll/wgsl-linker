@@ -1,5 +1,7 @@
-import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
+import { argsTokens, lineCommentTokens } from "./MatchWgslD.js";
 import {
+  ParserStage,
+  ParserStageArg,
   any,
   eof,
   fn,
@@ -7,8 +9,6 @@ import {
   not,
   opt,
   or,
-  ParserStage,
-  ParserStageArg,
   repeat,
   seq,
   tokens,
