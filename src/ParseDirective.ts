@@ -1,10 +1,8 @@
-import {
-  ExportElem,
-  ImportElem
-} from "./AbstractElems.js";
+import { ExportElem, ImportElem } from "./AbstractElems.js";
 import {
   directiveArgsTokens,
-  mainTokens
+  lineCommentTokens,
+  mainTokens,
 } from "./MatchWgslD.js";
 import {
   any,
@@ -17,13 +15,10 @@ import {
   ParserStage,
   repeat,
   seq,
-  tokens
+  tokens,
 } from "./ParserCombinator.js";
-import {
-  eol,
-  wordArgs
-} from "./ParseSupport.js";
-import { lineComment, makeElem, ParseState } from "./ParseWgslD.js";
+import { eol, wordArgs } from "./ParseSupport.js";
+import { makeElem, ParseState } from "./ParseWgslD.js";
 
 /* parse directives added to wgsl like #import, #export, #if, and #else */
 
@@ -144,3 +139,10 @@ export const directive = or(
   elseDirective,
   endifDirective
 ).traceName("directive or");
+
+/** // <#import|#export|any> */
+export const lineComment = seq(
+  // TODO mv this to directives
+  "//",
+  tokens(lineCommentTokens, or(directive, kind(lineCommentTokens.notDirective)))
+).traceName("lineComment");

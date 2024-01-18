@@ -12,7 +12,7 @@ import {
   lineCommentTokens,
   mainTokens,
 } from "./MatchWgslD.js";
-import { directive, } from "./ParseDirective.js";
+import { directive, lineComment, } from "./ParseDirective.js";
 import {
   any,
   eof,
@@ -46,19 +46,11 @@ export interface ParseState {
 
 const m = mainTokens;
 const a = directiveArgsTokens;
-const l = lineCommentTokens;
 
 const globalDirectiveOrAssert = seqWithComments(
   or("diagnostic", "enable", "requires", "const_assert"),
   anyUntil(";")
 );
-
-/** // <#import|#export|any> */
-export const lineComment = seq( // TODO mv this to directives
-  "//",
-  tokens(lineCommentTokens, or(directive, kind(l.notDirective)))
-).traceName("lineComment");
-
 
 const structDecl = seq(
   "struct",

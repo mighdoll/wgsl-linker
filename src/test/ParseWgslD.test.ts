@@ -1,12 +1,11 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
 import {
-  lineComment,
   parseWgslD,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
-import { directive, importing } from "../ParseDirective.js";
+import { directive, importing, lineComment } from "../ParseDirective.js";
 import { skipBlockComment, wordNumArgs } from "../ParseSupport.js";
 import { enableTracing } from "../ParserTracing.js";
 enableTracing();
