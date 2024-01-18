@@ -17,7 +17,7 @@ import {
   seq,
   tokens,
 } from "./ParserCombinator.js";
-import { eol, wordArgs } from "./ParseSupport.js";
+import { eol, wordArgsLine } from "./ParseSupport.js";
 import { makeElem, ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
@@ -27,7 +27,7 @@ const a = argsTokens;
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
   kind(a.word).named("name"),
-  opt(wordArgs.named("args")),
+  opt(wordArgsLine.named("args")),
   opt(seq("as", kind(a.word).named("as"))),
   opt(seq("from", kind(a.word).named("from")))
 )
@@ -64,7 +64,7 @@ const exportDirective = seq(
     argsTokens,
     seq(
       opt(kind(a.word).named("name")), 
-      opt(wordArgs.named("args")), 
+      opt(wordArgsLine.named("args")), 
       opt(importing), 
       eol
     )

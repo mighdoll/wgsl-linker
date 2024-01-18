@@ -165,7 +165,7 @@ export function parserStage<T>(
         const mappedValue = fn(extended);
         if (mappedValue === null) return null;
 
-        return { value:mappedValue, named: extended.named };
+        return { value: mappedValue, named: extended.named };
       },
       { traceName: "map" }
     );
@@ -324,7 +324,7 @@ export function seq<
   e: ParserStageArg<X>,
   f: ParserStageArg<Y>
 ): ParserStage<[T, U, V, W, X, Y]>;
-export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]>; 
+export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]>;
 export function seq(...stages: ParserStageArg<any>[]): ParserStage<any[]> {
   return parserStage(
     (state: ParserContext) => {
@@ -416,6 +416,10 @@ export function repeat<T>(
 }
 
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
+export function tokens<T>(
+  matcher: TokenMatcher,
+  arg: ParserStage<T>
+): ParserStage<T>;
 export function tokens<T>(
   matcher: TokenMatcher,
   arg: ParserStageArg<T>

@@ -1,7 +1,4 @@
-import {
-  argsTokens,
-  lineCommentTokens
-} from "./MatchWgslD.js";
+import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
 import {
   any,
   eof,
@@ -14,7 +11,7 @@ import {
   ParserStageArg,
   repeat,
   seq,
-  tokens
+  tokens,
 } from "./ParserCombinator.js";
 import { logErr } from "./TraverseRefs.js";
 
@@ -47,21 +44,23 @@ export const skipBlockComment: ParserStage<any> = seq(
 
 export const comment = opt(or(skipLineComment, skipBlockComment));
 
-
-const a = argsTokens;
-
-/** ( <a> <,b>* )  with optional comments interspersed */
-export const wordArgs: ParserStage<string[]> = seq( // TODO specify tokenizer for this
-  "(",
-  withSep(",", kind(a.word)), 
-  ")"
+// prettier-ignore
+/** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
+export const wordArgsLine: ParserStage<string[]> = tokens(
+  argsTokens,
+  seq(
+    "(", 
+    withSep(",", kind(argsTokens.word)), 
+    ")"
+  )
 )
   .map((r) => r.value[1])
   .traceName("wordArgs");
 
-const wordNum = or(kind(a.word), kind(a.digits));
+const wordNum = or(kind(argsTokens.word), kind(argsTokens.digits));
 
-export const wordNumArgs: ParserStage<string[]> = seq(// TODO specify tokenizer for this
+/** ( a1, b1* ) with optinal comments, spans lines */
+export const wordNumArgs: ParserStage<string[]> = seq(
   "(",
   withSep(",", wordNum),
   ")"
@@ -69,10 +68,9 @@ export const wordNumArgs: ParserStage<string[]> = seq(// TODO specify tokenizer 
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
 
-
-/** match an optional series of elements separated by a delimiter (e.g. a comma) 
+/** match an optional series of elements separated by a delimiter (e.g. a comma)
  * also skips embedded comments
-*/
+ */
 export function withSep<T>(
   sep: ParserStageArg<any>,
   p: ParserStage<T>
@@ -87,7 +85,9 @@ export function withSep<T>(
 }
 
 /** match a sequence with optional embedded comments */
-export function seqWithComments(...args: ParserStageArg<any>[]): ParserStage<any> {
+export function seqWithComments(
+  ...args: ParserStageArg<any>[]
+): ParserStage<any> {
   const commentsAfter = args.flatMap((a) => [a, comment]);
   const newArgs = [comment, ...commentsAfter];
   return seq(...newArgs);
