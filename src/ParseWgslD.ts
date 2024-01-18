@@ -1,6 +1,6 @@
 import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
-import { argsTokens, mainTokens } from "./MatchWgslD.js";
+import { mainTokens } from "./MatchWgslD.js";
 import { directive, lineCommentOptDirective } from "./ParseDirective.js";
 import {
   any,
@@ -16,12 +16,7 @@ import {
   repeat,
   seq,
 } from "./ParserCombinator.js";
-import {
-  anyUntil,
-  seqWithComments,
-  unknown,
-  wordNumArgs,
-} from "./ParseSupport.js";
+import { anyUntil, unknown, wordNumArgs } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -100,8 +95,7 @@ const rootDecl = or(
   directive,
   lineCommentOptDirective,
   unknown
-)
-  .traceName("rootDecl");
+).traceName("rootDecl");
 
 const root = seq(repeat(rootDecl), eof());
 
@@ -113,7 +107,12 @@ export function parseWgslD(
   const app: AbstractElem[] = [];
 
   const appState: ParseState = { ifStack: [], params };
-  const context: ParserContext = { lexer, app, appState: appState, maxParseCount: 1000 };
+  const context: ParserContext = {
+    lexer,
+    app,
+    appState: appState,
+    maxParseCount: 1000,
+  };
 
   root(context);
 
