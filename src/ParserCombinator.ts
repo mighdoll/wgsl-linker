@@ -2,6 +2,7 @@ import { Lexer } from "./MatchingLexer.js";
 import {
   TraceContext,
   TraceOptions,
+  logger,
   parserLog,
   tracing,
   withTraceLogging,
@@ -42,6 +43,12 @@ export interface ParserContext {
 
   /** during execution, debug trace logging */
   _trace?: TraceContext;
+
+  /** during execution, count parse attempts to avoid infinite looping */
+  _parseCount?: number;
+  
+  /** avoid infinite looping but not attempting to parse more than this many times */
+  maxParseCount?: number;
 }
 
 /** Result from a parser */
@@ -66,12 +73,27 @@ export type OptParserResult<T> = ParserResult<T> | null;
 /** a composable parsing element */
 export interface ParserStage<T> {
   (state: ParserContext): OptParserResult<T>;
+  /**
+   * tag results with a name,
+   *
+   * named results can be retrived with map(r => r.named.myName)
+   * note that named results are collected into an array,
+   * multiple matches with the same name (even from different nested parsers) accumulate
+   */
   named(name: string): ParserStage<T>;
+
+  /** record a name for debug tracing */
   traceName(name: string): ParserStage<T>;
+
+  /** map results to a new value, or add to app state as a side effect */
   map<U>(fn: (result: ExtendedResult<T>) => U | null): ParserStage<U>;
+
+  /** switch next parser based on results */
   toParser<N>(
     fn: (result: ExtendedResult<T>) => ParserStage<N> | undefined
   ): ParserStage<T | N>;
+
+  /** trigger tracing for this parser (and by default also this parsers descendants) */
   trace(opts?: TraceOptions): ParserStage<T>;
 }
 
@@ -109,7 +131,8 @@ interface ParserArgs {
   /** enable trace logging */
   trace?: TraceOptions;
 
-  /** true for kind(), and text(), to avoid intro log statement */
+  /** true for elements without children like kind(), and text(), 
+   * (to avoid intro log statement while tracing) */
   terminal?: boolean;
 }
 
@@ -120,7 +143,12 @@ export function parserStage<T>(
 ): ParserStage<T> {
   const { traceName, resultName, trace, terminal } = args;
   const stageFn = (state: ParserContext): OptParserResult<T> => {
-    const { lexer } = state;
+    const { lexer, _parseCount = 0, maxParseCount } = state;
+    state._parseCount = _parseCount + 1;
+    if (maxParseCount && _parseCount > maxParseCount) {
+      logger("infinite loop? ", traceName);
+      return null;
+    }
     const position = lexer.position();
 
     return withTraceLogging()(state, trace, (tstate) => {

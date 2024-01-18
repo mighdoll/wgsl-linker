@@ -156,3 +156,14 @@ test("tracing", () => {
   });
   expect(logged()).toMatchSnapshot();
 });
+
+test("infinite loop detection", () => {
+  const p = repeat(not("x"));
+  const { log, logged } = logCatch();
+
+  _withBaseLogger(log, () => {
+    testParse(p, "y");
+  });
+
+  expect(logged()).includes("infinite");
+});

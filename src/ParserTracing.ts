@@ -7,8 +7,8 @@ export function enableTracing() {
   tracing = true;
 }
 
-/** base logger when tracing is enabled. (can be overriden to a capturing logger for tests) */
-let logger = console.log;
+/** base logger. (can be overriden to a capturing logger for tests) */
+export let logger = console.log;
 
 /** no-op logger, for when tracing is disabled */
 const noLog: typeof console.log = () => {};

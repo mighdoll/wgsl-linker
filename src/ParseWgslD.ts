@@ -113,7 +113,7 @@ export function parseWgslD(
   const app: AbstractElem[] = [];
 
   const appState: ParseState = { ifStack: [], params };
-  const context: ParserContext = { lexer, app, appState: appState };
+  const context: ParserContext = { lexer, app, appState: appState, maxParseCount: 1000 };
 
   root(context);
 
