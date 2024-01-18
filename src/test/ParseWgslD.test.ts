@@ -1,18 +1,14 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
 import {
-  directive,
-  importing,
   lineComment,
   parseWgslD,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
-import { enableTracing } from "../ParserTracing.js";
-import { dlog } from "berry-pretty";
-import { logCatch } from "./LogCatcher.js";
-import { _withErrLogger } from "../TraverseRefs.js";
+import { directive, importing } from "../ParseDirective.js";
 import { skipBlockComment, wordNumArgs } from "../ParseSupport.js";
+import { enableTracing } from "../ParserTracing.js";
 enableTracing();
 
 test("parse empty string", () => {

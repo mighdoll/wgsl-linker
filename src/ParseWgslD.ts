@@ -12,6 +12,7 @@ import {
   lineCommentTokens,
   mainTokens,
 } from "./MatchWgslD.js";
+import { directive, } from "./ParseDirective.js";
 import {
   any,
   eof,
@@ -38,6 +39,11 @@ import {
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
+export interface ParseState {
+  ifStack: boolean[];
+  params: Record<string, any>;
+}
+
 const m = mainTokens;
 const a = directiveArgsTokens;
 const l = lineCommentTokens;
@@ -47,127 +53,12 @@ const globalDirectiveOrAssert = seqWithComments(
   anyUntil(";")
 );
 
-/** foo <(A,B)> <as boo> <from bar>  EOL */
-const importPhrase = seq(
-  kind(a.word).named("name"),
-  opt(wordArgs.named("args")),
-  opt(seq("as", kind(a.word).named("as"))),
-  opt(seq("from", kind(a.word).named("from")))
-)
-  .map((r) => {
-    // flatten 'args' by putting it with the other extracted names
-    const named: (keyof ImportElem)[] = ["name", "from", "as", "args"];
-    return makeElem<ImportElem>("import", r, named, []);
-  })
-  .traceName("importElem");
-
-export const importing = seq(
-  "importing",
-  seq(importPhrase.named("importing")),
-  repeat(seq(",", importPhrase.named("importing")))
-).traceName("importing");
-
-/** #import foo <(a,b)> <as boo> <from bar>  EOL */
-const importDirective = seq(
-  "#import",
-  tokens(directiveArgsTokens, seq(importPhrase.named("i"), eol))
-)
-  .map((r) => {
-    const imp: ImportElem = r.named.i[0];
-    imp.start = r.start; // use start of #import, not import phrase
-    r.app.push(imp);
-  })
-  .traceName("import");
-
-/** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
-// prettier-ignore
-const exportDirective = seq(
-  "#export",
-  tokens(
-    directiveArgsTokens,
-    seq(
-      opt(kind(a.word).named("name")), 
-      opt(wordArgs.named("args")), 
-      opt(importing), 
-      eol
-    )
-  )
-)
-  .map((r) => {
-    // flatten 'args' by putting it with the other extracted names
-    const e = makeElem<ExportElem>("export", r, ["name", "args"], ["importing"]);
-    r.app.push(e);
-  })
-  .traceName("export");
-
-const ifDirective: ParserStage<any> = seq(
-  "#if",
-  tokens(
-    directiveArgsTokens,
-    seq(opt("!").named("invert"), kind(m.word).named("name"), eol)
-  ).toParser((r) => {
-    const { params } = r.appState as ParseState;
-    const ifArg = r.named["name"]?.[0] as string;
-    const invert = r.named["invert"]?.[0] === "!";
-    const arg = !!params[ifArg];
-    const truthy = invert ? !arg : arg;
-    return ifBody(r, truthy);
-  })
-).traceName("#if");
-
-const elseDirective = seq("#else", tokens(directiveArgsTokens, eol))
-  .toParser((r) => {
-    const { ifStack } = r.appState as ParseState;
-    const ifState = ifStack.pop();
-    if (ifState === undefined) console.warn("unmatched #else", r.start);
-    return ifBody(r, !ifState);
-  })
-  .traceName("#else");
-
-function ifBody(
-  r: ExtendedResult<any>,
-  truthy: boolean
-): ParserStage<any> | undefined {
-  const { ifStack } = r.appState as ParseState;
-  ifStack.push(truthy);
-  if (!truthy) return skipUntilElseEndif;
-}
-
-const endifDirective = seq("#endif", tokens(directiveArgsTokens, eol))
-  .map((r) => {
-    const { ifStack } = r.appState as ParseState;
-    const ifState = ifStack.pop();
-    if (ifState === undefined) console.warn("unmatched #endif", r.start);
-  })
-  .traceName("#endif");
-
-export const directive = or(
-  exportDirective,
-  importDirective,
-  ifDirective,
-  elseDirective,
-  endifDirective
-).traceName("directive or");
-
 /** // <#import|#export|any> */
-export const lineComment = seq(
+export const lineComment = seq( // TODO mv this to directives
   "//",
   tokens(lineCommentTokens, or(directive, kind(l.notDirective)))
 ).traceName("lineComment");
 
-// prettier-ignore
-const skipUntilElseEndif = repeat(
-  seq(
-    or(
-      lineComment, 
-      seq(
-        not("#else"), 
-        not("#endif"),
-        any()
-      ), 
-    )
-  )
-).traceName("skipTo #else/#endif");
 
 const structDecl = seq(
   "struct",
@@ -236,11 +127,6 @@ const rootDecl = or(
 
 const root = seq(repeat(rootDecl), eof());
 
-interface ParseState {
-  ifStack: boolean[];
-  params: Record<string, any>;
-}
-
 export function parseWgslD(
   src: string,
   params: Record<string, any> = {}
@@ -257,7 +143,7 @@ export function parseWgslD(
 }
 
 /** creat an AbstractElem by pulling fields from named parse results */
-function makeElem<U extends AbstractElem>(
+export function makeElem<U extends AbstractElem>(
   kind: U["kind"],
   er: ExtendedResult<any>,
   named: (keyof U)[],
