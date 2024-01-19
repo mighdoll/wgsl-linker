@@ -12,7 +12,7 @@ import {
   opt,
   or,
   ParserContext,
-  ParserStage,
+  Parser,
   repeat,
   seq,
 } from "./ParserCombinator.js";
@@ -51,7 +51,7 @@ export const fnCall = seq(
 
 const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 
-const block: ParserStage<any> = seq(
+const block: Parser<any> = seq(
   "{",
   repeat(
     or(

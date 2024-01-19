@@ -12,7 +12,7 @@ import {
   not,
   opt,
   or,
-  ParserStage,
+  Parser,
   repeat,
   seq,
   tokens,
@@ -75,7 +75,7 @@ const exportDirective = seq(
   })
   .traceName("export");
 
-const ifDirective: ParserStage<any> = seq(
+const ifDirective: Parser<any> = seq(
   "#if",
   tokens(
     argsTokens,
@@ -116,7 +116,7 @@ const skipUntilElseEndif = repeat(
 function ifBody(
   r: ExtendedResult<any>,
   truthy: boolean
-): ParserStage<any> | undefined {
+): Parser<any> | undefined {
   const { ifStack } = r.appState as ParseState;
   ifStack.push(truthy);
   if (!truthy) return skipUntilElseEndif;

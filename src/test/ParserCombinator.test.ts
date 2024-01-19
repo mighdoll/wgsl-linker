@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
 import { argsTokens, mainTokens } from "../MatchWgslD.js";
 import {
-  ParserStage,
+  Parser,
   any,
   fn,
   kind,
@@ -130,7 +130,7 @@ test("not() failure", () => {
 
 test("recurse with fn()", () => {
   const src = "{ a { b } }";
-  const p: ParserStage<any> = seq(
+  const p: Parser<any> = seq(
     "{",
     repeat(
       or(

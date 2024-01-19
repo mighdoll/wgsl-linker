@@ -1,7 +1,7 @@
 import { argsTokens, lineCommentTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import {
-  ParserStage,
+  Parser,
   ParserStageArg,
   any,
   eof,
@@ -22,7 +22,7 @@ export const eol = or("\n", eof());
 
 export const unknown = any().map((r) => logErr("???", r.value, r.start));
 
-export const skipBlockComment: ParserStage<any> = seq(
+export const skipBlockComment: Parser<any> = seq(
   "/*",
   repeat(
     or(
@@ -37,7 +37,7 @@ export const comment = opt(or(fn(() => lineCommentOptDirective), skipBlockCommen
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
-export const wordArgsLine: ParserStage<string[]> = tokens(
+export const wordArgsLine: Parser<string[]> = tokens(
   argsTokens,
   seq(
     "(", 
@@ -51,7 +51,7 @@ export const wordArgsLine: ParserStage<string[]> = tokens(
 const wordNum = or(kind(argsTokens.word), kind(argsTokens.digits));
 
 /** ( a1, b1* ) with optinal comments, spans lines */
-export const wordNumArgs: ParserStage<string[]> = seq(
+export const wordNumArgs: Parser<string[]> = seq(
   "(",
   withSep(",", wordNum),
   ")"
@@ -64,8 +64,8 @@ export const wordNumArgs: ParserStage<string[]> = seq(
  */
 export function withSep<T>(
   sep: ParserStageArg<any>,
-  p: ParserStage<T>
-): ParserStage<T[]> {
+  p: Parser<T>
+): Parser<T[]> {
   return seq(
     comment,
     p.named("elem"),
@@ -78,7 +78,7 @@ export function withSep<T>(
 /** match a sequence with optional embedded comments */
 export function seqWithComments(
   ...args: ParserStageArg<any>[]
-): ParserStage<any> {
+): Parser<any> {
   const commentsAfter = args.flatMap((a) => [a, comment]);
   const newArgs = [comment, ...commentsAfter];
   return seq(...newArgs);
@@ -86,6 +86,6 @@ export function seqWithComments(
 
 /** match everything until a terminator (and the terminator too)
  * including optional embedded comments */
-export function anyUntil(arg: ParserStageArg<any>): ParserStage<any> {
+export function anyUntil(arg: ParserStageArg<any>): Parser<any> {
   return seq(repeat(seqWithComments(not(arg), any())), arg);
 }

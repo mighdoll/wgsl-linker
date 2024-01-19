@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
 import { mainTokens } from "../MatchWgslD.js";
-import { OptParserResult, ParserStage } from "../ParserCombinator.js";
+import { OptParserResult, Parser } from "../ParserCombinator.js";
 import { _withErrLogger } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
 
@@ -13,7 +13,7 @@ interface TestParseResult<T> {
 
 /** utility for testing parsers */
 export function testParse<T>(
-  p: ParserStage<T>,
+  p: Parser<T>,
   src: string,
   tokenMatcher = mainTokens
 ): TestParseResult<T> {
