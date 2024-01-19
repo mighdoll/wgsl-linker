@@ -1,7 +1,8 @@
-import { argsTokens, lineCommentTokens } from "./MatchWgslD.js";
+import { argsTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
-import { Parser, ParserStageArg } from "./Parser.js";
+import { Parser } from "./Parser.js";
 import {
+  CombinatorArg,
   any,
   eof,
   fn,
@@ -32,7 +33,12 @@ export const skipBlockComment: Parser<any> = seq(
   "*/"
 ).traceName("skipBlockComment");
 
-export const comment = opt(or(fn(() => lineCommentOptDirective), skipBlockComment));
+export const comment = opt(
+  or(
+    fn(() => lineCommentOptDirective),
+    skipBlockComment
+  )
+);
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
@@ -62,7 +68,7 @@ export const wordNumArgs: Parser<string[]> = seq(
  * handles embedded comments
  */
 export function withSep<T>(
-  sep: ParserStageArg<any>,
+  sep: CombinatorArg<any>,
   p: Parser<T>
 ): Parser<T[]> {
   return seq(
@@ -75,9 +81,7 @@ export function withSep<T>(
 }
 
 /** match a sequence with optional embedded comments */
-export function seqWithComments(
-  ...args: ParserStageArg<any>[]
-): Parser<any> {
+export function seqWithComments(...args: CombinatorArg<any>[]): Parser<any> {
   const commentsAfter = args.flatMap((a) => [a, comment]);
   const newArgs = [comment, ...commentsAfter];
   return seq(...newArgs);
@@ -85,6 +89,6 @@ export function seqWithComments(
 
 /** match everything until a terminator (and the terminator too)
  * including optional embedded comments */
-export function anyUntil(arg: ParserStageArg<any>): Parser<any> {
+export function anyUntil(arg: CombinatorArg<any>): Parser<any> {
   return seq(repeat(seqWithComments(not(arg), any())), arg);
 }

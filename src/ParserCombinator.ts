@@ -3,7 +3,6 @@ import {
   Parser,
   ParserContext,
   ParserResult,
-  ParserStageArg,
   mergeNamed,
   parserStage,
   parsing,
@@ -31,6 +30,10 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  * all user constructed parsers.
  */
 
+/** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
+export type CombinatorArg<T> = Parser<T> | string;
+
+
 /** Parse for a particular kind of token,
  * @return the matching text */
 export function kind(kindStr: string): Parser<string> {
@@ -51,28 +54,28 @@ export function text(value: string): Parser<string> {
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
-export function or<T = Token>(a: ParserStageArg<T>): Parser<T>;
+export function or<T = Token>(a: CombinatorArg<T>): Parser<T>;
 export function or<T = Token, U = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>
 ): Parser<T | U>;
 export function or<T = Token, U = Token, V = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>
 ): Parser<T | U | V>;
 export function or<T = Token, U = Token, V = Token, W = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>,
-  d: ParserStageArg<W>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>
 ): Parser<T | U | V | W>;
 export function or<T = Token, U = Token, V = Token, W = Token, X = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>,
-  d: ParserStageArg<W>,
-  e: ParserStageArg<X>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>,
+  e: CombinatorArg<X>
 ): Parser<T | U | V | W | X>;
 export function or<
   T = Token,
@@ -82,14 +85,14 @@ export function or<
   X = Token,
   Y = Token
 >(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>,
-  d: ParserStageArg<W>,
-  e: ParserStageArg<X>,
-  f: ParserStageArg<Y>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>,
+  e: CombinatorArg<X>,
+  f: CombinatorArg<Y>
 ): Parser<T | U | V | W | X | Y>;
-export function or(...stages: ParserStageArg<any>[]): Parser<any> {
+export function or(...stages: CombinatorArg<any>[]): Parser<any> {
   return parserStage(
     (state: ParserContext): ParserResult<any> | null => {
       for (const stage of stages) {
@@ -107,28 +110,28 @@ export function or(...stages: ParserStageArg<any>[]): Parser<any> {
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
-export function seq<T = Token, U = Token>(a: ParserStageArg<T>): Parser<[T]>;
+export function seq<T = Token, U = Token>(a: CombinatorArg<T>): Parser<[T]>;
 export function seq<T = Token, U = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>
 ): Parser<[T, U]>;
 export function seq<T = Token, U = Token, V = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>
 ): Parser<[T, U, V]>;
 export function seq<T = Token, U = Token, V = Token, W = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>,
-  d: ParserStageArg<W>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>
 ): Parser<[T, U, V, W]>;
 export function seq<T = Token, U = Token, V = Token, W = Token, X = Token>(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>,
-  d: ParserStageArg<W>,
-  e: ParserStageArg<X>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>,
+  e: CombinatorArg<X>
 ): Parser<[T, U, V, W, X]>;
 export function seq<
   T = Token,
@@ -138,15 +141,15 @@ export function seq<
   X = Token,
   Y = Token
 >(
-  a: ParserStageArg<T>,
-  b: ParserStageArg<U>,
-  c: ParserStageArg<V>,
-  d: ParserStageArg<W>,
-  e: ParserStageArg<X>,
-  f: ParserStageArg<Y>
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>,
+  e: CombinatorArg<X>,
+  f: CombinatorArg<Y>
 ): Parser<[T, U, V, W, X, Y]>;
-export function seq(...stages: ParserStageArg<any>[]): Parser<any[]>;
-export function seq(...stages: ParserStageArg<any>[]): Parser<any[]> {
+export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
+export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
   return parserStage(
     (state: ParserContext) => {
       const values = [];
@@ -173,7 +176,7 @@ export function seq(...stages: ParserStageArg<any>[]): Parser<any[]> {
  */
 export function opt<T>(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
-export function opt<T>(stage: ParserStageArg<T>): Parser<T | string | boolean> {
+export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
   return parserStage(
     (state: ParserContext): OptParserResult<T | string | boolean> => {
       const parser = parserArg(stage);
@@ -187,7 +190,7 @@ export function opt<T>(stage: ParserStageArg<T>): Parser<T | string | boolean> {
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens
  * */
-export function not<T>(stage: ParserStageArg<T>): Parser<true> {
+export function not<T>(stage: CombinatorArg<T>): Parser<true> {
   return parserStage(
     (state: ParserContext): OptParserResult<true> => {
       const pos = state.lexer.position();
@@ -212,7 +215,7 @@ export function any(): Parser<Token> {
 
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
-export function repeat<T>(stage: ParserStageArg<T>): Parser<(T | string)[]> {
+export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
   return parserStage(
     (state: ParserContext): OptParserResult<(T | string)[]> => {
       const values: (T | string)[] = [];
@@ -236,7 +239,7 @@ export function repeat<T>(stage: ParserStageArg<T>): Parser<(T | string)[]> {
 export function tokens<T>(matcher: TokenMatcher, arg: Parser<T>): Parser<T>;
 export function tokens<T>(
   matcher: TokenMatcher,
-  arg: ParserStageArg<T>
+  arg: CombinatorArg<T>
 ): Parser<T | string> {
   return parserStage(
     (state: ParserContext): OptParserResult<T | string> => {
@@ -264,7 +267,7 @@ export function eof(): Parser<true> {
 
 /** convert naked string arguments into text() parsers */
 export function parserArg<T>(
-  arg: ParserStageArg<T>
+  arg: CombinatorArg<T>
 ): Parser<T> | Parser<string> {
   return typeof arg === "string" ? text(arg) : arg;
 }

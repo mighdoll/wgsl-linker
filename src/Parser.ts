@@ -78,9 +78,6 @@ export interface Parser<T> {
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
 type ParseFn<T> = (state: ParserContext) => OptParserResult<T>;
 
-/** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
-export type ParserStageArg<T> = Parser<T> | string;
-
 // TODO consider dropping this
 /** Create a ParserStage from a function that parses and returns a value */
 export function parsing<T>(
