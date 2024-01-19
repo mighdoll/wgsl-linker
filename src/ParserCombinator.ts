@@ -4,8 +4,8 @@ import {
   ParserContext,
   ParserResult,
   mergeNamed,
-  parserStage,
-  parsing,
+  parser,
+  simpleParser,
 } from "./Parser.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
@@ -37,7 +37,7 @@ export type CombinatorArg<T> = Parser<T> | string;
 /** Parse for a particular kind of token,
  * @return the matching text */
 export function kind(kindStr: string): Parser<string> {
-  return parsing((state: ParserContext): string | null => {
+  return simpleParser((state: ParserContext): string | null => {
     const next = state.lexer.next();
     return next?.kind === kindStr ? next.text : null;
   }, `kind '${kindStr}'`);
@@ -46,7 +46,7 @@ export function kind(kindStr: string): Parser<string> {
 /** Parse for a token containing a text value
  * @return the kind of token that matched */
 export function text(value: string): Parser<string> {
-  return parsing((state: ParserContext): string | null => {
+  return simpleParser((state: ParserContext): string | null => {
     const next = state.lexer.next();
     return next?.text === value ? next.text : null;
   }, `text '${value}'`);
@@ -93,7 +93,7 @@ export function or<
   f: CombinatorArg<Y>
 ): Parser<T | U | V | W | X | Y>;
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
-  return parserStage(
+  return parser(
     (state: ParserContext): ParserResult<any> | null => {
       for (const stage of stages) {
         const parser = parserArg(stage);
@@ -150,7 +150,7 @@ export function seq<
 ): Parser<[T, U, V, W, X, Y]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
-  return parserStage(
+  return parser(
     (state: ParserContext) => {
       const values = [];
       let namedResults = {};
@@ -177,7 +177,7 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
 export function opt<T>(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
 export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
-  return parserStage(
+  return parser(
     (state: ParserContext): OptParserResult<T | string | boolean> => {
       const parser = parserArg(stage);
       const result = parser(state);
@@ -191,7 +191,7 @@ export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
  * does not consume any tokens
  * */
 export function not<T>(stage: CombinatorArg<T>): Parser<true> {
-  return parserStage(
+  return parser(
     (state: ParserContext): OptParserResult<true> => {
       const pos = state.lexer.position();
       const result = parserArg(stage)(state);
@@ -207,7 +207,7 @@ export function not<T>(stage: CombinatorArg<T>): Parser<true> {
 
 /** yield next token, any token */
 export function any(): Parser<Token> {
-  return parsing((state: ParserContext): Token | null => {
+  return simpleParser((state: ParserContext): Token | null => {
     const next = state.lexer.next();
     return next || null;
   }, "any");
@@ -216,7 +216,7 @@ export function any(): Parser<Token> {
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
 export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
-  return parserStage(
+  return parser(
     (state: ParserContext): OptParserResult<(T | string)[]> => {
       const values: (T | string)[] = [];
       let results = {};
@@ -241,7 +241,7 @@ export function tokens<T>(
   matcher: TokenMatcher,
   arg: CombinatorArg<T>
 ): Parser<T | string> {
-  return parserStage(
+  return parser(
     (state: ParserContext): OptParserResult<T | string> => {
       return state.lexer.withMatcher(matcher, () => {
         const p = parserArg(arg);
@@ -254,7 +254,7 @@ export function tokens<T>(
 
 /** A delayed parser definition, for making recursive parser definitions. */
 export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
-  return parserStage((state: ParserContext): OptParserResult<T | string> => {
+  return parser((state: ParserContext): OptParserResult<T | string> => {
     const stage = parserArg(fn());
     return stage(state);
   });
@@ -262,7 +262,7 @@ export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
 
 /** yields true if parsing has reached the end of input */
 export function eof(): Parser<true> {
-  return parsing((state: ParserContext) => state.lexer.eof() || null, "eof");
+  return simpleParser((state: ParserContext) => state.lexer.eof() || null, "eof");
 }
 
 /** convert naked string arguments into text() parsers */

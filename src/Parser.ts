@@ -19,14 +19,18 @@ export interface ParserContext {
   /** handy place for user written parsers to keep or accept context */
   appState: any;
 
+  /** set this to avoid infinite looping by failing after more than this many parsing steps */
+  maxParseCount?: number;
+
+  // TODO mv these to an internal data structure
+
   /** during execution, debug trace logging */
   _trace?: TraceContext;
 
   /** during execution, count parse attempts to avoid infinite looping */
   _parseCount?: number;
 
-  /** set this to avoid infinite looping by failing after more than this many parsing steps */
-  maxParseCount?: number;
+  _preParse?: Parser<unknown>[];
 }
 
 /** Result from a parser */
@@ -76,11 +80,11 @@ export interface Parser<T> {
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
-type ParseFn<T> = (state: ParserContext) => OptParserResult<T>;
+type ParseFn<T> = (context: ParserContext) => OptParserResult<T>;
 
 // TODO consider dropping this
 /** Create a ParserStage from a function that parses and returns a value */
-export function parsing<T>(
+export function simpleParser<T>(
   fn: (state: ParserContext) => T | null | undefined,
   traceName?: string
 ): Parser<T> {
@@ -93,7 +97,7 @@ export function parsing<T>(
     }
   };
 
-  return parserStage(parserFn, { traceName, terminal: true });
+  return parser(parserFn, { traceName, terminal: true });
 }
 
 /** options for creating a core parser */
@@ -110,17 +114,13 @@ export interface ParserArgs {
   /** true for elements without children like kind(), and text(),
    * (to avoid intro log statement while tracing) */
   terminal?: boolean;
-  
 }
 
-/** Create a ParserStage from a full ParseFn function that returns an OptParserResult 
+/** Create a ParserStage from a full ParseFn function that returns an OptParserResult
  * @param fn the parser function
  * @param args static arguments provided by the user as the parser is constructed
-*/
-export function parserStage<T>(
-  fn: ParseFn<T>,
-  args = {} as ParserArgs
-): Parser<T> {
+ */
+export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
   const { traceName, resultName, trace, terminal } = args;
   const parseWrap = (context: ParserContext): OptParserResult<T> => {
     const { lexer, _parseCount = 0, maxParseCount } = context;
@@ -136,6 +136,14 @@ export function parserStage<T>(
     return withTraceLogging()(context, trace, (tstate) => {
       if (!terminal && tracing) parserLog(`..${traceName}`);
       const position = lexer.position();
+      const { _preParse } = context;
+      if (_preParse && _preParse.length) {
+        const preResult = _preParse[0](tstate);
+        if (preResult === null || preResult === undefined) {
+          // parser failed
+          lexer.position(position); // reset position to orig spot
+        }
+      }
 
       // run the parser function for this stage
       const result = fn(tstate);
@@ -156,71 +164,80 @@ export function parserStage<T>(
           };
         }
         // returning orig parser result is fine, no need to name patch
-        return result; 
+        return result;
       }
     });
   };
 
   // TODO make name param optional and use the name from a text() or kind() match?
   parseWrap.named = (name: string) =>
-    parserStage(fn, { ...args, resultName: name, traceName: name });
+    parser(fn, { ...args, resultName: name, traceName: name });
   parseWrap.traceName = (name: string) =>
-    parserStage(fn, { ...args, traceName: name });
-  parseWrap.map = map;
-  parseWrap.toParser = toParser;
+    parser(fn, { ...args, traceName: name });
+  parseWrap.map = <U>(fn: ParserMapFn<T, U>) => map(parseWrap, fn);
+  parseWrap.toParser = <U>(fn: ToParserFn<T, U>) => toParser(parseWrap, fn);;
   parseWrap.trace = (opts: TraceOptions = {}) =>
-    parserStage(fn, { ...args, trace: opts });
-
-  function map<U>(fn: (results: ExtendedResult<T>) => U | null): Parser<U> {
-    return parserStage(
-      (ctx: ParserContext): OptParserResult<U> => {
-        const extended = runInternal(ctx);
-        if (!extended) return null;
-
-        const mappedValue = fn(extended);
-        if (mappedValue === null) return null;
-
-        return { value: mappedValue, named: extended.named };
-      },
-      { traceName: "map" }
-    );
-  }
-
-  function toParser<N>(
-    fn: (results: ExtendedResult<T>) => Parser<N> | undefined
-  ): Parser<T | N> {
-    return parserStage(
-      (ctx: ParserContext): OptParserResult<T | N> => {
-        const extended = runInternal(ctx);
-        if (!extended) return null;
-
-        // run the supplied function to get a parser
-        const p = fn(extended);
-
-        if (p === undefined) {
-          return extended;
-        }
-
-        // run the parser returned by the supplied function
-        const nextResult = p(ctx);
-        return nextResult;
-      },
-      { traceName: "toParser" }
-    );
-  }
-
-  /** run local parser, return extended results */
-  function runInternal(ctx: ParserContext): ExtendedResult<T> | null {
-    const start = ctx.lexer.position();
-    const origResults = parseWrap(ctx);
-    if (origResults === null) return null;
-    const end = ctx.lexer.position();
-    const { app, appState } = ctx;
-    const extended = { ...origResults, start, end, app, appState };
-    return extended;
-  }
+    parser(fn, { ...args, trace: opts });
 
   return parseWrap;
+}
+
+type ParserMapFn<T, U> = (results: ExtendedResult<T>) => U | null;
+
+/** return a parser that maps the current results */
+function map<T, U>(parseFn: ParseFn<T>, fn: ParserMapFn<T, U>): Parser<U> {
+  return parser(
+    (ctx: ParserContext): OptParserResult<U> => {
+      const extended = runExtended(ctx, parseFn);
+      if (!extended) return null;
+
+      const mappedValue = fn(extended);
+      if (mappedValue === null) return null;
+
+      return { value: mappedValue, named: extended.named };
+    },
+    { traceName: "map" }
+  );
+}
+
+type ToParserFn<T,N> = (results: ExtendedResult<T>) => Parser<N> | undefined
+
+function toParser<T, N>(
+  parseFn: ParseFn<T>,
+  fn: ToParserFn<T,N>
+): Parser<T | N> {
+  return parser(
+    (ctx: ParserContext): OptParserResult<T | N> => {
+      const extended = runExtended(ctx, parseFn);
+      if (!extended) return null;
+
+      // run the supplied function to get a parser
+      const p = fn(extended);
+
+      if (p === undefined) {
+        return extended;
+      }
+
+      // run the parser returned by the supplied function
+      const nextResult = p(ctx);
+      return nextResult;
+    },
+    { traceName: "toParser" }
+  );
+}
+
+/** run parser, return extended results to support map() or toParser() */
+function runExtended<T>(
+  ctx: ParserContext,
+  parseFn: ParseFn<T>
+): ExtendedResult<T> | null {
+  const start = ctx.lexer.position();
+  const origResults = parseFn(ctx);
+  if (origResults === null) return null;
+  const end = ctx.lexer.position();
+  const { app, appState } = ctx;
+  const extended = { ...origResults, start, end, app, appState };
+  return extended;
 }
 
 /** merge arrays in liked named keys */
