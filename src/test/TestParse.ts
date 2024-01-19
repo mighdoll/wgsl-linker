@@ -20,7 +20,7 @@ export function testParse<T>(
   const lexer = matchingLexer(src, tokenMatcher);
   const app: any[] = [];
   const appState = {};
-  const parsed = p({ lexer, app, appState, maxParseCount: 1000 });
+  const parsed = p.parse({ lexer, app, appState, maxParseCount: 1000 });
   return { parsed, position: lexer.position(), app };
 }
 

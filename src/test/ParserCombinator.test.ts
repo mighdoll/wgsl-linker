@@ -82,12 +82,10 @@ test("opt() makes failing match ok", () => {
 
 test("repeat() to (1,2,3,4) via named", () => {
   const src = "(1,2,3,4)";
-  const lexer = matchingLexer(src, argsTokens);
-  const app: any[] = [];
   const wordNum = or(kind("word"), kind("digits")).named("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));
   const p = seq("(", params, ")");
-  const parsed = p({ lexer, app, appState: {} });
+  const { parsed } = testParse(p, src);
   expect(parsed).not.null;
   expect(parsed?.named.wn).deep.equals(["1", "2", "3", "4"]);
 });

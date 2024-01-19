@@ -135,20 +135,13 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     }
 
     // setup trace logging if enabled and active for this parser
-    return withTraceLogging()(context, trace, (tstate) => {
+    return withTraceLogging()(context, trace, (tContext) => {
       if (!terminal && tracing) parserLog(`..${traceName}`);
-      const position = lexer.position();
-      const { _preParse } = context;
-      if (_preParse && _preParse.length) {
-        const preResult = _preParse[0](tstate);
-        if (preResult === null || preResult === undefined) {
-          // parser failed
-          lexer.position(position); // reset position to orig spot
-        }
-      }
+      preParse(tContext);
 
+      const position = lexer.position();
       // run the parser function for this stage
-      const result = fn(tstate);
+      const result = fn(tContext);
 
       if (result === null || result === undefined) {
         // parser failed
@@ -185,6 +178,24 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     parseWrap({ ...start, _preParse: [], _parseCount: 0 });
 
   return parseWrap;
+}
+
+function preParse(ctx: ParserContext): void {
+  const { _preParse, lexer } = ctx;
+
+  _preParse.forEach((prep) => {
+    let position = lexer.position();
+    let preResult = prep(ctx);
+    while (preResult !== null && preResult !== undefined) {
+      position = lexer.position();
+      preResult = prep(ctx);
+    }
+
+    if (preResult === null || preResult === undefined) {
+      // parser failed
+      lexer.position(position); // reset position to prev spot
+    }
+  });
 }
 
 type ParserMapFn<T, U> = (results: ExtendedResult<T>) => U | null;
