@@ -8,7 +8,6 @@ import {
   withTraceLogging,
 } from "./ParserTracing.js";
 
-
 /** Information passed to the parsers during parsing */
 export interface ParserContext {
   /** supply tokens to the parser*/
@@ -25,7 +24,7 @@ export interface ParserContext {
 
   /** during execution, count parse attempts to avoid infinite looping */
   _parseCount?: number;
-  
+
   /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
 }
@@ -77,7 +76,7 @@ export interface Parser<T> {
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
-type StageFn<T> = (state: ParserContext) => OptParserResult<T>;
+type ParseFn<T> = (state: ParserContext) => OptParserResult<T>;
 
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
 export type ParserStageArg<T> = Parser<T> | string;
@@ -88,7 +87,7 @@ export function parsing<T>(
   fn: (state: ParserContext) => T | null | undefined,
   traceName?: string
 ): Parser<T> {
-  const parserFn: StageFn<T> = (state: ParserContext) => {
+  const parserFn: ParseFn<T> = (state: ParserContext) => {
     const r = fn(state);
     if (r !== null && r !== undefined) {
       return { value: r, named: {} };
@@ -110,60 +109,67 @@ interface ParserArgs {
   /** enable trace logging */
   trace?: TraceOptions;
 
-  /** true for elements without children like kind(), and text(), 
+  /** true for elements without children like kind(), and text(),
    * (to avoid intro log statement while tracing) */
   terminal?: boolean;
 }
 
 /** Create a ParserStage from a full StageFn function that returns an OptParserResult */
 export function parserStage<T>(
-  fn: StageFn<T>,
+  fn: ParseFn<T>,
   args = {} as ParserArgs
 ): Parser<T> {
   const { traceName, resultName, trace, terminal } = args;
-  const stageFn = (state: ParserContext): OptParserResult<T> => {
+  const parseWrap = (state: ParserContext): OptParserResult<T> => {
     const { lexer, _parseCount = 0, maxParseCount } = state;
+
+    // check for infinite looping
     state._parseCount = _parseCount + 1;
     if (maxParseCount && _parseCount > maxParseCount) {
       logger("infinite loop? ", traceName);
       return null;
     }
-    const position = lexer.position();
 
+    // setup trace logging if enabled and active for this parser
     return withTraceLogging()(state, trace, (tstate) => {
       if (!terminal && tracing) parserLog(`..${traceName}`);
+      const position = lexer.position();
+
+      // run the parser function for this stage
       const result = fn(tstate);
 
       if (result === null || result === undefined) {
+        // parser failed
         tracing && parserLog(`x ${traceName}`);
-        lexer.position(position);
+        lexer.position(position); // reset position to orig spot
         return null;
       } else {
+        // parser succeded
         tracing && parserLog(`✓ ${traceName}`);
         if (resultName) {
+          // merge named result (if user set a name for this stage's result)
           return {
             value: result.value,
             named: mergeNamed(result.named, { [resultName]: [result.value] }),
           };
         }
-        return result;
+        // returning orig parser result is fine, no need to name patch
+        return result; 
       }
     });
   };
 
   // TODO make name param optional and use the name from a text() or kind() match?
-  stageFn.named = (name: string) =>
+  parseWrap.named = (name: string) =>
     parserStage(fn, { ...args, resultName: name, traceName: name });
-  stageFn.traceName = (name: string) =>
+  parseWrap.traceName = (name: string) =>
     parserStage(fn, { ...args, traceName: name });
-  stageFn.map = map;
-  stageFn.toParser = toParser;
-  stageFn.trace = (opts: TraceOptions = {}) =>
+  parseWrap.map = map;
+  parseWrap.toParser = toParser;
+  parseWrap.trace = (opts: TraceOptions = {}) =>
     parserStage(fn, { ...args, trace: opts });
 
-  function map<U>(
-    fn: (results: ExtendedResult<T>) => U | null
-  ): Parser<U> {
+  function map<U>(fn: (results: ExtendedResult<T>) => U | null): Parser<U> {
     return parserStage(
       (ctx: ParserContext): OptParserResult<U> => {
         const extended = runInternal(ctx);
@@ -204,7 +210,7 @@ export function parserStage<T>(
   /** run local parser, return extended results */
   function runInternal(ctx: ParserContext): ExtendedResult<T> | null {
     const start = ctx.lexer.position();
-    const origResults = stageFn(ctx);
+    const origResults = parseWrap(ctx);
     if (origResults === null) return null;
     const end = ctx.lexer.position();
     const { app, appState } = ctx;
@@ -212,9 +218,8 @@ export function parserStage<T>(
     return extended;
   }
 
-  return stageFn;
+  return parseWrap;
 }
-
 
 /** merge arrays in liked named keys */
 export function mergeNamed(
