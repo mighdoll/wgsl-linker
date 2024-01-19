@@ -174,10 +174,11 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     parser(fn, { ...args, resultName: name, traceName: name });
   parseWrap.traceName = (name: string) =>
     parser(fn, { ...args, traceName: name });
-  parseWrap.map = <U>(fn: ParserMapFn<T, U>) => map(parseWrap, fn);
-  parseWrap.toParser = <U>(fn: ToParserFn<T, U>) => toParser(parseWrap, fn);;
   parseWrap.trace = (opts: TraceOptions = {}) =>
     parser(fn, { ...args, trace: opts });
+  parseWrap.map = <U>(fn: ParserMapFn<T, U>) => map(parseWrap as Parser<T>, fn);
+  parseWrap.toParser = <U>(fn: ToParserFn<T, U>) =>
+    toParser(parseWrap as Parser<T>, fn);
 
   return parseWrap;
 }
@@ -185,7 +186,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
 type ParserMapFn<T, U> = (results: ExtendedResult<T>) => U | null;
 
 /** return a parser that maps the current results */
-function map<T, U>(parseFn: ParseFn<T>, fn: ParserMapFn<T, U>): Parser<U> {
+function map<T, U>(parseFn: Parser<T>, fn: ParserMapFn<T, U>): Parser<U> {
   return parser(
     (ctx: ParserContext): OptParserResult<U> => {
       const extended = runExtended(ctx, parseFn);
@@ -200,11 +201,11 @@ function map<T, U>(parseFn: ParseFn<T>, fn: ParserMapFn<T, U>): Parser<U> {
   );
 }
 
-type ToParserFn<T,N> = (results: ExtendedResult<T>) => Parser<N> | undefined
+type ToParserFn<T, N> = (results: ExtendedResult<T>) => Parser<N> | undefined;
 
 function toParser<T, N>(
-  parseFn: ParseFn<T>,
-  fn: ToParserFn<T,N>
+  parseFn: Parser<T>,
+  fn: ToParserFn<T, N>
 ): Parser<T | N> {
   return parser(
     (ctx: ParserContext): OptParserResult<T | N> => {
