@@ -96,7 +96,8 @@ export function parsing<T>(
   return parserStage(parserFn, { traceName, terminal: true });
 }
 
-interface ParserArgs {
+/** options for creating a core parser */
+export interface ParserArgs {
   /** name to use for result in named results */
   resultName?: string;
 
@@ -109,26 +110,30 @@ interface ParserArgs {
   /** true for elements without children like kind(), and text(),
    * (to avoid intro log statement while tracing) */
   terminal?: boolean;
+  
 }
 
-/** Create a ParserStage from a full StageFn function that returns an OptParserResult */
+/** Create a ParserStage from a full ParseFn function that returns an OptParserResult 
+ * @param fn the parser function
+ * @param args static arguments provided by the user as the parser is constructed
+*/
 export function parserStage<T>(
   fn: ParseFn<T>,
   args = {} as ParserArgs
 ): Parser<T> {
   const { traceName, resultName, trace, terminal } = args;
-  const parseWrap = (state: ParserContext): OptParserResult<T> => {
-    const { lexer, _parseCount = 0, maxParseCount } = state;
+  const parseWrap = (context: ParserContext): OptParserResult<T> => {
+    const { lexer, _parseCount = 0, maxParseCount } = context;
 
     // check for infinite looping
-    state._parseCount = _parseCount + 1;
+    context._parseCount = _parseCount + 1;
     if (maxParseCount && _parseCount > maxParseCount) {
       logger("infinite loop? ", traceName);
       return null;
     }
 
     // setup trace logging if enabled and active for this parser
-    return withTraceLogging()(state, trace, (tstate) => {
+    return withTraceLogging()(context, trace, (tstate) => {
       if (!terminal && tracing) parserLog(`..${traceName}`);
       const position = lexer.position();
 
