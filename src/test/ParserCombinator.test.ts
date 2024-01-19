@@ -1,8 +1,7 @@
 import { expect, test } from "vitest";
-import { matchingLexer } from "../MatchingLexer.js";
 import { argsTokens, mainTokens } from "../MatchWgslD.js";
+import { matchingLexer } from "../MatchingLexer.js";
 import {
-  Parser,
   any,
   fn,
   kind,
@@ -14,9 +13,9 @@ import {
   text,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
-import { Token } from "../TokenMatcher.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
+import { Parser } from "../Parser.js";
 
 const m = mainTokens;
 

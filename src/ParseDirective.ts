@@ -4,15 +4,14 @@ import {
   lineCommentTokens,
   mainTokens,
 } from "./MatchWgslD.js";
+import { ExtendedResult, Parser } from "./Parser.js";
 import {
   any,
-  ExtendedResult,
   fn,
   kind,
   not,
   opt,
   or,
-  Parser,
   repeat,
   seq,
   tokens,

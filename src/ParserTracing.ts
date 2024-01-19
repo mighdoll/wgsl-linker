@@ -1,4 +1,4 @@
-import { ParserContext } from "./ParserCombinator.js";
+import { ParserContext } from "./Parser.js";
 
 export let tracing = false;
 

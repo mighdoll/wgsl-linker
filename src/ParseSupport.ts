@@ -1,8 +1,7 @@
 import { argsTokens, lineCommentTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
+import { Parser, ParserStageArg } from "./Parser.js";
 import {
-  Parser,
-  ParserStageArg,
   any,
   eof,
   fn,

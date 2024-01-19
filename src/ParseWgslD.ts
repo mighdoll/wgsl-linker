@@ -2,17 +2,15 @@ import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive, lineCommentOptDirective } from "./ParseDirective.js";
+import { ExtendedResult, Parser, ParserContext } from "./Parser.js";
 import {
   any,
   eof,
-  ExtendedResult,
   fn,
   kind,
   not,
   opt,
   or,
-  ParserContext,
-  Parser,
   repeat,
   seq,
 } from "./ParserCombinator.js";
