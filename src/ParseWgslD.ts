@@ -2,7 +2,7 @@ import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive, lineCommentOptDirective } from "./ParseDirective.js";
-import { ExtendedResult, Parser, ParserContext } from "./Parser.js";
+import { ExtendedResult, Parser, ParserInit } from "./Parser.js";
 import {
   any,
   eof,
@@ -105,16 +105,16 @@ export function parseWgslD(
   const app: AbstractElem[] = [];
 
   const appState: ParseState = { ifStack: [], params };
-  const context: ParserContext = {
+  const init: ParserInit = {
     lexer,
     app,
     appState: appState,
     maxParseCount: 1000,
   };
 
-  root(context);
+  root.parse(init);
 
-  return context.app;
+  return init.app;
 }
 
 /** creat an AbstractElem by pulling fields from named parse results */

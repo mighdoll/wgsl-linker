@@ -8,8 +8,7 @@ import {
   withTraceLogging,
 } from "./ParserTracing.js";
 
-/** Information passed to the parsers during parsing */
-export interface ParserContext {
+export interface ParserInit {
   /** supply tokens to the parser*/
   lexer: Lexer;
 
@@ -21,16 +20,17 @@ export interface ParserContext {
 
   /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
+}
 
-  // TODO mv these to an internal data structure
-
+/* Information passed to the parsers during parsing */
+export interface ParserContext extends ParserInit {
   /** during execution, debug trace logging */
   _trace?: TraceContext;
 
   /** during execution, count parse attempts to avoid infinite looping */
-  _parseCount?: number;
+  _parseCount: number;
 
-  _preParse?: Parser<unknown>[];
+  _preParse: Parser<unknown>[];
 }
 
 /** Result from a parser */
@@ -77,6 +77,8 @@ export interface Parser<T> {
 
   /** trigger tracing for this parser (and by default also this parsers descendants) */
   trace(opts?: TraceOptions): Parser<T>;
+
+  parse(start: ParserInit): OptParserResult<T>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -179,6 +181,8 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
   parseWrap.map = <U>(fn: ParserMapFn<T, U>) => map(parseWrap as Parser<T>, fn);
   parseWrap.toParser = <U>(fn: ToParserFn<T, U>) =>
     toParser(parseWrap as Parser<T>, fn);
+  parseWrap.parse = (start: ParserInit) =>
+    parseWrap({ ...start, _preParse: [], _parseCount: 0 });
 
   return parseWrap;
 }
