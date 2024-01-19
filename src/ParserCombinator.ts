@@ -47,7 +47,7 @@ export interface ParserContext {
   /** during execution, count parse attempts to avoid infinite looping */
   _parseCount?: number;
   
-  /** avoid infinite looping but not attempting to parse more than this many times */
+  /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
 }
 
