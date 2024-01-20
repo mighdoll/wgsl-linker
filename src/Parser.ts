@@ -7,6 +7,7 @@ import {
   tracing,
   withTraceLogging,
 } from "./ParserTracing.js";
+import { logErr } from "./TraverseRefs.js";
 
 export interface ParserInit {
   /** supply tokens to the parser*/
@@ -83,6 +84,11 @@ export interface Parser<T> {
   trace(opts?: TraceOptions): Parser<T>;
 
   preParse(pre: Parser<unknown>): Parser<T>;
+
+  disablePreParse(pre: Parser<unknown>): Parser<T>;
+
+  /** set which tokens to ignore while executing this parser and its descendants */
+  tokenIgnore(ignore?: Set<string>): Parser<T>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -180,7 +186,11 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     toParser(parseWrap as Parser<T>, fn);
   parseWrap.parse = (start: ParserInit) =>
     parseWrap({ ...start, _preParse: [], _parseCount: 0 });
-  parseWrap.preParse = (pre: Parser<unknown>) => preParse<T>(pre, parseWrap);
+  parseWrap.preParse = (pre: Parser<unknown>) => preParse<T>(parseWrap, pre);
+  parseWrap.disablePreParse = (pre: Parser<unknown>) =>
+    disablePreParse<T>(parseWrap, pre);
+  parseWrap.tokenIgnore = (ignore?: Set<string>) =>
+    tokenIgnore<T>(parseWrap, ignore);
 
   return parseWrap;
 }
@@ -188,7 +198,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
 function execPreParsers(ctx: ParserContext): void {
   const { _preParse, lexer } = ctx;
 
-  const ctxNoPre = {...ctx, _preParse: []}; 
+  const ctxNoPre = { ...ctx, _preParse: [] };
   _preParse.forEach((pre) => {
     let position = lexer.position();
     let preResult = pre(ctxNoPre);
@@ -244,15 +254,46 @@ function toParser<T, N>(
   );
 }
 
-function preParse<T>(pre: Parser<unknown>, mainParser: Parser<T>): Parser<T> {
+function tokenIgnore<T>(
+  mainParser: Parser<T>,
+  ignore: Set<string> = new Set()
+): Parser<T> {
+  return parser(
+    (ctx: ParserContext): OptParserResult<T> =>
+      ctx.lexer.withIgnore(ignore, () => mainParser(ctx)),
+    { traceName: "tokenIgnore" }
+  );
+}
+
+function preParse<T>(mainParser: Parser<T>, pre: Parser<unknown>): Parser<T> {
   return parser(
     (ctx: ParserContext): OptParserResult<T> => {
-      ctx._preParse.unshift(pre);
-      const result = mainParser(ctx);
-      ctx._preParse.shift();
-      return result;
+      const newCtx = { ...ctx, _preParse: [pre, ...ctx._preParse] };
+      return mainParser(newCtx);
     },
     { traceName: "preParse" }
+  );
+}
+
+function disablePreParse<T>(
+  mainParser: Parser<T>,
+  pre: Parser<unknown>
+): Parser<T> {
+  return parser(
+    (ctx: ParserContext): OptParserResult<T> => {
+      const preps = ctx._preParse;
+      const foundDex = preps.findIndex((p) => p === pre);
+      if (foundDex < 0) {
+        logErr("disablePreParse: parser not found:", pre.traceName);
+      }
+      const newPreps = [
+        ...preps.slice(0, foundDex),
+        ...preps.slice(foundDex + 1),
+      ];
+      const newCtx = { ...ctx, _preParse: newPreps };
+      return mainParser(newCtx);
+    },
+    { traceName: "disablePreParse" }
   );
 }
 

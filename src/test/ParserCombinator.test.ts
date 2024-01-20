@@ -178,3 +178,13 @@ test("preparse simple comment", () => {
   const { parsed } = testParse(p, src);
   expect(parsed?.value).deep.eq(["boo", "baz"]);
 });
+
+test.only("tokenIgnore", () => {
+  const p = repeat(any()).map((r) => r.value.map((tok) => tok.text));
+  const src = "a b";
+  const { parsed: parsedNoSpace } = testParse(p, src);
+  expect(parsedNoSpace?.value).deep.eq(["a", "b"]);
+
+  const { parsed } = testParse(p.tokenIgnore(), src);
+  expect(parsed?.value).deep.eq(["a", " ", "b"]);
+});

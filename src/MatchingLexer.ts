@@ -3,9 +3,15 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
   next(): Token | undefined;
-  withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T;
+  withMatcher<T>(newMatcher: TokenMatcher, fn: () => T): T;
+  withIgnore<T>(newIgnore: Set<string>, fn: () => T): T;
   position(pos?: number): number;
   eof(): boolean;
+}
+
+interface MatcherStackElem {
+  matcher: TokenMatcher;
+  ignore: Set<string>;
 }
 
 export function matchingLexer(
@@ -14,7 +20,7 @@ export function matchingLexer(
   ignore = new Set(["ws"])
 ): Lexer {
   let matcher = rootMatcher;
-  const matcherStack: TokenMatcher[] = [];
+  const matcherStack: MatcherStackElem[] = [];
 
   matcher.start(src);
 
@@ -23,21 +29,33 @@ export function matchingLexer(
     while (token && ignore.has(token.kind)) {
       token = matcher.next();
     }
-    tracing && parserLog(`: ${JSON.stringify(token?.text)} (${token?.kind}) ${matcher.position()}`);
+    tracing &&
+      parserLog(
+        `: ${JSON.stringify(token?.text)} (${
+          token?.kind
+        }) ${matcher.position()}`
+      );
     return token;
   }
 
-  function pushMatcher(newMatcher: TokenMatcher): void {
+  function pushMatcher(newMatcher: TokenMatcher, newIgnore: Set<string>): void {
     const position = matcher.position();
-    matcherStack.push(matcher);
+    matcherStack.push({ matcher, ignore });
     newMatcher.start(src, position);
     matcher = newMatcher;
+    ignore = newIgnore;
   }
 
   function popMatcher(): void {
     const position = matcher.position();
-    matcher =
-      matcherStack.pop() || (console.error("too many pops"), rootMatcher);
+    const elem = matcherStack.pop();
+    if (!elem) {
+      console.error("too many pops"), rootMatcher;
+      return;
+    }
+    matcher = elem.matcher;
+    ignore = elem.ignore;
+
     matcher.position(position);
   }
 
@@ -48,8 +66,16 @@ export function matchingLexer(
     return matcher.position();
   }
 
-  function withMatcher<T>(tokenMatcher: TokenMatcher, fn: () => T): T {
-    pushMatcher(tokenMatcher);
+  function withMatcher<T>(newMatcher: TokenMatcher, fn: () => T): T {
+    return withMatcherIgnore(newMatcher, ignore, fn);
+  }
+
+  function withIgnore<T>(newIgnore: Set<string>, fn: () => T): T {
+    return withMatcherIgnore(matcher, newIgnore, fn);
+  }
+  
+  function withMatcherIgnore<T>(tokenMatcher: TokenMatcher, ignore: Set<string>, fn: () => T): T {
+    pushMatcher(tokenMatcher, ignore);
     const result = fn();
     popMatcher();
     return result;
@@ -63,6 +89,7 @@ export function matchingLexer(
     next,
     position,
     withMatcher,
+    withIgnore,
     eof,
   };
 }
