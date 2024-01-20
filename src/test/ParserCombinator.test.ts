@@ -3,6 +3,7 @@ import { mainTokens } from "../MatchWgslD.js";
 import { Parser } from "../Parser.js";
 import {
   any,
+  anyBut,
   fn,
   kind,
   not,
@@ -165,12 +166,10 @@ test("infinite loop detection", () => {
 });
 
 test("preparse simple comment", () => {
-  enableTracing();
+  // prettier-ignore
   const pre = seq(
     "/*", 
-    repeat(
-      seq(not("*/"), any())
-    ), 
+    repeat(anyBut("*/")), 
     "*/"
   ).traceName("pre");
   const p = repeat(kind(m.word)).preParse(pre);
