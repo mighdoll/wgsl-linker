@@ -33,7 +33,6 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
 export type CombinatorArg<T> = Parser<T> | string;
 
-
 /** Parse for a particular kind of token,
  * @return the matching text */
 export function kind(kindStr: string): Parser<string> {
@@ -213,6 +212,10 @@ export function any(): Parser<Token> {
   }, "any");
 }
 
+export function anyBut<T>(arg: CombinatorArg<T>): Parser<Token> {
+  return seq(not(arg), any()).map((r) => r.value[1]);
+}
+
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
 export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
@@ -262,9 +265,11 @@ export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
 
 /** yields true if parsing has reached the end of input */
 export function eof(): Parser<true> {
-  return simpleParser((state: ParserContext) => state.lexer.eof() || null, "eof");
+  return simpleParser(
+    (state: ParserContext) => state.lexer.eof() || null,
+    "eof"
+  );
 }
-
 
 /** convert naked string arguments into text() parsers */
 export function parserArg<T>(
@@ -272,4 +277,3 @@ export function parserArg<T>(
 ): Parser<T> | Parser<string> {
   return typeof arg === "string" ? text(arg) : arg;
 }
-
