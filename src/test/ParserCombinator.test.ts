@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { argsTokens, mainTokens } from "../MatchWgslD.js";
-import { matchingLexer } from "../MatchingLexer.js";
+import { mainTokens } from "../MatchWgslD.js";
+import { Parser } from "../Parser.js";
 import {
   any,
   fn,
@@ -15,7 +15,6 @@ import {
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
-import { Parser } from "../Parser.js";
 
 const m = mainTokens;
 
@@ -163,4 +162,20 @@ test("infinite loop detection", () => {
   });
 
   expect(logged()).includes("infinite");
+});
+
+test("preparse simple comment", () => {
+  enableTracing();
+  const pre = seq(
+    "/*", 
+    repeat(
+      seq(not("*/"), any())
+    ), 
+    "*/"
+  ).traceName("pre");
+  const p = repeat(kind(m.word)).preParse(pre);
+  const src = "boo /* bar */ baz";
+
+  const { parsed } = testParse(p, src);
+  expect(parsed?.value).deep.eq(["boo", "baz"]);
 });

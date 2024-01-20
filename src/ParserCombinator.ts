@@ -265,9 +265,11 @@ export function eof(): Parser<true> {
   return simpleParser((state: ParserContext) => state.lexer.eof() || null, "eof");
 }
 
+
 /** convert naked string arguments into text() parsers */
 export function parserArg<T>(
   arg: CombinatorArg<T>
 ): Parser<T> | Parser<string> {
   return typeof arg === "string" ? text(arg) : arg;
 }
+

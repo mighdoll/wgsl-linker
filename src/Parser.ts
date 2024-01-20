@@ -55,6 +55,10 @@ export type OptParserResult<T> = ParserResult<T> | null;
 /** a composable parsing element */
 export interface Parser<T> {
   (state: ParserContext): OptParserResult<T>;
+
+  /** start parsing */
+  parse(start: ParserInit): OptParserResult<T>;
+
   /**
    * tag results with a name,
    *
@@ -78,7 +82,7 @@ export interface Parser<T> {
   /** trigger tracing for this parser (and by default also this parsers descendants) */
   trace(opts?: TraceOptions): Parser<T>;
 
-  parse(start: ParserInit): OptParserResult<T>;
+  preParse(pre: Parser<unknown>): Parser<T>;
 }
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
@@ -137,7 +141,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     // setup trace logging if enabled and active for this parser
     return withTraceLogging()(context, trace, (tContext) => {
       if (!terminal && tracing) parserLog(`..${traceName}`);
-      preParse(tContext);
+      execPreParsers(tContext);
 
       const position = lexer.position();
       // run the parser function for this stage
@@ -176,25 +180,23 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     toParser(parseWrap as Parser<T>, fn);
   parseWrap.parse = (start: ParserInit) =>
     parseWrap({ ...start, _preParse: [], _parseCount: 0 });
+  parseWrap.preParse = (pre: Parser<unknown>) => preParse<T>(pre, parseWrap);
 
   return parseWrap;
 }
 
-function preParse(ctx: ParserContext): void {
+function execPreParsers(ctx: ParserContext): void {
   const { _preParse, lexer } = ctx;
 
-  _preParse.forEach((prep) => {
+  const ctxNoPre = {...ctx, _preParse: []}; 
+  _preParse.forEach((pre) => {
     let position = lexer.position();
-    let preResult = prep(ctx);
+    let preResult = pre(ctxNoPre);
     while (preResult !== null && preResult !== undefined) {
       position = lexer.position();
-      preResult = prep(ctx);
+      preResult = pre(ctxNoPre);
     }
-
-    if (preResult === null || preResult === undefined) {
-      // parser failed
-      lexer.position(position); // reset position to prev spot
-    }
+    lexer.position(position); // reset position to prev spot
   });
 }
 
@@ -239,6 +241,18 @@ function toParser<T, N>(
       return nextResult;
     },
     { traceName: "toParser" }
+  );
+}
+
+function preParse<T>(pre: Parser<unknown>, mainParser: Parser<T>): Parser<T> {
+  return parser(
+    (ctx: ParserContext): OptParserResult<T> => {
+      ctx._preParse.unshift(pre);
+      const result = mainParser(ctx);
+      ctx._preParse.shift();
+      return result;
+    },
+    { traceName: "preParse" }
   );
 }
 
