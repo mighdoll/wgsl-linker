@@ -238,6 +238,7 @@ export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
   );
 }
 
+// TODO mv to method on Parser
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
 export function tokens<T>(matcher: TokenMatcher, arg: Parser<T>): Parser<T>;
 export function tokens<T>(
