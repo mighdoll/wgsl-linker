@@ -147,6 +147,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     // setup trace logging if enabled and active for this parser
     return withTraceLogging()(context, trace, (tContext) => {
       if (!terminal && tracing) parserLog(`..${traceName}`);
+
       execPreParsers(tContext);
 
       const position = lexer.position();
@@ -284,13 +285,13 @@ function disablePreParse<T>(
       const preps = ctx._preParse;
       const foundDex = preps.findIndex((p) => p === pre);
       if (foundDex < 0) {
-        logErr("disablePreParse: parser not found:", pre.traceName);
+        logErr("disablePreParse: pre parser to disable not found");
       }
-      const newPreps = [
+      const newPreparse = [
         ...preps.slice(0, foundDex),
         ...preps.slice(foundDex + 1),
       ];
-      const newCtx = { ...ctx, _preParse: newPreps };
+      const newCtx = { ...ctx, _preParse: newPreparse };
       return mainParser(newCtx);
     },
     { traceName: "disablePreParse" }
