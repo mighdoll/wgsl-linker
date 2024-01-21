@@ -279,13 +279,10 @@ exports[`skipBlockComment parses /* comment */ 1`] = `
   "value": [
     "/*",
     [
-      [
-        true,
-        {
-          "kind": "word",
-          "text": "comment",
-        },
-      ],
+      {
+        "kind": "word",
+        "text": "comment",
+      },
     ],
     "*/",
   ],

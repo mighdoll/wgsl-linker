@@ -4,6 +4,7 @@ import { Parser } from "./Parser.js";
 import {
   CombinatorArg,
   any,
+  anyBut,
   eof,
   fn,
   kind,
@@ -27,18 +28,16 @@ export const skipBlockComment: Parser<any> = seq(
   repeat(
     or(
       fn(() => skipBlockComment),
-      seq(not("*/"), any())
+      anyBut("*/")
     )
   ),
   "*/"
 ).traceName("skipBlockComment");
 
-export const comment = opt(
-  or(
-    fn(() => lineCommentOptDirective),
-    skipBlockComment
-  )
-);
+export const comment = or(
+  fn(() => lineCommentOptDirective),
+  skipBlockComment
+).traceName("comment");
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
@@ -67,14 +66,10 @@ export const wordNumArgs: Parser<string[]> = seq(
 /** match an optional series of elements separated by a delimiter (e.g. a comma)
  * handles embedded comments
  */
-export function withSep<T>(
-  sep: CombinatorArg<any>,
-  p: Parser<T>
-): Parser<T[]> {
+export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
   return seq(
-    comment,
     p.named("elem"),
-    repeat(seqWithComments(sep, p.named("elem")))
+    repeat(seq(sep, p.named("elem")))
   )
     .map((r) => r.named.elem as T[])
     .traceName("withSep");
@@ -90,5 +85,5 @@ export function seqWithComments(...args: CombinatorArg<any>[]): Parser<any> {
 /** match everything until a terminator (and the terminator too)
  * including optional embedded comments */
 export function anyUntil(arg: CombinatorArg<any>): Parser<any> {
-  return seq(repeat(seqWithComments(not(arg), any())), arg);
+  return seq(repeat(seq(not(arg), any())), arg);
 }

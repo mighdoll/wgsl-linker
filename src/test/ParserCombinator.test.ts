@@ -180,7 +180,6 @@ test("preparse simple comment", () => {
 });
 
 test("disable preParse inside quote", () => {
-  enableTracing();
   // prettier-ignore
   const comment = seq(
     "/*", 

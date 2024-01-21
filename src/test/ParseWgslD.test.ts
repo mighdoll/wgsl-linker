@@ -6,7 +6,7 @@ import {
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import { directive, importing, lineCommentOptDirective } from "../ParseDirective.js";
-import { skipBlockComment, wordNumArgs } from "../ParseSupport.js";
+import { comment, skipBlockComment, wordNumArgs } from "../ParseSupport.js";
 import { enableTracing } from "../ParserTracing.js";
 enableTracing();
 
@@ -124,6 +124,7 @@ test("parse #if !foo #else #endif", () => {
     // #endif 
     `;
   const parsed = parseWgslD(src, { foo: true });
+  console.log(parsed);
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("g");
 });
@@ -170,7 +171,7 @@ test("wordNumArgs parses (a, b, 1) with line comments everywhere", () => {
     1
     // satsified
     )`;
-  const { parsed } = testParse(wordNumArgs, src);
+  const { parsed } = testParse(wordNumArgs.preParse(comment), src);
   expect(parsed?.value).toMatchSnapshot();
 });
 

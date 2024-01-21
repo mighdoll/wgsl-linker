@@ -5,6 +5,7 @@ import { directive, lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser, ParserInit } from "./Parser.js";
 import {
   any,
+  anyBut,
   eof,
   fn,
   kind,
@@ -14,7 +15,7 @@ import {
   repeat,
   seq,
 } from "./ParserCombinator.js";
-import { anyUntil, unknown, wordNumArgs } from "./ParseSupport.js";
+import { anyUntil, comment, unknown, wordNumArgs } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -67,7 +68,7 @@ export const fnDecl = seq(
   "fn",
   kind(mainTokens.word).named("name"),
   "(",
-  repeat(or(lineCommentOptDirective, seq(not("{"), any()))),
+  repeat(anyBut("{")),
   block
 )
   .traceName("fnDecl")
@@ -91,9 +92,9 @@ const rootDecl = or(
   globalDirectiveOrAssert,
   globalDecl,
   directive,
-  lineCommentOptDirective,
   unknown
-).traceName("rootDecl");
+)
+.traceName("rootDecl");
 
 const root = seq(repeat(rootDecl), eof());
 
