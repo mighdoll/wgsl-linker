@@ -179,7 +179,35 @@ test("preparse simple comment", () => {
   expect(parsed?.value).deep.eq(["boo", "baz"]);
 });
 
-test.only("tokenIgnore", () => {
+test("disable preParse inside quote", () => {
+  enableTracing();
+  // prettier-ignore
+  const comment = seq(
+    "/*", 
+    repeat(anyBut("*/")), 
+    "*/"
+  ).traceName("comment");
+
+  // prettier-ignore
+  const quote = seq(
+      opt(kind(m.ws)),
+      "^", 
+      repeat(anyBut("^").named("contents")), 
+      "^"
+    )
+    .map((r) => r.named.contents.map((tok) => tok.text).join(""))
+    .disablePreParse(comment)
+    .tokenIgnore() // disable ws skipping
+    .traceName("quote");
+
+  const p = repeat(or(kind(m.word), quote)).preParse(comment);
+  const src = "zug ^zip /* boo */^ zax";
+
+  const { parsed } = testParse(p, src);
+  expect(parsed?.value).deep.eq(["zug", "zip /* boo */", "zax"]);
+});
+
+test("tokenIgnore", () => {
   const p = repeat(any()).map((r) => r.value.map((tok) => tok.text));
   const src = "a b";
   const { parsed: parsedNoSpace } = testParse(p, src);
