@@ -201,13 +201,15 @@ function execPreParsers(ctx: ParserContext): void {
 
   const ctxNoPre = { ...ctx, _preParse: [] };
   _preParse.forEach((pre) => {
-    let position = lexer.position();
-    let preResult = pre(ctxNoPre);
-    while (preResult !== null && preResult !== undefined) {
+    // exec each pre-parser until it fails
+    let position: number;
+    let preResult: OptParserResult<unknown>;
+    do {
       position = lexer.position();
       preResult = pre(ctxNoPre);
-    }
-    lexer.position(position); // reset position to prev spot
+    } while (preResult !== null && preResult !== undefined);
+
+    lexer.position(position); // reset position to end of last successful parse
   });
 }
 
