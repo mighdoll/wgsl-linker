@@ -213,7 +213,7 @@ export function any(): Parser<Token> {
 }
 
 export function anyBut<T>(arg: CombinatorArg<T>): Parser<Token> {
-  return seq(not(arg), any()).map((r) => r.value[1]);
+  return seq(not(arg), any()).map((r) => r.value[1]).traceName("anyBut");
 }
 
 export function repeat(stage: string): Parser<string[]>;
