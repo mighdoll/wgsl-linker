@@ -25,16 +25,17 @@ export function matchingLexer(
   matcher.start(src);
 
   function next(): Token | undefined {
+    if (eof()) return undefined;
+
     let token = matcher.next();
     while (token && ignore.has(token.kind)) {
+      if (eof()) return undefined;
       token = matcher.next();
     }
-    tracing &&
-      parserLog(
-        `: ${JSON.stringify(token?.text)} (${
-          token?.kind
-        }) ${matcher.position()}`
-      );
+    if (tracing) {
+      const text = JSON.stringify(token?.text.replace(/\n/g, "\\n"));
+      parserLog(`: ${text} (${token?.kind}) ${matcher.position()}`);
+    }
     return token;
   }
 
@@ -73,8 +74,12 @@ export function matchingLexer(
   function withIgnore<T>(newIgnore: Set<string>, fn: () => T): T {
     return withMatcherIgnore(matcher, newIgnore, fn);
   }
-  
-  function withMatcherIgnore<T>(tokenMatcher: TokenMatcher, ignore: Set<string>, fn: () => T): T {
+
+  function withMatcherIgnore<T>(
+    tokenMatcher: TokenMatcher,
+    ignore: Set<string>,
+    fn: () => T
+  ): T {
     pushMatcher(tokenMatcher, ignore);
     const result = fn();
     popMatcher();
