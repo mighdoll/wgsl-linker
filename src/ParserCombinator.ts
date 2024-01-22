@@ -1,3 +1,4 @@
+import { quotedText } from "./MatchingLexer.js";
 import {
   OptParserResult,
   Parser,
@@ -48,7 +49,7 @@ export function text(value: string): Parser<string> {
   return simpleParser((state: ParserContext): string | null => {
     const next = state.lexer.next();
     return next?.text === value ? next.text : null;
-  }, `text '${value.replace(/\n/g, "\\n")}'`);
+  }, `text ${quotedText(value)}'`);
 }
 
 /** Try parsing with one or more parsers,

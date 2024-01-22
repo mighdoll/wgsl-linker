@@ -33,7 +33,7 @@ export function matchingLexer(
       token = matcher.next();
     }
     if (tracing) {
-      const text = JSON.stringify(token?.text.replace(/\n/g, "\\n"));
+      const text = quotedText(token?.text);
       parserLog(`: ${text} (${token?.kind}) ${matcher.position()}`);
     }
     return token;
@@ -97,4 +97,8 @@ export function matchingLexer(
     withIgnore,
     eof,
   };
+}
+
+export function quotedText(text?: string): string {
+  return text ? `'${text.replace(/\n/g, "\\n")}'` : "";
 }
