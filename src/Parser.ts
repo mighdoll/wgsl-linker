@@ -136,48 +136,7 @@ export class Parser<T> {
 
   /** run the parser given an already created parsing context */
   _run(context: ParserContext): OptParserResult<T> {
-    const { lexer, _parseCount = 0, maxParseCount } = context;
-
-    // check for infinite looping
-    context._parseCount = _parseCount + 1;
-    if (maxParseCount && _parseCount > maxParseCount) {
-      logger("infinite loop? ", this.traceName);
-      return null;
-    }
-
-    // setup trace logging if enabled and active for this parser
-    return withTraceLogging()(context, this.traceOptions, (tContext) => {
-      const traceSuccessOnly = tContext._trace?.successOnly;
-      if (!this.terminal && tracing && !traceSuccessOnly)
-        parserLog(`..${this._traceName}`);
-
-      execPreParsers(tContext);
-
-      const position = lexer.position();
-      // run the parser function for this stage
-      const result = this.fn(tContext);
-
-      if (result === null || result === undefined) {
-        // parser failed
-        tracing && !traceSuccessOnly && parserLog(`x ${this._traceName}`);
-        lexer.position(position); // reset position to orig spot
-        return null;
-      } else {
-        // parser succeded
-        tracing && parserLog(`✓ ${this._traceName}`);
-        if (this.namedResult) {
-          // merge named result (if user set a name for this stage's result)
-          return {
-            value: result.value,
-            named: mergeNamed(result.named, {
-              [this.namedResult]: [result.value],
-            }),
-          };
-        }
-        // returning orig parser result is fine, no need to name patch
-        return result;
-      }
-    });
+    return runParser(this, context);
   }
 
   /**
@@ -245,6 +204,62 @@ export class Parser<T> {
   tokens(matcher: TokenMatcher): Parser<T> {
     return tokens<T>(this, matcher);
   }
+}
+
+/** 
+ * Execute a parser by running the core parsing fn given the parsing context
+ * also:
+ * . check for infinite loops 
+ * . log if tracing is enabled
+ * . merge named results
+ * . backtrack on failure
+ */
+function runParser<T>(
+  p: Parser<T>,
+  context: ParserContext
+): OptParserResult<T> {
+  const { lexer, _parseCount = 0, maxParseCount } = context;
+
+  // check for infinite looping
+  context._parseCount = _parseCount + 1;
+  if (maxParseCount && _parseCount > maxParseCount) {
+    logger("infinite loop? ", p.traceName);
+    return null;
+  }
+
+  // setup trace logging if enabled and active for this parser
+  return withTraceLogging()(context, p.traceOptions, (tContext) => {
+    const traceSuccessOnly = tContext._trace?.successOnly;
+    if (!p.terminal && tracing && !traceSuccessOnly)
+      parserLog(`..${p._traceName}`);
+
+    execPreParsers(tContext);
+
+    const position = lexer.position();
+    // run the parser function for this stage
+    const result = p.fn(tContext);
+
+    if (result === null || result === undefined) {
+      // parser failed
+      tracing && !traceSuccessOnly && parserLog(`x ${p._traceName}`);
+      lexer.position(position); // reset position to orig spot
+      return null;
+    } else {
+      // parser succeded
+      tracing && parserLog(`✓ ${p._traceName}`);
+      if (p.namedResult) {
+        // merge named result (if user set a name for this stage's result)
+        return {
+          value: result.value,
+          named: mergeNamed(result.named, {
+            [p.namedResult]: [result.value],
+          }),
+        };
+      }
+      // returning orig parser result is fine, no need to name patch
+      return result;
+    }
+  });
 }
 
 function execPreParsers(ctx: ParserContext): void {
