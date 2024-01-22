@@ -247,24 +247,6 @@ export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
   );
 }
 
-// TODO mv to method on Parser
-/** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
-export function tokens<T>(matcher: TokenMatcher, arg: Parser<T>): Parser<T>;
-export function tokens<T>(
-  matcher: TokenMatcher,
-  arg: CombinatorArg<T>
-): Parser<T | string> {
-  return parser(
-    (state: ParserContext): OptParserResult<T | string> => {
-      return state.lexer.withMatcher(matcher, () => {
-        const p = parserArg(arg);
-        return p(state);
-      });
-    },
-    { traceName: `tokens ${matcher._traceName}` }
-  );
-}
-
 /** A delayed parser definition, for making recursive parser definitions. */
 export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
   return parser((state: ParserContext): OptParserResult<T | string> => {
@@ -283,10 +265,7 @@ export function eof(): Parser<true> {
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
-  return seq(
-    p.named("_elem"),
-    repeat(seq(sep, p.named("_elem")))
-  )
+  return seq(p.named("_elem"), repeat(seq(sep, p.named("_elem"))))
     .map((r) => r.named._elem as T[])
     .traceName("withSep");
 }

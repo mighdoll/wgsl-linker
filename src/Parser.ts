@@ -96,7 +96,8 @@ export interface Parser<T> {
    * If no parameters are provided, no tokens are ignored. */
   tokenIgnore(ignore?: Set<string>): Parser<T>;
 
-  /** use the provided token matcher with this parser and its descendants */
+  /** use the provided token matcher with this parser and its descendants 
+   * (i.e. use a temporary lexing mode) */
   tokens(matcher: TokenMatcher): Parser<T>;
 }
 
@@ -203,7 +204,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
     disablePreParse<T>(parseWrap, pre);
   parseWrap.tokenIgnore = (ignore?: Set<string>) =>
     tokenIgnore<T>(parseWrap, ignore);
-  parseWrap.tokens = (matcher: TokenMatcher) => tokens2<T>(parseWrap, matcher);
+  parseWrap.tokens = (matcher: TokenMatcher) => tokens<T>(parseWrap, matcher);
 
   return parseWrap;
 }
@@ -289,9 +290,9 @@ function preParse<T>(mainParser: Parser<T>, pre: Parser<unknown>): Parser<T> {
     { traceName: "preParse" }
   );
 }
-// TODO mv to method on Parser
+
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
-function tokens2<T>(mainParser: Parser<T>, matcher: TokenMatcher): Parser<T> {
+function tokens<T>(mainParser: Parser<T>, matcher: TokenMatcher): Parser<T> {
   return parser(
     (state: ParserContext): OptParserResult<T> => {
       return state.lexer.withMatcher(matcher, () => {
