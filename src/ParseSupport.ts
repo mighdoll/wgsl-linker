@@ -19,7 +19,11 @@ import { logErr } from "./TraverseRefs.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */
 
-export const eol = or("\n", eof());
+// prettier-ignore
+export const eolf = seq(
+  opt(kind(argsTokens.ws)), 
+  or("\n", eof())
+).tokenIgnore().traceName("eolf");
 
 export const unknown = any().map((r) => logErr("???", r.value, r.start));
 

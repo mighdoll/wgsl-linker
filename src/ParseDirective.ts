@@ -16,7 +16,7 @@ import {
   seq,
   tokens,
 } from "./ParserCombinator.js";
-import { eol, wordArgsLine } from "./ParseSupport.js";
+import { eolf, wordArgsLine } from "./ParseSupport.js";
 import { makeElem, ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
@@ -44,7 +44,7 @@ export const importing = seq(
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  tokens(argsTokens, seq(importPhrase.named("i"), eol))
+  tokens(argsTokens, seq(importPhrase.named("i"), eolf))
 )
   .map((r) => {
     const imp: ImportElem = r.named.i[0];
@@ -55,7 +55,7 @@ const importDirective = seq(
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 // prettier-ignore
-const exportDirective = seq(
+export const exportDirective = seq(
   "#export",
   tokens(
     argsTokens,
@@ -63,7 +63,7 @@ const exportDirective = seq(
       opt(kind(argsTokens.word).named("name")), 
       opt(wordArgsLine.named("args")), 
       opt(importing), 
-      eol
+      eolf
     )
   )
 )
@@ -78,7 +78,7 @@ const ifDirective: Parser<any> = seq(
   "#if",
   tokens(
     argsTokens,
-    seq(opt("!").named("invert"), kind(mainTokens.word).named("name"), eol)
+    seq(opt("!").named("invert"), kind(mainTokens.word).named("name"), eolf)
   ).toParser((r) => {
     const { params } = r.appState as ParseState;
     const ifArg = r.named["name"]?.[0] as string;
@@ -89,7 +89,7 @@ const ifDirective: Parser<any> = seq(
   })
 ).traceName("#if");
 
-const elseDirective = seq("#else", tokens(argsTokens, eol))
+const elseDirective = seq("#else", tokens(argsTokens, eolf))
   .toParser((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
@@ -121,7 +121,7 @@ function ifBody(
   if (!truthy) return skipUntilElseEndif;
 }
 
-const endifDirective = seq("#endif", tokens(argsTokens, eol))
+const endifDirective = seq("#endif", tokens(argsTokens, eolf))
   .map((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
