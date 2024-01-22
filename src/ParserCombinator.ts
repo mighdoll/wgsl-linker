@@ -97,7 +97,7 @@ export function or(...stages: CombinatorArg<any>[]): Parser<any> {
     (state: ParserContext): ParserResult<any> | null => {
       for (const stage of stages) {
         const parser = parserArg(stage);
-        const result = parser(state);
+        const result = parser._run(state);
         if (result !== null) {
           return result;
         }
@@ -156,7 +156,7 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
       let namedResults = {};
       for (const stage of stages) {
         const parser = parserArg(stage);
-        const result = parser(state);
+        const result = parser._run(state);
         if (result === null) return null;
 
         namedResults = mergeNamed(namedResults, result.named);
@@ -180,7 +180,7 @@ export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
   return parser(
     (state: ParserContext): OptParserResult<T | string | boolean> => {
       const parser = parserArg(stage);
-      const result = parser(state);
+      const result = parser._run(state);
       return result || { value: false, named: {} };
     },
     { traceName: "opt" }
@@ -194,7 +194,7 @@ export function not<T>(stage: CombinatorArg<T>): Parser<true> {
   return parser(
     (state: ParserContext): OptParserResult<true> => {
       const pos = state.lexer.position();
-      const result = parserArg(stage)(state);
+      const result = parserArg(stage)._run(state);
       if (!result) {
         return { value: true, named: {} };
       }
@@ -234,7 +234,7 @@ export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
       let results = {};
       while (true) {
         const parser = parserArg(stage);
-        const result = parser(state);
+        const result = parser._run(state);
         if (result !== null) {
           values.push(result.value);
           results = mergeNamed(results, result.named);
@@ -251,7 +251,7 @@ export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
 export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
   return parser((state: ParserContext): OptParserResult<T | string> => {
     const stage = parserArg(fn());
-    return stage(state);
+    return stage._run(state);
   });
 }
 

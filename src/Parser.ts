@@ -59,10 +59,13 @@ export type OptParserResult<T> = ParserResult<T> | null;
 
 /** a composable parsing element */
 export interface Parser<T> {
-  (state: ParserContext): OptParserResult<T>;
+  // (state: ParserContext): OptParserResult<T>;
 
   /** start parsing */
   parse(start: ParserInit): OptParserResult<T>;
+  
+  /** run the parser given an already created context */
+  _run(ctx: ParserContext): OptParserResult<T>;
 
   /**
    * tag results with a name,
@@ -213,6 +216,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
   parseWrap.tokenIgnore = (ignore?: Set<string>) =>
     tokenIgnore<T>(parseWrap, ignore);
   parseWrap.tokens = (matcher: TokenMatcher) => tokens<T>(parseWrap, matcher);
+  parseWrap._run = parseWrap;
 
   return parseWrap;
 }
@@ -233,7 +237,7 @@ function execPreParsers(ctx: ParserContext): void {
       position = lexer.position();
       if (failCache.has(position)) break;
 
-      preResult = pre(ctxNoPre);
+      preResult = pre._run(ctxNoPre);
     } while (preResult !== null && preResult !== undefined);
 
     failCache.add(position);
@@ -278,7 +282,7 @@ function toParser<T, N>(
       }
 
       // run the parser returned by the supplied function
-      const nextResult = p(ctx);
+      const nextResult = p._run(ctx);
       return nextResult;
     },
     { traceName: "toParser" }
@@ -291,7 +295,7 @@ function tokenIgnore<T>(
 ): Parser<T> {
   return parser(
     (ctx: ParserContext): OptParserResult<T> =>
-      ctx.lexer.withIgnore(ignore, () => mainParser(ctx)),
+      ctx.lexer.withIgnore(ignore, () => mainParser._run(ctx)),
     { traceName: "tokenIgnore" }
   );
 }
@@ -300,7 +304,7 @@ function preParse<T>(mainParser: Parser<T>, pre: Parser<unknown>): Parser<T> {
   return parser(
     (ctx: ParserContext): OptParserResult<T> => {
       const newCtx = { ...ctx, _preParse: [pre, ...ctx._preParse] };
-      return mainParser(newCtx);
+      return mainParser._run(newCtx);
     },
     { traceName: "preParse" }
   );
@@ -311,7 +315,7 @@ function tokens<T>(mainParser: Parser<T>, matcher: TokenMatcher): Parser<T> {
   return parser(
     (state: ParserContext): OptParserResult<T> => {
       return state.lexer.withMatcher(matcher, () => {
-        return mainParser(state);
+        return mainParser._run(state);
       });
     },
     { traceName: `tokens ${matcher._traceName}` }
@@ -334,7 +338,7 @@ function disablePreParse<T>(
         ...preps.slice(foundDex + 1),
       ];
       const newCtx = { ...ctx, _preParse: newPreparse };
-      return mainParser(newCtx);
+      return mainParser._run(newCtx);
     },
     { traceName: "disablePreParse" }
   );
@@ -343,10 +347,10 @@ function disablePreParse<T>(
 /** run parser, return extended results to support map() or toParser() */
 function runExtended<T>(
   ctx: ParserContext,
-  parseFn: ParseFn<T>
+  parseFn: Parser<T>
 ): ExtendedResult<T> | null {
   const start = ctx.lexer.position();
-  const origResults = parseFn(ctx);
+  const origResults = parseFn._run(ctx);
   if (origResults === null) return null;
   const end = ctx.lexer.position();
   const { app, appState } = ctx;
