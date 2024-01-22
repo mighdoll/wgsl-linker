@@ -146,7 +146,9 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
 
     // setup trace logging if enabled and active for this parser
     return withTraceLogging()(context, trace, (tContext) => {
-      if (!terminal && tracing) parserLog(`..${traceName}`);
+      const traceSuccessOnly = tContext._trace?.successOnly;
+      if (!terminal && tracing && !traceSuccessOnly)
+        parserLog(`..${traceName}`);
 
       execPreParsers(tContext);
 
@@ -156,7 +158,7 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
 
       if (result === null || result === undefined) {
         // parser failed
-        tracing && parserLog(`x ${traceName}`);
+        tracing && !traceSuccessOnly && parserLog(`x ${traceName}`);
         lexer.position(position); // reset position to orig spot
         return null;
       } else {

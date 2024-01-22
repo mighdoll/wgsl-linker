@@ -40,14 +40,13 @@ exports[`seq() handles two element match 1`] = `
 `;
 
 exports[`tracing 1`] = `
-"..repeat
-  ..wordz
-    : "a" (word) 1
-    ✓ kind 'word'
-  ✓ wordz
-  ..wordz
-    : undefined (undefined) 0
-    x kind 'word'
-  x wordz
-✓ repeat"
+"..repeat   ->|0
+  ..wordz   ->|1
+    : "a" (word) 1   ->|2
+    ✓ kind 'word'   ->|2
+  ✓ wordz   ->|1
+  ..wordz   ->|1
+    x kind 'word'   ->|2
+  x wordz   ->|1
+✓ repeat   ->|0"
 `;

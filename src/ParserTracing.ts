@@ -21,6 +21,7 @@ export interface TraceOptions {
   shallow?: boolean;
   start?: number;
   end?: number;
+  successOnly?: boolean;
 }
 
 /** runtime stack info about currently active trace logging */
@@ -28,6 +29,7 @@ export interface TraceContext {
   indent: number;
   start?: number;
   end?: number;
+  successOnly?: boolean;
 }
 
 /** use temporary logger for tests */
@@ -48,7 +50,7 @@ export interface TraceLogging {
 export let withTraceLogging = () =>
   tracing ? withTraceLoggingInternal : stubTraceLogging;
 
-function stubTraceLogging<T>(ctx: any, trace: any, fn: (a: any) => T): T {
+function stubTraceLogging<T>(ctx: any, trace: TraceOptions | undefined, fn: (ctx:ParserContext) => T): T {
   return fn(ctx);
 }
 
@@ -81,8 +83,9 @@ function withTraceLoggingInternal<T>(
   let tlog = noLog;
   if (logging) {
     const pad = currentIndent(_trace);
+    const indent =`  ->|${_trace?.indent || 0}` ;
     tlog = (...msgs: any[]) => {
-      logger(`${pad}${msgs[0]}`, ...msgs.slice(1));
+      logger(`${pad}${msgs[0]}`, ...msgs.slice(1), indent);
     };
   }
 
@@ -95,8 +98,8 @@ function withTraceLoggingInternal<T>(
 }
 
 /** padding for current indent level */
-function currentIndent(debug?: TraceContext) {
-  return "  ".repeat(debug?.indent || 0);
+function currentIndent(ctx?: TraceContext) {
+  return "  ".repeat(ctx?.indent || 0);
 }
 
 /** use temporary logger, to turn tracing on/off */
