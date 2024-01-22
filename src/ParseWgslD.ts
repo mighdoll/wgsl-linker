@@ -5,7 +5,8 @@ import { directive, lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser, ParserInit } from "./Parser.js";
 import {
   any,
-  anyBut,
+  anyUntil,
+  anyThrough,
   eof,
   fn,
   kind,
@@ -15,7 +16,7 @@ import {
   repeat,
   seq,
 } from "./ParserCombinator.js";
-import { anyUntil, comment, unknown, wordNumArgs } from "./ParseSupport.js";
+import { comment, unknown, wordNumArgs } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -26,7 +27,7 @@ export interface ParseState {
 
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
-  anyUntil(";")
+  anyThrough(";")
 ).traceName("globalDirectiveOrAssert");
 
 const structDecl = seq(
@@ -68,7 +69,7 @@ export const fnDecl = seq(
   "fn",
   kind(mainTokens.word).named("name"),
   "(",
-  repeat(anyBut("{")),
+  repeat(anyUntil("{")),
   block
 )
   .traceName("fnDecl")
@@ -81,7 +82,7 @@ export const fnDecl = seq(
 const globalValVarOrAlias = seq(
   attributes,
   or("const", "override", "var", "alias"),
-  anyUntil(";")
+  anyThrough(";")
 );
 
 const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl).traceName(

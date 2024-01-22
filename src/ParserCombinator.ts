@@ -213,10 +213,16 @@ export function any(): Parser<Token> {
   }, "any");
 }
 
-export function anyBut<T>(arg: CombinatorArg<T>): Parser<Token> {
+export function anyUntil<T>(arg: CombinatorArg<T>): Parser<Token> {
   return seq(not(arg), any())
     .map((r) => r.value[1])
     .traceName("anyBut");
+}
+
+/** match everything until a terminator (and the terminator too)
+ * including optional embedded comments */
+export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
+  return seq(repeat(anyUntil(arg)), arg);
 }
 
 export function repeat(stage: string): Parser<string[]>;

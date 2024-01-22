@@ -4,7 +4,7 @@ import { Parser } from "./Parser.js";
 import {
   CombinatorArg,
   any,
-  anyBut,
+  anyUntil,
   eof,
   fn,
   kind,
@@ -32,7 +32,7 @@ export const skipBlockComment: Parser<any> = seq(
   repeat(
     or(
       fn(() => skipBlockComment),
-      anyBut("*/")
+      anyUntil("*/")
     )
   ),
   "*/"
@@ -84,8 +84,3 @@ export function seqWithComments(...args: CombinatorArg<any>[]): Parser<any> {
   return seq(...newArgs);
 }
 
-/** match everything until a terminator (and the terminator too)
- * including optional embedded comments */
-export function anyUntil(arg: CombinatorArg<any>): Parser<any> {
-  return seq(repeat(seq(not(arg), any())), arg);
-}
