@@ -33,6 +33,9 @@ export interface ParserContext extends ParserInit {
   _parseCount: number;
 
   _preParse: Parser<unknown>[];
+
+  /** positions where the preparse has failed to match, so no need to retry */
+  _preCacheFails: Map<Parser<unknown>,Set<number>>;
 }
 
 /** Result from a parser */
@@ -96,7 +99,7 @@ export interface Parser<T> {
    * If no parameters are provided, no tokens are ignored. */
   tokenIgnore(ignore?: Set<string>): Parser<T>;
 
-  /** use the provided token matcher with this parser and its descendants 
+  /** use the provided token matcher with this parser and its descendants
    * (i.e. use a temporary lexing mode) */
   tokens(matcher: TokenMatcher): Parser<T>;
 }
@@ -198,7 +201,12 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
   parseWrap.toParser = <U>(fn: ToParserFn<T, U>) =>
     toParser(parseWrap as Parser<T>, fn);
   parseWrap.parse = (start: ParserInit) =>
-    parseWrap({ ...start, _preParse: [], _parseCount: 0 });
+    parseWrap({
+      ...start,
+      _preParse: [],
+      _parseCount: 0,
+      _preCacheFails: new Map(),
+    });
   parseWrap.preParse = (pre: Parser<unknown>) => preParse<T>(parseWrap, pre);
   parseWrap.disablePreParse = (pre: Parser<unknown>) =>
     disablePreParse<T>(parseWrap, pre);
@@ -210,18 +218,25 @@ export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
 }
 
 function execPreParsers(ctx: ParserContext): void {
-  const { _preParse, lexer } = ctx;
+  const { _preParse, _preCacheFails, lexer } = ctx;
 
   const ctxNoPre = { ...ctx, _preParse: [] };
   _preParse.forEach((pre) => {
+    // get the cache of failed positions for this pre-parser
+    const failCache = _preCacheFails.get(pre) || new Set();
+    _preCacheFails.set(pre, failCache);
+
     // exec each pre-parser until it fails
     let position: number;
     let preResult: OptParserResult<unknown>;
     do {
       position = lexer.position();
+      if (failCache.has(position)) break;
+
       preResult = pre(ctxNoPre);
     } while (preResult !== null && preResult !== undefined);
 
+    failCache.add(position);
     lexer.position(position); // reset position to end of last successful parse
   });
 }
