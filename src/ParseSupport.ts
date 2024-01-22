@@ -76,11 +76,3 @@ export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
     .map((r) => r.named.elem as T[])
     .traceName("withSep");
 }
-
-/** match a sequence with optional embedded comments */
-export function seqWithComments(...args: CombinatorArg<any>[]): Parser<any> {
-  const commentsAfter = args.flatMap((a) => [a, comment]);
-  const newArgs = [comment, ...commentsAfter];
-  return seq(...newArgs);
-}
-
