@@ -35,7 +35,7 @@ export interface ParserContext extends ParserInit {
   _preParse: Parser<unknown>[];
 
   /** positions where the preparse has failed to match, so no need to retry */
-  _preCacheFails: Map<Parser<unknown>,Set<number>>;
+  _preCacheFails: Map<Parser<unknown>, Set<number>>;
 }
 
 /** Result from a parser */
@@ -58,10 +58,10 @@ export interface ExtendedResult<T> extends ParserResult<T> {
 export type OptParserResult<T> = ParserResult<T> | null;
 
 /** a composable parsing element */
-export interface Parser<T> {
+export interface ParserOld<T> {
   /** start parsing */
   parse(start: ParserInit): OptParserResult<T>;
-  
+
   /** run the parser given an already created parsing context */
   _run(ctx: ParserContext): OptParserResult<T>;
 
@@ -142,81 +142,132 @@ export interface ParserArgs {
   terminal?: boolean;
 }
 
+interface ConstructArgs<T> extends ParserArgs {
+  fn: ParseFn<T>;
+}
+
 /** Create a ParserStage from a full ParseFn function that returns an OptParserResult
  * @param fn the parser function
  * @param args static arguments provided by the user as the parser is constructed
  */
 export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
-  const { traceName, resultName, trace, terminal } = args;
-  const parseWrap = (context: ParserContext): OptParserResult<T> => {
+  return new Parser<T>({ ...args, fn });
+}
+
+export class Parser<T> {
+  _traceName: string | undefined;
+  namedResult: string | undefined;
+  traceOptions: TraceOptions | undefined;
+  terminal: boolean | undefined;
+  fn: ParseFn<T>;
+
+  constructor(args: ConstructArgs<T>) {
+    this._traceName = args.traceName;
+    this.namedResult = args.resultName;
+    this.traceOptions = args.trace;
+    this.terminal = args.terminal;
+    this.fn = args.fn;
+  }
+
+  _cloneWith(p: Partial<ConstructArgs<T>>): Parser<T> {
+    return new Parser({
+      traceName: this._traceName,
+      resultName: this.namedResult,
+      trace: this.traceOptions,
+      terminal: this.terminal,
+      fn: this.fn,
+      ...p,
+    });
+  }
+
+  _run(context: ParserContext): OptParserResult<T> {
     const { lexer, _parseCount = 0, maxParseCount } = context;
 
     // check for infinite looping
     context._parseCount = _parseCount + 1;
     if (maxParseCount && _parseCount > maxParseCount) {
-      logger("infinite loop? ", traceName);
+      logger("infinite loop? ", this.traceName);
       return null;
     }
 
     // setup trace logging if enabled and active for this parser
-    return withTraceLogging()(context, trace, (tContext) => {
+    return withTraceLogging()(context, this.traceOptions, (tContext) => {
       const traceSuccessOnly = tContext._trace?.successOnly;
-      if (!terminal && tracing && !traceSuccessOnly)
-        parserLog(`..${traceName}`);
+      if (!this.terminal && tracing && !traceSuccessOnly)
+        parserLog(`..${this._traceName}`);
 
       execPreParsers(tContext);
 
       const position = lexer.position();
       // run the parser function for this stage
-      const result = fn(tContext);
+      const result = this.fn(tContext);
 
       if (result === null || result === undefined) {
         // parser failed
-        tracing && !traceSuccessOnly && parserLog(`x ${traceName}`);
+        tracing && !traceSuccessOnly && parserLog(`x ${this._traceName}`);
         lexer.position(position); // reset position to orig spot
         return null;
       } else {
         // parser succeded
-        tracing && parserLog(`✓ ${traceName}`);
-        if (resultName) {
+        tracing && parserLog(`✓ ${this._traceName}`);
+        if (this.namedResult) {
           // merge named result (if user set a name for this stage's result)
           return {
             value: result.value,
-            named: mergeNamed(result.named, { [resultName]: [result.value] }),
+            named: mergeNamed(result.named, {
+              [this.namedResult]: [result.value],
+            }),
           };
         }
         // returning orig parser result is fine, no need to name patch
         return result;
       }
     });
-  };
+  }
 
   // TODO make name param optional and use the name from a text() or kind() match?
-  parseWrap.named = (name: string) =>
-    parser(fn, { ...args, resultName: name, traceName: name });
-  parseWrap.traceName = (name: string) =>
-    parser(fn, { ...args, traceName: name });
-  parseWrap.trace = (opts: TraceOptions = {}) =>
-    parser(fn, { ...args, trace: opts });
-  parseWrap.map = <U>(fn: ParserMapFn<T, U>) => map(parseWrap as Parser<T>, fn);
-  parseWrap.toParser = <U>(fn: ToParserFn<T, U>) =>
-    toParser(parseWrap as Parser<T>, fn);
-  parseWrap.parse = (start: ParserInit) =>
-    parseWrap({
+  named(name: string): Parser<T> {
+    return this._cloneWith({ resultName: name, traceName: name });
+  }
+  traceName(name: string): Parser<T> {
+    return this._cloneWith({ traceName: name });
+  }
+
+  trace(opts: TraceOptions = {}): Parser<T> {
+    return this._cloneWith({ trace: opts });
+  }
+
+  map<U>(fn: ParserMapFn<T, U>): Parser<U> {
+    return map(this, fn);
+  }
+
+  toParser<U>(fn: ToParserFn<T, U>): Parser<T | U> {
+    return toParser(this, fn);
+  }
+  parse(start: ParserInit): OptParserResult<T> {
+    return this._run({
       ...start,
       _preParse: [],
       _parseCount: 0,
       _preCacheFails: new Map(),
     });
-  parseWrap.preParse = (pre: Parser<unknown>) => preParse<T>(parseWrap, pre);
-  parseWrap.disablePreParse = (pre: Parser<unknown>) =>
-    disablePreParse<T>(parseWrap, pre);
-  parseWrap.tokenIgnore = (ignore?: Set<string>) =>
-    tokenIgnore<T>(parseWrap, ignore);
-  parseWrap.tokens = (matcher: TokenMatcher) => tokens<T>(parseWrap, matcher);
-  parseWrap._run = parseWrap;
+  }
 
-  return parseWrap;
+  preParse(pre: Parser<unknown>): Parser<T> {
+    return preParse<T>(this, pre);
+  }
+
+  disablePreParse(pre: Parser<unknown>): Parser<T> {
+    return disablePreParse<T>(this, pre);
+  }
+
+  tokenIgnore(ignore?: Set<string>): Parser<T> {
+    return tokenIgnore<T>(this, ignore);
+  }
+
+  tokens(matcher: TokenMatcher): Parser<T> {
+    return tokens<T>(this, matcher);
+  }
 }
 
 function execPreParsers(ctx: ParserContext): void {
