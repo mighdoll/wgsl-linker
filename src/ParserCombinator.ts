@@ -48,7 +48,7 @@ export function text(value: string): Parser<string> {
   return simpleParser((state: ParserContext): string | null => {
     const next = state.lexer.next();
     return next?.text === value ? next.text : null;
-  }, `text '${value}'`);
+  }, `text '${value.replace(/\n/g, "\\n")}'`);
 }
 
 /** Try parsing with one or more parsers,
@@ -213,7 +213,9 @@ export function any(): Parser<Token> {
 }
 
 export function anyBut<T>(arg: CombinatorArg<T>): Parser<Token> {
-  return seq(not(arg), any()).map((r) => r.value[1]).traceName("anyBut");
+  return seq(not(arg), any())
+    .map((r) => r.value[1])
+    .traceName("anyBut");
 }
 
 export function repeat(stage: string): Parser<string[]>;

@@ -1,11 +1,13 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
-import {
-  parseWgslD,
-} from "../ParseWgslD.js";
+import { parseWgslD } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
-import { directive, importing, lineCommentOptDirective } from "../ParseDirective.js";
+import {
+  directive,
+  importing,
+  lineCommentOptDirective,
+} from "../ParseDirective.js";
 import { comment, skipBlockComment, wordNumArgs } from "../ParseSupport.js";
 import { enableTracing } from "../ParserTracing.js";
 enableTracing();
@@ -96,10 +98,17 @@ test("parse fn with line comment", () => {
   expect(parsed).toMatchSnapshot();
 });
 
+test("lineCommentOptDirective parses #export(foo) with trailing space", () => {
+  const src = `// #export (Elem)    `;
+  const result = testParse(lineCommentOptDirective, src);
+  expect(result.app[0].kind).eq("export");
+});
+
 test("parse #export(foo) with trailing space", () => {
   const src = `
     // #export (Elem) 
-    `;
+  `;
+
   const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
 });
@@ -124,7 +133,6 @@ test("parse #if !foo #else #endif", () => {
     // #endif 
     `;
   const parsed = parseWgslD(src, { foo: true });
-  console.log(parsed);
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("g");
 });

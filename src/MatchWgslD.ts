@@ -57,5 +57,5 @@ export const argsTokens = tokenMatcher(
     ws: /[ \t]+/, // don't include \n, so we can find eol separately
     eol,
   },
-  "directiveArgs"
+  "argsTokens"
 );
