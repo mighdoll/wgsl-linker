@@ -59,12 +59,10 @@ export type OptParserResult<T> = ParserResult<T> | null;
 
 /** a composable parsing element */
 export interface Parser<T> {
-  // (state: ParserContext): OptParserResult<T>;
-
   /** start parsing */
   parse(start: ParserInit): OptParserResult<T>;
   
-  /** run the parser given an already created context */
+  /** run the parser given an already created parsing context */
   _run(ctx: ParserContext): OptParserResult<T>;
 
   /**
