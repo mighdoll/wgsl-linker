@@ -96,7 +96,7 @@ const rootDecl = or(
 )
 .traceName("rootDecl");
 
-const root = seq(repeat(rootDecl), eof());
+const root = seq(repeat(rootDecl), eof()).preParse(comment);
 
 export function parseWgslD(
   src: string,
