@@ -1,4 +1,3 @@
-
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { linkWgsl3 } from "../Linker3.js";
@@ -46,17 +45,16 @@ test("transitive import", () => {
   const binOpModule = `
     // #export(Elem) 
     fn binaryOp(a: Elem, b: Elem) -> Elem {
-        return Elem(a.sum + b.sum); // binOpImpl
+        return a + b; // binOpImpl
     }`;
   const reduceModule = `
-    #export(work)
+    #export(work, E) importing binaryOp(E)
     fn reduceWorkgroup(index:u32) {
         let combined = binaryOp(work[index], work[index + 1u]);
     }
-
-    #import binaryOp(MyElem)`;
+    `;
   const src = `
-    // #import reduceWorkgroup(myWork)
+    // #import reduceWorkgroup(myWork, u32)
   
     fn main() {
       reduceWorkgroup(localId); // call the imported function
@@ -325,7 +323,7 @@ test.skip("import fn with support struct constructor", () => {
     fn main() {
       let ze = zero();
     }
-  `
+  `;
   const module1 = `
     struct Elem {
       sum: u32;
@@ -335,12 +333,11 @@ test.skip("import fn with support struct constructor", () => {
     fn zero() -> Elem {
       return Elem(0u);
     }
-  `
+  `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
   console.log(linked);
 });
-
 
 // test("import with template replace", () => {
 //   const myModule = `
