@@ -5,7 +5,7 @@ import { directive, lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser, ParserInit } from "./Parser.js";
 import {
   any,
-  anyUntil,
+  anyNot,
   anyThrough,
   eof,
   fn,
@@ -67,7 +67,7 @@ export const fnDecl = seq(
   "fn",
   kind(mainTokens.word).named("name"),
   "(",
-  repeat(anyUntil("{")),
+  repeat(anyNot("{")),
   block
 )
   .traceName("fnDecl")

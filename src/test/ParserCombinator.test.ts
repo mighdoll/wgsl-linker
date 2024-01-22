@@ -3,7 +3,7 @@ import { mainTokens } from "../MatchWgslD.js";
 import { Parser } from "../Parser.js";
 import {
   any,
-  anyUntil,
+  anyNot,
   fn,
   kind,
   not,
@@ -169,7 +169,7 @@ test("preparse simple comment", () => {
   // prettier-ignore
   const pre = seq(
     "/*", 
-    repeat(anyUntil("*/")), 
+    repeat(anyNot("*/")), 
     "*/"
   ).traceName("pre");
   const p = repeat(kind(m.word)).preParse(pre);
@@ -183,7 +183,7 @@ test("disable preParse inside quote", () => {
   // prettier-ignore
   const comment = seq(
     "/*", 
-    repeat(anyUntil("*/")), 
+    repeat(anyNot("*/")), 
     "*/"
   ).traceName("comment");
 
@@ -191,7 +191,7 @@ test("disable preParse inside quote", () => {
   const quote = seq(
       opt(kind(m.ws)),
       "^", 
-      repeat(anyUntil("^").named("contents")), 
+      repeat(anyNot("^").named("contents")), 
       "^"
     )
     .map((r) => r.named.contents.map((tok) => tok.text).join(""))

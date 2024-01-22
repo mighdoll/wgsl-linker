@@ -4,7 +4,7 @@ import { Parser } from "./Parser.js";
 import {
   CombinatorArg,
   any,
-  anyUntil,
+  anyNot,
   eof,
   fn,
   kind,
@@ -32,7 +32,7 @@ export const skipBlockComment: Parser<any> = seq(
   repeat(
     or(
       fn(() => skipBlockComment),
-      anyUntil("*/")
+      anyNot("*/")
     )
   ),
   "*/"
