@@ -14,13 +14,13 @@ import {
   repeat,
   seq,
 } from "./ParserCombinator.js";
-import { comment, unknown, wordNumArgs } from "./ParseSupport.js";
+import { comment, makeElem, unknown, wordNumArgs } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
 export interface ParseState {
-  ifStack: boolean[];
-  params: Record<string, any>;
+  ifStack: boolean[]; // stack used while processiing nested #if #else #endif directives
+  params: Record<string, any>; // user provided params to templates, code gen and #if directives
 }
 
 const globalDirectiveOrAssert = seq(
@@ -112,34 +112,4 @@ export function parseWgslD(
   root.parse(init);
 
   return init.app;
-}
-
-/** creat an AbstractElem by pulling fields from named parse results */
-export function makeElem<U extends AbstractElem>(
-  kind: U["kind"],
-  er: ExtendedResult<any>,
-  named: (keyof U)[],
-  namedArrays: (keyof U)[] = []
-): U {
-  const { start, end } = er;
-  const nv = mapIfDefined(named, er.named as NameRecord<U>, true);
-  const av = mapIfDefined(namedArrays, er.named as NameRecord<U>);
-  return { kind, start, end, ...nv, ...av } as U;
-}
-
-type NameRecord<A> = Record<keyof A, string[]>;
-
-function mapIfDefined<A>(
-  keys: (keyof A)[],
-  array: Record<keyof A, string[]>,
-  firstElem?: boolean
-): Partial<Record<keyof A, string>> {
-  const entries = keys.flatMap((k) => {
-    const ak = array[k];
-    const v = firstElem ? ak?.[0] : ak;
-
-    if (v === undefined) return [];
-    else return [[k, v]];
-  });
-  return Object.fromEntries(entries);
 }

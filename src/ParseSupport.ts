@@ -1,6 +1,7 @@
+import { AbstractElem } from "./AbstractElems.js";
 import { argsTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
-import { Parser } from "./Parser.js";
+import { ExtendedResult, Parser } from "./Parser.js";
 import {
   CombinatorArg,
   any,
@@ -67,3 +68,34 @@ export const wordNumArgs: Parser<string[]> = seq(
 )
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
+
+
+/** creat an AbstractElem by pulling fields from named parse results */
+export function makeElem<U extends AbstractElem>(
+  kind: U["kind"],
+  er: ExtendedResult<any>,
+  named: (keyof U)[],
+  namedArrays: (keyof U)[] = []
+): U {
+  const { start, end } = er;
+  const nv = mapIfDefined(named, er.named as NameRecord<U>, true);
+  const av = mapIfDefined(namedArrays, er.named as NameRecord<U>);
+  return { kind, start, end, ...nv, ...av } as U;
+}
+
+type NameRecord<A> = Record<keyof A, string[]>;
+
+function mapIfDefined<A>(
+  keys: (keyof A)[],
+  array: Record<keyof A, string[]>,
+  firstElem?: boolean
+): Partial<Record<keyof A, string>> {
+  const entries = keys.flatMap((k) => {
+    const ak = array[k];
+    const v = firstElem ? ak?.[0] : ak;
+
+    if (v === undefined) return [];
+    else return [[k, v]];
+  });
+  return Object.fromEntries(entries);
+}

@@ -16,8 +16,8 @@ import {
   seq,
   tokens,
 } from "./ParserCombinator.js";
-import { eolf, wordArgsLine } from "./ParseSupport.js";
-import { makeElem, ParseState } from "./ParseWgslD.js";
+import { eolf, makeElem, wordArgsLine } from "./ParseSupport.js";
+import { ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
