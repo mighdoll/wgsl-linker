@@ -14,6 +14,7 @@ import {
   repeat,
   seq,
   tokens,
+  withSep,
 } from "./ParserCombinator.js";
 import { logErr } from "./TraverseRefs.js";
 
@@ -66,13 +67,3 @@ export const wordNumArgs: Parser<string[]> = seq(
 )
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
-
-/** match an optional series of elements separated by a delimiter (e.g. a comma) */
-export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
-  return seq(
-    p.named("elem"),
-    repeat(seq(sep, p.named("elem")))
-  )
-    .map((r) => r.named.elem as T[])
-    .traceName("withSep");
-}

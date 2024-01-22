@@ -281,6 +281,16 @@ export function eof(): Parser<true> {
   );
 }
 
+/** match an optional series of elements separated by a delimiter (e.g. a comma) */
+export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
+  return seq(
+    p.named("_elem"),
+    repeat(seq(sep, p.named("_elem")))
+  )
+    .map((r) => r.named._elem as T[])
+    .traceName("withSep");
+}
+
 /** convert naked string arguments into text() parsers */
 export function parserArg<T>(
   arg: CombinatorArg<T>
