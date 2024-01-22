@@ -3,18 +3,15 @@ import { argsTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser } from "./Parser.js";
 import {
-  CombinatorArg,
   any,
   anyNot,
   eof,
   fn,
   kind,
-  not,
   opt,
   or,
   repeat,
   seq,
-  tokens,
   withSep,
 } from "./ParserCombinator.js";
 import { logErr } from "./TraverseRefs.js";
@@ -25,7 +22,7 @@ import { logErr } from "./TraverseRefs.js";
 export const eolf = seq(
   opt(kind(argsTokens.ws)), 
   or("\n", eof())
-).tokenIgnore().traceName("eolf");
+).tokens(argsTokens).tokenIgnore().traceName("eolf");
 
 export const unknown = any().map((r) => logErr("???", r.value, r.start));
 
@@ -47,14 +44,13 @@ export const comment = or(
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
-export const wordArgsLine: Parser<string[]> = tokens(
-  argsTokens,
+export const wordArgsLine: Parser<string[]> = 
   seq(
     "(", 
     withSep(",", kind(argsTokens.word)), 
     ")"
   )
-)
+.tokens(argsTokens)
   .map((r) => r.value[1])
   .traceName("wordArgs");
 
@@ -68,7 +64,6 @@ export const wordNumArgs: Parser<string[]> = seq(
 )
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
-
 
 /** creat an AbstractElem by pulling fields from named parse results */
 export function makeElem<U extends AbstractElem>(

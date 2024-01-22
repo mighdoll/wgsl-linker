@@ -1,9 +1,5 @@
 import { ExportElem, ImportElem } from "./AbstractElems.js";
-import {
-  argsTokens,
-  lineCommentTokens,
-  mainTokens,
-} from "./MatchWgslD.js";
+import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
 import { ExtendedResult, Parser } from "./Parser.js";
 import {
   any,
@@ -14,7 +10,6 @@ import {
   or,
   repeat,
   seq,
-  tokens,
 } from "./ParserCombinator.js";
 import { eolf, makeElem, wordArgsLine } from "./ParseSupport.js";
 import { ParseState } from "./ParseWgslD.js";
@@ -44,7 +39,7 @@ export const importing = seq(
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  tokens(argsTokens, seq(importPhrase.named("i"), eolf))
+  seq(importPhrase.named("i"), eolf).tokens(argsTokens)
 )
   .map((r) => {
     const imp: ImportElem = r.named.i[0];
@@ -57,15 +52,12 @@ const importDirective = seq(
 // prettier-ignore
 export const exportDirective = seq(
   "#export",
-  tokens(
-    argsTokens,
     seq(
       opt(kind(argsTokens.word).named("name")), 
       opt(wordArgsLine.named("args")), 
       opt(importing), 
       eolf
-    )
-  )
+    ).tokens(argsTokens)
 )
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
@@ -74,22 +66,26 @@ export const exportDirective = seq(
   })
   .traceName("export");
 
+// prettier-ignore
 const ifDirective: Parser<any> = seq(
   "#if",
-  tokens(
-    argsTokens,
-    seq(opt("!").named("invert"), kind(mainTokens.word).named("name"), eolf)
-  ).toParser((r) => {
-    const { params } = r.appState as ParseState;
-    const ifArg = r.named["name"]?.[0] as string;
-    const invert = r.named["invert"]?.[0] === "!";
-    const arg = !!params[ifArg];
-    const truthy = invert ? !arg : arg;
-    return ifBody(r, truthy);
-  })
+  seq(
+    opt("!").named("invert"), 
+    kind(mainTokens.word).named("name"), 
+    eolf
+  )
+    .tokens(argsTokens)
+    .toParser((r) => {
+      const { params } = r.appState as ParseState;
+      const ifArg = r.named["name"]?.[0] as string;
+      const invert = r.named["invert"]?.[0] === "!";
+      const arg = !!params[ifArg];
+      const truthy = invert ? !arg : arg;
+      return ifBody(r, truthy);
+    })
 ).traceName("#if");
 
-const elseDirective = seq("#else", tokens(argsTokens, eolf))
+const elseDirective = seq("#else", eolf)
   .toParser((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
@@ -121,7 +117,7 @@ function ifBody(
   if (!truthy) return skipUntilElseEndif;
 }
 
-const endifDirective = seq("#endif", tokens(argsTokens, eolf))
+const endifDirective = seq("#endif", eolf)
   .map((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
@@ -143,5 +139,5 @@ export const directive = or(
  * by pushing an AbstractElem to the app context) */
 export const lineCommentOptDirective = seq(
   "//",
-  tokens(lineCommentTokens, or(directive, kind(lineCommentTokens.notDirective)))
+  or(directive, kind(lineCommentTokens.notDirective)).tokens(lineCommentTokens)
 ).traceName("lineComment");
