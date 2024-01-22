@@ -34,8 +34,7 @@ const structDecl = seq(
   "struct",
   kind(mainTokens.word),
   "{",
-  repeat(or(lineCommentOptDirective, seq(not("}"), any()))),
-  "}"
+  anyThrough("}")
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
   r.app.push(e);
@@ -55,7 +54,6 @@ const block: Parser<any> = seq(
   "{",
   repeat(
     or(
-      lineCommentOptDirective,
       fnCall,
       fn(() => block),
       seq(not("}"), any())
@@ -94,8 +92,7 @@ const rootDecl = or(
   globalDecl,
   directive,
   unknown
-)
-.traceName("rootDecl");
+).traceName("rootDecl");
 
 const root = seq(repeat(rootDecl), eof()).preParse(comment);
 
