@@ -102,6 +102,7 @@ interface ConstructArgs<T> extends ParserArgs {
  * @param fn the parser function
  * @param args static arguments provided by the user as the parser is constructed
  */
+// TODO change this to just take an optional traceName
 export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
   return new Parser<T>({ ...args, fn });
 }

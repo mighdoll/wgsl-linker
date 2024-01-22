@@ -263,10 +263,11 @@ export function eof(): Parser<true> {
   );
 }
 
+// TODO consider name collision on _elem. maybe use a symbol?
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
   return seq(p.named("_elem"), repeat(seq(sep, p.named("_elem"))))
-    .map((r) => r.named._elem as T[])
+    .map((r) => r.named._elem as T[]) 
     .traceName("withSep");
 }
 
