@@ -56,7 +56,7 @@ const block: Parser<any> = seq(
     or(
       fnCall,
       fn(() => block),
-      seq(not("}"), any())
+      anyNot("}")
     )
   ),
   "}"
