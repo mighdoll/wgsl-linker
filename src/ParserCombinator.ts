@@ -4,10 +4,10 @@ import {
   Parser,
   ParserContext,
   ParserResult,
-  mergeNamed,
   parser,
   simpleParser,
 } from "./Parser.js";
+import { mergeNamed } from "./ParserUtil.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 /** Parsing Combinators
@@ -260,11 +260,11 @@ export function eof(): Parser<true> {
   );
 }
 
-// TODO consider name collision on _elem. maybe use a symbol?
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
-  return seq(p.named("_elem"), repeat(seq(sep, p.named("_elem"))))
-    .map((r) => r.named._elem as T[])
+  const elem = Symbol("elem");
+  return seq(p.named(elem), repeat(seq(sep, p.named(elem))))
+    .map((r) => r.named[elem] as T[])
     .traceName("withSep");
 }
 

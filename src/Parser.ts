@@ -7,6 +7,7 @@ import {
   tracing,
   withTraceLogging,
 } from "./ParserTracing.js";
+import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
 import { logErr } from "./TraverseRefs.js";
 
@@ -44,7 +45,7 @@ export interface ParserResult<T> {
   value: T;
 
   /** named results from this stage and all child stages*/
-  named: Record<string, any[]>;
+  named: Record<string|symbol, any[]>;
 }
 
 export interface ExtendedResult<T> extends ParserResult<T> {
@@ -60,11 +61,10 @@ export type OptParserResult<T> = ParserResult<T> | null;
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
 type ParseFn<T> = (context: ParserContext) => OptParserResult<T>;
 
-
 /** options for creating a core parser */
 export interface ParserArgs {
   /** name to use for result in named results */
-  resultName?: string;
+  resultName?: string | symbol;
 
   /** name to use for trace logging */
   traceName?: string;
@@ -81,7 +81,7 @@ interface ConstructArgs<T> extends ParserArgs {
   fn: ParseFn<T>;
 }
 
-/** Create a Parser from a ParseFn 
+/** Create a Parser from a ParseFn
  * @param fn the parser function
  * @param args static arguments provided by the user as the parser is constructed
  */
@@ -106,13 +106,13 @@ export function simpleParser<T>(
     return { value: r, named: {} };
   };
 
-  return parser(traceName, parserFn, true); 
+  return parser(traceName, parserFn, true);
 }
 
 /** a composable parsing element */
 export class Parser<T> {
   _traceName: string | undefined;
-  namedResult: string | undefined;
+  namedResult: string | symbol | undefined;
   traceOptions: TraceOptions | undefined;
   terminal: boolean | undefined;
   fn: ParseFn<T>;
@@ -150,8 +150,8 @@ export class Parser<T> {
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
   // TODO make name param optional and use the name from a text() or kind() match?
-  named(name: string): Parser<T> {
-    return this._cloneWith({ resultName: name, traceName: name });
+  named(name: string | symbol): Parser<T> {
+    return this._cloneWith({ resultName: name });
   }
 
   /** record a name for debug tracing */
@@ -388,16 +388,4 @@ function runExtended<T>(
   const { app, appState } = ctx;
   const extended = { ...origResults, start, end, app, appState };
   return extended;
-}
-
-/** merge arrays in liked named keys */
-export function mergeNamed(
-  a: Record<string, any[]>,
-  b: Record<string, any[]>
-): Record<string, any[]> {
-  const sharedKeys = Object.keys(a).filter((k) => b[k]);
-  // combine arrays from liked named keys
-  const sharedEntries = sharedKeys.map((k) => [k, [...a[k], ...b[k]]]);
-  const shared = Object.fromEntries(sharedEntries);
-  return { ...a, ...b, ...shared }; // shared keys overwritten
 }
