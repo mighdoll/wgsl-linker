@@ -2,11 +2,23 @@ import { tracing, parserLog } from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
+  /** return the next token, advancing the the current position */
   next(): Token | undefined;
+
+  /** run a function with a substitute tokenMatcher */
   withMatcher<T>(newMatcher: TokenMatcher, fn: () => T): T;
+
+  /** run a function with a substitute set of token kinds to ignore */
   withIgnore<T>(newIgnore: Set<string>, fn: () => T): T;
+
+  /** get or set the current position in the src */
   position(pos?: number): number;
+
+  /** true if the parser is at the end of the src string */
   eof(): boolean;
+
+  /** return line text containing this position */
+  lineAt(pos: number): string;
 }
 
 interface MatcherStackElem {
@@ -21,6 +33,8 @@ export function matchingLexer(
 ): Lexer {
   let matcher = rootMatcher;
   const matcherStack: MatcherStackElem[] = [];
+  const lineStarts = [...src.matchAll(/\n/g)].map((m) => m.index || -1);
+  lineStarts.unshift(0);
 
   matcher.start(src);
 
@@ -90,12 +104,24 @@ export function matchingLexer(
     return matcher.position() === src.length;
   }
 
+
+  function lineAt(position: number): string {
+    let i = Math.floor(lineStarts.length / 2);
+    // binary search for line position starting before this position
+    while (lineStarts[i] > position) {
+      i = Math.floor(i / 2);
+      if (i === 0) break;
+    }
+    return src.slice(lineStarts[i], lineStarts[i + 1] || src.length);
+  }
+
   return {
     next,
     position,
     withMatcher,
     withIgnore,
     eof,
+    lineAt,
   };
 }
 
