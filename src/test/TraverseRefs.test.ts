@@ -5,11 +5,11 @@ import {
   ExportRef,
   FoundRef,
   LocalRef,
-  _withErrLogger,
   traverseRefs,
 } from "../TraverseRefs.js";
 import { dlog } from "berry-pretty";
 import { logCatch } from "./LogCatcher.js";
+import { _withErrLogger } from "../LinkerUtil.js";
 
 test("traverse nested import with params and support fn", () => {
   const src = `

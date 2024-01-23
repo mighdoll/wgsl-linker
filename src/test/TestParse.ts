@@ -1,9 +1,9 @@
 import { expect } from "vitest";
 import { matchingLexer } from "../MatchingLexer.js";
 import { mainTokens } from "../MatchWgslD.js";
-import { _withErrLogger } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
 import { OptParserResult, Parser } from "../Parser.js";
+import { _withErrLogger } from "../LinkerUtil.js";
 
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;

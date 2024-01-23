@@ -1,4 +1,5 @@
 import { AbstractElem } from "./AbstractElems.js";
+import { logErr } from "./LinkerUtil.js";
 import { argsTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser } from "./Parser.js";
@@ -14,7 +15,6 @@ import {
   seq,
   withSep,
 } from "./ParserCombinator.js";
-import { logErr } from "./TraverseRefs.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */
 

@@ -3,6 +3,7 @@ import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
+import { logErr } from "./LinkerUtil.js";
 
 export type FoundRef = ExportRef | LocalRef;
 
@@ -46,19 +47,6 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
-export let logErr = console.error;
-
-/** use temporary logger for tests */
-export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
-  const orig = logErr;
-  try {
-    logErr = logFn;
-    return fn();
-  } finally {
-    logErr = orig;
-  }
-}
-
 
 export function traverseRefs(
   srcModule: TextModule2,
@@ -91,6 +79,7 @@ export function recursiveRefs(
         localRef(callElem, mod, registry);
       if (!foundRef) {
         logErr("reference not found for:", callElem);
+        srcRef.expMod.src
       }
       return foundRef ? [foundRef] : [];
     });
