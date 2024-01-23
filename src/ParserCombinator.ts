@@ -37,19 +37,25 @@ export type CombinatorArg<T> = Parser<T> | string;
 /** Parse for a particular kind of token,
  * @return the matching text */
 export function kind(kindStr: string): Parser<string> {
-  return simpleParser((state: ParserContext): string | null => {
-    const next = state.lexer.next();
-    return next?.kind === kindStr ? next.text : null;
-  }, `kind '${kindStr}'`);
+  return simpleParser(
+    `kind '${kindStr}'`,
+    (state: ParserContext): string | null => {
+      const next = state.lexer.next();
+      return next?.kind === kindStr ? next.text : null;
+    }
+  );
 }
 
 /** Parse for a token containing a text value
  * @return the kind of token that matched */
 export function text(value: string): Parser<string> {
-  return simpleParser((state: ParserContext): string | null => {
-    const next = state.lexer.next();
-    return next?.text === value ? next.text : null;
-  }, `text ${quotedText(value)}'`);
+  return simpleParser(
+    `text ${quotedText(value)}'`,
+    (state: ParserContext): string | null => {
+      const next = state.lexer.next();
+      return next?.text === value ? next.text : null;
+    }
+  );
 }
 
 /** Try parsing with one or more parsers,
@@ -93,19 +99,16 @@ export function or<
   f: CombinatorArg<Y>
 ): Parser<T | U | V | W | X | Y>;
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
-  return parser(
-    (state: ParserContext): ParserResult<any> | null => {
-      for (const stage of stages) {
-        const parser = parserArg(stage);
-        const result = parser._run(state);
-        if (result !== null) {
-          return result;
-        }
+  return parser("or", (state: ParserContext): ParserResult<any> | null => {
+    for (const stage of stages) {
+      const parser = parserArg(stage);
+      const result = parser._run(state);
+      if (result !== null) {
+        return result;
       }
-      return null;
-    },
-    { traceName: "or" }
-  );
+    }
+    return null;
+  });
 }
 
 /** Parse a sequence of parsers
@@ -150,22 +153,19 @@ export function seq<
 ): Parser<[T, U, V, W, X, Y]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
-  return parser(
-    (state: ParserContext) => {
-      const values = [];
-      let namedResults = {};
-      for (const stage of stages) {
-        const parser = parserArg(stage);
-        const result = parser._run(state);
-        if (result === null) return null;
+  return parser("seq", (state: ParserContext) => {
+    const values = [];
+    let namedResults = {};
+    for (const stage of stages) {
+      const parser = parserArg(stage);
+      const result = parser._run(state);
+      if (result === null) return null;
 
-        namedResults = mergeNamed(namedResults, result.named);
-        values.push(result.value);
-      }
-      return { value: values, named: namedResults };
-    },
-    { traceName: "seq" }
-  );
+      namedResults = mergeNamed(namedResults, result.named);
+      values.push(result.value);
+    }
+    return { value: values, named: namedResults };
+  });
 }
 
 /** Try a parser.
@@ -178,12 +178,12 @@ export function opt<T>(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
 export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
   return parser(
+    "opt",
     (state: ParserContext): OptParserResult<T | string | boolean> => {
       const parser = parserArg(stage);
       const result = parser._run(state);
       return result || { value: false, named: {} };
-    },
-    { traceName: "opt" }
+    }
   );
 }
 
@@ -191,26 +191,23 @@ export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
  * does not consume any tokens
  * */
 export function not<T>(stage: CombinatorArg<T>): Parser<true> {
-  return parser(
-    (state: ParserContext): OptParserResult<true> => {
-      const pos = state.lexer.position();
-      const result = parserArg(stage)._run(state);
-      if (!result) {
-        return { value: true, named: {} };
-      }
-      state.lexer.position(pos);
-      return null;
-    },
-    { traceName: "not" }
-  );
+  return parser("not", (state: ParserContext): OptParserResult<true> => {
+    const pos = state.lexer.position();
+    const result = parserArg(stage)._run(state);
+    if (!result) {
+      return { value: true, named: {} };
+    }
+    state.lexer.position(pos);
+    return null;
+  });
 }
 
 /** yield next token, any token */
 export function any(): Parser<Token> {
-  return simpleParser((state: ParserContext): Token | null => {
+  return simpleParser("any", (state: ParserContext): Token | null => {
     const next = state.lexer.next();
     return next || null;
-  }, "any");
+  });
 }
 
 export function anyNot<T>(arg: CombinatorArg<T>): Parser<Token> {
@@ -229,6 +226,7 @@ export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
 export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
   return parser(
+    "repeat",
     (state: ParserContext): OptParserResult<(T | string)[]> => {
       const values: (T | string)[] = [];
       let results = {};
@@ -242,14 +240,13 @@ export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
           return { value: values, named: results };
         }
       }
-    },
-    { traceName: "repeat" }
+    }
   );
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
 export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
-  return parser((state: ParserContext): OptParserResult<T | string> => {
+  return parser("fn", (state: ParserContext): OptParserResult<T | string> => {
     const stage = parserArg(fn());
     return stage._run(state);
   });
@@ -258,8 +255,8 @@ export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
 /** yields true if parsing has reached the end of input */
 export function eof(): Parser<true> {
   return simpleParser(
-    (state: ParserContext) => state.lexer.eof() || null,
-    "eof"
+    "eof",
+    (state: ParserContext) => state.lexer.eof() || null
   );
 }
 
@@ -267,7 +264,7 @@ export function eof(): Parser<true> {
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
   return seq(p.named("_elem"), repeat(seq(sep, p.named("_elem"))))
-    .map((r) => r.named._elem as T[]) 
+    .map((r) => r.named._elem as T[])
     .traceName("withSep");
 }
 

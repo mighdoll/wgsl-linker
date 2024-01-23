@@ -60,23 +60,6 @@ export type OptParserResult<T> = ParserResult<T> | null;
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
 type ParseFn<T> = (context: ParserContext) => OptParserResult<T>;
 
-// TODO consider dropping this
-/** Create a ParserStage from a function that parses and returns a value */
-export function simpleParser<T>(
-  fn: (state: ParserContext) => T | null | undefined,
-  traceName?: string
-): Parser<T> {
-  const parserFn: ParseFn<T> = (state: ParserContext) => {
-    const r = fn(state);
-    if (r !== null && r !== undefined) {
-      return { value: r, named: {} };
-    } else {
-      return null;
-    }
-  };
-
-  return parser(parserFn, { traceName, terminal: true });
-}
 
 /** options for creating a core parser */
 export interface ParserArgs {
@@ -98,13 +81,32 @@ interface ConstructArgs<T> extends ParserArgs {
   fn: ParseFn<T>;
 }
 
-/** Create a ParserStage from a full ParseFn function that returns an OptParserResult
+/** Create a Parser from a ParseFn 
  * @param fn the parser function
  * @param args static arguments provided by the user as the parser is constructed
  */
-// TODO change this to just take an optional traceName
-export function parser<T>(fn: ParseFn<T>, args = {} as ParserArgs): Parser<T> {
-  return new Parser<T>({ ...args, fn });
+export function parser<T>(
+  traceName: string,
+  fn: ParseFn<T>,
+  terminal?: boolean
+): Parser<T> {
+  const terminalArg = terminal ? { terminal } : {};
+  return new Parser<T>({ fn, traceName, ...terminalArg });
+}
+
+/** Create a Parser from a function that parses and returns a value (w/no child parsers) */
+export function simpleParser<T>(
+  traceName: string,
+  fn: (state: ParserContext) => T | null | undefined
+): Parser<T> {
+  const parserFn: ParseFn<T> = (state: ParserContext) => {
+    const r = fn(state);
+    if (r == null || r === undefined) return null;
+
+    return { value: r, named: {} };
+  };
+
+  return parser(traceName, parserFn, true); 
 }
 
 /** a composable parsing element */
@@ -207,10 +209,10 @@ export class Parser<T> {
   }
 }
 
-/** 
+/**
  * Execute a parser by running the core parsing fn given the parsing context
  * also:
- * . check for infinite loops 
+ * . check for infinite loops
  * . log if tracing is enabled
  * . merge named results
  * . backtrack on failure
@@ -291,18 +293,15 @@ type ParserMapFn<T, U> = (results: ExtendedResult<T>) => U | null;
 
 /** return a parser that maps the current results */
 function map<T, U>(parseFn: Parser<T>, fn: ParserMapFn<T, U>): Parser<U> {
-  return parser(
-    (ctx: ParserContext): OptParserResult<U> => {
-      const extended = runExtended(ctx, parseFn);
-      if (!extended) return null;
+  return parser("map", (ctx: ParserContext): OptParserResult<U> => {
+    const extended = runExtended(ctx, parseFn);
+    if (!extended) return null;
 
-      const mappedValue = fn(extended);
-      if (mappedValue === null) return null;
+    const mappedValue = fn(extended);
+    if (mappedValue === null) return null;
 
-      return { value: mappedValue, named: extended.named };
-    },
-    { traceName: "map" }
-  );
+    return { value: mappedValue, named: extended.named };
+  });
 }
 
 type ToParserFn<T, N> = (results: ExtendedResult<T>) => Parser<N> | undefined;
@@ -311,24 +310,21 @@ function toParser<T, N>(
   parseFn: Parser<T>,
   fn: ToParserFn<T, N>
 ): Parser<T | N> {
-  return parser(
-    (ctx: ParserContext): OptParserResult<T | N> => {
-      const extended = runExtended(ctx, parseFn);
-      if (!extended) return null;
+  return parser("toParser", (ctx: ParserContext): OptParserResult<T | N> => {
+    const extended = runExtended(ctx, parseFn);
+    if (!extended) return null;
 
-      // run the supplied function to get a parser
-      const p = fn(extended);
+    // run the supplied function to get a parser
+    const p = fn(extended);
 
-      if (p === undefined) {
-        return extended;
-      }
+    if (p === undefined) {
+      return extended;
+    }
 
-      // run the parser returned by the supplied function
-      const nextResult = p._run(ctx);
-      return nextResult;
-    },
-    { traceName: "toParser" }
-  );
+    // run the parser returned by the supplied function
+    const nextResult = p._run(ctx);
+    return nextResult;
+  });
 }
 
 function tokenIgnore<T>(
@@ -336,31 +332,28 @@ function tokenIgnore<T>(
   ignore: Set<string> = new Set()
 ): Parser<T> {
   return parser(
+    "tokenIgnore",
     (ctx: ParserContext): OptParserResult<T> =>
-      ctx.lexer.withIgnore(ignore, () => mainParser._run(ctx)),
-    { traceName: "tokenIgnore" }
+      ctx.lexer.withIgnore(ignore, () => mainParser._run(ctx))
   );
 }
 
 function preParse<T>(mainParser: Parser<T>, pre: Parser<unknown>): Parser<T> {
-  return parser(
-    (ctx: ParserContext): OptParserResult<T> => {
-      const newCtx = { ...ctx, _preParse: [pre, ...ctx._preParse] };
-      return mainParser._run(newCtx);
-    },
-    { traceName: "preParse" }
-  );
+  return parser("preParse", (ctx: ParserContext): OptParserResult<T> => {
+    const newCtx = { ...ctx, _preParse: [pre, ...ctx._preParse] };
+    return mainParser._run(newCtx);
+  });
 }
 
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
 function tokens<T>(mainParser: Parser<T>, matcher: TokenMatcher): Parser<T> {
   return parser(
+    `tokens ${matcher._traceName}`,
     (state: ParserContext): OptParserResult<T> => {
       return state.lexer.withMatcher(matcher, () => {
         return mainParser._run(state);
       });
-    },
-    { traceName: `tokens ${matcher._traceName}` }
+    }
   );
 }
 
@@ -368,22 +361,19 @@ function disablePreParse<T>(
   mainParser: Parser<T>,
   pre: Parser<unknown>
 ): Parser<T> {
-  return parser(
-    (ctx: ParserContext): OptParserResult<T> => {
-      const preps = ctx._preParse;
-      const foundDex = preps.findIndex((p) => p === pre);
-      if (foundDex < 0) {
-        logErr("disablePreParse: pre parser to disable not found");
-      }
-      const newPreparse = [
-        ...preps.slice(0, foundDex),
-        ...preps.slice(foundDex + 1),
-      ];
-      const newCtx = { ...ctx, _preParse: newPreparse };
-      return mainParser._run(newCtx);
-    },
-    { traceName: "disablePreParse" }
-  );
+  return parser("disablePreParse", (ctx: ParserContext): OptParserResult<T> => {
+    const preps = ctx._preParse;
+    const foundDex = preps.findIndex((p) => p === pre);
+    if (foundDex < 0) {
+      logErr("disablePreParse: pre parser to disable not found");
+    }
+    const newPreparse = [
+      ...preps.slice(0, foundDex),
+      ...preps.slice(foundDex + 1),
+    ];
+    const newCtx = { ...ctx, _preParse: newPreparse };
+    return mainParser._run(newCtx);
+  });
 }
 
 /** run parser, return extended results to support map() or toParser() */
