@@ -381,9 +381,14 @@ function runExtended<T>(
   ctx: ParserContext,
   parseFn: Parser<T>
 ): ExtendedResult<T> | null {
-  const start = ctx.lexer.position();
+  const origStart = ctx.lexer.position();
+  const start = ctx.lexer.skipIgnored();
+
   const origResults = parseFn._run(ctx);
-  if (origResults === null) return null;
+  if (origResults === null) {
+    ctx.lexer.position(origStart);
+    return null;
+  }
   const end = ctx.lexer.position();
   const { app, appState } = ctx;
   const extended = { ...origResults, start, end, app, appState };

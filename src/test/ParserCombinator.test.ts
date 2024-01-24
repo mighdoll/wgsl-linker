@@ -215,3 +215,10 @@ test("tokenIgnore", () => {
   const { parsed } = testParse(p.tokenIgnore(), src);
   expect(parsed?.value).deep.eq(["a", " ", "b"]);
 });
+
+test("token start is after ignored ws", () => {
+  const src = " a"
+  const p = kind(m.word).map((r) => r.start);
+  const { parsed } = testParse(p, src);
+  expect(parsed?.value).eq(1);
+})
