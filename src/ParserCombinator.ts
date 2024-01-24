@@ -261,23 +261,30 @@ export function eof(): Parser<true> {
   );
 }
 
-/** log a message if parsing fails */
+/** if parsing fails, log an error and abort parsing */
 export function req<T>(
   arg: CombinatorArg<T>,
   msg?: string
 ): Parser<T | string> {
   return parser(
     "expect",
-    (state: ParserContext): OptParserResult<T | string> => {
+    (ctx: ParserContext): OptParserResult<T | string> => {
       const parser = parserArg(arg);
-      const result = parser._run(state);
+      const result = parser._run(ctx);
       if (result === null) {
         const m = msg ?? `expected ${parser.debugName}`;
-        srcErr(state.lexer.src, state.lexer.position(), m);
+        srcErr(ctx.lexer.src, ctx.lexer.position(), m);
+        throw new ParseError();
       }
       return result;
     }
   );
+}
+
+export class ParseError extends Error {
+  constructor(msg?: string) {
+    super(msg);
+  }
 }
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */

@@ -1,5 +1,6 @@
 import { logErr } from "./LinkerUtil.js";
 import { Lexer } from "./MatchingLexer.js";
+import { ParseError } from "./ParserCombinator.js";
 import {
   TraceContext,
   TraceOptions,
@@ -112,7 +113,7 @@ export function simpleParser<T>(
 
 /** a composable parsing element */
 export class Parser<T> {
-  tracingName: string | undefined; 
+  tracingName: string | undefined;
   namedResult: string | symbol | undefined;
   traceOptions: TraceOptions | undefined;
   terminal: boolean | undefined;
@@ -177,12 +178,19 @@ export class Parser<T> {
 
   /** start parsing */
   parse(init: ParserInit): OptParserResult<T> {
-    return this._run({
-      ...init,
-      _preParse: [],
-      _parseCount: 0,
-      _preCacheFails: new Map(),
-    });
+    try {
+      return this._run({
+        ...init,
+        _preParse: [],
+        _parseCount: 0,
+        _preCacheFails: new Map(),
+      });
+    } catch (e) {
+      if (!(e instanceof ParseError)) {
+        console.error(e);
+      }
+      return null;
+    }
   }
 
   /** attach a pre-parser to try parsing before this parser runs.
@@ -397,6 +405,5 @@ function runExtended<T>(
   const end = ctx.lexer.position();
   const { app, appState } = ctx;
   const src = ctx.lexer.src;
-  const extended = { ...origResults, start, end, app, appState, src };
-  return extended;
+  return { ...origResults, start, end, app, appState, src };
 }

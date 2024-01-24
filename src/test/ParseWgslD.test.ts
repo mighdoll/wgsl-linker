@@ -300,5 +300,9 @@ test("#export w/o closing paren", () => {
     `;
   const { log, logged } = logCatch();
   _withErrLogger(log, () => parseWgslD(src));
-  console.log(logged());
+  expect(logged()).toMatchInlineSnapshot(`
+    "expected text ')''
+    #export foo(A
+                 ^"
+  `);
 });
