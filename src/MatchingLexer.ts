@@ -16,9 +16,6 @@ export interface Lexer {
 
   /** true if the parser is at the end of the src string */
   eof(): boolean;
-
-  /** return line text containing this position */
-  lineAt(pos: number): string;
 }
 
 interface MatcherStackElem {
@@ -105,23 +102,12 @@ export function matchingLexer(
   }
 
 
-  function lineAt(position: number): string {
-    let i = Math.floor(lineStarts.length / 2);
-    // binary search for line position starting before this position
-    while (lineStarts[i] > position) {
-      i = Math.floor(i / 2);
-      if (i === 0) break;
-    }
-    return src.slice(lineStarts[i], lineStarts[i + 1] || src.length);
-  }
-
   return {
     next,
     position,
     withMatcher,
     withIgnore,
     eof,
-    lineAt,
   };
 }
 
