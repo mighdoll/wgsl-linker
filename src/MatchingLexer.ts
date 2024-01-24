@@ -37,14 +37,8 @@ export function matchingLexer(
   matcher.start(src);
 
   function next(): Token | undefined {
-    if (eof()) return undefined;
-
-    let token = matcher.next();
-    while (token && ignore.has(token.kind)) {
-      if (eof()) return undefined;
-      token = matcher.next();
-    }
-    if (tracing) {
+    const { token } = toNextToken();
+    if (token && tracing) {
       const text = quotedText(token?.text);
       parserLog(`: ${text} (${token?.kind}) ${matcher.position()}`);
     }
@@ -52,21 +46,29 @@ export function matchingLexer(
   }
 
   function skipIgnored(): number {
-    let p = matcher.position();
-    if (eof()) return p;
-
-    // advance til we find a token we're not ignoring
-    let token = matcher.next();
-    while (token && ignore.has(token.kind)) {
-      p = matcher.position(); // save position before the token
-      if (eof()) return p;
-      token = matcher.next();
-    }
+    const { p } = toNextToken();
 
     // back up to the position before the first non-ignored token
     matcher.position(p);
     return p;
   }
+
+  /** Advance to the next token
+   * @return the token, and the position at the start of the token (after ignored ws) */
+  function toNextToken(): { p: number; token?: Token } {
+    let p = matcher.position();
+    if (eof()) return { p };
+
+    // advance til we find a token we're not ignoring
+    let token = matcher.next();
+    while (token && ignore.has(token.kind)) {
+      p = matcher.position(); // save position before the token
+      if (eof()) return { p };
+      token = matcher.next();
+    }
+    return { p, token };
+  }
+
 
   function pushMatcher(newMatcher: TokenMatcher, newIgnore: Set<string>): void {
     const position = matcher.position();
