@@ -76,7 +76,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
   }
 
   function position(pos?: number): number {
-    if (pos) {
+    if (pos !== undefined) {
       exp.lastIndex = pos;
     }
     return exp.lastIndex;
