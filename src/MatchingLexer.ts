@@ -19,6 +19,9 @@ export interface Lexer {
 
   /** skip past any ignored tokens and return the current position in the src */
   skipIgnored(): number;
+
+  /** src text */
+  src: string;
 }
 
 interface MatcherStackElem {
@@ -128,6 +131,7 @@ export function matchingLexer(
     withIgnore,
     eof,
     skipIgnored,
+    src,
   };
 }
 

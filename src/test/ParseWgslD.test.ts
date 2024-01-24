@@ -8,8 +8,16 @@ import {
   importing,
   lineCommentOptDirective,
 } from "../ParseDirective.js";
-import { comment, skipBlockComment, wordNumArgs } from "../ParseSupport.js";
+import {
+  comment,
+  skipBlockComment,
+  unknown,
+  wordNumArgs,
+} from "../ParseSupport.js";
 import { enableTracing } from "../ParserTracing.js";
+import { or, repeat } from "../ParserCombinator.js";
+import { logCatch } from "./LogCatcher.js";
+import { _withErrLogger } from "../LinkerUtil.js";
 enableTracing();
 
 test("parse empty string", () => {
@@ -273,4 +281,15 @@ test("skipBlockComment parses nested comment", () => {
   expectNoLogErr(() => {
     testParse(skipBlockComment, src);
   });
+});
+
+test("unexpected token", () => {
+  const p = repeat(or("a", unknown));
+  const { log, logged } = logCatch();
+  _withErrLogger(log, () => testParse(p, "a b"));
+  expect(logged()).toMatchInlineSnapshot(`
+    "??? [object Object]
+    a b
+      ^"
+  `);
 });

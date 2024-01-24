@@ -49,6 +49,7 @@ export interface ParserResult<T> {
 }
 
 export interface ExtendedResult<T> extends ParserResult<T> {
+  src: string;
   start: number;
   end: number;
   app: any[];
@@ -391,6 +392,7 @@ function runExtended<T>(
   }
   const end = ctx.lexer.position();
   const { app, appState } = ctx;
-  const extended = { ...origResults, start, end, app, appState };
+  const src = ctx.lexer.src;
+  const extended = { ...origResults, start, end, app, appState, src };
   return extended;
 }
