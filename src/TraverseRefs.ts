@@ -77,7 +77,7 @@ export function recursiveRefs(
         localRef(callElem, mod, registry);
       if (!foundRef) {
         const src = srcRef.expMod.src;
-        srcErr(src, callElem.start, `reference not found for: '${callElem.call}'`);
+        srcErr(src, callElem.start, `reference not found`);
       }
       return foundRef ? [foundRef] : [];
     });
@@ -158,8 +158,9 @@ function importingRef(
       proposedName: fromImport.as ?? exp.ref.name,
     };
   } else {
-    srcErr(srcRef.expMod.src, srcRef.fn.start, "unexpected srcRef not an export", srcRef.expMod.name, srcRef.kind, srcRef.fn.start);
-    // srcRef, "for", callElem, textExport, fromImport);
+    const src = srcRef.expMod.src;
+    const pos = srcRef.fn.start;
+    srcErr(src, pos, "unexpected srcRef not an export", srcRef.kind);
   }
 
   return undefined;
