@@ -112,14 +112,14 @@ export function simpleParser<T>(
 
 /** a composable parsing element */
 export class Parser<T> {
-  _traceName: string | undefined;
+  tracingName: string | undefined; 
   namedResult: string | symbol | undefined;
   traceOptions: TraceOptions | undefined;
   terminal: boolean | undefined;
   fn: ParseFn<T>;
 
   constructor(args: ConstructArgs<T>) {
-    this._traceName = args.traceName;
+    this.tracingName = args.traceName;
     this.namedResult = args.resultName;
     this.traceOptions = args.trace;
     this.terminal = args.terminal;
@@ -129,7 +129,7 @@ export class Parser<T> {
   /** copy this parser with slightly different settings */
   _cloneWith(p: Partial<ConstructArgs<T>>): Parser<T> {
     return new Parser({
-      traceName: this._traceName,
+      traceName: this.tracingName,
       resultName: this.namedResult,
       trace: this.traceOptions,
       terminal: this.terminal,
@@ -208,6 +208,10 @@ export class Parser<T> {
   tokens(matcher: TokenMatcher): Parser<T> {
     return tokens<T>(this, matcher);
   }
+
+  get debugName(): string {
+    return this.tracingName ?? this.namedResult?.toString() ?? "parser";
+  }
 }
 
 /**
@@ -235,7 +239,7 @@ function runParser<T>(
   return withTraceLogging()(context, p.traceOptions, (tContext) => {
     const traceSuccessOnly = tContext._trace?.successOnly;
     if (!p.terminal && tracing && !traceSuccessOnly)
-      parserLog(`..${p._traceName}`);
+      parserLog(`..${p.tracingName}`);
 
     execPreParsers(tContext);
 
@@ -245,12 +249,12 @@ function runParser<T>(
 
     if (result === null || result === undefined) {
       // parser failed
-      tracing && !traceSuccessOnly && parserLog(`x ${p._traceName}`);
+      tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
       lexer.position(position); // reset position to orig spot
       return null;
     } else {
       // parser succeded
-      tracing && parserLog(`✓ ${p._traceName}`);
+      tracing && parserLog(`✓ ${p.tracingName}`);
       if (p.namedResult) {
         // merge named result (if user set a name for this stage's result)
         return {
