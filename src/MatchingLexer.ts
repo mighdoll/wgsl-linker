@@ -30,8 +30,6 @@ export function matchingLexer(
 ): Lexer {
   let matcher = rootMatcher;
   const matcherStack: MatcherStackElem[] = [];
-  const lineStarts = [...src.matchAll(/\n/g)].map((m) => m.index || -1);
-  lineStarts.unshift(0);
 
   matcher.start(src);
 
@@ -100,7 +98,6 @@ export function matchingLexer(
   function eof(): boolean {
     return matcher.position() === src.length;
   }
-
 
   return {
     next,
