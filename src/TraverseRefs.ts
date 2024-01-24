@@ -194,7 +194,8 @@ function importingArgs(
   return expImp.flatMap(([iExp, iImp]) => {
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
     if (!pair) {
-      logErr("importing arg doesn't match", imp, exp, srcRef);
+      const src = srcRef.expMod.src;
+      srcErr(src, imp.start, "importing arg doesn't match export");
       return [];
     }
     const [, impArg] = pair;

@@ -165,7 +165,36 @@ test("traverse importing from a local call fails", () => {
       return true;
     });
   });
-  console.log(logged());
 
   expect(logged().length).not.eq(0);
+});
+
+test("importing args don't match", () => {
+  const src = `
+    #import foo(A, B)
+    fn main() {
+      foo(k, l);
+    } `;
+  const module1 = `
+    #export(C, D) importing bar(E)
+    fn foo(c:C, d:D) { bar(d); } `;
+  const module2 = `
+    #export(X)
+    fn bar(x:X) { } `;
+
+  const registry = new ModuleRegistry2(module1, module2);
+  const srcModule = parseModule2(src);
+  const refs: FoundRef[] = [];
+  const { log, logged } = logCatch();
+  _withErrLogger(log, () => {
+    traverseRefs(srcModule, registry, (ref) => {
+      refs.push(ref);
+      return true;
+    });
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "importing arg doesn't match export
+        #export(C, D) importing bar(E)
+                                ^"
+  `);
 });
