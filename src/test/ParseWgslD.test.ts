@@ -293,3 +293,12 @@ test("unexpected token", () => {
       ^"
   `);
 });
+
+test("#export w/o closing paren", () => {
+  const src = `#export foo(A
+    )
+    `;
+  const { log, logged } = logCatch();
+  _withErrLogger(log, () => parseWgslD(src));
+  console.log(logged());
+});

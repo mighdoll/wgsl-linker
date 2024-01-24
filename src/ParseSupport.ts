@@ -12,6 +12,7 @@ import {
   opt,
   or,
   repeat,
+  req,
   seq,
   withSep,
 } from "./ParserCombinator.js";
@@ -34,7 +35,7 @@ export const skipBlockComment: Parser<any> = seq(
       anyNot("*/")
     )
   ),
-  "*/"
+  req("*/")
 ).traceName("skipBlockComment");
 
 export const comment = or(
@@ -48,7 +49,7 @@ export const wordArgsLine: Parser<string[]> =
   seq(
     "(", 
     withSep(",", kind(argsTokens.word)), 
-    ")"
+    req(")")
   )
 .tokens(argsTokens)
   .map((r) => r.value[1])
@@ -60,7 +61,7 @@ const wordNum = or(kind(argsTokens.word), kind(argsTokens.digits));
 export const wordNumArgs: Parser<string[]> = seq(
   "(",
   withSep(",", wordNum),
-  ")"
+  req(")")
 )
   .map((r) => r.value[1])
   .traceName("wordNumArgs");

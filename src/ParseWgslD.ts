@@ -12,6 +12,7 @@ import {
   opt,
   or,
   repeat,
+  req,
   seq,
 } from "./ParserCombinator.js";
 import { comment, makeElem, unknown, wordNumArgs } from "./ParseSupport.js";
@@ -25,14 +26,14 @@ export interface ParseState {
 
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
-  anyThrough(";")
+  req(anyThrough(";"))
 ).traceName("globalDirectiveOrAssert");
 
 const structDecl = seq(
   "struct",
   kind(mainTokens.word),
   "{",
-  anyThrough("}")
+  req(anyThrough("}"))
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
   r.app.push(e);
@@ -57,16 +58,16 @@ const block: Parser<any> = seq(
       anyNot("}")
     )
   ),
-  "}"
+  req("}")
 ).traceName("block");
 
 export const fnDecl = seq(
   attributes,
   "fn",
-  kind(mainTokens.word).named("name"),
-  "(",
+  req(kind(mainTokens.word).named("name")),
+  req("("),
   repeat(anyNot("{")),
-  block
+  req(block)
 )
   .traceName("fnDecl")
   .map((r) => {
@@ -78,7 +79,7 @@ export const fnDecl = seq(
 const globalValVarOrAlias = seq(
   attributes,
   or("const", "override", "var", "alias"),
-  anyThrough(";")
+  req(anyThrough(";"))
 );
 
 const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl).traceName(
