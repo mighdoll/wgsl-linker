@@ -175,9 +175,9 @@ export class Parser<T> {
   }
 
   /** start parsing */
-  parse(start: ParserInit): OptParserResult<T> {
+  parse(init: ParserInit): OptParserResult<T> {
     return this._run({
-      ...start,
+      ...init,
       _preParse: [],
       _parseCount: 0,
       _preCacheFails: new Map(),
