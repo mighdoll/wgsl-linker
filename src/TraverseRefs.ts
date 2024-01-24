@@ -1,5 +1,5 @@
 import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
-import { logErr, srcErr } from "./LinkerUtil.js";
+import { srcErr } from "./LinkerUtil.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
