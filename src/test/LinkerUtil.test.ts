@@ -37,3 +37,21 @@ test("srcErr", () => {
        ^"
   `);
 });
+
+test("srcLine on longer example", () => {
+  const src = `
+    #export(C, D) importing bar(D)
+    fn foo(c:C, d:D) { support(d); } 
+    
+    fn support(d:D) { bar(d); }
+    `;
+  const { log, logged } = logCatch();
+  _withErrLogger(log, () => {
+    srcErr(src, 101, "ugh:");
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "ugh:
+        fn support(d:D) { bar(d); }
+                          ^"
+  `);
+});

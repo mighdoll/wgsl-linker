@@ -12,7 +12,7 @@ export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
 }
 
 /** log an error along with the source line and a caret indicating the error position in the line */
-export function srcErr(src: string, pos: number, ...msgs: string[]): void {
+export function srcErr(src: string, pos: number, ...msgs: any[]): void {
   logErr(msgs);
   const { line, linePos } = srcLine(src, pos);
   logErr(line);
@@ -44,7 +44,7 @@ export function srcLine(src: string, pos: number): SrcLine {
 
   // binary search to find start,end positions that surround provided pos
   while (start + 1 < end) {
-    let mid = Math.floor((end - start) / 2);
+    let mid = (start + end) >> 1;
     if (pos >= starts[mid]) {
       start = mid;
     } else {
