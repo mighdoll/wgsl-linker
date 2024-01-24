@@ -46,6 +46,13 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
+/** walk through all imported references in the src module, recursively.
+ *
+ * Note that the reference graph may have multiple reference to the same src element.
+ * A provided fn is called on each node, return false to avoid recursing into the node.
+ * Currently the linker will recurse through the the the same node multiple times to handle
+ * varied import parameters.
+ */
 export function traverseRefs(
   srcModule: TextModule2,
   registry: ModuleRegistry2,
@@ -103,23 +110,30 @@ function importRef(
   const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp || !fromImport) return;
   const exp = modExp.export as TextExport2;
+  const expMod = modExp.module as TextModule2;
   return {
     kind: "exp",
     fromRef,
     fromImport,
     impMod,
-    expMod: modExp.module as TextModule2,
-    expImpArgs: matchImportExportArgs(fromImport, exp),
+    expMod,
+    expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
     fn: exp.ref,
     proposedName: fromImport.as ?? exp.ref.name,
   };
 }
 
-function matchImportExportArgs(imp: ImportElem, exp: ExportElem): StringPairs {
+function matchImportExportArgs(
+  impMod: TextModule2,
+  imp: ImportElem,
+  expMod: TextModule2,
+  exp: ExportElem
+): StringPairs {
   const impArgs = imp.args ?? [];
   const expArgs = exp.args ?? [];
   if (expArgs.length !== impArgs.length) {
-    logErr("mismatched import and export params", imp, exp);
+    srcErr(impMod.src, imp.start, "mismatched import and export params");
+    srcErr(expMod.src, exp.start);
   }
   return expArgs.map((p, i) => [p, impArgs[i]]);
 }
@@ -189,7 +203,7 @@ function importingArgs(
   exp: ExportElem,
   srcRef: ExportRef
 ): StringPairs {
-  const expImp = matchImportExportArgs(imp, exp); // X -> D
+  const expImp = matchImportExportArgs(srcRef.impMod, imp, srcRef.expMod, exp); // X -> D
   const srcExpImp = srcRef.expImpArgs;
   return expImp.flatMap(([iExp, iImp]) => {
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
@@ -214,8 +228,7 @@ function matchingExport(
 
   const modExp = registry.getModuleExport(imp.name, imp.from);
   if (!modExp) {
-    // prettier-ignore
-    logErr( "export not found for import", imp.name, "in module:", mod.name, imp.start);
+    srcErr(mod.src, imp.start, "export not found for import");
   }
   return modExp;
 }

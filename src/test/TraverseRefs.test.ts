@@ -155,18 +155,9 @@ test("traverse importing from a local call fails", () => {
     #export(X)
     fn bar(x:X) { } `;
 
-  const registry = new ModuleRegistry2(module1, module2);
-  const srcModule = parseModule2(src);
-  const refs: FoundRef[] = [];
-  const { log, logged } = logCatch();
-  _withErrLogger(log, () => {
-    traverseRefs(srcModule, registry, (ref) => {
-      refs.push(ref);
-      return true;
-    });
-  });
+  const { log } = traverseWithLog(src, module1, module2);
 
-  expect(logged().length).not.eq(0);
+  expect(log.length).not.eq(0);
 });
 
 test("importing args don't match", () => {
@@ -182,7 +173,41 @@ test("importing args don't match", () => {
     #export(X)
     fn bar(x:X) { } `;
 
-  const registry = new ModuleRegistry2(module1, module2);
+  const { log } = traverseWithLog(src, module1, module2);
+  expect(log).toMatchInlineSnapshot(`
+    "importing arg doesn't match export
+        #export(C, D) importing bar(E)
+                                ^"
+  `);
+});
+
+test("mismatched import export params", () => {
+  const src = `
+    #import foo(A, B)
+    fn main() {
+      foo(k, l);
+    } `;
+  const module1 = `
+    #export(C) 
+    fn foo(c:C) { } `;
+
+  const { log } = traverseWithLog(src, module1);
+  expect(log).toMatchInlineSnapshot(`
+    "mismatched import and export params
+        #import foo(A, B)
+        ^
+
+        #export(C) 
+        ^"
+  `);
+});
+
+/** run traverseRefs with no filtering and return the refs and the error log output */
+function traverseWithLog(
+  src: string,
+  ...modules: string[]
+): { refs: FoundRef[]; log: string } {
+  const registry = new ModuleRegistry2(...modules);
   const srcModule = parseModule2(src);
   const refs: FoundRef[] = [];
   const { log, logged } = logCatch();
@@ -192,9 +217,6 @@ test("importing args don't match", () => {
       return true;
     });
   });
-  expect(logged()).toMatchInlineSnapshot(`
-    "importing arg doesn't match export
-        #export(C, D) importing bar(E)
-                                ^"
-  `);
-});
+
+  return { refs, log: logged() };
+}
