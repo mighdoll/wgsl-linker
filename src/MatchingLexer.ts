@@ -1,4 +1,4 @@
-import { tracing, parserLog } from "./ParserTracing.js";
+import { parserLog, tracing } from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
@@ -16,6 +16,9 @@ export interface Lexer {
 
   /** true if the parser is at the end of the src string */
   eof(): boolean;
+
+  /** skip past any ignored tokens and return the current position in the src */
+  skipIgnored(): number;
 }
 
 interface MatcherStackElem {
@@ -46,6 +49,23 @@ export function matchingLexer(
       parserLog(`: ${text} (${token?.kind}) ${matcher.position()}`);
     }
     return token;
+  }
+
+  function skipIgnored(): number {
+    let p = matcher.position();
+    if (eof()) return p;
+
+    // advance til we find a token we're not ignoring
+    let token = matcher.next();
+    while (token && ignore.has(token.kind)) {
+      p = matcher.position(); // save position before the token
+      if (eof()) return p;
+      token = matcher.next();
+    }
+
+    // back up to the position before the first non-ignored token
+    matcher.position(p);
+    return p;
   }
 
   function pushMatcher(newMatcher: TokenMatcher, newIgnore: Set<string>): void {
@@ -105,6 +125,7 @@ export function matchingLexer(
     withMatcher,
     withIgnore,
     eof,
+    skipIgnored,
   };
 }
 
