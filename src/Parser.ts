@@ -1,3 +1,4 @@
+import { logErr } from "./LinkerUtil.js";
 import { Lexer } from "./MatchingLexer.js";
 import {
   TraceContext,
@@ -9,7 +10,6 @@ import {
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
-import { logErr } from "./TraverseRefs.js";
 
 export interface ParserInit {
   /** supply tokens to the parser*/
@@ -45,7 +45,7 @@ export interface ParserResult<T> {
   value: T;
 
   /** named results from this stage and all child stages*/
-  named: Record<string|symbol, any[]>;
+  named: Record<string | symbol, any[]>;
 }
 
 export interface ExtendedResult<T> extends ParserResult<T> {

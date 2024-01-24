@@ -1,0 +1,39 @@
+import { test, expect } from "vitest";
+import { _withErrLogger, srcErr, srcLine } from "../LinkerUtil.js";
+import { logCatch } from "./LogCatcher.js";
+
+test("srcLine", () => {
+  const src1 = "1";
+  const src2 = "line 2";
+  const src3 = " line 3";
+  const src = [src1, src2, src3].join("\n");
+
+  const { line: line1 } = srcLine(src, 0);
+  expect(line1).equals(src1);
+
+  const { line: line4 } = srcLine(src, 1);
+  expect(line4).eq(src1);
+
+  const { line: line5 } = srcLine(src, 2);
+  expect(line5).eq(src2);
+
+  const { line: line2 } = srcLine(src, 3);
+  expect(line2).eq(src2);
+
+  const { line: line3 } = srcLine(src, 100);
+  expect(line3).eq(src3);
+});
+
+test("srcErr", () => {
+  const src = `a\n12345\nb`;
+
+  const { log, logged } = logCatch();
+  _withErrLogger(log, () => {
+    srcErr(src, 5, "uh-oh:");
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "uh-oh:
+    12345
+       ^"
+  `);
+});
