@@ -1,3 +1,4 @@
+import { srcErr } from "./LinkerUtil.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   OptParserResult,
@@ -257,6 +258,25 @@ export function eof(): Parser<true> {
   return simpleParser(
     "eof",
     (state: ParserContext) => state.lexer.eof() || null
+  );
+}
+
+/** log a message if parsing fails */
+export function req<T>(
+  arg: CombinatorArg<T>,
+  msg?: string
+): Parser<T | string> {
+  return parser(
+    "expect",
+    (state: ParserContext): OptParserResult<T | string> => {
+      const parser = parserArg(arg);
+      const result = parser._run(state);
+      if (result === null) {
+        const m = msg ?? `expected ${parser.debugName}`;
+        srcErr(state.lexer.src, state.lexer.position(), m);
+      }
+      return result;
+    }
   );
 }
 

@@ -10,12 +10,14 @@ import {
   opt,
   or,
   repeat,
+  req,
   seq,
   text,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
+import { _withErrLogger } from "../LinkerUtil.js";
 
 const m = mainTokens;
 
@@ -217,8 +219,23 @@ test("tokenIgnore", () => {
 });
 
 test("token start is after ignored ws", () => {
-  const src = " a"
+  const src = " a";
   const p = kind(m.word).map((r) => r.start);
   const { parsed } = testParse(p, src);
   expect(parsed?.value).eq(1);
-})
+});
+
+test("req logs a message on failure", () => {
+  const src = "a 1;";
+  const p = seq("a", req("b"));
+  const { log, logged } = logCatch();
+
+  _withErrLogger(log, () => {
+    testParse(p, src);
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "expected text 'b''
+    a 1;
+     ^"
+  `);
+});
