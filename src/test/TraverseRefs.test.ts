@@ -149,7 +149,7 @@ test("traverse importing from a local call fails", () => {
     #export(C, D) importing bar(D)
     fn foo(c:C, d:D) { support(d); } 
     
-    fn support(d:D) { bar(d); }
+    fn support(d:D) { bar(d); } //  need to mark this as an export with importing, so we can map params
     `;
   const module2 = `
     #export(X)
@@ -165,6 +165,7 @@ test("traverse importing from a local call fails", () => {
       return true;
     });
   });
+  console.log(logged());
 
   expect(logged().length).not.eq(0);
 });

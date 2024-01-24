@@ -1,9 +1,8 @@
-import { dlog, dlogOpt } from "berry-pretty";
 import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
+import { logErr, srcErr } from "./LinkerUtil.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
-import { logErr } from "./LinkerUtil.js";
 
 export type FoundRef = ExportRef | LocalRef;
 
@@ -47,7 +46,6 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
-
 export function traverseRefs(
   srcModule: TextModule2,
   registry: ModuleRegistry2,
@@ -78,8 +76,8 @@ export function recursiveRefs(
         importingRef(srcRef, callElem, mod, registry) ??
         localRef(callElem, mod, registry);
       if (!foundRef) {
-        logErr("reference not found for:", callElem);
-        srcRef.expMod.src
+        const src = srcRef.expMod.src;
+        srcErr(src, callElem.start, `reference not found for: '${callElem.call}'`);
       }
       return foundRef ? [foundRef] : [];
     });
@@ -160,8 +158,8 @@ function importingRef(
       proposedName: fromImport.as ?? exp.ref.name,
     };
   } else {
-    // prettier-ignore
-    logErr("unexpected srcRef not an export", srcRef, "for", callElem, textExport, fromImport);
+    srcErr(srcRef.expMod.src, srcRef.fn.start, "unexpected srcRef not an export", srcRef.expMod.name, srcRef.kind, srcRef.fn.start);
+    // srcRef, "for", callElem, textExport, fromImport);
   }
 
   return undefined;
