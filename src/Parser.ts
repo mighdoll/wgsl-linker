@@ -390,14 +390,14 @@ function disablePreParse<T>(
 }
 
 /** run parser, return extended results to support map() or toParser() */
-function runExtended<T>(
+export function runExtended<T>(
   ctx: ParserContext,
-  parseFn: Parser<T>
+  p: Parser<T>
 ): ExtendedResult<T> | null {
   const origStart = ctx.lexer.position();
   const start = ctx.lexer.skipIgnored();
 
-  const origResults = parseFn._run(ctx);
+  const origResults = p._run(ctx);
   if (origResults === null) {
     ctx.lexer.position(origStart);
     return null;
