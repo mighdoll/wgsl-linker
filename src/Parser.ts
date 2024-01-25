@@ -305,9 +305,9 @@ function execPreParsers(ctx: ParserContext): void {
 type ParserMapFn<T, U> = (results: ExtendedResult<T>) => U | null;
 
 /** return a parser that maps the current results */
-function map<T, U>(parseFn: Parser<T>, fn: ParserMapFn<T, U>): Parser<U> {
+function map<T, U>(p: Parser<T>, fn: ParserMapFn<T, U>): Parser<U> {
   return parser("map", (ctx: ParserContext): OptParserResult<U> => {
-    const extended = runExtended(ctx, parseFn);
+    const extended = runExtended(ctx, p);
     if (!extended) return null;
 
     const mappedValue = fn(extended);
