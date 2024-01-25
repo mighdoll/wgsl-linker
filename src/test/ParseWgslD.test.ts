@@ -132,6 +132,18 @@ test("parse #if #endif", () => {
   expect((parsed[0] as FnElem).name).eq("f");
 });
 
+test("parse // #if !foo", () => {
+  const src = `
+    // #if !foo
+      fn f() { }
+    // #endif 
+    `;
+  const parsed = parseWgslD(src, { foo: false });
+  console.log(parsed);
+  console.log("src.length", src.length);
+  expect((parsed[0] as FnElem).name).eq("f");
+});
+
 test("parse #if !foo #else #endif", () => {
   const src = `
     // #if !foo
@@ -141,8 +153,33 @@ test("parse #if !foo #else #endif", () => {
     // #endif 
     `;
   const parsed = parseWgslD(src, { foo: true });
+  console.log(parsed);
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("g");
+});
+
+test("parse nested #if", () => {
+  const src = `
+    #if foo
+
+    #if bar
+      fn f() { }
+    #endif 
+
+    #if zap
+      fn zap() { }
+    #endif
+
+      fn g() { }
+    #endif 
+    `;
+  // expectNoLogErr(() => {
+  const parsed = parseWgslD(src, { foo: true, zap: true });
+  console.log(parsed);
+  expect(parsed.length).eq(2);
+  // expect((parsed[0] as FnElem).name).eq("zap");
+  // expect((parsed[1] as FnElem).name).eq("g");
+  // });
 });
 
 test("importing parses importing bar(A) fog(B)", () => {
