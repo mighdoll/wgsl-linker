@@ -214,7 +214,7 @@ export function any(): Parser<Token> {
 export function anyNot<T>(arg: CombinatorArg<T>): Parser<Token> {
   return seq(not(arg), any())
     .map((r) => r.value[1])
-    .traceName("anyBut");
+    .traceName("anyNot");
 }
 
 /** match everything until a terminator (and the terminator too)
