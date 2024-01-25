@@ -89,7 +89,7 @@ const elseDirective = seq("#else", eolf)
   .toParser((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
-    if (ifState === undefined) console.warn("unmatched #else", r.start);
+    if (ifState === undefined) srcErr(r.src, r.start, "unmatched #else");
     return ifBody(r, !ifState);
   })
   .traceName("#else");
