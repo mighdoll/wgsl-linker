@@ -10,6 +10,7 @@ import {
   opt,
   or,
   repeat,
+  repeatWhile,
   req,
   seq,
   text,
@@ -238,4 +239,12 @@ test("req logs a message on failure", () => {
     a 1; (Ln 1)
      ^"
   `);
+});
+
+test("repeatWhile", () => {
+  let count = 0;
+  const p = repeatWhile("a", () => count++ < 2);
+  const src = "a a a a";
+  const { parsed } = testParse(p, src);
+  expect(parsed?.value).deep.eq(["a", "a"]);
 });

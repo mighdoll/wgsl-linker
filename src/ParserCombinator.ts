@@ -1,11 +1,13 @@
 import { srcErr } from "./LinkerUtil.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
+  ExtendedResult,
   OptParserResult,
   Parser,
   ParserContext,
   ParserResult,
   parser,
+  runExtended,
   simpleParser,
 } from "./Parser.js";
 import { mergeNamed } from "./ParserUtil.js";
@@ -226,23 +228,34 @@ export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
 export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
-  return parser(
-    "repeat",
-    (state: ParserContext): OptParserResult<(T | string)[]> => {
-      const values: (T | string)[] = [];
-      let results = {};
-      while (true) {
-        const parser = parserArg(stage);
-        const result = parser._run(state);
-        if (result !== null) {
-          values.push(result.value);
-          results = mergeNamed(results, result.named);
-        } else {
-          return { value: values, named: results };
-        }
+  return parser("repeat", repeatWhileFilter(stage));
+}
+
+export function repeatWhile<T>(
+  arg: CombinatorArg<T>,
+  filterFn: (result: ExtendedResult<T | string>) => boolean
+): Parser<(T | string)[]> {
+  return parser("repeatWhile", repeatWhileFilter(arg, filterFn));
+}
+
+function repeatWhileFilter<T>(
+  arg: CombinatorArg<T>,
+  filterFn: (result: ExtendedResult<T | string>) => boolean = () => true
+): (ctx: ParserContext) => OptParserResult<(T | string)[]> {
+  return (ctx: ParserContext): OptParserResult<(T | string)[]> => {
+    const values: (T | string)[] = [];
+    let results = {};
+    const p = parserArg(arg);
+    while (true) {
+      const result = runExtended<T | string>(ctx, p);
+      if (result !== null && filterFn(result)) {
+        values.push(result.value);
+        results = mergeNamed(results, result.named);
+      } else {
+        return { value: values, named: results };
       }
     }
-  );
+  };
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
@@ -266,19 +279,16 @@ export function req<T>(
   arg: CombinatorArg<T>,
   msg?: string
 ): Parser<T | string> {
-  return parser(
-    "expect",
-    (ctx: ParserContext): OptParserResult<T | string> => {
-      const parser = parserArg(arg);
-      const result = parser._run(ctx);
-      if (result === null) {
-        const m = msg ?? `expected ${parser.debugName}`;
-        srcErr(ctx.lexer.src, ctx.lexer.position(), m);
-        throw new ParseError();
-      }
-      return result;
+  return parser("req", (ctx: ParserContext): OptParserResult<T | string> => {
+    const parser = parserArg(arg);
+    const result = parser._run(ctx);
+    if (result === null) {
+      const m = msg ?? `expected ${parser.debugName}`;
+      srcErr(ctx.lexer.src, ctx.lexer.position(), m);
+      throw new ParseError();
     }
-  );
+    return result;
+  });
 }
 
 export class ParseError extends Error {
