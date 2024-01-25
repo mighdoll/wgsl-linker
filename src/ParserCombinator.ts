@@ -231,16 +231,20 @@ export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
   return parser("repeat", repeatWhileFilter(stage));
 }
 
+type ResultFilterFn<T> = (
+  result: ExtendedResult<T | string>
+) => boolean | undefined;
+
 export function repeatWhile<T>(
   arg: CombinatorArg<T>,
-  filterFn: (result: ExtendedResult<T | string>) => boolean
+  filterFn: ResultFilterFn<T>
 ): Parser<(T | string)[]> {
   return parser("repeatWhile", repeatWhileFilter(arg, filterFn));
 }
 
 function repeatWhileFilter<T>(
   arg: CombinatorArg<T>,
-  filterFn: (result: ExtendedResult<T | string>) => boolean = () => true
+  filterFn: ResultFilterFn<T> = () => true
 ): (ctx: ParserContext) => OptParserResult<(T | string)[]> {
   return (ctx: ParserContext): OptParserResult<(T | string)[]> => {
     const values: (T | string)[] = [];
@@ -248,10 +252,13 @@ function repeatWhileFilter<T>(
     const p = parserArg(arg);
     while (true) {
       const result = runExtended<T | string>(ctx, p);
+
+      // continue acccumulating until we get a null or the filter tells us to stop
       if (result !== null && filterFn(result)) {
         values.push(result.value);
         results = mergeNamed(results, result.named);
       } else {
+        // always return succcess
         return { value: values, named: results };
       }
     }
