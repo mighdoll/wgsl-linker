@@ -511,38 +511,6 @@ test.skip("import fn with support struct constructor", () => {
 //   expect(linked).includes("step < 128");
 // });
 
-// test("#if", () => {
-//   const src = `
-//     #if foo
-//       foo();
-//     #endif
-//     #if bar
-//       bar();
-//     #endif
-//   `;
-//   const registry = new ModuleRegistry();
-//   const params = { foo: true, bar: false };
-//   const linked = linkWgsl(src, registry, params);
-//   expect(linked).toMatchSnapshot();
-// });
-
-// test("nested #if", () => {
-//   const src = `
-//     #if foo
-//       #if bar
-//         foo();
-//       #endif
-//       #if zap
-//         zap();
-//       #endif
-//     #endif
-//   `;
-//   const registry = new ModuleRegistry();
-//   const params = { foo: true, bar: false, zap: true };
-//   const linked = linkWgsl(src, registry, params);
-//   expect(linked).toMatchSnapshot();
-// });
-
 // test("#endExport", () => {
 //   const module1 = `
 //     struct Foo {
