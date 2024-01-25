@@ -1,4 +1,4 @@
-import { srcErr } from "./LinkerUtil.js";
+import { ctxErr, srcErr } from "./LinkerUtil.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -156,12 +156,12 @@ export function seq<
 ): Parser<[T, U, V, W, X, Y]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
-  return parser("seq", (state: ParserContext) => {
+  return parser("seq", (ctx: ParserContext) => {
     const values = [];
     let namedResults = {};
     for (const stage of stages) {
       const parser = parserArg(stage);
-      const result = parser._run(state);
+      const result = parser._run(ctx);
       if (result === null) return null;
 
       namedResults = mergeNamed(namedResults, result.named);
