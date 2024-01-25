@@ -29,6 +29,9 @@ interface SrcLine {
 
   /** requested position relative to line start */
   linePos: number;
+
+  /** line number in the src (first line is #1) */
+  lineNum: number;
 }
 
 export function srcLine(src: string, pos: number): SrcLine {
@@ -58,7 +61,7 @@ export function srcLine(src: string, pos: number): SrcLine {
   // return line without trailing newline
   const line = lineNl.slice(-1) === "\n" ? lineNl.slice(0, -1) : lineNl;
 
-  return { line, linePos: pos - starts[start] };
+  return { line, linePos: pos - starts[start], lineNum: start + 1 };
 }
 
 function getStarts(src: string): number[] {
