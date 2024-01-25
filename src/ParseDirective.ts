@@ -121,7 +121,7 @@ const endifDirective = seq("#endif", eolf)
   .map((r) => {
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
-    if (ifState === undefined) console.warn("unmatched #endif", r.start);
+    if (ifState === undefined) resultErr(r, "unmatched #endif");
   })
   .traceName("#endif");
 
