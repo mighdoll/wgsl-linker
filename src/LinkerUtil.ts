@@ -1,4 +1,5 @@
-export let logErr = console.error;
+import { ExtendedResult, ParserContext } from "./Parser.js";
+
 
 /** use temporary logger for tests */
 export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
@@ -18,6 +19,14 @@ export function srcErr(src: string, pos: number, ...msgs: any[]): void {
   logErr(line, `(Ln ${lineNum})`);
   const caret = " ".repeat(linePos) + "^";
   logErr(caret);
+}
+
+export function resultErr<T>(result: ExtendedResult<T>, ...msgs:any[]): void {
+  srcErr(result.src, result.start, ...msgs);
+}
+
+export function ctxErr(ctx: ParserContext, ...msgs: any[]): void {
+  srcErr(ctx.lexer.src, ctx.lexer.position(), ...msgs);
 }
 
 // map from src strings to line start positions
