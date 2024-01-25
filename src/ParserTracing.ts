@@ -19,6 +19,9 @@ export let parserLog: typeof console.log = noLog;
 /** options to .trace() on a parser stage */
 export interface TraceOptions {
   shallow?: boolean;
+
+  /** start tracing at this character position. 
+   * Note that start should include ws skipped prior to the first token you want to see in the trace. */
   start?: number;
   end?: number;
   successOnly?: boolean;
@@ -83,9 +86,8 @@ function withTraceLoggingInternal<T>(
   let tlog = noLog;
   if (logging) {
     const pad = currentIndent(_trace);
-    const indent =`  ->|${_trace?.indent || 0}` ;
     tlog = (...msgs: any[]) => {
-      logger(`${pad}${msgs[0]}`, ...msgs.slice(1), indent);
+      logger(`${pad}${msgs[0]}`, ...msgs.slice(1));
     };
   }
 
