@@ -71,7 +71,7 @@ const ifDirective: Parser<any> = seq(
   "#if",
   seq(
     opt("!").named("invert"), 
-    kind(mainTokens.word).named("name"), 
+    req(kind(mainTokens.word).named("name")), 
     eolf
   )
     .tokens(argsTokens)
