@@ -18,12 +18,18 @@ export let parserLog: typeof console.log = noLog;
 
 /** options to .trace() on a parser stage */
 export interface TraceOptions {
+  /** trace this parser, but not children */
   shallow?: boolean;
 
-  /** start tracing at this character position. 
+  /** don't trace this parser or its children, even if the parent is tracing */
+  hide?: boolean;
+
+  /** start tracing at this character position.
    * Note that start should include ws skipped prior to the first token you want to see in the trace. */
   start?: number;
+
   end?: number;
+  /** trace less info */
   successOnly?: boolean;
 }
 
@@ -53,7 +59,11 @@ export interface TraceLogging {
 export let withTraceLogging = () =>
   tracing ? withTraceLoggingInternal : stubTraceLogging;
 
-function stubTraceLogging<T>(ctx: any, trace: TraceOptions | undefined, fn: (ctx:ParserContext) => T): T {
+function stubTraceLogging<T>(
+  ctx: any,
+  trace: TraceOptions | undefined,
+  fn: (ctx: ParserContext) => T
+): T {
   return fn(ctx);
 }
 
@@ -67,8 +77,8 @@ function withTraceLoggingInternal<T>(
 ): T {
   let { _trace } = ctx;
 
-  // log if we're starting or inheriting a trace and we're in any position range
-  let logging: boolean = !!_trace || !!trace;
+  // log if we're starting or inheriting a trace and we're inside requested position range
+  let logging: boolean = (!!_trace || !!trace) && !trace?.hide;
   if (logging) {
     const { start = 0, end = 1e20 } = { ..._trace, ...trace };
     const pos = ctx.lexer.position();
@@ -77,8 +87,13 @@ function withTraceLoggingInternal<T>(
     }
   }
 
+  // if we're inheriting a trace, but this one is marked hide, stop inheriting further
+  if (_trace && trace?.hide) {
+    _trace = undefined;
+  }
+
   // start inheriting tracing if deep trace is set on this stage
-  if (!_trace && trace && !trace?.shallow) {
+  if (!_trace && trace && !trace?.shallow && !trace?.hide) {
     _trace = { indent: 0, ...trace };
   }
 
