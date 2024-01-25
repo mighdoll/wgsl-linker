@@ -1,5 +1,6 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
 
+export let logErr = console.log;
 
 /** use temporary logger for tests */
 export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
