@@ -235,7 +235,7 @@ test("req logs a message on failure", () => {
   });
   expect(logged()).toMatchInlineSnapshot(`
     "expected text 'b''
-    a 1;
+    a 1; (Ln 1)
      ^"
   `);
 });

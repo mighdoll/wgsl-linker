@@ -26,9 +26,7 @@ export const eolf = seq(
 ).tokens(argsTokens).tokenIgnore().traceName("eolf");
 
 export const unknown = any().map((r) => {
-  const { lineNum } = srcLine(r.src, r.start);
-
-  srcErr(r.src, r.start, `???`, r.value, `L:${lineNum} S:${r.start}`);
+  srcErr(r.src, r.start, `???`, r.value, ` Pos. ${r.start}`);
 });
 
 export const skipBlockComment: Parser<any> = seq(

@@ -14,8 +14,8 @@ export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
 /** log an error along with the source line and a caret indicating the error position in the line */
 export function srcErr(src: string, pos: number, ...msgs: any[]): void {
   logErr(...msgs);
-  const { line, linePos } = srcLine(src, pos);
-  logErr(line);
+  const { line, lineNum, linePos } = srcLine(src, pos);
+  logErr(line, `(Ln ${lineNum})`);
   const caret = " ".repeat(linePos) + "^";
   logErr(caret);
 }
