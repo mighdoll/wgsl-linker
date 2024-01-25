@@ -2,7 +2,7 @@ import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
-import { ExtendedResult, Parser, ParserInit } from "./Parser.js";
+import { Parser, ParserInit } from "./Parser.js";
 import {
   anyNot,
   anyThrough,
