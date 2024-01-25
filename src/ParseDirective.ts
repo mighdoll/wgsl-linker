@@ -1,14 +1,16 @@
 import { ExportElem, ImportElem } from "./AbstractElems.js";
+import { resultErr, srcErr } from "./LinkerUtil.js";
 import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
 import { ExtendedResult, Parser } from "./Parser.js";
 import {
   any,
-  fn,
   kind,
   not,
   opt,
   or,
   repeat,
+  repeatWhile,
+  req,
   seq,
 } from "./ParserCombinator.js";
 import { eolf, makeElem, wordArgsLine } from "./ParseSupport.js";
@@ -94,31 +96,31 @@ const elseDirective = seq("#else", eolf)
   })
   .traceName("#else");
 
-// prettier-ignore
-const skipUntilElseEndif = repeat(
-  seq(
-    or(
-      fn(() => lineCommentOptDirective),  
-      seq(
-        not("#else"), 
-        not("#endif"),
-        any()
-      ), 
-    )
-  )
-).traceName("skipTo #else/#endif");
+const notIfDirective = seq(not("#if"), not("#else"), not("#endif"), any());
+
+/** consume everything until we get to #else or #endif */
+const skipIfBody = repeatWhile(notIfDirective, (r) => {
+  const { ifStack } = r.appState as ParseState;
+  const active = ifStack.slice(-1)[0];
+  if (!active) {
+    // srcErr(r.src, r.start, "skipping", ifStack);
+    return true; // skip
+  }
+}).traceName("skipIfBody");
 
 function ifBody(
   r: ExtendedResult<any>,
   truthy: boolean
 ): Parser<any> | undefined {
   const { ifStack } = r.appState as ParseState;
+  // srcErr(r.src, r.start, "ifBody", truthy);
   ifStack.push(truthy);
-  if (!truthy) return skipUntilElseEndif;
+  if (!truthy) return skipIfBody;
 }
 
 const endifDirective = seq("#endif", eolf)
   .map((r) => {
+    // srcErr(r.src, r.start, "#endif");
     const { ifStack } = r.appState as ParseState;
     const ifState = ifStack.pop();
     if (ifState === undefined) resultErr(r, "unmatched #endif");
