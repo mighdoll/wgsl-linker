@@ -253,7 +253,8 @@ function runParser<T>(
     return null;
   }
 
-  const preAppContext = context.app.context;
+  const origAppContext = context.app.context;
+  const origPosition = lexer.position();
 
   // setup trace logging if enabled and active for this parser
   return withTraceLogging()(context, p.traceOptions, (tContext) => {
@@ -263,25 +264,18 @@ function runParser<T>(
 
     execPreParsers(tContext);
 
-    const position = lexer.position();
     // run the parser function for this stage
     const result = p.fn(tContext);
 
     if (result === null || result === undefined) {
       // parser failed
       tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
-      lexer.position(position); // reset position to orig spot
-      // if (context.app.context !== preAppContext)
-      //   ctxErr(context, "resetting app context", p.debugName, preAppContext);
-      context.app.context = preAppContext; // reset appContext to orig
+      lexer.position(origPosition);
+      context.app.context = origAppContext;
       return null;
     } else {
       // parser succeded
       tracing && parserLog(`✓ ${p.tracingName}`);
-      // if (context.app.context !== preAppContext) {
-      //   // prettier-ignore
-      //   ctxErr(context, "applying new app context", p.debugName, context.app.context);
-      // }
       if (p.namedResult) {
         // merge named result (if user set a name for this stage's result)
         return {
@@ -291,7 +285,6 @@ function runParser<T>(
           }),
         };
       }
-      // returning orig parser result is fine, no need to name patch
       return { value: result.value, named: result.named };
     }
   });
