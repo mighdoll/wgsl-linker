@@ -139,8 +139,6 @@ test("parse // #if !foo", () => {
     // #endif 
     `;
   const parsed = parseWgslD(src, { foo: false });
-  console.log(parsed);
-  console.log("src.length", src.length);
   expect((parsed[0] as FnElem).name).eq("f");
 });
 
@@ -153,7 +151,6 @@ test("parse #if !foo #else #endif", () => {
     // #endif 
     `;
   const parsed = parseWgslD(src, { foo: true });
-  console.log(parsed);
   expect(parsed.length).eq(1);
   expect((parsed[0] as FnElem).name).eq("g");
 });
@@ -173,13 +170,12 @@ test("parse nested #if", () => {
       fn g() { }
     #endif 
     `;
-  // expectNoLogErr(() => {
-  const parsed = parseWgslD(src, { foo: true, zap: true });
-  console.log(parsed);
-  expect(parsed.length).eq(2);
-  // expect((parsed[0] as FnElem).name).eq("zap");
-  // expect((parsed[1] as FnElem).name).eq("g");
-  // });
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src, { foo: true, zap: true });
+    expect(parsed.length).eq(2);
+    expect((parsed[0] as FnElem).name).eq("zap");
+    expect((parsed[1] as FnElem).name).eq("g");
+  });
 });
 
 test("importing parses importing bar(A) fog(B)", () => {
@@ -325,8 +321,8 @@ test("unexpected token", () => {
   const { log, logged } = logCatch();
   _withErrLogger(log, () => testParse(p, "a b"));
   expect(logged()).toMatchInlineSnapshot(`
-    "??? [object Object]
-    a b
+    "??? [object Object]  Pos. 2
+    a b (Ln 1)
       ^"
   `);
 });
@@ -339,7 +335,7 @@ test("#export w/o closing paren", () => {
   _withErrLogger(log, () => parseWgslD(src));
   expect(logged()).toMatchInlineSnapshot(`
     "expected text ')''
-    #export foo(A
+    #export foo(A (Ln 1)
                  ^"
   `);
 });

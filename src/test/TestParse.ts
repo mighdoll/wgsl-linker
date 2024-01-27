@@ -18,10 +18,12 @@ export function testParse<T>(
   tokenMatcher = mainTokens
 ): TestParseResult<T> {
   const lexer = matchingLexer(src, tokenMatcher);
-  const app: any[] = [];
-  const appState = {};
-  const parsed = p.parse({ lexer, app, appState, maxParseCount: 1000 });
-  return { parsed, position: lexer.position(), app };
+  const app2 = {
+    state: [],
+    context: undefined,
+  };
+  const parsed = p.parse({ lexer, app2, maxParseCount: 1000 });
+  return { parsed, position: lexer.position(), app: app2.state };
 }
 
 /** run a test function and expect that no error logs are produced */

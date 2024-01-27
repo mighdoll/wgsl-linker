@@ -140,7 +140,7 @@ test("recurse with fn()", () => {
     ),
     "}"
   );
-  const wrap = or(p).map((r) => r.app.push(r.named.word));
+  const wrap = or(p).map((r) => r.app2.state.push(r.named.word));
   const { app } = testParse(wrap, src);
   expect(app[0]).deep.equals(["a", "b"]);
 });

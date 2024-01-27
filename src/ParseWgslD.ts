@@ -36,7 +36,7 @@ const structDecl = seq(
   req(anyThrough("}"))
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["name"]);
-  r.app.push(e);
+  r.app2.state.push(e);
 });
 
 export const fnCall = seq(
@@ -73,7 +73,7 @@ export const fnDecl = seq(
   .map((r) => {
     const fn = makeElem<FnElem>("fn", r, ["name"]);
     fn.children = r.named.calls || [];
-    r.app.push(fn);
+    r.app2.state.push(fn);
   });
 
 const globalValVarOrAlias = seq(
@@ -100,17 +100,19 @@ export function parseWgslD(
   params: Record<string, any> = {}
 ): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
-  const app: AbstractElem[] = [];
-
-  const appState: ParseState = { ifStack: [], params };
+  const state: AbstractElem[] = [];
+  const context: ParseState = { ifStack: [], params };
+  const app2 = {
+    context,
+    state,
+  };
   const init: ParserInit = {
     lexer,
-    app,
-    appState: appState,
+    app2,
     maxParseCount: 1000,
   };
 
   root.parse(init);
 
-  return init.app;
+  return init.app2.state;
 }

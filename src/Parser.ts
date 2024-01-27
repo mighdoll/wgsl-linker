@@ -1,4 +1,4 @@
-import { logErr } from "./LinkerUtil.js";
+import { ctxErr, logErr, resultErr } from "./LinkerUtil.js";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import {
@@ -12,22 +12,33 @@ import {
 import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
 
-export interface ParserInit {
+export interface AppState<A> {
+  /** context for user written parsers while parsing. e.g. for nested #if state
+   * Set context to a new immutable value to update context (don't mutate context)
+   * context value is reset on parser rollback. */
+  context: A;
+
+  /** persistent results from appliation parsing, e.g. syntax tree */
+  state: any[];
+}
+
+export interface ParserInit<A = any> {
   /** supply tokens to the parser*/
   lexer: Lexer;
 
-  /** handy place for user written parsers to accumulate application results */
-  app: any[];
+  app2: AppState<A>;
 
-  /** handy place for user written parsers to keep or accept context */
-  appState: any;
+  // /** handy place for user written parsers to accumulate application results */
+  // app: any[];
+
+  // appState: A;
 
   /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
 }
 
 /* Information passed to the parsers during parsing */
-export interface ParserContext extends ParserInit {
+export interface ParserContext<A = any> extends ParserInit<A> {
   /** during execution, debug trace logging */
   _trace?: TraceContext;
 
@@ -49,12 +60,12 @@ export interface ParserResult<T> {
   named: Record<string | symbol, any[]>;
 }
 
-export interface ExtendedResult<T> extends ParserResult<T> {
+export interface ExtendedResult<T, A = any> extends ParserResult<T> {
   src: string;
   start: number;
   end: number;
-  app: any[];
-  appState: any;
+  app2: AppState<A>;
+  ctx: ParserContext<A>;
 }
 
 /** parsers return null if they don't match */
@@ -229,6 +240,7 @@ export class Parser<T> {
  * . log if tracing is enabled
  * . merge named results
  * . backtrack on failure
+ * . rollback context on failure
  */
 function runParser<T>(
   p: Parser<T>,
@@ -242,6 +254,8 @@ function runParser<T>(
     logger("infinite loop? ", p.traceName);
     return null;
   }
+
+  const preAppContext = context.app2.context;
 
   // setup trace logging if enabled and active for this parser
   return withTraceLogging()(context, p.traceOptions, (tContext) => {
@@ -259,10 +273,17 @@ function runParser<T>(
       // parser failed
       tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
       lexer.position(position); // reset position to orig spot
+      // if (context.app2.context !== preAppContext)
+      //   ctxErr(context, "resetting app context", p.debugName, preAppContext);
+      context.app2.context = preAppContext; // reset appContext to orig
       return null;
     } else {
       // parser succeded
       tracing && parserLog(`✓ ${p.tracingName}`);
+      // if (context.app2.context !== preAppContext) {
+      //   // prettier-ignore
+      //   ctxErr(context, "applying new app context", p.debugName, context.app2.context);
+      // }
       if (p.namedResult) {
         // merge named result (if user set a name for this stage's result)
         return {
@@ -273,7 +294,7 @@ function runParser<T>(
         };
       }
       // returning orig parser result is fine, no need to name patch
-      return result;
+      return { value: result.value, named: result.named };
     }
   });
 }
@@ -403,7 +424,6 @@ export function runExtended<T>(
     return null;
   }
   const end = ctx.lexer.position();
-  const { app, appState } = ctx;
   const src = ctx.lexer.src;
-  return { ...origResults, start, end, app, appState, src };
+  return { ...origResults, start, end, app2: ctx.app2, src, ctx };
 }
