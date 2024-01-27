@@ -8,7 +8,7 @@ import { _withErrLogger } from "../LinkerUtil.js";
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;
   position: number;
-  app: any[];
+  appState: any[];
 }
 
 /** utility for testing parsers */
@@ -18,12 +18,12 @@ export function testParse<T>(
   tokenMatcher = mainTokens
 ): TestParseResult<T> {
   const lexer = matchingLexer(src, tokenMatcher);
-  const app2 = {
+  const app = {
     state: [],
     context: undefined,
   };
-  const parsed = p.parse({ lexer, app2, maxParseCount: 1000 });
-  return { parsed, position: lexer.position(), app: app2.state };
+  const parsed = p.parse({ lexer, app, maxParseCount: 1000 });
+  return { parsed, position: lexer.position(), appState: app.state };
 }
 
 /** run a test function and expect that no error logs are produced */

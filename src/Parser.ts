@@ -13,25 +13,23 @@ import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
 
 export interface AppState<A> {
-  /** context for user written parsers while parsing. e.g. for nested #if state
-   * Set context to a new immutable value to update context (don't mutate context)
-   * context value is reset on parser rollback. */
+  /**
+   * Context for user written parsers while parsing. e.g. for nested #if state
+   * The context value is reset to its original value if the parser fails.
+   * Set context to a new immutable value to update (don't internally mutate context)
+   */
   context: A;
 
-  /** persistent results from appliation parsing, e.g. syntax tree */
-  state: any[];
+  /** typical place for user written parsers to accumulate results, e.g. syntax tree */
+  state: any;
 }
 
 export interface ParserInit<A = any> {
   /** supply tokens to the parser*/
   lexer: Lexer;
 
-  app2: AppState<A>;
-
-  // /** handy place for user written parsers to accumulate application results */
-  // app: any[];
-
-  // appState: A;
+  /** application specific context and result storage, shared with every parser */
+  app: AppState<A>;
 
   /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
@@ -64,7 +62,7 @@ export interface ExtendedResult<T, A = any> extends ParserResult<T> {
   src: string;
   start: number;
   end: number;
-  app2: AppState<A>;
+  app: AppState<A>;
   ctx: ParserContext<A>;
 }
 
@@ -255,7 +253,7 @@ function runParser<T>(
     return null;
   }
 
-  const preAppContext = context.app2.context;
+  const preAppContext = context.app.context;
 
   // setup trace logging if enabled and active for this parser
   return withTraceLogging()(context, p.traceOptions, (tContext) => {
@@ -273,16 +271,16 @@ function runParser<T>(
       // parser failed
       tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
       lexer.position(position); // reset position to orig spot
-      // if (context.app2.context !== preAppContext)
+      // if (context.app.context !== preAppContext)
       //   ctxErr(context, "resetting app context", p.debugName, preAppContext);
-      context.app2.context = preAppContext; // reset appContext to orig
+      context.app.context = preAppContext; // reset appContext to orig
       return null;
     } else {
       // parser succeded
       tracing && parserLog(`✓ ${p.tracingName}`);
-      // if (context.app2.context !== preAppContext) {
+      // if (context.app.context !== preAppContext) {
       //   // prettier-ignore
-      //   ctxErr(context, "applying new app context", p.debugName, context.app2.context);
+      //   ctxErr(context, "applying new app context", p.debugName, context.app.context);
       // }
       if (p.namedResult) {
         // merge named result (if user set a name for this stage's result)
@@ -425,5 +423,5 @@ export function runExtended<T>(
   }
   const end = ctx.lexer.position();
   const src = ctx.lexer.src;
-  return { ...origResults, start, end, app2: ctx.app2, src, ctx };
+  return { ...origResults, start, end, app: ctx.app, src, ctx };
 }

@@ -46,7 +46,7 @@ const importDirective = seq(
   .map((r) => {
     const imp: ImportElem = r.named.i[0];
     imp.start = r.start; // use start of #import, not import phrase
-    r.app2.state.push(imp);
+    r.app.state.push(imp);
   })
   .traceName("import");
 
@@ -64,7 +64,7 @@ export const exportDirective = seq(
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
     const e = makeElem<ExportElem>("export", r, ["name", "args"], ["importing"]);
-    r.app2.state.push(e);
+    r.app.state.push(e);
   })
   .traceName("export");
 
@@ -79,7 +79,7 @@ const ifDirective: Parser<any> = seq(
     .tokens(argsTokens)
     .toParser((r) => {
       // check if #if true or false
-      const { params } = r.app2.context;
+      const { params } = r.app.context;
       const ifArg = r.named["name"]?.[0] as string;
       const invert = r.named["invert"]?.[0] === "!";
       const arg = !!params[ifArg];
@@ -95,16 +95,16 @@ function pushIfState<T>(
   r: ExtendedResult<T, ParseState>,
   truthy: boolean
 ): void {
-  const origContext = r.app2.context;
+  const origContext = r.app.context;
   const ifStack = [...origContext.ifStack, truthy]; // push truthy onto ifStack
-  r.app2.context = { ...origContext, ifStack }; // revise app context with new ifStack
+  r.app.context = { ...origContext, ifStack }; // revise app context with new ifStack
 }
 
 function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
-  const origContext = r.app2.context;
+  const origContext = r.app.context;
   const ifStack = [...origContext.ifStack]; // pop element
   const result = ifStack.pop();
-  r.app2.context = { ...origContext, ifStack }; // revise app context with new ifStack
+  r.app.context = { ...origContext, ifStack }; // revise app context with new ifStack
   return result;
 }
 
@@ -115,7 +115,7 @@ function ifBody(
 }
 
 function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
-  return !r.app2.context.ifStack.every((truthy) => truthy);
+  return !r.app.context.ifStack.every((truthy) => truthy);
 }
 
 const elseDirective = seq("#else", eolf)

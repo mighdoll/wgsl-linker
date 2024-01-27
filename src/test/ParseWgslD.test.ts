@@ -27,7 +27,7 @@ test("parse empty string", () => {
 
 test("directive parses #export", () => {
   const parsed = testParse(directive, "#export");
-  expect(parsed.app[0].kind).equals("export");
+  expect(parsed.appState[0].kind).equals("export");
 });
 
 test("parse #export", () => {
@@ -75,7 +75,7 @@ test("lineComment parse // foo bar \\n", () => {
 
 test("lineComment parse // #export foo", () => {
   const src = "// #export foo";
-  const { position, app } = testParse(lineCommentOptDirective, src);
+  const { position, appState: app } = testParse(lineCommentOptDirective, src);
   expect(position).eq(src.length);
   expect(app).toMatchSnapshot();
 });
@@ -109,7 +109,7 @@ test("parse fn with line comment", () => {
 test("lineCommentOptDirective parses #export(foo) with trailing space", () => {
   const src = `// #export (Elem)    `;
   const result = testParse(lineCommentOptDirective, src);
-  expect(result.app[0].kind).eq("export");
+  expect(result.appState[0].kind).eq("export");
 });
 
 test("parse #export(foo) with trailing space", () => {
