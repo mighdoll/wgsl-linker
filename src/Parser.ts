@@ -320,22 +320,22 @@ function map<T, U>(p: Parser<T>, fn: ParserMapFn<T, U>): Parser<U> {
 type ToParserFn<T, N> = (results: ExtendedResult<T>) => Parser<N> | undefined;
 
 function toParser<T, N>(
-  parseFn: Parser<T>,
-  fn: ToParserFn<T, N>
+  p: Parser<T>,
+  toParserFn: ToParserFn<T, N>
 ): Parser<T | N> {
   return parser("toParser", (ctx: ParserContext): OptParserResult<T | N> => {
-    const extended = runExtended(ctx, parseFn);
+    const extended = runExtended(ctx, p);
     if (!extended) return null;
 
     // run the supplied function to get a parser
-    const p = fn(extended);
+    const newParser = toParserFn(extended);
 
-    if (p === undefined) {
+    if (newParser === undefined) {
       return extended;
     }
 
     // run the parser returned by the supplied function
-    const nextResult = p._run(ctx);
+    const nextResult = newParser._run(ctx);
     return nextResult;
   });
 }
