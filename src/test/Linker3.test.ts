@@ -312,8 +312,48 @@ test("#export importing", () => {
     fn bar(x:X) { } `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
-  // console.log("linked", linked);
   expect(linked).contains("fn bar(x:B)");
+});
+
+test("#import a struct", () => {
+  const src = `
+    #import AStruct 
+
+    fn main() {
+      let a:AStruct = { x: 1 }; 
+    }
+  `;
+  const module1 = `
+  #export
+  struct AStruct {
+    x: u32;
+  }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  console.error(linked);
+});
+
+test.skip("#importMerge a struct", () => {
+  const src = `
+    #importMerge AStruct 
+    struct MyStruct {
+      x: u32;
+    }
+
+    fn main() {
+      let a:MyStruct= { x: 1, y: 2 }; 
+    }
+  `;
+  const module1 = `
+  #export
+  struct AStruct {
+    y: u32;
+  }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  console.log(linked);
 });
 
 // TODO test importing a struct constructor
