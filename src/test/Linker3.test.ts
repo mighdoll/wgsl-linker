@@ -541,30 +541,3 @@ test.skip("import fn with support struct constructor", () => {
 //   const linked = linkWgsl(src, registry, params);
 //   expect(linked).includes("step < 128");
 // });
-
-// test("#if !foo", () => {
-//   const src = `
-//     #if !foo
-//       bar();
-//     #endif
-//   `
-//   const registry = new ModuleRegistry();
-//   const params = { };
-//   const linked = linkWgsl(src, registry, params);
-//   expect(linked).includes("bar();");
-// });
-
-// test("#if #else", () => {
-//   const src = `
-//     #if foo
-//       foo();
-//     #else
-//       bar();
-//     #endif
-//   `
-//   const registry = new ModuleRegistry();
-//   const params = { };
-//   const linked = linkWgsl(src, registry, params);
-//   expect(linked).not.includes("foo();");
-//   expect(linked).includes("bar();");
-// });
