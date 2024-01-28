@@ -1,5 +1,5 @@
 import { AbstractElem } from "./AbstractElems.js";
-import { srcErr, srcLine } from "./LinkerUtil.js";
+import { srcErr } from "./LinkerUtil.js";
 import { argsTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser } from "./Parser.js";
