@@ -7,7 +7,6 @@ import {
   LocalRef,
   traverseRefs,
 } from "../TraverseRefs.js";
-import { dlog } from "berry-pretty";
 import { logCatch } from "./LogCatcher.js";
 import { _withErrLogger } from "../LinkerUtil.js";
 
@@ -49,7 +48,7 @@ test("traverse nested import with params and support fn", () => {
   expect(first.kind).toBe("exp");
   expect(first.expImpArgs).deep.eq([["A", "u32"]]);
   expect(second.kind).toBe("fn");
-  expect(second.fn.name).eq("support");
+  expect(second.elem.name).eq("support");
 });
 
 test("traverse importing", () => {
@@ -134,7 +133,7 @@ test("traverse importing from a support fn", () => {
 
   const expImpArgs = refs.flatMap((r) => {
     const er = r as ExportRef;
-    return er ? [{ name: er.fn.name, args: er.expImpArgs }] : [];
+    return er ? [{ name: er.elem.name, args: er.expImpArgs }] : [];
   });
   expect(expImpArgs).toMatchSnapshot();
 });

@@ -1,4 +1,4 @@
-import { FnElem } from "./AbstractElems.js";
+import { FnElem, StructElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 import { BothRefs, FoundRef, recursiveRefs, traverseRefs } from "./TraverseRefs.js";
@@ -31,7 +31,7 @@ function findReferences(
     const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
     const impArgs = expImpArgs.map(([_, arg]) => arg);
     const argsStr = "(" + impArgs.join(",") + ")";
-    const fullName = ref.expMod.name + "." + ref.fn.name + argsStr;
+    const fullName = ref.expMod.name + "." + ref.elem.name + argsStr;
 
     if (visited.has(fullName)) return false;
 
@@ -65,15 +65,15 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
 
   refs.forEach((r) => {
     // name proposed in the importing module (or in the local module for a support fn)
-    const proposedName = r.kind === "fn" ? r.fn.name : r.proposedName;
+    const proposedName = r.kind === "fn" ? r.elem.name : r.proposedName;
 
     // name we'll actually use in the linked result
     const linkName = uniquifyName(proposedName);
     fnDecls.add(linkName);
 
     // record rename for this import in the exporting module
-    if (linkName !== r.fn.name) {
-      multiKeySet(renames, r.expMod.name, r.fn.name, linkName);
+    if (linkName !== r.elem.name) {
+      multiKeySet(renames, r.expMod.name, r.elem.name, linkName);
     }
     
     const ref = r as BothRefs;
@@ -106,7 +106,7 @@ function extractTexts(refs: FoundRef[], renames: RenameMap): string {
     .map((r) => {
       // console.log("extracting:", r.fn.name);
       const replaces = r.kind === "exp" ? r.expImpArgs : [];
-      return loadFnText(r.fn, r.expMod, renames, replaces);
+      return loadFnOrStructText(r.elem, r.expMod, renames, replaces);
     })
     .join("\n\n");
 }
@@ -127,7 +127,7 @@ function loadModuleSlice(
   end: number,
   /** renaming from uniquificiation */
   renames: RenameMap,
-  /** renaming from exp/imp params  and as name */
+  /** renaming from exp/imp params and as name */
   replaces: [string, string][] = []
 ): string {
   const slice = mod.src.slice(start, end);
@@ -139,12 +139,12 @@ function loadModuleSlice(
   return replaceTokens3(slice, rewrite);
 }
 
-/** extract a function from a module,
+/** extract a function or struct from a module,
  * optionally replace export params with corresponding import arguments
- * optionally replace fn name with 'import as' name
+ * optionally replace fn/struct name with 'import as' name
  */
-function loadFnText(
-  fn: FnElem,
+function loadFnOrStructText(
+  fn: FnElem | StructElem,
   mod: TextModule2,
   renames: RenameMap,
   replaces: [string, string][] = []

@@ -1,4 +1,10 @@
-import { CallElem, ExportElem, FnElem, ImportElem } from "./AbstractElems.js";
+import {
+  CallElem,
+  ExportElem,
+  FnElem,
+  ImportElem,
+  StructElem,
+} from "./AbstractElems.js";
 import { srcErr } from "./LinkerUtil.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
@@ -10,23 +16,23 @@ export type StringPairs = [string, string][];
 
 export type BothRefs = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<ExportRef, "kind">> &
-  Pick<LocalRef, "fn" | "expMod">;
+  Pick<LocalRef, "elem" | "expMod">;
 
 export interface LocalRef {
   kind: "fn";
   expMod: TextModule2;
-  fn: FnElem;
+  elem: FnElem;
 }
 
-/** found reference to an exported function */
+/** found reference to an exported function or struct */
 export interface ExportRef {
   kind: "exp";
 
   /** module containing the exported funciton */
   expMod: TextModule2;
 
-  /** reference to the exported function  */
-  fn: FnElem;
+  /** reference to the exported function or struct */
+  elem: FnElem | StructElem;
 
   /** reference that led us to find this ref (for mapping imp/exp args) */
   fromRef: FoundRef;
@@ -34,7 +40,7 @@ export interface ExportRef {
   /** import elem that resolved to this export  TODO remove */
   fromImport: ImportElem;
 
-  /** proposed name to use for this export, either fn name or 'as' name from the import.
+  /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
    * name might still be rewritten by global uniqueness remapping */
   proposedName: string;
 
@@ -60,7 +66,7 @@ export function traverseRefs(
 ): void {
   const { fns } = srcModule;
   const expMod = srcModule;
-  const refs: FoundRef[] = fns.map((fn) => ({ kind: "fn", expMod, fn }));
+  const refs: FoundRef[] = fns.map((elem) => ({ kind: "fn", expMod, elem }));
   recursiveRefs(refs, srcModule, registry, fn);
 }
 
@@ -77,17 +83,10 @@ export function recursiveRefs(
   if (!srcRefs.length) return;
   const refs = srcRefs.flatMap((srcRef) => {
     // find a reference for each call in each srcRef
-    return srcRef.fn.children.flatMap((callElem) => {
-      const foundRef =
-        importRef(srcRef, callElem.call, mod, registry) ??
-        importingRef(srcRef, callElem, mod, registry) ??
-        localRef(callElem, mod, registry);
-      if (!foundRef) {
-        const src = srcRef.expMod.src;
-        srcErr(src, callElem.start, `reference not found`);
-      }
-      return foundRef ? [foundRef] : [];
-    });
+    if (srcRef.elem.kind === "fn") {
+      return fnRefs(srcRef.elem, srcRef, mod, registry);
+    }
+    return [];
   });
 
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
@@ -95,6 +94,25 @@ export function recursiveRefs(
   const modGroups = groupBy(results, (r) => r.expMod);
   [...modGroups.entries()].forEach(([m, refs]) => {
     recursiveRefs(refs, m, registry, fn);
+  });
+}
+
+function fnRefs(
+  fn: FnElem,
+  srcRef: FoundRef,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): FoundRef[] {
+  return fn.children.flatMap((callElem) => {
+    const foundRef =
+      importRef(srcRef, callElem.call, mod, registry) ??
+      importingRef(srcRef, callElem, mod, registry) ??
+      localRef(callElem, mod, registry);
+    if (!foundRef) {
+      const src = srcRef.expMod.src;
+      srcErr(src, callElem.start, `reference not found`);
+    }
+    return foundRef ? [foundRef] : [];
   });
 }
 
@@ -118,7 +136,7 @@ function importRef(
     impMod,
     expMod,
     expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
-    fn: exp.ref,
+    elem: exp.ref,
     proposedName: fromImport.as ?? exp.ref.name,
   };
 }
@@ -168,12 +186,12 @@ function importingRef(
       impMod,
       expMod: modExp.module as TextModule2,
       expImpArgs: importingArgs(fromImport, exp, srcRef),
-      fn: exp.ref,
+      elem: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
   } else {
     const src = srcRef.expMod.src;
-    const pos = srcRef.fn.start;
+    const pos = srcRef.elem.start;
     srcErr(src, pos, "unexpected srcRef not an export", srcRef.kind);
   }
 
@@ -240,7 +258,7 @@ function localRef(
 ): LocalRef | undefined {
   const fnElem = mod.fns.find((fn) => fn.name === callElem.call);
   if (fnElem) {
-    return { kind: "fn", expMod: mod, fn: fnElem };
+    return { kind: "fn", expMod: mod, elem: fnElem };
   }
 }
 
