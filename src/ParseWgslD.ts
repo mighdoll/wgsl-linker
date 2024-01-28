@@ -45,7 +45,7 @@ export const fnCall = seq(
     .map((r) => makeElem<CallElem>("call", r, ["call"]))
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
-);
+).traceName("fnCall");
 
 const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 
