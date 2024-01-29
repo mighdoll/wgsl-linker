@@ -3,6 +3,7 @@ import {
   CallElem,
   FnElem,
   StructElem,
+  StructMemberElem,
   TypeRefElem,
 } from "./AbstractElems.js";
 import { resultErr } from "./LinkerUtil.js";
@@ -33,20 +34,40 @@ export interface ParseState {
   params: Record<string, any>; // user provided params to templates, code gen and #if directives
 }
 
+const word = kind(mainTokens.word);
+
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
   req(anyThrough(";"))
 ).traceName("globalDirectiveOrAssert");
 
-const structDecl = seq(
+const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
+
+export const structMember = seq(
+  opt(attributes),
+  word.named("name"),
+  ":",
+  req(kind(mainTokens.word).named("memberType"))
+)
+  .map((r) => {
+    const e = makeElem<StructMemberElem>("member", r, ["name", "memberType"]);
+    return e;
+  })
+  .traceName("structMember");
+
+export const structDecl = seq(
   "struct",
-  kind(mainTokens.word),
+  word.named("name"),
   "{",
-  req(anyThrough("}"))
-).map((r) => {
-  const e = makeElem<StructElem>("struct", r, ["name"]);
-  r.app.state.push(e);
-});
+  withSep(",", structMember).named("members"),
+  opt(","),
+  "}"
+)
+  .map((r) => {
+    const e = makeElem<StructElem>("struct", r, ["name", "members"]);
+    r.app.state.push(e);
+  })
+  .traceName("structDecl");
 
 export const fnCall = seq(
   kind(mainTokens.word)
@@ -55,8 +76,6 @@ export const fnCall = seq(
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
 ).traceName("fnCall");
-
-const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 
 const lParen = "(";
 const rParen = ")";
@@ -72,8 +91,6 @@ const fnParamList = seq(
   withSep(",", fnParam),
   rParen
 ).traceName("fnParamList");
-
-const word = kind(mainTokens.word);
 
 const typedIdent = seq(word, ":", word.named("name")) // TODO templates
   .map((r) => {

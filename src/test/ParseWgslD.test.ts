@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
-import { fnDecl, parseWgslD } from "../ParseWgslD.js";
+import { fnDecl, parseWgslD, structDecl } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
@@ -93,11 +93,44 @@ test("parse fn with calls", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("parse struct", () => {
-  const src = "struct Foo { a: f32; b: i32; }";
-  const parsed = parseWgslD(src);
-  expect(parsed).toMatchSnapshot();
+test("structDecl parses struct member types", () => {
+  const src = "struct Foo { a: f32, b: i32 }";
+  const {appState}= testParse(structDecl, src);
+  expect(appState[0].members?.[0].memberType).eq("f32");
+  expect(appState[0].members?.[1].memberType).eq("i32");
 });
+
+test("parse struct", () => {
+  const src = "struct Foo { a: f32, b: i32 }";
+  const parsed = parseWgslD(src);
+  expect(parsed).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 29,
+        "kind": "struct",
+        "members": [
+          {
+            "end": 19,
+            "kind": "member",
+            "memberType": "f32",
+            "name": "a",
+            "start": 13,
+          },
+          {
+            "end": 27,
+            "kind": "member",
+            "memberType": "i32",
+            "name": "b",
+            "start": 21,
+          },
+        ],
+        "name": "Foo",
+        "start": 0,
+      },
+    ]
+  `);
+});
+
 
 test("parse fn with line comment", () => {
   const src = `
@@ -349,7 +382,7 @@ test("fnDecl parses fn with return type", () => {
   expect(appState[0].returnType).eq("MyType");
 });
 
-test("parse :type specifier in fn args", () => {
+test("fnDecl parses :type specifier in fn args", () => {
   const src = `
     fn foo(a: MyType) { }
   `;
@@ -357,7 +390,7 @@ test("parse :type specifier in fn args", () => {
   expect(appState[0].argTypes).deep.eq(["MyType"]);
 });
 
-test("parse :type specifier in fn block", () => {
+test("fnDecl parses :type specifier in fn block", () => {
   const src = `
     fn foo() { 
       var b: MyType = { x: 1, y: 2 };
@@ -367,5 +400,4 @@ test("parse :type specifier in fn block", () => {
   expect(appState[0].typeRefs[0].name).eq("MyType");
 });
 
-test.skip("parse :type specifier in struct", () => {});
 test.skip("parse type in <template>", () => {});

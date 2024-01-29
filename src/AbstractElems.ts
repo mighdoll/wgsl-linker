@@ -6,6 +6,7 @@ export type AbstractElem =
   | FnElem
   | CallElem
   | StructElem
+  | StructMemberElem
   | TypeRefElem;
 
 /** 'interesting' elements found in the source */
@@ -37,6 +38,13 @@ export interface TypeRefElem extends AbstractElemBase {
 export interface StructElem extends AbstractElemBase {
   kind: "struct";
   name: string;
+  members?: StructMemberElem[];
+}
+
+export interface StructMemberElem extends AbstractElemBase {
+  kind: "member";
+  name: string;
+  memberType: string;
 }
 
 export interface ExportElem extends AbstractElemBase {
