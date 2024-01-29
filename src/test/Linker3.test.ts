@@ -315,7 +315,7 @@ test("#export importing", () => {
   expect(linked).contains("fn bar(x:B)");
 });
 
-test("#import a struct", () => {
+test.only("#import a struct", () => {
   const src = `
     #import AStruct 
 

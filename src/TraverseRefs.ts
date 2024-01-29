@@ -83,6 +83,7 @@ export function recursiveRefs(
   if (!srcRefs.length) return;
   const refs = srcRefs.flatMap((srcRef) => {
     // find a reference for each call in each srcRef
+    console.log(srcRef.kind);
     if (srcRef.elem.kind === "fn") {
       return fnRefs(srcRef.elem, srcRef, mod, registry);
     }
