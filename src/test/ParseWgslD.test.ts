@@ -18,6 +18,7 @@ import { enableTracing } from "../ParserTracing.js";
 import { or, repeat } from "../ParserCombinator.js";
 import { logCatch } from "./LogCatcher.js";
 import { _withErrLogger } from "../LinkerUtil.js";
+import { dlog } from "berry-pretty";
 enableTracing();
 
 test("parse empty string", () => {
@@ -363,5 +364,8 @@ test("parse :type specifier in fn block", () => {
     }
   `;
   const { appState } = testParse(fnDecl, src);
-  console.log(appState);
+  expect(appState[0].typeRefs[0].name).eq("MyType");
 });
+
+test.skip("parse :type specifier in struct", () => {});
+test.skip("parse type in <template>", () => {});

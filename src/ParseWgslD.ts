@@ -1,4 +1,11 @@
-import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
+import {
+  AbstractElem,
+  CallElem,
+  FnElem,
+  StructElem,
+  TypeRefElem,
+} from "./AbstractElems.js";
+import { resultErr } from "./LinkerUtil.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
@@ -54,17 +61,27 @@ const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 const lParen = "(";
 const rParen = ")";
 
-const param = seq(
+const fnParam = seq(
   kind(mainTokens.word),
   opt(seq(":", req(kind(mainTokens.word).named("argTypes"))))
 );
 
-const paramList = seq(
+const fnParamList = seq(
   lParen,
   opt(attributes),
-  withSep(",", param),
+  withSep(",", fnParam),
   rParen
-).traceName("paramList");
+).traceName("fnParamList");
+
+const word = kind(mainTokens.word);
+
+const typedIdent = seq(word, ":", word.named("name")) // TODO templates
+  .map((r) => {
+    const e = makeElem<TypeRefElem>("typeRef", r, ["name"]);
+    return e;
+  })
+  .named("typeRefs")
+  .traceName("typedIdent");
 
 const block: Parser<any> = seq(
   "{",
@@ -72,6 +89,7 @@ const block: Parser<any> = seq(
     or(
       fnCall,
       fn(() => block),
+      typedIdent,
       anyNot("}")
     )
   ),
@@ -82,13 +100,18 @@ export const fnDecl = seq(
   attributes,
   "fn",
   req(kind(mainTokens.word).named("name")),
-  req(paramList),
+  req(fnParamList),
   opt(seq("->", opt(attributes), kind(mainTokens.word).named("returnType"))),
   req(block)
 )
   .traceName("fnDecl")
   .map((r) => {
-    const fn = makeElem<FnElem>("fn", r, ["name", "returnType"], ["argTypes"]);
+    const fn = makeElem<FnElem>(
+      "fn",
+      r,
+      ["name", "returnType"],
+      ["argTypes", "typeRefs"]
+    );
     fn.children = r.named.calls || [];
     r.app.state.push(fn);
   });
