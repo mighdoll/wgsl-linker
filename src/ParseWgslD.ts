@@ -66,12 +66,13 @@ export const fnDecl = seq(
   "fn",
   req(kind(mainTokens.word).named("name")),
   req("("),
-  repeat(anyNot("{")),
+  req(anyThrough(")")),
+  opt(seq("->", kind(mainTokens.word).named("returnType"))),
   req(block)
 )
   .traceName("fnDecl")
   .map((r) => {
-    const fn = makeElem<FnElem>("fn", r, ["name"]);
+    const fn = makeElem<FnElem>("fn", r, ["name", "returnType"]);
     fn.children = r.named.calls || [];
     r.app.state.push(fn);
   });

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
-import { parseWgslD } from "../ParseWgslD.js";
+import { fnDecl, parseWgslD } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
@@ -338,4 +338,12 @@ test("#export w/o closing paren", () => {
     #export foo(A (Ln 1)
                  ^"
   `);
+});
+
+test("fnDecl parses fn with return type", () => {
+  const src = `
+    fn foo() -> MyType { }
+  `;
+  const { appState } = testParse(fnDecl, src);
+  console.log(appState);
 });
