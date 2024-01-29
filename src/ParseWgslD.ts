@@ -14,6 +14,8 @@ import {
   repeat,
   req,
   seq,
+  text,
+  withSep,
 } from "./ParserCombinator.js";
 import { comment, makeElem, unknown, wordNumArgs } from "./ParseSupport.js";
 
@@ -49,6 +51,21 @@ export const fnCall = seq(
 
 const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 
+const lParen = "(";
+const rParen = ")";
+
+const param = seq(
+  kind(mainTokens.word),
+  opt(seq(":", req(kind(mainTokens.word).named("argTypes"))))
+);
+
+const paramList = seq(
+  lParen,
+  opt(attributes),
+  withSep(",", param),
+  rParen
+).traceName("paramList");
+
 const block: Parser<any> = seq(
   "{",
   repeat(
@@ -65,14 +82,13 @@ export const fnDecl = seq(
   attributes,
   "fn",
   req(kind(mainTokens.word).named("name")),
-  req("("),
-  req(anyThrough(")")),
-  opt(seq("->", kind(mainTokens.word).named("returnType"))),
+  req(paramList),
+  opt(seq("->", opt(attributes), kind(mainTokens.word).named("returnType"))),
   req(block)
 )
   .traceName("fnDecl")
   .map((r) => {
-    const fn = makeElem<FnElem>("fn", r, ["name", "returnType"]);
+    const fn = makeElem<FnElem>("fn", r, ["name", "returnType"], ["argTypes"]);
     fn.children = r.named.calls || [];
     r.app.state.push(fn);
   });

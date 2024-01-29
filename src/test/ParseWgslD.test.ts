@@ -345,5 +345,23 @@ test("fnDecl parses fn with return type", () => {
     fn foo() -> MyType { }
   `;
   const { appState } = testParse(fnDecl, src);
+  expect(appState[0].returnType).eq("MyType");
+});
+
+test("parse :type specifier in fn args", () => {
+  const src = `
+    fn foo(a: MyType) { }
+  `;
+  const { appState } = testParse(fnDecl, src);
+  expect(appState[0].argTypes).deep.eq(["MyType"]);
+});
+
+test("parse :type specifier in fn block", () => {
+  const src = `
+    fn foo() { 
+      var b: MyType = { x: 1, y: 2 };
+    }
+  `;
+  const { appState } = testParse(fnDecl, src);
   console.log(appState);
 });

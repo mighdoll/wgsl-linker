@@ -307,7 +307,7 @@ export class ParseError extends Error {
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
   const elem = Symbol("elem");
-  return seq(p.named(elem), repeat(seq(sep, p.named(elem))))
+  return opt(seq(p.named(elem), repeat(seq(sep, p.named(elem)))))
     .map((r) => r.named[elem] as T[])
     .traceName("withSep");
 }
