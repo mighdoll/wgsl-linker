@@ -25,7 +25,7 @@ import {
   text,
   withSep,
 } from "./ParserCombinator.js";
-import { comment, makeElem, unknown, wordNumArgs } from "./ParseSupport.js";
+import { comment, makeElem, unknown, word, wordNumArgs } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -34,7 +34,6 @@ export interface ParseState {
   params: Record<string, any>; // user provided params to templates, code gen and #if directives
 }
 
-const word = kind(mainTokens.word);
 
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
@@ -47,7 +46,7 @@ export const structMember = seq(
   opt(attributes),
   word.named("name"),
   ":",
-  req(kind(mainTokens.word).named("memberType"))
+  req(word.named("memberType"))
 )
   .map((r) => {
     const e = makeElem<StructMemberElem>("member", r, ["name", "memberType"]);
@@ -70,7 +69,7 @@ export const structDecl = seq(
   .traceName("structDecl");
 
 export const fnCall = seq(
-  kind(mainTokens.word)
+  word
     .named("call")
     .map((r) => makeElem<CallElem>("call", r, ["call"]))
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
@@ -81,9 +80,15 @@ const lParen = "(";
 const rParen = ")";
 
 const fnParam = seq(
-  kind(mainTokens.word),
-  opt(seq(":", req(kind(mainTokens.word).named("argTypes"))))
+  word,
+  opt(seq(":", req(word.named("argTypes"))))
 );
+
+const template = seq(
+  "<",
+
+  req(">")
+).traceName("template");
 
 const fnParamList = seq(
   lParen,
@@ -116,9 +121,9 @@ const block: Parser<any> = seq(
 export const fnDecl = seq(
   attributes,
   "fn",
-  req(kind(mainTokens.word).named("name")),
+  req(word.named("name")),
   req(fnParamList),
-  opt(seq("->", opt(attributes), kind(mainTokens.word).named("returnType"))),
+  opt(seq("->", opt(attributes), word.named("returnType"))),
   req(block)
 )
   .traceName("fnDecl")
@@ -133,7 +138,7 @@ export const fnDecl = seq(
     r.app.state.push(fn);
   });
 
-const globalValVarOrAlias = seq(
+export const globalValVarOrAlias = seq(
   attributes,
   or("const", "override", "var", "alias"),
   req(anyThrough(";"))

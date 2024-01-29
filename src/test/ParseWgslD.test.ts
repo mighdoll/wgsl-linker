@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
-import { fnDecl, parseWgslD, structDecl } from "../ParseWgslD.js";
+import { fnDecl, globalValVarOrAlias, parseWgslD, structDecl } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
@@ -400,4 +400,18 @@ test("fnDecl parses :type specifier in fn block", () => {
   expect(appState[0].typeRefs[0].name).eq("MyType");
 });
 
-test.skip("parse type in <template>", () => {});
+// test.skip("parse type in <template> in global var", () => { // linking global vars is not yet supported
+//   const src = `
+//     var x:vec2<MyStruct> = { x: 1, y: 2 };`
+
+//   const { appState } = testParse(globalValVarOrAlias, src);
+//   dlog({ appState });
+// });
+
+test("parse type in <template> in fn args", () => { // linking global vars is not yet supported
+  const src = `
+    fn foo(a: vec2<MyStruct>) { };`
+
+  const { appState } = testParse(fnDecl, src);
+  dlog({ appState });
+});

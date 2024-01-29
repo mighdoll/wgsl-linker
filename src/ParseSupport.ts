@@ -1,6 +1,6 @@
 import { AbstractElem } from "./AbstractElems.js";
 import { srcErr } from "./LinkerUtil.js";
-import { argsTokens } from "./MatchWgslD.js";
+import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser } from "./Parser.js";
 import {
@@ -18,6 +18,8 @@ import {
 } from "./ParserCombinator.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */
+
+export const word = kind(mainTokens.word);
 
 // prettier-ignore
 export const eolf = seq(
@@ -45,19 +47,7 @@ export const comment = or(
   skipBlockComment
 ).traceName("comment");
 
-// prettier-ignore
-/** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
-export const wordArgsLine: Parser<string[]> = 
-  seq(
-    "(", 
-    withSep(",", kind(argsTokens.word)), 
-    req(")")
-  )
-.tokens(argsTokens)
-  .map((r) => r.value[1])
-  .traceName("wordArgs");
-
-const wordNum = or(kind(argsTokens.word), kind(argsTokens.digits));
+const wordNum = or(word, kind(mainTokens.digits));
 
 /** ( a1, b1* ) with optinal comments, spans lines */
 export const wordNumArgs: Parser<string[]> = seq(

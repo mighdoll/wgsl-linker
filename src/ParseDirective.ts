@@ -12,18 +12,34 @@ import {
   repeatWhile,
   req,
   seq,
+  withSep,
 } from "./ParserCombinator.js";
-import { eolf, makeElem, wordArgsLine } from "./ParseSupport.js";
+import { eolf, makeElem } from "./ParseSupport.js";
 import { ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
+const argsWord = kind(argsTokens.word);
+
+// prettier-ignore
+/** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
+export const wordArgsLine: Parser<string[]> = 
+  seq(
+    "(", 
+    withSep(",", argsWord), 
+    req(")")
+  )
+.tokens(argsTokens)
+  .map((r) => r.value[1])
+  .traceName("wordArgs");
+
+
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 const importPhrase = seq(
-  kind(argsTokens.word).named("name"),
+  argsWord.named("name"),
   opt(wordArgsLine.named("args")),
-  opt(seq("as", kind(argsTokens.word).named("as"))),
-  opt(seq("from", kind(argsTokens.word).named("from")))
+  opt(seq("as", argsWord.named("as"))),
+  opt(seq("from", argsWord.named("from")))
 )
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
@@ -55,7 +71,7 @@ const importDirective = seq(
 export const exportDirective = seq(
   "#export",
     seq(
-      opt(kind(argsTokens.word).named("name")), 
+      opt(argsWord.named("name")), 
       opt(wordArgsLine.named("args")), 
       opt(importing), 
       eolf
