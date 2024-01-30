@@ -87,65 +87,34 @@ export const fnCall = seq(
   "("
 ).traceName("fnCall");
 
-// prettier-ignore
-const parenList = seq(
-  lParen,
-  withSep(",", anyNot(or(rParen, ","))),  // TODO merge with squareBracketList?
-  rParen
-)
-
-// prettier-ignore
-const squareBracketList:Parser<any> = seq(
-  "[",
-  withSep(",", 
-    or(
-      fn(() => squareBracketList), 
-      repeat(anyNot(or("[", "]", ",")))  // TODO untested
-    )
-  ),
- "]" 
-)
-
-const templateParam = or(
-  fn(() => typeSpecifier),
-  // template params are arbitrary expressions which we don't want to fully parse
-  // so we partially parse some expressions that have commas inside them 
-  parenList, 
-  squareBracketList,
-  // and then skip the rest of the tokens until the next param or the template ends.
-
-  repeat(anyNot(or(",", ">"))) // grammar allows any expression here, hopefully this skips those
-)
-  // .map((r) => resultErr(r, "templateParam"))
-  .traceName("templateParam");
+const possibleTypeRef = Symbol("typeRef");
 
 export const template: Parser<any> = seq(
   "<",
-  withSep(",", templateParam),
+  or(
+    word.named(possibleTypeRef), // only the first element of the template can be a type
+    fn(() => template)
+  ),
+  repeat(
+    or(
+      fn(() => template),
+      anyNot(">") // we don't care about the rest of the template
+    )
+  ),
   req(">")
-)
-  // .map((r) => {
-  //   resultErr(r, "template");
-  // })
-  .traceName("template");
+).traceName("template");
 
-const conceptName = Symbol("conceptName");
-
-const ident = or(word, wordNum);
-
-/** return type references in this nested template */
+/** return type references in this potentially nested template */
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
-  ident.named(conceptName),
+  word.named(possibleTypeRef),
   opt(template)
 )
   .map((r) =>
-    r.named[conceptName].flatMap((name) => {
-      if (wordRegex.test(name[0])) {
-        const e = makeElem<TypeRefElem>("typeRef", r);
-        e.name = name;
-        // resultErr(r, "typeSpecifier", name);
-        return [e];
-      } else return [];
+    r.named[possibleTypeRef].map((name) => {
+      const e = makeElem<TypeRefElem>("typeRef", r);
+      e.name = name;
+      // resultErr(r, "typeSpecifier", name);
+      return e;
     })
   )
   .traceName("typeSpecifier");
