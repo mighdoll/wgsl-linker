@@ -89,6 +89,7 @@ export const fnCall = seq(
 
 const possibleTypeRef = Symbol("typeRef");
 
+/** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
   "<",
   or(
@@ -104,7 +105,7 @@ export const template: Parser<any> = seq(
   req(">")
 ).traceName("template");
 
-/** return type references in this potentially nested template */
+/** find possible references to user structs in this type specifier and any templates */
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
   word.named(possibleTypeRef),
   opt(template)
