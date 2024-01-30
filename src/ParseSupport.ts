@@ -20,6 +20,7 @@ import {
 /* Basic parsing functions for comment handling, eol, etc. */
 
 export const word = kind(mainTokens.word);
+export const wordNum = or(word, kind(mainTokens.digits));
 
 // prettier-ignore
 export const eolf = seq(
@@ -47,10 +48,9 @@ export const comment = or(
   skipBlockComment
 ).traceName("comment");
 
-const wordNum = or(word, kind(mainTokens.digits));
 
 /** ( a1, b1* ) with optinal comments, spans lines */
-export const wordNumArgs: Parser<string[]> = seq(
+export const wordNumArgs: Parser<string[]> = seq( 
   "(",
   withSep(",", wordNum),
   req(")")
