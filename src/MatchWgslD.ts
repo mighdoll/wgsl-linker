@@ -4,8 +4,8 @@ import { escapeRegex, tokenMatcher } from "./TokenMatcher.js";
 
 const directive = /#[a-zA-Z_]\w*/;
 export const word = /[a-zA-Z_]\w*/; // consider making this 'ident' per wgsl spec (incl. non-ascii)
-const symbolSet =
-  "& && -> @ / ! [ ] { } : , = == != > >= >> < << <= % - -- " +
+const symbolSet = 
+  "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
 /** @return a regexp to match any of the space separated tokens in the provided string.

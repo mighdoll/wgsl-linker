@@ -434,9 +434,10 @@ test("parse simple templated type", () => {
   expect(parsed?.value.length).eq(2);
 });
 
-test.skip("parse nested template that ends with >> ", () => {
-  const src = `<array <MyStruct,4> >`;
+test("parse nested template that ends with >> ", () => {
+  const src = `vec2<array <MyStruct,4>>`;
 
-  const { parsed } = testParse(template, src);
-  dlog({ parsed });
+  const { parsed } = testParse(typeSpecifier, src);
+  const typeRefNames = parsed?.value.map((r) => r.name);
+  expect(typeRefNames).deep.eq(["vec2", "array", "MyStruct"]);
 });
