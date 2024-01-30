@@ -25,15 +25,24 @@ import {
   text,
   withSep,
 } from "./ParserCombinator.js";
-import { comment, makeElem, unknown, word, wordNumArgs } from "./ParseSupport.js";
+import {
+  comment,
+  makeElem,
+  unknown,
+  word,
+  wordNumArgs,
+} from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
+
+// prettier gets confused if we leave the quoted parens inline so make consts for them here
+const lParen = "(";
+const rParen = ")";
 
 export interface ParseState {
   ifStack: boolean[]; // stack used while processiing nested #if #else #endif directives
   params: Record<string, any>; // user provided params to templates, code gen and #if directives
 }
-
 
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
@@ -76,19 +85,61 @@ export const fnCall = seq(
   "("
 ).traceName("fnCall");
 
-const lParen = "(";
-const rParen = ")";
+// prettier-ignore
+const parenList = seq(
+  lParen,
+  withSep(",", anyNot(or(rParen, ","))),
+  rParen
+)
 
-const fnParam = seq(
-  word,
-  opt(seq(":", req(word.named("argTypes"))))
-);
+// prettier-ignore
+const squareBracketList = seq(
+  "[",
+  withSep(",", anyNot(or("]", ","))),
+ "]" 
+)
 
-const template = seq(
+// the template parsing algorithms in the spec is quite complicated, we're trying to
+// short circuit it here..
+
+const templateParam = or(
+  fn(() => optTemplatedType),
+  parenList,
+  squareBracketList,
+  anyNot(">") // grammar allows any expression here, we just skip those
+)
+  .map((r) => {
+    resultErr(r, "templateParam");
+  })
+  .traceName("templateParam");
+
+export const template: Parser<any> = seq(
   "<",
-
+  withSep(",", templateParam),
   req(">")
-).traceName("template");
+)
+  .map((r) => {
+    resultErr(r, "template");
+  })
+  .traceName("template");
+
+const typeName = Symbol("typeName");
+
+/** return type references */
+export const optTemplatedType: Parser<TypeRefElem[]> = seq(
+  word.named(typeName),
+  opt(template)
+)
+  .map((r) =>
+    r.named[typeName].map((typeName) => {
+      const e = makeElem<TypeRefElem>("typeRef", r);
+      e.name = typeName;
+      return e;
+    })
+  )
+  .traceName("templatedType");
+
+const fnParam = seq(word, opt(seq(":", req(word.named("argTypes")))));
 
 const fnParamList = seq(
   lParen,

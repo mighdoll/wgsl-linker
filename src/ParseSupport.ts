@@ -62,7 +62,7 @@ export const wordNumArgs: Parser<string[]> = seq(
 export function makeElem<U extends AbstractElem>(
   kind: U["kind"],
   er: ExtendedResult<any>,
-  named: (keyof U)[],
+  named: (keyof U)[] = [],
   namedArrays: (keyof U)[] = []
 ): U {
   const { start, end } = er;

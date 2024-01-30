@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
-import { fnDecl, globalValVarOrAlias, parseWgslD, structDecl } from "../ParseWgslD.js";
+import { fnDecl, globalValVarOrAlias, optTemplatedType, parseWgslD, structDecl, template } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
@@ -408,10 +408,25 @@ test("fnDecl parses :type specifier in fn block", () => {
 //   dlog({ appState });
 // });
 
-test("parse type in <template> in fn args", () => { // linking global vars is not yet supported
+test.skip("parse type in <template> in fn args", () => { 
   const src = `
     fn foo(a: vec2<MyStruct>) { };`
 
   const { appState } = testParse(fnDecl, src);
   dlog({ appState });
+});
+
+test.skip("parse nested template that ends with >> ", () => {
+  const src = `<array <MyStruct,4> >`
+
+  const { parsed } = testParse(template, src);
+  dlog({ parsed });
+});
+
+test("parse simple templated type", () => {
+  const src = `array<MyStruct,4>`
+
+  const { parsed } = testParse(optTemplatedType, src);
+  expect(parsed?.value[0].name).eq("array"); 
+  expect(parsed?.value[1].name).eq("MyStruct"); 
 });
