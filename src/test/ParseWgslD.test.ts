@@ -1,6 +1,13 @@
 import { expect, test } from "vitest";
 import { FnElem } from "../AbstractElems.js";
-import { fnDecl, globalValVarOrAlias, optTemplatedType, parseWgslD, structDecl, template } from "../ParseWgslD.js";
+import {
+  fnDecl,
+  globalValVarOrAlias,
+  typeSpecifier,
+  parseWgslD,
+  structDecl,
+  template,
+} from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
@@ -95,7 +102,7 @@ test("parse fn with calls", () => {
 
 test("structDecl parses struct member types", () => {
   const src = "struct Foo { a: f32, b: i32 }";
-  const {appState}= testParse(structDecl, src);
+  const { appState } = testParse(structDecl, src);
   expect(appState[0].members?.[0].memberType).eq("f32");
   expect(appState[0].members?.[1].memberType).eq("i32");
 });
@@ -130,7 +137,6 @@ test("parse struct", () => {
     ]
   `);
 });
-
 
 test("parse fn with line comment", () => {
   const src = `
@@ -387,7 +393,8 @@ test("fnDecl parses :type specifier in fn args", () => {
     fn foo(a: MyType) { }
   `;
   const { appState } = testParse(fnDecl, src);
-  expect(appState[0].argTypes).deep.eq(["MyType"]);
+  const { typeRefs } = appState[0];
+  expect(typeRefs[0].name).eq("MyType");
 });
 
 test("fnDecl parses :type specifier in fn block", () => {
@@ -408,25 +415,27 @@ test("fnDecl parses :type specifier in fn block", () => {
 //   dlog({ appState });
 // });
 
-test.skip("parse type in <template> in fn args", () => { 
+test("parse type in <template> in fn args", () => {
   const src = `
-    fn foo(a: vec2<MyStruct>) { };`
+    fn foo(a: vec2<MyStruct>) { };`;
 
   const { appState } = testParse(fnDecl, src);
-  dlog({ appState });
+  const { typeRefs } = appState[0];
+  expect(typeRefs[0].name).eq("vec2");
+  expect(typeRefs[1].name).eq("MyStruct");
 });
 
 test.skip("parse nested template that ends with >> ", () => {
-  const src = `<array <MyStruct,4> >`
+  const src = `<array <MyStruct,4> >`;
 
   const { parsed } = testParse(template, src);
   dlog({ parsed });
 });
 
 test("parse simple templated type", () => {
-  const src = `array<MyStruct,4>`
+  const src = `array<MyStruct,4>`;
 
-  const { parsed } = testParse(optTemplatedType, src);
-  expect(parsed?.value[0].name).eq("array"); 
-  expect(parsed?.value[1].name).eq("MyStruct"); 
+  const { parsed } = testParse(typeSpecifier, src);
+  expect(parsed?.value[0].name).eq("array");
+  expect(parsed?.value[1].name).eq("MyStruct");
 });

@@ -103,14 +103,14 @@ const squareBracketList = seq(
 // short circuit it here..
 
 const templateParam = or(
-  fn(() => optTemplatedType),
+  fn(() => typeSpecifier),
   parenList,
   squareBracketList,
   anyNot(">") // grammar allows any expression here, we just skip those
 )
-  .map((r) => {
-    resultErr(r, "templateParam");
-  })
+  // .map((r) => {
+  //   resultErr(r, "templateParam");
+  // })
   .traceName("templateParam");
 
 export const template: Parser<any> = seq(
@@ -118,15 +118,15 @@ export const template: Parser<any> = seq(
   withSep(",", templateParam),
   req(">")
 )
-  .map((r) => {
-    resultErr(r, "template");
-  })
+  // .map((r) => {
+  //   resultErr(r, "template");
+  // })
   .traceName("template");
 
 const typeName = Symbol("typeName");
 
-/** return type references */
-export const optTemplatedType: Parser<TypeRefElem[]> = seq(
+/** return type references in this nested template */
+export const typeSpecifier: Parser<TypeRefElem[]> = seq(
   word.named(typeName),
   opt(template)
 )
@@ -134,12 +134,17 @@ export const optTemplatedType: Parser<TypeRefElem[]> = seq(
     r.named[typeName].map((typeName) => {
       const e = makeElem<TypeRefElem>("typeRef", r);
       e.name = typeName;
+      // resultErr(r, "typeSpecifier", e);
       return e;
     })
   )
-  .traceName("templatedType");
+  .traceName("typeSpecifier");
 
-const fnParam = seq(word, opt(seq(":", req(word.named("argTypes")))));
+// prettier-ignore
+const fnParam = seq(
+  word, 
+  opt(seq(":", req(typeSpecifier.named("typeRefs"))))
+);
 
 const fnParamList = seq(
   lParen,
@@ -148,13 +153,13 @@ const fnParamList = seq(
   rParen
 ).traceName("fnParamList");
 
-const typedIdent = seq(word, ":", word.named("name")) // TODO templates
-  .map((r) => {
-    const e = makeElem<TypeRefElem>("typeRef", r, ["name"]);
-    return e;
-  })
-  .named("typeRefs")
-  .traceName("typedIdent");
+// prettier-ignore
+const variableDecl = seq(
+  or("const", "var", "let", "override"), 
+  word, 
+  ":", 
+  req(typeSpecifier).named("typeRefs")
+).traceName("variableDecl");
 
 const block: Parser<any> = seq(
   "{",
@@ -162,7 +167,7 @@ const block: Parser<any> = seq(
     or(
       fnCall,
       fn(() => block),
-      typedIdent,
+      variableDecl,
       anyNot("}")
     )
   ),
@@ -179,12 +184,7 @@ export const fnDecl = seq(
 )
   .traceName("fnDecl")
   .map((r) => {
-    const fn = makeElem<FnElem>(
-      "fn",
-      r,
-      ["name", "returnType"],
-      ["argTypes", "typeRefs"]
-    );
+    const fn = makeElem<FnElem>("fn", r, ["name", "returnType", "typeRefs"]);
     fn.children = r.named.calls || [];
     r.app.state.push(fn);
   });

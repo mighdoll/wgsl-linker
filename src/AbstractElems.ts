@@ -26,7 +26,6 @@ export interface FnElem extends AbstractElemBase {
   name: string;
   children: CallElem[];
   returnType?: string;
-  argTypes?: string[];
   typeRefs?: TypeRefElem[];
 }
 
