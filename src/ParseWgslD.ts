@@ -30,8 +30,10 @@ import {
   makeElem,
   unknown,
   word,
+  wordNum,
   wordNumArgs,
 } from "./ParseSupport.js";
+import { word as wordRegex } from "./MatchWgslD.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -55,7 +57,7 @@ export const structMember = seq(
   opt(attributes),
   word.named("name"),
   ":",
-  req(word.named("memberType"))
+  req(word.named("memberType")) // TODO use typeSpecifier here
 )
   .map((r) => {
     const e = makeElem<StructMemberElem>("member", r, ["name", "memberType"]);
@@ -88,29 +90,29 @@ export const fnCall = seq(
 // prettier-ignore
 const parenList = seq(
   lParen,
-  withSep(",", anyNot(or(rParen, ","))),
+  withSep(",", anyNot(or(rParen, ","))),  // TODO merge with squareBracketList?
   rParen
 )
 
 // prettier-ignore
-const squareBracketList = seq(
+const squareBracketList:Parser<any> = seq(
   "[",
-  withSep(",", anyNot(or("]", ","))),
+  withSep(",", 
+    or(
+      fn(() => squareBracketList), 
+      repeat(anyNot(or("[", "]", ",")))  // TODO untested
+    )
+  ),
  "]" 
 )
-
-// the template parsing algorithms in the spec is quite complicated, we're trying to
-// short circuit it here..
 
 const templateParam = or(
   fn(() => typeSpecifier),
   parenList,
   squareBracketList,
-  anyNot(">") // grammar allows any expression here, we just skip those
+  repeat(anyNot(or(",", ">"))) // grammar allows any expression here, hopefully this skips those
 )
-  // .map((r) => {
-  //   resultErr(r, "templateParam");
-  // })
+  // .map((r) => resultErr(r, "templateParam"))
   .traceName("templateParam");
 
 export const template: Parser<any> = seq(
@@ -123,19 +125,23 @@ export const template: Parser<any> = seq(
   // })
   .traceName("template");
 
-const typeName = Symbol("typeName");
+const conceptName = Symbol("conceptName");
+
+const ident = or(word, wordNum);
 
 /** return type references in this nested template */
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
-  word.named(typeName),
+  ident.named(conceptName),
   opt(template)
 )
   .map((r) =>
-    r.named[typeName].map((typeName) => {
-      const e = makeElem<TypeRefElem>("typeRef", r);
-      e.name = typeName;
-      // resultErr(r, "typeSpecifier", e);
-      return e;
+    r.named[conceptName].flatMap((name) => {
+      if (wordRegex.test(name[0])) {
+        const e = makeElem<TypeRefElem>("typeRef", r);
+        e.name = name;
+        // resultErr(r, "typeSpecifier", name);
+        return [e];
+      } else return [];
     })
   )
   .traceName("typeSpecifier");
