@@ -108,8 +108,12 @@ const squareBracketList:Parser<any> = seq(
 
 const templateParam = or(
   fn(() => typeSpecifier),
-  parenList,
+  // template params are arbitrary expressions which we don't want to fully parse
+  // so we partially parse some expressions that have commas inside them 
+  parenList, 
   squareBracketList,
+  // and then skip the rest of the tokens until the next param or the template ends.
+
   repeat(anyNot(or(",", ">"))) // grammar allows any expression here, hopefully this skips those
 )
   // .map((r) => resultErr(r, "templateParam"))
