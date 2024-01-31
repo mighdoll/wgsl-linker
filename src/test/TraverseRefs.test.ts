@@ -309,18 +309,17 @@ test("traverse ref from struct constructor", () => {
     fn main() {
       var x = AStruct(1u);
     }
-  `
+  `;
   const module1 = `
     #export
     struct AStruct {
       b: u32
     }
-  `
+  `;
 
   const refs = traverseTest(src, module1);
   expect(refs[0].elem.name).toBe("AStruct");
-
-})
+});
 
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
