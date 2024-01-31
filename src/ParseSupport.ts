@@ -48,9 +48,8 @@ export const comment = or(
   skipBlockComment
 ).traceName("comment");
 
-
 /** ( a1, b1* ) with optinal comments, spans lines */
-export const wordNumArgs: Parser<string[]> = seq( 
+export const wordNumArgs: Parser<string[]> = seq(
   "(",
   withSep(",", wordNum),
   req(")")
@@ -58,7 +57,12 @@ export const wordNumArgs: Parser<string[]> = seq(
   .map((r) => r.value[1])
   .traceName("wordNumArgs");
 
-/** creat an AbstractElem by pulling fields from named parse results */
+/** create an AbstractElem from parse results
+ * @param named keys in the named result to copy to 
+ *  like named fields in the abstract elem (as a single value)
+ * @param namedArray keys in the named result to copy to 
+ *  like named fields in the abstract elem (as an array)
+ */
 export function makeElem<U extends AbstractElem>(
   kind: U["kind"],
   er: ExtendedResult<any>,
