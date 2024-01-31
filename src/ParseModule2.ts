@@ -5,6 +5,7 @@ import {
   ImportElem,
   StructElem,
 } from "./AbstractElems.js";
+import { srcErr } from "./LinkerUtil.js";
 import { parseWgslD } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
@@ -18,7 +19,7 @@ export interface TextModule2 {
 }
 
 export interface TextExport2 extends ExportElem {
-  ref: FnElem | StructElem; 
+  ref: FnElem | StructElem;
 }
 
 let unnamedModuleDex = 0;
@@ -47,9 +48,7 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
       } else if (next?.kind === "struct") {
         exports.push({ ...elem, ref: next });
       } else {
-        console.warn(
-          `#export what at pos: ${elem.start}? (#export not followed by fn)`
-        );
+        srcErr(src, elem.start, `#export what? (#export not followed by fn)`);
       }
     }
   });
