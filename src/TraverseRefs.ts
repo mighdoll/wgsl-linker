@@ -53,12 +53,14 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
-/** walk through all imported references in the src module, recursively.
+/** 
+ * Recursively walk through all imported references starting from a src module, calling
+ * a function with each struct/fn reference found.
  *
  * Note that the reference graph may have multiple reference to the same src element.
- * A provided fn is called on each node, return false to avoid recursing into the node.
- * Currently the linker will recurse through the the the same node multiple times to handle
- * varied import parameters.
+ * Return false to avoid recursing into the node.
+ * Currently the linker will recurse through the the same node multiple times 
+ * to handle varied import parameters.  (LATER could be optimized)
  */
 export function traverseRefs(
   srcModule: TextModule2,
@@ -88,11 +90,14 @@ export function recursiveRefs(
   if (!srcRefs.length) return;
   const refs = srcRefs.flatMap((srcRef) => {
     // find a reference for each call in each srcRef
-    console.log(srcRef.kind);
     const { elem } = srcRef;
     const found: FoundRef[] = [];
+    // TODO var references
+    // TODO fns also have typeRefs
     if (elem.kind === "fn") {
       found.push(...fnRefs(elem, srcRef, mod, registry));
+    } else if (elem.kind === "struct") {
+      found.push(...typeRefs(elem, srcRef, mod, registry));
     } else {
       console.error("unexpected elem kind", elem);
     }
@@ -105,6 +110,34 @@ export function recursiveRefs(
   [...modGroups.entries()].forEach(([m, refs]) => {
     recursiveRefs(refs, m, registry, fn);
   });
+}
+
+// TODO merge with fnRefs
+function typeRefs(
+  elem: FnElem | StructElem,
+  srcRef: FoundRef,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): FoundRef[] {
+  return elem.typeRefs.flatMap((ref) => {
+    if (stdType(ref.name)) return [];
+    const foundRef = importRef(srcRef, ref.name, mod, registry)!;
+    if (!foundRef) {
+      const src = srcRef.expMod.src;
+      srcErr(src, ref.start, `type reference not found`);
+    }
+    return foundRef ? [foundRef] : [];
+  });
+}
+
+const stdTypes = (
+  "array bool f16 f32 i32 " +
+  "mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4 " +
+  "u32 vec2 v3c3 vec4"
+).split(" ");
+
+function stdType(name: string): boolean {
+  return stdTypes.includes(name);
 }
 
 function fnRefs(

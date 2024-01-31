@@ -9,6 +9,7 @@ import {
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
 import { _withErrLogger } from "../LinkerUtil.js";
+import { dlog } from "berry-pretty";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -178,7 +179,27 @@ test("mismatched import export params", () => {
   `);
 });
 
-test("travarse a fn to struct ref", () => {
+test("traverse a struct to struct ref", () => {
+  const src = `
+    #import AStruct 
+
+    struct SrcStruct {
+      a: AStruct,
+    }
+  `;
+  const module1 = `
+    #export
+    struct AStruct {
+      x: u32,
+    }
+  `;
+
+  const refs = traverseTest(src, module1);  
+  expect(refs[0].kind).toBe("exp");
+  expect(refs[0].elem.name).toBe("AStruct");
+});
+
+test.skip("travarse a fn to struct ref", () => {
   const src = `
     #import AStruct 
 
@@ -192,7 +213,9 @@ test("travarse a fn to struct ref", () => {
       x: u32,
     }
   `;
-  const registry = new ModuleRegistry2(module1);
+
+  const refs = traverseTest(src, module1);  
+  dlog({refs});
 });
 
 /** run traverseRefs with no filtering and return the refs and the error log output */
