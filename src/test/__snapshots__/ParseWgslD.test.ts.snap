@@ -249,6 +249,18 @@ exports[`parse root level ;; 1`] = `[]`;
 exports[`parse top level override and const 1`] = `
 [
   {
+    "end": 21,
+    "kind": "var",
+    "name": "x",
+    "start": 5,
+  },
+  {
+    "end": 38,
+    "kind": "var",
+    "name": "y",
+    "start": 26,
+  },
+  {
     "children": [],
     "end": 56,
     "kind": "fn",
@@ -261,6 +273,20 @@ exports[`parse top level override and const 1`] = `
 
 exports[`parse top level var 1`] = `
 [
+  {
+    "end": 52,
+    "kind": "var",
+    "name": "u",
+    "start": 5,
+    "typeRefs": [
+      {
+        "end": 51,
+        "kind": "typeRef",
+        "name": "Uniforms",
+        "start": 43,
+      },
+    ],
+  },
   {
     "children": [],
     "end": 76,

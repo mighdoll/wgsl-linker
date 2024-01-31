@@ -5,6 +5,7 @@ import {
   StructElem,
   StructMemberElem,
   TypeRefElem,
+  VarElem,
 } from "./AbstractElems.js";
 import { resultErr } from "./LinkerUtil.js";
 import { mainTokens } from "./MatchWgslD.js";
@@ -43,7 +44,7 @@ export interface ParseState {
   params: Record<string, any>; // user provided params to templates, code gen and #if directives
 }
 
-const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
+const optAttributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
 const possibleTypeRef = Symbol("typeRef");
 
 const globalDirectiveOrAssert = seq(
@@ -82,7 +83,7 @@ export const typeSpecifier: Parser<TypeRefElem[]> = seq(
   .traceName("typeSpecifier");
 
 export const structMember = seq(
-  opt(attributes),
+  optAttributes,
   word.named("name"),
   ":",
   req(typeSpecifier.named("typeRefs"))
@@ -125,7 +126,7 @@ const fnParam = seq(
 
 const fnParamList = seq(
   lParen,
-  opt(attributes),
+  optAttributes,
   withSep(",", fnParam),
   rParen
 ).traceName("fnParamList");
@@ -152,30 +153,43 @@ const block: Parser<any> = seq(
 ).traceName("block");
 
 export const fnDecl = seq(
-  attributes,
+  optAttributes,
   "fn",
   req(word.named("name")),
   req(fnParamList),
-  opt(seq("->", opt(attributes), word.named("returnType"))),
+  opt(seq("->", optAttributes, word.named("returnType"))),
   req(block)
 )
-  .traceName("fnDecl")
   .map((r) => {
     const e = makeElem<FnElem>("fn", r, ["name", "returnType"]);
     e.children = r.named.calls || [];
-    e.typeRefs = r.named.typeRefs?.flat() || []; 
+    e.typeRefs = r.named.typeRefs?.flat() || [];
     r.app.state.push(e);
-  });
+  })
+  .traceName("fnDecl");
 
-export const globalValVarOrAlias = seq(
-  attributes,
-  or("const", "override", "var", "alias"),
+export const globalVar = seq(
+  optAttributes,
+  or("const", "override", "var"),
+  opt(template),
+  word.named("name"),
+  opt(seq(":", req(typeSpecifier.named("typeRefs")))),
   req(anyThrough(";"))
-);
+).map(r => {
+  // resultErr(r, "globalVar");
+  const e = makeElem<VarElem>("var", r, ["name", "typeRefs"]);
+  r.app.state.push(e);
+}).traceName("globalVar");
 
-const globalDecl = or(fnDecl, globalValVarOrAlias, ";", structDecl).traceName(
-  "globalDecl"
-);
+export const globalAlias = seq("alias", req(anyThrough(";")));
+
+const globalDecl = or(
+  fnDecl,
+  globalVar,
+  globalAlias,
+  structDecl,
+  ";"
+).traceName("globalDecl");
 
 const rootDecl = or(
   globalDirectiveOrAssert,

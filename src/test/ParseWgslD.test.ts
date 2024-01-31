@@ -1,15 +1,15 @@
 import { expect, test } from "vitest";
-import { FnElem, StructElem } from "../AbstractElems.js";
+import { FnElem, StructElem, VarElem } from "../AbstractElems.js";
 import {
   fnDecl,
-  globalValVarOrAlias,
-  typeSpecifier,
+  globalVar,
   parseWgslD,
   structDecl,
-  template,
+  typeSpecifier,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
+import { _withErrLogger } from "../LinkerUtil.js";
 import {
   directive,
   importing,
@@ -21,11 +21,9 @@ import {
   unknown,
   wordNumArgs,
 } from "../ParseSupport.js";
-import { enableTracing } from "../ParserTracing.js";
 import { or, repeat } from "../ParserCombinator.js";
+import { enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
-import { _withErrLogger } from "../LinkerUtil.js";
-import { dlog } from "berry-pretty";
 enableTracing();
 
 test("parse empty string", () => {
@@ -420,14 +418,6 @@ test("fnDecl parses :type specifier in fn block", () => {
   expect((appState[0] as FnElem).typeRefs[0].name).eq("MyType");
 });
 
-// test.skip("parse type in <template> in global var", () => { // linking global vars is not yet supported
-//   const src = `
-//     var x:vec2<MyStruct> = { x: 1, y: 2 };`
-
-//   const { appState } = testParse(globalValVarOrAlias, src);
-//   dlog({ appState });
-// });
-
 test("parse type in <template> in fn args", () => {
   const src = `
     fn foo(a: vec2<MyStruct>) { };`;
@@ -461,4 +451,14 @@ test("parse struct member with templated type", () => {
   const typeRefs = (appState[0] as StructElem).typeRefs;
   const typeRefNames = typeRefs.map((r) => r.name);
   expect(typeRefNames).deep.eq(["vec2", "array", "Bar"]);
+});
+
+test("parse type in <template> in global var", () => {
+  const src = `
+    var x:vec2<MyStruct> = { x: 1, y: 2 };`;
+
+  const { appState } = testParse(globalVar, src);
+  const typeRefs = (appState[0] as VarElem).typeRefs;
+  expect(typeRefs[0].name).eq("vec2");
+  expect(typeRefs[1].name).eq("MyStruct");
 });

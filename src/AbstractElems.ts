@@ -7,6 +7,7 @@ export type AbstractElem =
   | CallElem
   | StructElem
   | StructMemberElem
+  | VarElem
   | TypeRefElem;
 
 /** 'interesting' elements found in the source */
@@ -59,4 +60,10 @@ export interface ImportElem extends AbstractElemBase {
   args?: string[];
   as?: string;
   from?: string;
+}
+
+export interface VarElem extends AbstractElemBase {
+  kind: "var";
+  name: string;
+  typeRefs: TypeRefElem[];
 }
