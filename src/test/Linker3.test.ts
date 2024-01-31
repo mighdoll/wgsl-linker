@@ -332,6 +332,7 @@ test("#import a struct", () => {
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
   console.log(linked);
+  expect(linked).contains("struct AStruct {");
 });
 
 test.skip("#importMerge a struct", () => {
