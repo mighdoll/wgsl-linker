@@ -202,7 +202,7 @@ test("traverse a struct to struct ref", () => {
   expect(refs[0].elem.name).toBe("AStruct");
 });
 
-test.skip("travarse a fn to struct ref", () => {
+test("traverse a fn to struct ref", () => {
   const src = `
     #import AStruct 
 
@@ -218,7 +218,10 @@ test.skip("travarse a fn to struct ref", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  dlog({ refs });
+  const exp = refs[0] as ExportRef;
+  expect(exp.kind).eq("exp");
+  expect(exp.elem.kind).eq("struct");
+  expect(exp.elem.name).eq("AStruct");
 });
 
 /** run traverseRefs with no filtering and return the refs and the error log output */
