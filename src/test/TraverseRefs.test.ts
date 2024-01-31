@@ -40,7 +40,7 @@ test("traverse nested import with params and support fn", () => {
   const second = refs[1] as LocalRef;
   expect(first.kind).toBe("exp");
   expect(first.expImpArgs).deep.eq([["A", "u32"]]);
-  expect(second.kind).toBe("fn");
+  expect(second.kind).toBe("local");
   expect(second.elem.name).eq("support");
 });
 
