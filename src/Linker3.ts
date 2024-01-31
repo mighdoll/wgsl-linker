@@ -1,4 +1,4 @@
-import { FnElem, StructElem } from "./AbstractElems.js";
+import { FnElem, StructElem, VarElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 import { BothRefs, FoundRef, traverseRefs } from "./TraverseRefs.js";
@@ -144,7 +144,7 @@ function loadModuleSlice(
  * optionally replace fn/struct name with 'import as' name
  */
 function loadFnOrStructText(
-  fn: FnElem | StructElem,
+  fn: FnElem | StructElem | VarElem,
   mod: TextModule2,
   renames: RenameMap,
   replaces: [string, string][] = []

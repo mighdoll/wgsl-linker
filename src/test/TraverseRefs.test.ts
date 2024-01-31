@@ -207,7 +207,7 @@ test("traverse a fn to struct ref", () => {
     #import AStruct 
 
     fn main() {
-      let a:AStruct = { x: 1 }; 
+      let a:AStruct; 
     }
   `;
   const module1 = `

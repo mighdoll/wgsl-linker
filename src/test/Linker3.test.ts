@@ -320,7 +320,7 @@ test("#import a struct", () => {
     #import AStruct 
 
     fn main() {
-      let a:AStruct = { x: 1 }; 
+      let a = AStruct(1u); 
     }
   `;
   const module1 = `
@@ -342,7 +342,7 @@ test.skip("#importMerge a struct", () => {
     }
 
     fn main() {
-      let a:MyStruct= { x: 1, y: 2 }; 
+      let a: MyStruct; 
     }
   `;
   const module1 = `

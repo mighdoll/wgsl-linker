@@ -411,7 +411,7 @@ test("fnDecl parses :type specifier in fn args", () => {
 test("fnDecl parses :type specifier in fn block", () => {
   const src = `
     fn foo() { 
-      var b: MyType = { x: 1, y: 2 };
+      var b:MyType;
     }
   `;
   const { appState } = testParse(fnDecl, src);
