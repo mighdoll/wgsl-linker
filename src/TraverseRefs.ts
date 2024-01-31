@@ -24,7 +24,7 @@ export type BothRefs = Partial<Omit<LocalRef, "kind">> &
 export interface LocalRef {
   kind: "local";
   expMod: TextModule2;
-  elem: FnElem | StructElem;
+  elem: FnElem | StructElem | VarElem;
 }
 
 /** found reference to an exported function or struct */
@@ -69,9 +69,9 @@ export function traverseRefs(
   registry: ModuleRegistry2,
   fn: (ref: FoundRef) => boolean
 ): void {
-  const { fns, structs } = srcModule;
+  const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
-  const refs: FoundRef[] = [...fns, ...structs].map((elem) => ({
+  const refs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
     kind: "local",
     expMod,
     elem,
@@ -121,7 +121,6 @@ function elemRefs(
   const tRefs = elemListRefs(srcRef, userTypeRefs, mod, registry);
   return [...fnRefs, ...tRefs];
 }
-
 
 /** find fn/struct references from children of a fn or struct elem
  * (children being call references and type references from the fn or struct)

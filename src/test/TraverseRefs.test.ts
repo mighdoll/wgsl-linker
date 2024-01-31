@@ -224,6 +224,26 @@ test("traverse a fn to struct ref", () => {
   expect(exp.elem.name).eq("AStruct");
 });
 
+test("traverse a global var to struct ref", () => {
+  const src = `
+    #import Uniforms
+
+    @group(0) @binding(0) var<uniform> u: Uniforms;      
+    `;
+  const module1 = `
+    #export
+    struct Uniforms {
+      model: mat4x4<f32>,
+    }
+  `;
+
+  const refs = traverseTest(src, module1);
+  const exp = refs[0] as ExportRef;
+  expect(exp.kind).eq("exp");
+  expect(exp.elem.kind).eq("struct");
+  expect(exp.elem.name).eq("Uniforms");
+});
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
