@@ -5,6 +5,7 @@ import {
   FnElem,
   ImportElem,
   StructElem,
+  VarElem,
 } from "./AbstractElems.js";
 import { srcErr } from "./LinkerUtil.js";
 import { parseWgslD } from "./ParseWgslD.js";
@@ -14,6 +15,7 @@ export interface TextModule2 {
   template?: string;
   exports: TextExport2[];
   fns: FnElem[];
+  vars: VarElem[];
   structs: StructElem[];
   imports: ImportElem[];
   name: string;
@@ -35,10 +37,11 @@ export function parseModule2(
   const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
   const imports = parsed.filter((e) => e.kind === "import") as ImportElem[];
   const structs = parsed.filter((e) => e.kind === "struct") as StructElem[];
+  const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
   const moduleName = undefined; // TODO parse #module
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
-  return { name, exports, fns, structs, imports, src };
+  return { name, exports, fns, structs, vars, imports, src };
 }
 
 function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {

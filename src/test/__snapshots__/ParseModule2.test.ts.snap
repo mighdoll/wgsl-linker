@@ -38,6 +38,7 @@ exports[`simple fn export 1`] = `
     }
   ",
   "structs": [],
+  "vars": [],
 }
 `;
 
@@ -75,5 +76,6 @@ exports[`simple fn import 1`] = `
     fn bar() { foo(); }
   ",
   "structs": [],
+  "vars": [],
 }
 `;
