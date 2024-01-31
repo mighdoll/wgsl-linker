@@ -132,24 +132,22 @@ function elemListRefs(
   registry: ModuleRegistry2
 ): FoundRef[] {
   return children.flatMap((elem) => {
+    if (exportArgRef(srcRef, elem.name)) return [];
+
     const foundRef =
       importRef(srcRef, elem.name, mod, registry) ??
       importingRef(srcRef, elem.name, mod, registry) ??
       localRef(elem.name, mod);
 
-    if (!foundRef) {
-      if (exportArgRef(srcRef, elem.name)) {
-        return [];
-      }
+    if (foundRef) return [foundRef];
 
-      const src = srcRef.expMod.src;
-      srcErr(src, elem.start, `reference not found`);
-      return [];
-    }
-    return [foundRef];
+    const src = srcRef.expMod.src;
+    srcErr(src, elem.start, `reference not found`);
+    return [];
   });
 }
 
+/** @return true if the ref is to an import parameter */
 function exportArgRef(srcRef: FoundRef, name: string): boolean | undefined {
   if (srcRef.kind === "exp") {
     return !!srcRef.expImpArgs.find(([expArg]) => expArg === name);
