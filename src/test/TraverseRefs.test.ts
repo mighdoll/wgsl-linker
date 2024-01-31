@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
-import { parseModule2 } from "../ParseModule2.js";
+import { TextModule2, parseModule2 } from "../ParseModule2.js";
 import {
   ExportRef,
   FoundRef,
@@ -35,14 +35,7 @@ test("traverse nested import with params and support fn", () => {
     fn zap() {}
   `;
 
-  const registry = new ModuleRegistry2(module1, module2);
-  const srcModule = parseModule2(src);
-
-  const refs: FoundRef[] = [];
-  traverseRefs(srcModule, registry, (ref) => {
-    refs.push(ref);
-    return true;
-  });
+  const refs = traverseTest(src, module1, module2);
   const first = refs[0] as ExportRef;
   const second = refs[1] as LocalRef;
   expect(first.kind).toBe("exp");
@@ -64,13 +57,8 @@ test("traverse importing", () => {
     #export(X)
     fn bar(x:X) { } `;
 
-  const registry = new ModuleRegistry2(module1, module2);
-  const srcModule = parseModule2(src);
-  const refs: FoundRef[] = [];
-  traverseRefs(srcModule, registry, (ref) => {
-    refs.push(ref);
-    return true;
-  });
+  const refs = traverseTest(src, module1, module2);
+
   const importingRef = refs[1] as ExportRef;
   expect(importingRef.expImpArgs).deep.eq([["X", "B"]]);
 });
@@ -91,13 +79,8 @@ test("traverse double importing", () => {
     #export(Y) 
     fn zap(y:Y) { } `;
 
-  const registry = new ModuleRegistry2(module1, module2, module3);
-  const srcModule = parseModule2(src);
-  const refs: FoundRef[] = [];
-  traverseRefs(srcModule, registry, (ref) => {
-    refs.push(ref);
-    return true;
-  });
+  const refs = traverseTest(src, module1, module2, module3);
+
   const expImpArgs = refs.flatMap((r) => {
     const er = r as ExportRef;
     return er ? [er.expImpArgs] : [];
@@ -123,13 +106,7 @@ test("traverse importing from a support fn", () => {
     #export(X)
     fn bar(x:X) { } `;
 
-  const registry = new ModuleRegistry2(module1, module2);
-  const srcModule = parseModule2(src);
-  const refs: FoundRef[] = [];
-  traverseRefs(srcModule, registry, (ref) => {
-    refs.push(ref);
-    return true;
-  });
+  const refs  = traverseTest(src, module1, module2);
 
   const expImpArgs = refs.flatMap((r) => {
     const er = r as ExportRef;
@@ -201,22 +178,41 @@ test("mismatched import export params", () => {
   `);
 });
 
+test("travarse a fn to struct ref", () => {
+  const src = `
+    #import AStruct 
+
+    fn main() {
+      let a:AStruct = { x: 1 }; 
+    }
+  `;
+  const module1 = `
+    #export
+    struct AStruct {
+      x: u32,
+    }
+  `;
+  const registry = new ModuleRegistry2(module1);
+});
 
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
   ...modules: string[]
 ): { refs: FoundRef[]; log: string } {
+  const { log, logged } = logCatch();
+  const refs = _withErrLogger(log, () => traverseTest(src, ...modules));
+
+  return { refs, log: logged() };
+}
+
+function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const registry = new ModuleRegistry2(...modules);
   const srcModule = parseModule2(src);
   const refs: FoundRef[] = [];
-  const { log, logged } = logCatch();
-  _withErrLogger(log, () => {
-    traverseRefs(srcModule, registry, (ref) => {
-      refs.push(ref);
-      return true;
-    });
+  traverseRefs(srcModule, registry, (ref) => {
+    refs.push(ref);
+    return true;
   });
-
-  return { refs, log: logged() };
+  return refs;
 }
