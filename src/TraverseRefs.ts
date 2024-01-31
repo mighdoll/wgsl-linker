@@ -81,7 +81,10 @@ export function traverseRefs(
 
 /*
  * traversal of the wgsl src reference graph:
- *  fn -> calls -> local fn or import+export+fn
+ *  fn -> calls -> (local fn or import+export+fn)
+ *  fn -> typeRefs -> (local struct or import+export+struct)
+ *  struct -> typeRefs -> (local struct or import+export+struct)
+ *  var -> typeRefs -> (local struct or import+export+struct)
  */
 export function recursiveRefs(
   srcRefs: FoundRef[],
@@ -103,6 +106,7 @@ export function recursiveRefs(
   });
 }
 
+/** return all struct/fn refs from a src element */
 function elemRefs(
   srcRef: FoundRef,
   mod: TextModule2,
@@ -111,26 +115,20 @@ function elemRefs(
   const { elem } = srcRef;
   let fnRefs: FoundRef[] = [];
   if (elem.kind === "fn") {
-    fnRefs = elemListRefs(elem.calls, srcRef, mod, registry);
+    fnRefs = elemListRefs(srcRef, elem.calls, mod, registry);
   }
   const userTypeRefs = elem.typeRefs.filter((ref) => !stdType(ref.name));
-  const tRefs = elemListRefs(userTypeRefs, srcRef, mod, registry);
+  const tRefs = elemListRefs(srcRef, userTypeRefs, mod, registry);
   return [...fnRefs, ...tRefs];
 }
 
-const stdTypes = (
-  "array bool f16 f32 i32 " +
-  "mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4 " +
-  "u32 vec2 v3c3 vec4"
-).split(" ");
 
-function stdType(name: string): boolean {
-  return stdTypes.includes(name);
-}
-
+/** find fn/struct references from children of a fn or struct elem
+ * (children being call references and type references from the fn or struct)
+ */
 function elemListRefs(
-  children: (CallElem | VarElem | StructElem | TypeRefElem)[],
   srcRef: FoundRef,
+  children: (CallElem | VarElem | StructElem | TypeRefElem)[],
   mod: TextModule2,
   registry: ModuleRegistry2
 ): FoundRef[] {
@@ -311,4 +309,15 @@ interface AsNamed {
 
 function importName(asNamed: AsNamed): string {
   return asNamed.as || asNamed.name;
+}
+
+const stdTypes = (
+  "array bool f16 f32 i32 " +
+  "mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4 " +
+  "u32 vec2 v3c3 vec4"
+).split(" ");
+
+/** return true if the name is for a built in type (not a user struct) */
+function stdType(name: string): boolean {
+  return stdTypes.includes(name);
 }
