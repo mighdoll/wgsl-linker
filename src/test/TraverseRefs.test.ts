@@ -244,6 +244,34 @@ test("traverse a global var to struct ref", () => {
   expect(exp.elem.name).eq("Uniforms");
 });
 
+test("traverse transitive struct refs", () => {
+  const src = `
+    #import AStruct 
+
+    struct SrcStruct {
+      a: AStruct,
+    }
+  `;
+  const module1 = `
+    #import BStruct
+
+    #export
+    struct AStruct {
+      s: BStruct,
+    }
+  `;
+  const module2 = `
+    #export
+    struct BStruct {
+      x: u32,
+    }
+  `;
+
+  const refs = traverseTest(src, module1, module2);
+  expect(refs[0].elem.name).toBe("AStruct");
+  expect(refs[1].elem.name).toBe("BStruct");
+});
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
