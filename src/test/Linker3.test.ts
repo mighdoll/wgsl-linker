@@ -315,7 +315,7 @@ test("#export importing", () => {
   expect(linked).contains("fn bar(x:B)");
 });
 
-test.only("#import a struct", () => {
+test("#import a struct", () => {
   const src = `
     #import AStruct 
 
@@ -324,21 +324,21 @@ test.only("#import a struct", () => {
     }
   `;
   const module1 = `
-  #export
-  struct AStruct {
-    x: u32;
-  }
+    #export
+    struct AStruct {
+      x: u32,
+    }
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  console.error(linked);
+  console.log(linked);
 });
 
 test.skip("#importMerge a struct", () => {
   const src = `
     #importMerge AStruct 
     struct MyStruct {
-      x: u32;
+      x: u32,
     }
 
     fn main() {
@@ -346,10 +346,10 @@ test.skip("#importMerge a struct", () => {
     }
   `;
   const module1 = `
-  #export
-  struct AStruct {
-    y: u32;
-  }
+    #export
+    struct AStruct {
+      y: u32,
+    }
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
