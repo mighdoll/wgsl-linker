@@ -1,6 +1,8 @@
+import { dlog } from "berry-pretty";
 import { expect, test } from "vitest";
+import { _withErrLogger } from "../LinkerUtil.js";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
-import { TextModule2, parseModule2 } from "../ParseModule2.js";
+import { parseModule2 } from "../ParseModule2.js";
 import {
   ExportRef,
   FoundRef,
@@ -8,8 +10,6 @@ import {
   traverseRefs,
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
-import { _withErrLogger } from "../LinkerUtil.js";
-import { dlog } from "berry-pretty";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -107,7 +107,7 @@ test("traverse importing from a support fn", () => {
     #export(X)
     fn bar(x:X) { } `;
 
-  const refs  = traverseTest(src, module1, module2);
+  const refs = traverseTest(src, module1, module2);
 
   const expImpArgs = refs.flatMap((r) => {
     const er = r as ExportRef;
@@ -154,7 +154,10 @@ test("importing args don't match", () => {
   expect(log).toMatchInlineSnapshot(`
     "importing arg doesn't match export
         #export(C, D) importing bar(E) (Ln 2)
-                                ^"
+                                ^
+    reference not found
+        fn bar(x:X) { }  (Ln 3)
+                 ^"
   `);
 });
 
@@ -194,7 +197,7 @@ test("traverse a struct to struct ref", () => {
     }
   `;
 
-  const refs = traverseTest(src, module1);  
+  const refs = traverseTest(src, module1);
   expect(refs[0].kind).toBe("exp");
   expect(refs[0].elem.name).toBe("AStruct");
 });
@@ -214,8 +217,8 @@ test.skip("travarse a fn to struct ref", () => {
     }
   `;
 
-  const refs = traverseTest(src, module1);  
-  dlog({refs});
+  const refs = traverseTest(src, module1);
+  dlog({ refs });
 });
 
 /** run traverseRefs with no filtering and return the refs and the error log output */

@@ -5,6 +5,8 @@ import {
   FnElem,
   ImportElem,
   StructElem,
+  TypeRefElem,
+  VarElem,
 } from "./AbstractElems.js";
 import { srcErr } from "./LinkerUtil.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
@@ -53,13 +55,13 @@ export interface ExportRef {
   expImpArgs: [string, string][];
 }
 
-/** 
+/**
  * Recursively walk through all imported references starting from a src module, calling
  * a function with each struct/fn reference found.
  *
  * Note that the reference graph may have multiple reference to the same src element.
  * Return false to avoid recursing into the node.
- * Currently the linker will recurse through the the same node multiple times 
+ * Currently the linker will recurse through the the same node multiple times
  * to handle varied import parameters.  (LATER could be optimized)
  */
 export function traverseRefs(
@@ -90,18 +92,7 @@ export function recursiveRefs(
   if (!srcRefs.length) return;
   const refs = srcRefs.flatMap((srcRef) => {
     // find a reference for each call in each srcRef
-    const { elem } = srcRef;
-    const found: FoundRef[] = [];
-    // TODO var references
-    // TODO fns also have typeRefs
-    if (elem.kind === "fn") {
-      found.push(...fnRefs(elem, srcRef, mod, registry));
-    } else if (elem.kind === "struct") {
-      found.push(...typeRefs(elem, srcRef, mod, registry));
-    } else {
-      console.error("unexpected elem kind", elem);
-    }
-    return found;
+    return elemRefs(srcRef, mod, registry);
   });
 
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
@@ -112,22 +103,19 @@ export function recursiveRefs(
   });
 }
 
-// TODO merge with fnRefs
-function typeRefs(
-  elem: FnElem | StructElem,
+function elemRefs(
   srcRef: FoundRef,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): FoundRef[] {
-  return elem.typeRefs.flatMap((ref) => {
-    if (stdType(ref.name)) return [];
-    const foundRef = importRef(srcRef, ref.name, mod, registry)!;
-    if (!foundRef) {
-      const src = srcRef.expMod.src;
-      srcErr(src, ref.start, `type reference not found`);
-    }
-    return foundRef ? [foundRef] : [];
-  });
+  const { elem } = srcRef;
+  let fnRefs: FoundRef[] = [];
+  if (elem.kind === "fn") {
+    fnRefs = elemListRefs(elem.calls, srcRef, mod, registry);
+  }
+  const userTypeRefs = elem.typeRefs.filter((ref) => !stdType(ref.name));
+  const tRefs = elemListRefs(userTypeRefs, srcRef, mod, registry);
+  return [...fnRefs, ...tRefs];
 }
 
 const stdTypes = (
@@ -140,35 +128,48 @@ function stdType(name: string): boolean {
   return stdTypes.includes(name);
 }
 
-function fnRefs(
-  elem: FnElem,
+function elemListRefs(
+  children: (CallElem | VarElem | StructElem | TypeRefElem)[],
   srcRef: FoundRef,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): FoundRef[] {
-  return elem.calls.flatMap((callElem) => {
+  return children.flatMap((elem) => {
     const foundRef =
-      importRef(srcRef, callElem.call, mod, registry) ??
-      importingRef(srcRef, callElem, mod, registry) ??
-      localRef(callElem, mod, registry);
+      importRef(srcRef, elem.name, mod, registry) ??
+      importingRef(srcRef, elem.name, mod, registry) ??
+      localRef(elem.name, mod);
+
     if (!foundRef) {
+      if (exportArgRef(srcRef, elem.name)) {
+        return [];
+      }
+
       const src = srcRef.expMod.src;
-      srcErr(src, callElem.start, `reference not found`);
+      srcErr(src, elem.start, `reference not found`);
+      return [];
     }
-    return foundRef ? [foundRef] : [];
+    return [foundRef];
   });
+}
+
+function exportArgRef(srcRef: FoundRef, name: string): boolean | undefined {
+  if (srcRef.kind === "exp") {
+    return !!srcRef.expImpArgs.find(([expArg]) => expArg === name);
+  }
 }
 
 /** If this call element references an #import function
  * @return an ExportRef describing the export to link */
 function importRef(
   fromRef: FoundRef,
-  fnName: string,
+  name: string,
   impMod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
-  const fromImport = impMod.imports.find((imp) => importName(imp) == fnName);
+  const fromImport = impMod.imports.find((imp) => importName(imp) == name);
   const modExp = matchingExport(fromImport, impMod, registry);
+  // dlog({ name, fromImport, modExpModuleName: modExp?.module.name });
   if (!modExp || !fromImport) return;
   const exp = modExp.export as TextExport2;
   const expMod = modExp.module as TextModule2;
@@ -203,14 +204,14 @@ function matchImportExportArgs(
  * @return an ExportRef describing the export to link */
 function importingRef(
   srcRef: FoundRef,
-  callElem: CallElem,
+  name: string,
   impMod: TextModule2,
   registry: ModuleRegistry2
 ): ExportRef | undefined {
   let fromImport: ImportElem | undefined;
   // find a matching 'importing' phrase in an #export
   const textExport = impMod.exports.find((exp) => {
-    fromImport = exp.importing?.find((i) => i.name === callElem.call);
+    fromImport = exp.importing?.find((i) => i.name === name);
     return !!fromImport;
   });
   // find the export for the importing
@@ -294,14 +295,12 @@ function matchingExport(
   return modExp;
 }
 
-function localRef(
-  callElem: CallElem,
-  mod: TextModule2,
-  registry: ModuleRegistry2
-): LocalRef | undefined {
-  const fnElem = mod.fns.find((fn) => fn.name === callElem.call);
-  if (fnElem) {
-    return { kind: "local", expMod: mod, elem: fnElem };
+function localRef(name: string, mod: TextModule2): LocalRef | undefined {
+  const elem =
+    mod.fns.find((fn) => fn.name === name) ??
+    mod.structs.find((s) => s.name === name);
+  if (elem) {
+    return { kind: "local", expMod: mod, elem: elem };
   }
 }
 
