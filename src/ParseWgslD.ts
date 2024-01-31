@@ -97,11 +97,11 @@ export const structMember = seq(
 // prettier-ignore
 export const structDecl = seq(
   "struct",
-  word.named("name"),
-  "{",
+  req(word.named("name")),
+  req("{"),
   withSep(",", structMember).named("members"),
   opt(","),
-  "}"
+  req("}")
 )
   .map((r) => {
     const e = makeElem<StructElem>("struct", r, ["name", "members"]);
