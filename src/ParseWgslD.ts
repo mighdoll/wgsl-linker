@@ -162,7 +162,7 @@ export const fnDecl = seq(
 )
   .map((r) => {
     const e = makeElem<FnElem>("fn", r, ["name", "returnType"]);
-    e.children = r.named.calls || [];
+    e.calls = r.named.calls || [];
     e.typeRefs = r.named.typeRefs?.flat() || [];
     r.app.state.push(e);
   })

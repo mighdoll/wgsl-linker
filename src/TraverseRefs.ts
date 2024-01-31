@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   CallElem,
   ExportElem,
@@ -19,9 +20,9 @@ export type BothRefs = Partial<Omit<LocalRef, "kind">> &
   Pick<LocalRef, "elem" | "expMod">;
 
 export interface LocalRef {
-  kind: "fn";
+  kind: "local";
   expMod: TextModule2;
-  elem: FnElem;
+  elem: FnElem | StructElem;
 }
 
 /** found reference to an exported function or struct */
@@ -64,9 +65,13 @@ export function traverseRefs(
   registry: ModuleRegistry2,
   fn: (ref: FoundRef) => boolean
 ): void {
-  const { fns } = srcModule;
+  const { fns, structs } = srcModule;
   const expMod = srcModule;
-  const refs: FoundRef[] = fns.map((elem) => ({ kind: "fn", expMod, elem }));
+  const refs: FoundRef[] = [...fns, ...structs].map((elem) => ({
+    kind: "local",
+    expMod,
+    elem,
+  }));
   recursiveRefs(refs, srcModule, registry, fn);
 }
 
@@ -84,10 +89,14 @@ export function recursiveRefs(
   const refs = srcRefs.flatMap((srcRef) => {
     // find a reference for each call in each srcRef
     console.log(srcRef.kind);
-    if (srcRef.elem.kind === "fn") {
-      return fnRefs(srcRef.elem, srcRef, mod, registry);
+    const { elem } = srcRef;
+    const found: FoundRef[] = [];
+    if (elem.kind === "fn") {
+      found.push(...fnRefs(elem, srcRef, mod, registry));
+    } else {
+      console.error("unexpected elem kind", elem);
     }
-    return [];
+    return found;
   });
 
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
@@ -99,12 +108,12 @@ export function recursiveRefs(
 }
 
 function fnRefs(
-  fn: FnElem,
+  elem: FnElem,
   srcRef: FoundRef,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): FoundRef[] {
-  return fn.children.flatMap((callElem) => {
+  return elem.calls.flatMap((callElem) => {
     const foundRef =
       importRef(srcRef, callElem.call, mod, registry) ??
       importingRef(srcRef, callElem, mod, registry) ??
@@ -259,7 +268,7 @@ function localRef(
 ): LocalRef | undefined {
   const fnElem = mod.fns.find((fn) => fn.name === callElem.call);
   if (fnElem) {
-    return { kind: "fn", expMod: mod, elem: fnElem };
+    return { kind: "local", expMod: mod, elem: fnElem };
   }
 }
 

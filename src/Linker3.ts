@@ -1,7 +1,7 @@
 import { FnElem, StructElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
-import { BothRefs, FoundRef, recursiveRefs, traverseRefs } from "./TraverseRefs.js";
+import { BothRefs, FoundRef, traverseRefs } from "./TraverseRefs.js";
 import { grouped, multiKeySet, replaceTokens3 } from "./Util.js";
 
 export function linkWgsl3(
@@ -12,7 +12,7 @@ export function linkWgsl3(
   const srcModule = parseModule2(src);
   const refs = findReferences(srcModule, registry);
 
-  const fnDecls = new Set(srcModule.fns.map(f => f.name));
+  const fnDecls = new Set(srcModule.fns.map((f) => f.name));
   const renames = uniquify(refs, fnDecls);
 
   const importedText = extractTexts(refs, renames);
@@ -65,7 +65,7 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
 
   refs.forEach((r) => {
     // name proposed in the importing module (or in the local module for a support fn)
-    const proposedName = r.kind === "fn" ? r.elem.name : r.proposedName;
+    const proposedName = r.kind === "local" ? r.elem.name : r.proposedName;
 
     // name we'll actually use in the linked result
     const linkName = uniquifyName(proposedName);
@@ -75,7 +75,7 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
     if (linkName !== r.elem.name) {
       multiKeySet(renames, r.expMod.name, r.elem.name, linkName);
     }
-    
+
     const ref = r as BothRefs;
     // record rename for this import in the importing module
     if (ref.impMod && linkName !== proposedName) {

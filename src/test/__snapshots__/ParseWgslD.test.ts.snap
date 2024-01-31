@@ -139,7 +139,7 @@ exports[`parse #import foo(a,b) as baz from bar 1`] = `
 exports[`parse @attribute before fn 1`] = `
 [
   {
-    "children": [],
+    "calls": [],
     "end": 31,
     "kind": "fn",
     "name": "main",
@@ -152,7 +152,7 @@ exports[`parse @attribute before fn 1`] = `
 exports[`parse @compute @workgroup_size(a, b, 1) before fn 1`] = `
 [
   {
-    "children": [],
+    "calls": [],
     "end": 61,
     "kind": "fn",
     "name": "main",
@@ -167,7 +167,7 @@ exports[`parse alias 1`] = `[]`;
 exports[`parse and ignore const_assert 1`] = `
 [
   {
-    "children": [],
+    "calls": [],
     "end": 42,
     "kind": "fn",
     "name": "main",
@@ -180,7 +180,7 @@ exports[`parse and ignore const_assert 1`] = `
 exports[`parse and ignore global diagnostic 1`] = `
 [
   {
-    "children": [],
+    "calls": [],
     "end": 61,
     "kind": "fn",
     "name": "main",
@@ -195,7 +195,7 @@ exports[`parse empty string 1`] = `[]`;
 exports[`parse fn foo() { } 1`] = `
 [
   {
-    "children": [],
+    "calls": [],
     "end": 12,
     "kind": "fn",
     "name": "foo",
@@ -208,7 +208,7 @@ exports[`parse fn foo() { } 1`] = `
 exports[`parse fn with calls 1`] = `
 [
   {
-    "children": [
+    "calls": [
       {
         "call": "foo",
         "end": 14,
@@ -234,7 +234,7 @@ exports[`parse fn with calls 1`] = `
 exports[`parse fn with line comment 1`] = `
 [
   {
-    "children": [],
+    "calls": [],
     "end": 39,
     "kind": "fn",
     "name": "binaryOp",
@@ -261,7 +261,7 @@ exports[`parse top level override and const 1`] = `
     "start": 26,
   },
   {
-    "children": [],
+    "calls": [],
     "end": 56,
     "kind": "fn",
     "name": "main",
@@ -288,7 +288,7 @@ exports[`parse top level var 1`] = `
     ],
   },
   {
-    "children": [],
+    "calls": [],
     "end": 76,
     "kind": "fn",
     "name": "main",

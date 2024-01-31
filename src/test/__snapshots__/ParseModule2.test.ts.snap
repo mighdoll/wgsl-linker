@@ -7,7 +7,7 @@ exports[`simple fn export 1`] = `
       "end": 16,
       "kind": "export",
       "ref": {
-        "children": [],
+        "calls": [],
         "end": 59,
         "kind": "fn",
         "name": "one",
@@ -20,7 +20,7 @@ exports[`simple fn export 1`] = `
   ],
   "fns": [
     {
-      "children": [],
+      "calls": [],
       "end": 59,
       "kind": "fn",
       "name": "one",
@@ -37,6 +37,7 @@ exports[`simple fn export 1`] = `
       return 1;
     }
   ",
+  "structs": [],
 }
 `;
 
@@ -45,7 +46,7 @@ exports[`simple fn import 1`] = `
   "exports": [],
   "fns": [
     {
-      "children": [
+      "calls": [
         {
           "call": "foo",
           "end": 38,
@@ -73,5 +74,6 @@ exports[`simple fn import 1`] = `
     // #import foo
     fn bar() { foo(); }
   ",
+  "structs": [],
 }
 `;

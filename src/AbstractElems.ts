@@ -25,9 +25,9 @@ export interface CallElem extends AbstractElemBase {
 export interface FnElem extends AbstractElemBase {
   kind: "fn";
   name: string;
-  children: CallElem[];
-  returnType?: string;
+  calls: CallElem[];
   typeRefs: TypeRefElem[];
+  returnType?: string;
 }
 
 export interface TypeRefElem extends AbstractElemBase {
