@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   ExportElem,
@@ -13,6 +14,7 @@ export interface TextModule2 {
   template?: string;
   exports: TextExport2[];
   fns: FnElem[];
+  structs: StructElem[];
   imports: ImportElem[];
   name: string;
   src: string;
@@ -32,10 +34,11 @@ export function parseModule2(
   const exports = findExports(src, parsed);
   const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
   const imports = parsed.filter((e) => e.kind === "import") as ImportElem[];
+  const structs = parsed.filter((e) => e.kind === "struct") as StructElem[];
   const moduleName = undefined; // TODO parse #module
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
-  return { name, exports, fns, imports, src };
+  return { name, exports, fns, structs, imports, src };
 }
 
 function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
