@@ -26,7 +26,7 @@ export interface FnElem extends AbstractElemBase {
   name: string;
   children: CallElem[];
   returnType?: string;
-  typeRefs?: TypeRefElem[];
+  typeRefs: TypeRefElem[];
 }
 
 export interface TypeRefElem extends AbstractElemBase {
@@ -38,12 +38,12 @@ export interface StructElem extends AbstractElemBase {
   kind: "struct";
   name: string;
   members?: StructMemberElem[];
+  typeRefs: TypeRefElem[];
 }
 
 export interface StructMemberElem extends AbstractElemBase {
   kind: "member";
   name: string;
-  memberType: string;
 }
 
 export interface ExportElem extends AbstractElemBase {

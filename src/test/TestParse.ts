@@ -4,11 +4,12 @@ import { mainTokens } from "../MatchWgslD.js";
 import { logCatch } from "./LogCatcher.js";
 import { OptParserResult, Parser } from "../Parser.js";
 import { _withErrLogger } from "../LinkerUtil.js";
+import { AbstractElem } from "../AbstractElems.js";
 
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;
   position: number;
-  appState: any[];
+  appState: AbstractElem[];
 }
 
 /** utility for testing parsers */

@@ -7,9 +7,16 @@ import {
   TypeRefElem,
 } from "./AbstractElems.js";
 import { resultErr } from "./LinkerUtil.js";
-import { matchingLexer } from "./MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
+import { matchingLexer } from "./MatchingLexer.js";
 import { directive } from "./ParseDirective.js";
+import {
+  comment,
+  makeElem,
+  unknown,
+  word,
+  wordNumArgs,
+} from "./ParseSupport.js";
 import { Parser, ParserInit } from "./Parser.js";
 import {
   anyNot,
@@ -22,18 +29,8 @@ import {
   repeat,
   req,
   seq,
-  text,
   withSep,
 } from "./ParserCombinator.js";
-import {
-  comment,
-  makeElem,
-  unknown,
-  word,
-  wordNum,
-  wordNumArgs,
-} from "./ParseSupport.js";
-import { word as wordRegex } from "./MatchWgslD.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -46,48 +43,13 @@ export interface ParseState {
   params: Record<string, any>; // user provided params to templates, code gen and #if directives
 }
 
+const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
+const possibleTypeRef = Symbol("typeRef");
+
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
   req(anyThrough(";"))
 ).traceName("globalDirectiveOrAssert");
-
-const attributes = repeat(seq(kind(mainTokens.attr), opt(wordNumArgs)));
-
-export const structMember = seq(
-  opt(attributes),
-  word.named("name"),
-  ":",
-  req(word.named("memberType")) // TODO use typeSpecifier here
-)
-  .map((r) => {
-    const e = makeElem<StructMemberElem>("member", r, ["name", "memberType"]);
-    return e;
-  })
-  .traceName("structMember");
-
-export const structDecl = seq(
-  "struct",
-  word.named("name"),
-  "{",
-  withSep(",", structMember).named("members"),
-  opt(","),
-  "}"
-)
-  .map((r) => {
-    const e = makeElem<StructElem>("struct", r, ["name", "members"]);
-    r.app.state.push(e);
-  })
-  .traceName("structDecl");
-
-export const fnCall = seq(
-  word
-    .named("call")
-    .map((r) => makeElem<CallElem>("call", r, ["call"]))
-    .named("calls"), // we collect this in fnDecl, to attach to FnElem
-  "("
-).traceName("fnCall");
-
-const possibleTypeRef = Symbol("typeRef");
 
 /** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
@@ -114,11 +76,46 @@ export const typeSpecifier: Parser<TypeRefElem[]> = seq(
     r.named[possibleTypeRef].map((name) => {
       const e = makeElem<TypeRefElem>("typeRef", r);
       e.name = name;
-      // resultErr(r, "typeSpecifier", name);
       return e;
     })
   )
   .traceName("typeSpecifier");
+
+export const structMember = seq(
+  opt(attributes),
+  word.named("name"),
+  ":",
+  req(typeSpecifier.named("typeRefs"))
+)
+  .map((r) => {
+    const e = makeElem<StructMemberElem>("member", r, ["name"]);
+    return e;
+  })
+  .traceName("structMember");
+
+// prettier-ignore
+export const structDecl = seq(
+  "struct",
+  word.named("name"),
+  "{",
+  withSep(",", structMember).named("members"),
+  opt(","),
+  "}"
+)
+  .map((r) => {
+    const e = makeElem<StructElem>("struct", r, ["name", "members"]);
+    e.typeRefs = r.named.typeRefs.flat(); 
+    r.app.state.push(e);
+  })
+  .traceName("structDecl");
+
+export const fnCall = seq(
+  word
+    .named("call")
+    .map((r) => makeElem<CallElem>("call", r, ["call"]))
+    .named("calls"), // we collect this in fnDecl, to attach to FnElem
+  "("
+).traceName("fnCall");
 
 // prettier-ignore
 const fnParam = seq(

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FnElem } from "../AbstractElems.js";
+import { FnElem, StructElem } from "../AbstractElems.js";
 import {
   fnDecl,
   globalValVarOrAlias,
@@ -103,8 +103,9 @@ test("parse fn with calls", () => {
 test("structDecl parses struct member types", () => {
   const src = "struct Foo { a: f32, b: i32 }";
   const { appState } = testParse(structDecl, src);
-  expect(appState[0].members?.[0].memberType).eq("f32");
-  expect(appState[0].members?.[1].memberType).eq("i32");
+  const { typeRefs } = appState[0] as StructElem;
+  expect(typeRefs[0].name).eq("f32");
+  expect(typeRefs[1].name).eq("i32");
 });
 
 test("parse struct", () => {
@@ -119,20 +120,32 @@ test("parse struct", () => {
           {
             "end": 19,
             "kind": "member",
-            "memberType": "f32",
             "name": "a",
             "start": 13,
           },
           {
             "end": 27,
             "kind": "member",
-            "memberType": "i32",
             "name": "b",
             "start": 21,
           },
         ],
         "name": "Foo",
         "start": 0,
+        "typeRefs": [
+          {
+            "end": 19,
+            "kind": "typeRef",
+            "name": "f32",
+            "start": 16,
+          },
+          {
+            "end": 27,
+            "kind": "typeRef",
+            "name": "i32",
+            "start": 24,
+          },
+        ],
       },
     ]
   `);
@@ -385,7 +398,7 @@ test("fnDecl parses fn with return type", () => {
     fn foo() -> MyType { }
   `;
   const { appState } = testParse(fnDecl, src);
-  expect(appState[0].returnType).eq("MyType");
+  expect((appState[0] as FnElem).returnType).eq("MyType");
 });
 
 test("fnDecl parses :type specifier in fn args", () => {
@@ -393,7 +406,7 @@ test("fnDecl parses :type specifier in fn args", () => {
     fn foo(a: MyType) { }
   `;
   const { appState } = testParse(fnDecl, src);
-  const { typeRefs } = appState[0];
+  const { typeRefs } = appState[0] as FnElem;
   expect(typeRefs[0].name).eq("MyType");
 });
 
@@ -404,7 +417,7 @@ test("fnDecl parses :type specifier in fn block", () => {
     }
   `;
   const { appState } = testParse(fnDecl, src);
-  expect(appState[0].typeRefs[0].name).eq("MyType");
+  expect((appState[0] as FnElem).typeRefs[0].name).eq("MyType");
 });
 
 // test.skip("parse type in <template> in global var", () => { // linking global vars is not yet supported
@@ -420,7 +433,7 @@ test("parse type in <template> in fn args", () => {
     fn foo(a: vec2<MyStruct>) { };`;
 
   const { appState } = testParse(fnDecl, src);
-  const { typeRefs } = appState[0];
+  const { typeRefs } = appState[0] as FnElem;
   expect(typeRefs[0].name).eq("vec2");
   expect(typeRefs[1].name).eq("MyStruct");
 });
@@ -440,4 +453,12 @@ test("parse nested template that ends with >> ", () => {
   const { parsed } = testParse(typeSpecifier, src);
   const typeRefNames = parsed?.value.map((r) => r.name);
   expect(typeRefNames).deep.eq(["vec2", "array", "MyStruct"]);
+});
+
+test("parse struct member with templated type", () => {
+  const src = `struct Foo { a: vec2<array<Bar,4>> }`;
+  const { appState } = testParse(structDecl, src);
+  const typeRefs = (appState[0] as StructElem).typeRefs;
+  const typeRefNames = typeRefs.map((r) => r.name);
+  expect(typeRefNames).deep.eq(["vec2", "array", "Bar"]);
 });
