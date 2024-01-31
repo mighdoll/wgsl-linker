@@ -272,6 +272,36 @@ test("traverse transitive struct refs", () => {
   expect(refs[1].elem.name).toBe("BStruct");
 });
 
+test("traverse #export importing struct to struct", () => {
+  const src = `
+    #import AStruct(MyStruct)
+
+    struct MyStuct {
+      x: u32
+    }
+
+    struct HomeStruct {
+      a:AStruct
+    }
+  `;
+  const module1 = `
+    #export(B) importing BStruct(B)
+    struct AStruct {
+      b: BStruct
+    }
+  `;
+
+  const module2 = `
+    #export(Y) 
+    struct BStruct {
+      Y: Y
+    }
+  `;
+  const refs = traverseTest(src, module1, module2);
+  expect(refs[0].elem.name).toBe("AStruct");
+  expect(refs[1].elem.name).toBe("BStruct");
+});
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
