@@ -104,7 +104,7 @@ export const structDecl = seq(
 )
   .map((r) => {
     const e = makeElem<StructElem>("struct", r, ["name", "members"]);
-    e.typeRefs = r.named.typeRefs.flat(); 
+    e.typeRefs = r.named.typeRefs?.flat() || []; 
     r.app.state.push(e);
   })
   .traceName("structDecl");
@@ -161,9 +161,10 @@ export const fnDecl = seq(
 )
   .traceName("fnDecl")
   .map((r) => {
-    const fn = makeElem<FnElem>("fn", r, ["name", "returnType", "typeRefs"]);
-    fn.children = r.named.calls || [];
-    r.app.state.push(fn);
+    const e = makeElem<FnElem>("fn", r, ["name", "returnType"]);
+    e.children = r.named.calls || [];
+    e.typeRefs = r.named.typeRefs?.flat() || []; 
+    r.app.state.push(e);
   });
 
 export const globalValVarOrAlias = seq(

@@ -13,6 +13,7 @@ exports[`simple fn export 1`] = `
         "name": "one",
         "returnType": "i32",
         "start": 20,
+        "typeRefs": [],
       },
       "start": 8,
     },
@@ -25,6 +26,7 @@ exports[`simple fn export 1`] = `
       "name": "one",
       "returnType": "i32",
       "start": 20,
+      "typeRefs": [],
     },
   ],
   "imports": [],
@@ -55,6 +57,7 @@ exports[`simple fn import 1`] = `
       "kind": "fn",
       "name": "bar",
       "start": 24,
+      "typeRefs": [],
     },
   ],
   "imports": [

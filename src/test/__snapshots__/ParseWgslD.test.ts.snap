@@ -144,6 +144,7 @@ exports[`parse @attribute before fn 1`] = `
     "kind": "fn",
     "name": "main",
     "start": 5,
+    "typeRefs": [],
   },
 ]
 `;
@@ -156,6 +157,7 @@ exports[`parse @compute @workgroup_size(a, b, 1) before fn 1`] = `
     "kind": "fn",
     "name": "main",
     "start": 5,
+    "typeRefs": [],
   },
 ]
 `;
@@ -170,6 +172,7 @@ exports[`parse and ignore const_assert 1`] = `
     "kind": "fn",
     "name": "main",
     "start": 30,
+    "typeRefs": [],
   },
 ]
 `;
@@ -182,6 +185,7 @@ exports[`parse and ignore global diagnostic 1`] = `
     "kind": "fn",
     "name": "main",
     "start": 49,
+    "typeRefs": [],
   },
 ]
 `;
@@ -196,6 +200,7 @@ exports[`parse fn foo() { } 1`] = `
     "kind": "fn",
     "name": "foo",
     "start": 0,
+    "typeRefs": [],
   },
 ]
 `;
@@ -221,6 +226,7 @@ exports[`parse fn with calls 1`] = `
     "kind": "fn",
     "name": "foo",
     "start": 0,
+    "typeRefs": [],
   },
 ]
 `;
@@ -233,21 +239,12 @@ exports[`parse fn with line comment 1`] = `
     "kind": "fn",
     "name": "binaryOp",
     "start": 5,
+    "typeRefs": [],
   },
 ]
 `;
 
 exports[`parse root level ;; 1`] = `[]`;
-
-exports[`parse struct 1`] = `
-[
-  {
-    "end": 30,
-    "kind": "struct",
-    "start": 0,
-  },
-]
-`;
 
 exports[`parse top level override and const 1`] = `
 [
@@ -257,6 +254,7 @@ exports[`parse top level override and const 1`] = `
     "kind": "fn",
     "name": "main",
     "start": 44,
+    "typeRefs": [],
   },
 ]
 `;
@@ -269,6 +267,7 @@ exports[`parse top level var 1`] = `
     "kind": "fn",
     "name": "main",
     "start": 64,
+    "typeRefs": [],
   },
 ]
 `;
