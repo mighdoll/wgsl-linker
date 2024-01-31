@@ -331,7 +331,6 @@ test("#import a struct", () => {
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
   expect(linked).contains("struct AStruct {");
 });
 
@@ -357,27 +356,28 @@ test.skip("#importMerge a struct", () => {
   console.log(linked);
 });
 
-// TODO test importing a struct constructor
-test.skip("import fn with support struct constructor", () => {
+test("import fn with support struct constructor", () => {
   const src = `
-    #import zero
+    #import elemOne 
+
     fn main() {
-      let ze = zero();
+      let ze = elemOne();
     }
   `;
   const module1 = `
     struct Elem {
-      sum: u32;
+      sum: u32
     }
 
     #export 
-    fn zero() -> Elem {
-      return Elem(0u);
+    fn elemOne() -> Elem {
+      return Elem(1u);
     }
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
+  expect(linked).contains("struct Elem {");
+  expect(linked).contains("fn elemOne() ");
 });
 
 // test("import with template replace", () => {
