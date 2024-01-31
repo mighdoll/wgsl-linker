@@ -19,7 +19,7 @@ export interface AbstractElemBase {
 
 export interface CallElem extends AbstractElemBase {
   kind: "call";
-  call: string;
+  name: string;
 }
 
 export interface FnElem extends AbstractElemBase {

@@ -112,8 +112,8 @@ export const structDecl = seq(
 
 export const fnCall = seq(
   word
-    .named("call")
-    .map((r) => makeElem<CallElem>("call", r, ["call"]))
+    .named("name")
+    .map((r) => makeElem<CallElem>("call", r, ["name"]))
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
 ).traceName("fnCall");
@@ -175,11 +175,13 @@ export const globalVar = seq(
   word.named("name"),
   opt(seq(":", req(typeSpecifier.named("typeRefs")))),
   req(anyThrough(";"))
-).map(r => {
-  // resultErr(r, "globalVar");
-  const e = makeElem<VarElem>("var", r, ["name", "typeRefs"]);
-  r.app.state.push(e);
-}).traceName("globalVar");
+)
+  .map((r) => {
+    // resultErr(r, "globalVar");
+    const e = makeElem<VarElem>("var", r, ["name", "typeRefs"]);
+    r.app.state.push(e);
+  })
+  .traceName("globalVar");
 
 export const globalAlias = seq("alias", req(anyThrough(";")));
 

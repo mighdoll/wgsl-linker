@@ -49,9 +49,9 @@ exports[`simple fn import 1`] = `
     {
       "calls": [
         {
-          "call": "foo",
           "end": 38,
           "kind": "call",
+          "name": "foo",
           "start": 35,
         },
       ],

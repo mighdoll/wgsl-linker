@@ -210,15 +210,15 @@ exports[`parse fn with calls 1`] = `
   {
     "calls": [
       {
-        "call": "foo",
         "end": 14,
         "kind": "call",
+        "name": "foo",
         "start": 11,
       },
       {
-        "call": "bar",
         "end": 21,
         "kind": "call",
+        "name": "bar",
         "start": 18,
       },
     ],
