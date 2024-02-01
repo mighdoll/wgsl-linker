@@ -1,5 +1,5 @@
 import { ExportElem, ImportElem } from "./AbstractElems.js";
-import { resultErr, srcErr } from "./LinkerUtil.js";
+import { resultLog, srcLog } from "./LinkerUtil.js";
 import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
 import { ExtendedResult, Parser, ParserContext } from "./Parser.js";
 import {
@@ -137,7 +137,7 @@ function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
 const elseDirective = seq("#else", eolf)
   .toParser((r) => {
     const oldTruth = popIfState(r);
-    if (oldTruth === undefined) resultErr(r, "unmatched #else");
+    if (oldTruth === undefined) resultLog(r, "unmatched #else");
     pushIfState(r, !oldTruth);
     return ifBody(r);
   })
@@ -148,7 +148,7 @@ const notIfDirective = seq(not("#if"), not("#else"), not("#endif"), any());
 const endifDirective = seq("#endif", eolf)
   .map((r) => {
     const oldTruth = popIfState(r);
-    if (oldTruth === undefined) resultErr(r, "unmatched #endif");
+    if (oldTruth === undefined) resultLog(r, "unmatched #endif");
     // else resultErr(r, "#endif");
   })
   .traceName("#endif");

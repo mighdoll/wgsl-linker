@@ -1,4 +1,4 @@
-import { ctxErr, logErr, resultErr } from "./LinkerUtil.js";
+import { ctxLog, logErr, resultLog } from "./LinkerUtil.js";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import {

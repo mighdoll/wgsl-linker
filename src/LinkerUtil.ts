@@ -14,7 +14,7 @@ export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
 }
 
 /** log an error along with the source line and a caret indicating the error position in the line */
-export function srcErr(src: string, pos: number, ...msgs: any[]): void {
+export function srcLog(src: string, pos: number, ...msgs: any[]): void {
   logErr(...msgs);
   const { line, lineNum, linePos } = srcLine(src, pos);
   logErr(line, `(Ln ${lineNum})`);
@@ -22,12 +22,12 @@ export function srcErr(src: string, pos: number, ...msgs: any[]): void {
   logErr(caret);
 }
 
-export function resultErr<T>(result: ExtendedResult<T>, ...msgs:any[]): void {
-  srcErr(result.src, result.start, ...msgs);
+export function resultLog<T>(result: ExtendedResult<T>, ...msgs:any[]): void {
+  srcLog(result.src, result.start, ...msgs);
 }
 
-export function ctxErr(ctx: ParserContext, ...msgs: any[]): void {
-  srcErr(ctx.lexer.src, ctx.lexer.position(), ...msgs);
+export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
+  srcLog(ctx.lexer.src, ctx.lexer.position(), ...msgs);
 }
 
 // map from src strings to line start positions

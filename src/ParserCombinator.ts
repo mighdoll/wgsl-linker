@@ -1,4 +1,4 @@
-import { ctxErr, srcErr } from "./LinkerUtil.js";
+import { ctxLog, srcLog } from "./LinkerUtil.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -291,7 +291,7 @@ export function req<T>(
     const result = parser._run(ctx);
     if (result === null) {
       const m = msg ?? `expected ${parser.debugName}`;
-      srcErr(ctx.lexer.src, ctx.lexer.position(), m);
+      srcLog(ctx.lexer.src, ctx.lexer.position(), m);
       throw new ParseError();
     }
     return result;

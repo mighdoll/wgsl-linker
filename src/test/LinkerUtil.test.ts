@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { _withErrLogger, srcErr, srcLine } from "../LinkerUtil.js";
+import { _withErrLogger, srcLog, srcLine } from "../LinkerUtil.js";
 import { logCatch } from "./LogCatcher.js";
 
 test("srcLine", () => {
@@ -29,7 +29,7 @@ test("srcErr", () => {
 
   const { log, logged } = logCatch();
   _withErrLogger(log, () => {
-    srcErr(src, 5, "uh-oh:");
+    srcLog(src, 5, "uh-oh:");
   });
   expect(logged()).toMatchInlineSnapshot(`
     "uh-oh:
@@ -47,7 +47,7 @@ test("srcLine on longer example", () => {
     `;
   const { log, logged } = logCatch();
   _withErrLogger(log, () => {
-    srcErr(src, 101, "ugh:");
+    srcLog(src, 101, "ugh:");
   });
   expect(logged()).toMatchInlineSnapshot(`
     "ugh:

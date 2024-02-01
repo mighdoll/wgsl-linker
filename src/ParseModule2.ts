@@ -7,7 +7,7 @@ import {
   StructElem,
   VarElem,
 } from "./AbstractElems.js";
-import { srcErr } from "./LinkerUtil.js";
+import { srcLog } from "./LinkerUtil.js";
 import { parseWgslD } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
@@ -54,7 +54,7 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
       } else if (next?.kind === "struct") {
         exports.push({ ...elem, ref: next });
       } else {
-        srcErr(src, elem.start, `#export what? (#export not followed by fn)`);
+        srcLog(src, elem.start, `#export what? (#export not followed by fn)`);
       }
     }
   });

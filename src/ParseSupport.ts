@@ -1,5 +1,5 @@
 import { AbstractElem } from "./AbstractElems.js";
-import { srcErr } from "./LinkerUtil.js";
+import { srcLog } from "./LinkerUtil.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser } from "./Parser.js";
@@ -29,7 +29,7 @@ export const eolf = seq(
 ).tokens(argsTokens).tokenIgnore().traceName("eolf");
 
 export const unknown = any().map((r) => {
-  srcErr(r.src, r.start, `???`, r.value, ` Pos. ${r.start}`);
+  srcLog(r.src, r.start, `???`, r.value, ` Pos. ${r.start}`);
 });
 
 export const skipBlockComment: Parser<any> = seq(

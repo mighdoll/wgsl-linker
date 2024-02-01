@@ -8,7 +8,7 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { srcErr } from "./LinkerUtil.js";
+import { srcLog } from "./LinkerUtil.js";
 import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
@@ -142,7 +142,7 @@ function elemListRefs(
     if (foundRef) return [foundRef];
 
     const src = srcRef.expMod.src;
-    srcErr(src, elem.start, `reference not found`);
+    srcLog(src, elem.start, `reference not found`);
     return [];
   });
 }
@@ -189,8 +189,8 @@ function matchImportExportArgs(
   const impArgs = imp.args ?? [];
   const expArgs = exp.args ?? [];
   if (expArgs.length !== impArgs.length) {
-    srcErr(impMod.src, imp.start, "mismatched import and export params");
-    srcErr(expMod.src, exp.start);
+    srcLog(impMod.src, imp.start, "mismatched import and export params");
+    srcLog(expMod.src, exp.start);
   }
   return expArgs.map((p, i) => [p, impArgs[i]]);
 }
@@ -231,7 +231,7 @@ function importingRef(
   } else {
     const src = srcRef.expMod.src;
     const pos = srcRef.elem.start;
-    srcErr(src, pos, "unexpected srcRef not an export", srcRef.kind);
+    srcLog(src, pos, "unexpected srcRef not an export", srcRef.kind);
   }
 
   return undefined;
@@ -266,7 +266,7 @@ function importingArgs(
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
     if (!pair) {
       const src = srcRef.expMod.src;
-      srcErr(src, imp.start, "importing arg doesn't match export");
+      srcLog(src, imp.start, "importing arg doesn't match export");
       return [];
     }
     const [, impArg] = pair;
@@ -285,7 +285,7 @@ function matchingExport(
 
   const modExp = registry.getModuleExport(imp.name, imp.from);
   if (!modExp) {
-    srcErr(mod.src, imp.start, "export not found for import");
+    srcLog(mod.src, imp.start, "export not found for import");
   }
   return modExp;
 }
