@@ -4,6 +4,7 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
+  ImportMergeElem,
   StructElem,
   TypeRefElem,
   VarElem,
@@ -41,7 +42,7 @@ export interface ExportRef {
   fromRef: FoundRef;
 
   /** import elem that resolved to this export  TODO remove */
-  fromImport: ImportElem;
+  fromImport: ImportElem | ImportMergeElem;
 
   /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
    * name might still be rewritten by global uniqueness remapping */
@@ -113,12 +114,15 @@ function elemRefs(
 ): FoundRef[] {
   const { elem } = srcRef;
   let fnRefs: FoundRef[] = [];
+  let mergeRefs: FoundRef[] = [];
   if (elem.kind === "fn") {
     fnRefs = elemListRefs(srcRef, elem.calls, mod, registry);
+  } else if (elem.kind === "struct") {
+    mergeRefs = importMergeRefs(srcRef, elem, mod, registry);
   }
   const userTypeRefs = elem.typeRefs.filter((ref) => !stdType(ref.name));
   const tRefs = elemListRefs(srcRef, userTypeRefs, mod, registry);
-  return [...fnRefs, ...tRefs];
+  return [...fnRefs, ...tRefs, ...mergeRefs];
 }
 
 /** find fn/struct references from children of a fn or struct elem
@@ -146,6 +150,24 @@ function elemListRefs(
   });
 }
 
+function importMergeRefs(
+  srcRef: FoundRef,
+  elem: StructElem,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+): FoundRef[] {
+  const merges = elem.importMerges;
+  if (!merges) return [];
+  return merges.flatMap((merge) => {
+    const foundRef = importRef(srcRef, merge.name, mod, registry);
+    if (foundRef) return [foundRef];
+
+    const src = srcRef.expMod.src;
+    srcLog(src, merge.start, `import merge reference not found`);
+    return [];
+  });
+}
+
 /** @return true if the ref is to an import parameter */
 function exportArgRef(srcRef: FoundRef, name: string): boolean | undefined {
   if (srcRef.kind === "exp") {
@@ -163,7 +185,6 @@ function importRef(
 ): ExportRef | undefined {
   const fromImport = impMod.imports.find((imp) => importName(imp) == name);
   const modExp = matchingExport(fromImport, impMod, registry);
-  // dlog({ name, fromImport, modExpModuleName: modExp?.module.name });
   if (!modExp || !fromImport) return;
   const exp = modExp.export as TextExport2;
   const expMod = modExp.module as TextModule2;
@@ -181,7 +202,7 @@ function importRef(
 
 function matchImportExportArgs(
   impMod: TextModule2,
-  imp: ImportElem,
+  imp: ImportElem | ImportMergeElem,
   expMod: TextModule2,
   exp: ExportElem
 ): StringPairs {
@@ -276,7 +297,7 @@ function importingArgs(
 function isDefined<T>(a: T | undefined): asserts a is T {}
 
 function matchingExport(
-  imp: ImportElem | undefined,
+  imp: ImportElem | ImportMergeElem | undefined,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): ModuleExport2 | undefined {

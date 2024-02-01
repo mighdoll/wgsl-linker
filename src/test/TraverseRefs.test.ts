@@ -9,6 +9,7 @@ import {
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
 import { _withBaseLogger } from "../ParserTracing.js";
+import { dlog } from "berry-pretty";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -318,6 +319,23 @@ test("traverse ref from struct constructor", () => {
 
   const refs = traverseTest(src, module1);
   expect(refs[0].elem.name).toBe("AStruct");
+});
+
+test("traverse #importMerge", () => {
+  const src = `
+    #importMerge A
+    struct B {
+      x: u32
+    }
+  `
+  const module1 = `
+    #export
+    struct A {
+      z: u32
+    }
+  `;
+  const refs = traverseTest(src, module1);
+  expect(refs[0].elem.name).toBe("A");
 });
 
 /** run traverseRefs with no filtering and return the refs and the error log output */

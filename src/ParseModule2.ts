@@ -18,7 +18,7 @@ export interface TextModule2 {
   fns: FnElem[];
   vars: VarElem[];
   structs: StructElem[];
-  imports: ImportElem[];
+  imports: (ImportElem | ImportMergeElem)[];
   name: string;
   src: string;
 }
@@ -36,7 +36,9 @@ export function parseModule2(
   const parsed = parseWgslD(src);
   const exports = findExports(src, parsed);
   const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
-  const imports = parsed.filter((e) => e.kind === "import") as ImportElem[];
+  const imports = parsed.filter(
+    (e) => e.kind === "import" || e.kind === "importMerge"
+  ) as (ImportElem | ImportMergeElem)[];
   const structs = parsed.filter((e) => e.kind === "struct") as StructElem[];
   const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
   const moduleName = undefined; // TODO parse #module
@@ -71,16 +73,16 @@ function matchMergeImports(src: string, parsed: AbstractElem[]): void {
       : []
   );
   importMerges.forEach(([mergeElem, i]) => {
-      let next: AbstractElem | undefined;
-      do {
-        next = parsed[++i];
-      } while (next?.kind === "importMerge");
-      if (next?.kind === "struct") {
-        next.importMerges = next.importMerges ?? [];
-        next.importMerges.push(mergeElem);
-      } else {
-        srcLog(src, mergeElem.start, `#importMerge not followed by a struct`);
-      }
+    let next: AbstractElem | undefined;
+    do {
+      next = parsed[++i];
+    } while (next?.kind === "importMerge");
+    if (next?.kind === "struct") {
+      next.importMerges = next.importMerges ?? [];
+      next.importMerges.push(mergeElem);
+    } else {
+      srcLog(src, mergeElem.start, `#importMerge not followed by a struct`);
+    }
   });
 
   for (let i = 0; i < parsed.length; i++) {
