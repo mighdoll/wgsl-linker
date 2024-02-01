@@ -41,6 +41,7 @@ export interface StructElem extends AbstractElemBase {
   name: string;
   members?: StructMemberElem[];
   typeRefs: TypeRefElem[];
+  importMerges?: ImportMergeElem[];
 }
 
 export interface StructMemberElem extends AbstractElemBase {

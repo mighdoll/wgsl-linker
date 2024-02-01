@@ -4,6 +4,7 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
+  ImportMergeElem,
   StructElem,
   VarElem,
 } from "./AbstractElems.js";
@@ -39,6 +40,7 @@ export function parseModule2(
   const structs = parsed.filter((e) => e.kind === "struct") as StructElem[];
   const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
   const moduleName = undefined; // TODO parse #module
+  matchMergeImports(src, parsed);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
   return { name, exports, fns, structs, vars, imports, src };
@@ -59,4 +61,31 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
     }
   });
   return exports;
+}
+
+/** fill in importMerges field of structs */
+function matchMergeImports(src: string, parsed: AbstractElem[]): void {
+  const importMerges = parsed.flatMap((elem, i) =>
+    elem.kind === "importMerge"
+      ? ([[elem, i]] as [ImportMergeElem, number][])
+      : []
+  );
+  importMerges.forEach(([mergeElem, i]) => {
+      let next: AbstractElem | undefined;
+      do {
+        next = parsed[++i];
+      } while (next?.kind === "importMerge");
+      if (next?.kind === "struct") {
+        next.importMerges = next.importMerges ?? [];
+        next.importMerges.push(mergeElem);
+      } else {
+        srcLog(src, mergeElem.start, `#importMerge not followed by a struct`);
+      }
+  });
+
+  for (let i = 0; i < parsed.length; i++) {
+    const elem = parsed[i];
+    if (elem.kind === "importMerge") {
+    }
+  }
 }
