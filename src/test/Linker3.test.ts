@@ -409,21 +409,42 @@ test("import a transitive struct", () => {
   expect(linked).contains("struct BStruct {");
 });
 
-test("import as a struct", () => {
+test("'import as' a struct", () => {
   const src = `
     #import AStruct as AA
 
     fn foo (a: AA) { }
-  `
+  `;
 
   const module1 = `
     #export 
     struct AStruct { x: u32 }
-  `
+  `;
 
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  expect(linked).contains("struct AA {")
+  expect(linked).contains("struct AA {");
+});
+
+test("import a struct with imp/exp params", () => {
+  const src = `
+    #import AStruct(i32)
+
+    fn foo () { b = AStruct(1); }
+  `;
+
+  const module1 = `
+    #if typecheck
+    alias elemType = u32
+    #endif
+
+    #export (elemType)
+    struct AStruct { x: elemType }
+  `;
+
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  expect(linked).contains("struct AStruct { x: i32 }");
 });
 
 // test("import with template replace", () => {
