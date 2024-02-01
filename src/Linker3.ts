@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { FnElem, StructElem, VarElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
@@ -10,15 +11,17 @@ export function linkWgsl3(
   extParams: Record<string, any> = {}
 ): string {
   const srcModule = parseModule2(src);
-  const refs = findReferences(srcModule, registry);
+  const srcElems = [srcModule.fns, srcModule.structs, srcModule.vars].flat();
+  const decls = new Set(srcElems.map(e => e.name));
 
-  const fnDecls = new Set(srcModule.fns.map((f) => f.name));
-  const renames = uniquify(refs, fnDecls);
+  const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns 
+  const renames = uniquify(refs, decls);
 
   const importedText = extractTexts(refs, renames);
   return rmImports(srcModule) + "\n\n" + importedText;
 }
 
+/** find references to structs and fns we might import */
 function findReferences(
   srcModule: TextModule2,
   registry: ModuleRegistry2
@@ -51,9 +54,9 @@ type RenameMap = Map<string, Map<string, string>>;
  * The rename map includes entries to rename references in both the exporting module
  * and the importing module.
  *
- * @param fnDecls declarations visible in the linked src so far
+ * @param declaredNames declarations visible in the linked src so far
  */
-function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
+function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
   /** number of conflicting names, used as a unique suffix for deconflicting */
   let conflicts = 0;
 
@@ -69,7 +72,7 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
 
     // name we'll actually use in the linked result
     const linkName = uniquifyName(proposedName);
-    fnDecls.add(linkName);
+    declaredNames.add(linkName);
 
     // record rename for this import in the exporting module
     if (linkName !== r.elem.name) {
@@ -90,9 +93,9 @@ function uniquify(refs: FoundRef[], fnDecls: Set<string>): RenameMap {
     proposedName: string
   ): string {
     let renamed = proposedName;
-    if (fnDecls.has(proposedName)) {
+    if (declaredNames.has(proposedName)) {
       // create a unique name
-      while (fnDecls.has(renamed)) {
+      while (declaredNames.has(renamed)) {
         renamed = renamed + conflicts++;
       }
     }

@@ -447,6 +447,33 @@ test("import a struct with imp/exp params", () => {
   expect(linked).contains("struct AStruct { x: i32 }");
 });
 
+test("import a struct with name conflicting support struct", () => {
+  const src = `
+    #import AStruct
+
+    struct Base {
+      b: i32
+    }
+
+    fn foo() -> AStruct {let a:AStruct; return a;}
+  `;
+  const module1 = `
+    struct Base {
+      x: u32
+    }
+
+    #export
+    struct AStruct {
+      x: Base
+    }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  expect(linked).contains("struct Base {");
+  expect(linked).contains("struct Base0 {");
+  expect(linked).contains("x: Base0");
+});
+
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
