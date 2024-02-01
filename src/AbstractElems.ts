@@ -2,6 +2,7 @@
 
 export type AbstractElem =
   | ImportElem
+  | ImportMergeElem
   | ExportElem
   | FnElem
   | CallElem
@@ -56,6 +57,14 @@ export interface ExportElem extends AbstractElemBase {
 
 export interface ImportElem extends AbstractElemBase {
   kind: "import";
+  name: string;
+  args?: string[];
+  as?: string;
+  from?: string;
+}
+
+export interface ImportMergeElem extends Omit<ImportElem, "kind"> {
+  kind: "importMerge";
   name: string;
   args?: string[];
   as?: string;

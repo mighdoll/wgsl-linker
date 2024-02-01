@@ -1,4 +1,4 @@
-import { ExportElem, ImportElem } from "./AbstractElems.js";
+import { ExportElem, ImportElem, ImportMergeElem } from "./AbstractElems.js";
 import { resultLog, srcLog } from "./LinkerUtil.js";
 import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
 import { ExtendedResult, Parser, ParserContext } from "./Parser.js";
@@ -33,31 +33,39 @@ export const wordArgsLine: Parser<string[]> =
   .map((r) => r.value[1])
   .traceName("wordArgs");
 
-
 /** foo <(A,B)> <as boo> <from bar>  EOL */
-const importPhrase = seq(
-  argsWord.named("name"),
-  opt(wordArgsLine.named("args")),
-  opt(seq("as", argsWord.named("as"))),
-  opt(seq("from", argsWord.named("from")))
-)
-  .map((r) => {
-    // flatten 'args' by putting it with the other extracted names
-    const named: (keyof ImportElem)[] = ["name", "from", "as", "args"];
-    return makeElem<ImportElem>("import", r, named, []);
-  })
-  .traceName("importElem");
+function importPhrase<T extends ImportElem | ImportMergeElem>(
+  kind: T["kind"]
+): Parser<T> {
+  const p = seq(
+    argsWord.named("name"),
+    opt(wordArgsLine.named("args")),
+    opt(seq("as", argsWord.named("as"))),
+    opt(seq("from", argsWord.named("from")))
+  )
+    .map((r) => {
+      // flatten 'args' by putting it with the other extracted names
+      const named: (keyof T)[] = ["name", "from", "as", "args"];
+      return makeElem<T>(kind, r, named, []);
+    })
+    .traceName("importPhrase-" + kind);
+
+  return p;
+}
+
+const importElemPhrase = importPhrase<ImportElem>("import");
+const importMergeElemPhrase = importPhrase<ImportMergeElem>("importMerge");
 
 export const importing = seq(
   "importing",
-  seq(importPhrase.named("importing")),
-  repeat(seq(",", importPhrase.named("importing")))
+  seq(importElemPhrase.named("importing")),
+  repeat(seq(",", importElemPhrase.named("importing")))
 ).traceName("importing");
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  seq(importPhrase.named("i"), eolf).tokens(argsTokens)
+  seq(importElemPhrase.named("i"), eolf).tokens(argsTokens)
 )
   .map((r) => {
     const imp: ImportElem = r.named.i[0];
@@ -65,6 +73,19 @@ const importDirective = seq(
     r.app.state.push(imp);
   })
   .traceName("import");
+
+const importMergeSym = Symbol("importMerge");
+
+export const importMergeDirective = seq(
+  "#importMerge",
+  seq(importMergeElemPhrase.named(importMergeSym), eolf).tokens(argsTokens)
+)
+  .map((r) => {
+    const imp: ImportMergeElem = r.named[importMergeSym][0];
+    imp.start = r.start; // use start of #import, not import phrase
+    r.app.state.push(imp);
+  })
+  .traceName("importMerge");
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 // prettier-ignore
@@ -156,6 +177,7 @@ const endifDirective = seq("#endif", eolf)
 export const directive = or(
   exportDirective,
   importDirective,
+  importMergeDirective,
   ifDirective,
   elseDirective,
   endifDirective

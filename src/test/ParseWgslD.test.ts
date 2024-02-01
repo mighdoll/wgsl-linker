@@ -23,6 +23,7 @@ import {
 import { or, repeat } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
+import { dlog } from "berry-pretty";
 enableTracing();
 
 test("parse empty string", () => {
@@ -460,4 +461,23 @@ test("parse type in <template> in global var", () => {
   const typeRefs = (appState[0] as VarElem).typeRefs;
   expect(typeRefs[0].name).eq("vec2");
   expect(typeRefs[1].name).eq("MyStruct");
+});
+
+test("parse #importMerge", () => {
+  const src = `#importMerge Foo(a,b) as Bar from baz`;
+  const appState = parseWgslD(src);
+  expect(appState[0]).toMatchInlineSnapshot(`
+    {
+      "args": [
+        "a",
+        "b",
+      ],
+      "as": "Bar",
+      "end": 37,
+      "from": "baz",
+      "kind": "importMerge",
+      "name": "Foo",
+      "start": 0,
+    }
+  `);
 });
