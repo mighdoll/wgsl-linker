@@ -1,6 +1,4 @@
-import { dlog } from "berry-pretty";
 import { expect, test } from "vitest";
-import { _withErrLogger } from "../LinkerUtil.js";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule2 } from "../ParseModule2.js";
 import {
@@ -10,6 +8,7 @@ import {
   traverseRefs,
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -327,7 +326,7 @@ function traverseWithLog(
   ...modules: string[]
 ): { refs: FoundRef[]; log: string } {
   const { log, logged } = logCatch();
-  const refs = _withErrLogger(log, () => traverseTest(src, ...modules));
+  const refs = _withBaseLogger(log, () => traverseTest(src, ...modules));
 
   return { refs, log: logged() };
 }

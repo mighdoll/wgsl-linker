@@ -1,6 +1,7 @@
 import { test, expect } from "vitest";
-import { _withErrLogger, srcLog, srcLine } from "../LinkerUtil.js";
+import { srcLog, srcLine } from "../LinkerUtil.js";
 import { logCatch } from "./LogCatcher.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 
 test("srcLine", () => {
   const src1 = "1";
@@ -28,7 +29,7 @@ test("srcErr", () => {
   const src = `a\n12345\nb`;
 
   const { log, logged } = logCatch();
-  _withErrLogger(log, () => {
+  _withBaseLogger(log, () => {
     srcLog(src, 5, "uh-oh:");
   });
   expect(logged()).toMatchInlineSnapshot(`
@@ -46,7 +47,7 @@ test("srcLine on longer example", () => {
     fn support(d:D) { bar(d); }
     `;
   const { log, logged } = logCatch();
-  _withErrLogger(log, () => {
+  _withBaseLogger(log, () => {
     srcLog(src, 101, "ugh:");
   });
   expect(logged()).toMatchInlineSnapshot(`

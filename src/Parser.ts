@@ -1,4 +1,3 @@
-import { ctxLog, logErr, resultLog } from "./LinkerUtil.js";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import {
@@ -390,7 +389,7 @@ function disablePreParse<T>(
     const preps = ctx._preParse;
     const foundDex = preps.findIndex((p) => p === pre);
     if (foundDex < 0) {
-      logErr("disablePreParse: pre parser to disable not found");
+      logger("disablePreParse: pre parser to disable not found");
     }
     const newPreparse = [
       ...preps.slice(0, foundDex),

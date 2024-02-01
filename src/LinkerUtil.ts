@@ -1,25 +1,14 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
+import { logger } from "./ParserTracing.js";
 
-export let logErr = console.log;
-
-/** use temporary logger for tests */
-export function _withErrLogger<T>(logFn: typeof console.error, fn: () => T): T {
-  const orig = logErr;
-  try {
-    logErr = logFn;
-    return fn();
-  } finally {
-    logErr = orig;
-  }
-}
 
 /** log an error along with the source line and a caret indicating the error position in the line */
 export function srcLog(src: string, pos: number, ...msgs: any[]): void {
-  logErr(...msgs);
+  logger(...msgs);
   const { line, lineNum, linePos } = srcLine(src, pos);
-  logErr(line, `(Ln ${lineNum})`);
+  logger(line, `(Ln ${lineNum})`);
   const caret = " ".repeat(linePos) + "^";
-  logErr(caret);
+  logger(caret);
 }
 
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs:any[]): void {

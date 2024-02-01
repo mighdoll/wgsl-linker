@@ -9,7 +9,6 @@ import {
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
-import { _withErrLogger } from "../LinkerUtil.js";
 import {
   directive,
   importing,
@@ -22,7 +21,7 @@ import {
   wordNumArgs,
 } from "../ParseSupport.js";
 import { or, repeat } from "../ParserCombinator.js";
-import { enableTracing } from "../ParserTracing.js";
+import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 enableTracing();
 
@@ -370,7 +369,7 @@ test("skipBlockComment parses nested comment", () => {
 test("unexpected token", () => {
   const p = repeat(or("a", unknown));
   const { log, logged } = logCatch();
-  _withErrLogger(log, () => testParse(p, "a b"));
+  _withBaseLogger(log, () => testParse(p, "a b"));
   expect(logged()).toMatchInlineSnapshot(`
     "??? [object Object]  Pos. 2
     a b (Ln 1)
@@ -383,7 +382,7 @@ test("#export w/o closing paren", () => {
     )
     `;
   const { log, logged } = logCatch();
-  _withErrLogger(log, () => parseWgslD(src));
+  _withBaseLogger(log, () => parseWgslD(src));
   expect(logged()).toMatchInlineSnapshot(`
     "expected text ')''
     #export foo(A (Ln 1)

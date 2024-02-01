@@ -3,8 +3,8 @@ import { matchingLexer } from "../MatchingLexer.js";
 import { mainTokens } from "../MatchWgslD.js";
 import { logCatch } from "./LogCatcher.js";
 import { OptParserResult, Parser } from "../Parser.js";
-import { _withErrLogger } from "../LinkerUtil.js";
 import { AbstractElem } from "../AbstractElems.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;
@@ -30,7 +30,7 @@ export function testParse<T>(
 /** run a test function and expect that no error logs are produced */
 export function expectNoLogErr<T>(fn: () => T): T {
   const { log, logged } = logCatch();
-  const result = _withErrLogger(log, fn);
+  const result = _withBaseLogger(log, fn);
   expect(logged()).eq("");
   return result;
 }

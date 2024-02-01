@@ -18,7 +18,6 @@ import {
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
-import { _withErrLogger } from "../LinkerUtil.js";
 
 const m = mainTokens;
 
@@ -231,7 +230,7 @@ test("req logs a message on failure", () => {
   const p = seq("a", req("b"));
   const { log, logged } = logCatch();
 
-  _withErrLogger(log, () => {
+  _withBaseLogger(log, () => {
     testParse(p, src);
   });
   expect(logged()).toMatchInlineSnapshot(`
