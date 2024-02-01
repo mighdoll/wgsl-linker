@@ -380,6 +380,35 @@ test("import fn with support struct constructor", () => {
   expect(linked).contains("fn elemOne() ");
 });
 
+test("import a transitive struct", () => {
+  const src = `
+    #import AStruct 
+
+    struct SrcStruct {
+      a: AStruct,
+    }
+  `;
+  const module1 = `
+    #import BStruct
+
+    #export
+    struct AStruct {
+      s: BStruct,
+    }
+  `;
+  const module2 = `
+    #export
+    struct BStruct {
+      x: u32,
+    }
+  `;
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl3(src, registry);
+  expect(linked).contains("struct SrcStruct {");
+  expect(linked).contains("struct AStruct {");
+  expect(linked).contains("struct BStruct {");
+});
+
 // test("import with template replace", () => {
 //   const myModule = `
 //     #template replacer
