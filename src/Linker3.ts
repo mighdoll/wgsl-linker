@@ -12,12 +12,11 @@ export function linkWgsl3(
 ): string {
   const srcModule = parseModule2(src);
   const srcElems = [srcModule.fns, srcModule.structs, srcModule.vars].flat();
-  const decls = new Set(srcElems.map(e => e.name));
+  const decls = new Set(srcElems.map((e) => e.name));
 
-  const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns 
-  const renames = uniquify(refs, decls);
-
-  const importedText = extractTexts(refs, renames);
+  const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
+  const renames = uniquify(refs, decls); // construct rename map to make struct and fn names unique at the top level
+  const importedText = extractTexts(refs, renames); // extract export texts, rewriting via rename map and exp/imp args
   return rmImports(srcModule) + "\n\n" + importedText;
 }
 
