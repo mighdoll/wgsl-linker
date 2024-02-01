@@ -84,7 +84,9 @@ export function traverseRefs(
  *  fn -> calls -> (local fn or import+export+fn)
  *  fn -> typeRefs -> (local struct or import+export+struct)
  *  struct -> typeRefs -> (local struct or import+export+struct)
+ *  struct -> importMerge -> (local struct or import+export+struct)
  *  var -> typeRefs -> (local struct or import+export+struct)
+ *
  */
 export function recursiveRefs(
   srcRefs: FoundRef[],
@@ -93,14 +95,11 @@ export function recursiveRefs(
   fn: (ref: FoundRef) => boolean
 ): void {
   if (!srcRefs.length) return;
-  const refs = srcRefs.flatMap((srcRef) => {
-    // find a reference for each call in each srcRef
-    return elemRefs(srcRef, mod, registry);
-  });
+  const refs = srcRefs.flatMap((srcRef) => elemRefs(srcRef, mod, registry));
 
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
-  const results = refs.filter((r) => fn(r));
-  const modGroups = groupBy(results, (r) => r.expMod);
+  const filtered = refs.filter((r) => fn(r));
+  const modGroups = groupBy(filtered, (r) => r.expMod);
   [...modGroups.entries()].forEach(([m, refs]) => {
     recursiveRefs(refs, m, registry, fn);
   });
