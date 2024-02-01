@@ -334,7 +334,8 @@ test("#import a struct", () => {
   expect(linked).contains("struct AStruct {");
 });
 
-test.skip("#importMerge a struct", () => {
+// TODO
+test.only("#importMerge a struct", () => {
   const src = `
     #importMerge AStruct 
     struct MyStruct {

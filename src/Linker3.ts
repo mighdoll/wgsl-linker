@@ -1,8 +1,8 @@
 import { dlog } from "berry-pretty";
-import { FnElem, StructElem, VarElem } from "./AbstractElems.js";
+import { AbstractElem, FnElem, StructElem, VarElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
-import { BothRefs, FoundRef, traverseRefs } from "./TraverseRefs.js";
+import { BothRefs, ExportRef, FoundRef, traverseRefs } from "./TraverseRefs.js";
 import { grouped, multiKeySet, replaceTokens3 } from "./Util.js";
 
 export function linkWgsl3(
@@ -16,8 +16,27 @@ export function linkWgsl3(
 
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
   const renames = uniquify(refs, decls); // construct rename map to make struct and fn names unique at the top level
-  const importedText = extractTexts(refs, renames); // extract export texts, rewriting via rename map and exp/imp args
-  return rmImports(srcModule) + "\n\n" + importedText;
+
+  // split import refs until merge and non-merge
+  const nonMergeRefs: FoundRef[] = [];
+  const mergeRefs: FoundRef[] = [];
+  refs.forEach((r) => {
+    if (r.kind === "exp" && r.fromImport.kind === "importMerge") {
+      mergeRefs.push(r);
+    } else {
+      nonMergeRefs.push(r);
+    }
+  });
+
+  // extract export texts, rewriting via rename map and exp/imp args
+  const importedText = extractTexts(nonMergeRefs, renames);
+
+  const {mergedText, origElems}= mergeTexts(mergeRefs, renames);
+
+  // TODO slice out origElems too
+  // TODO consider what about slicing out of merged structs in modules?
+
+  return rmImports(srcModule) + "\n\n" + mergedText + "\n\n" + importedText;
 }
 
 /** find references to structs and fns we might import */
@@ -113,6 +132,36 @@ function extractTexts(refs: FoundRef[], renames: RenameMap): string {
     .join("\n\n");
 }
 
+interface MergedText {
+  mergedText: string;
+  origElems: AbstractElem[];
+}
+
+/** re-issue importMerge structs with members inserted from imported struct */
+function mergeTexts(refs: FoundRef[], renames: RenameMap): MergedText {
+  const origElems:AbstractElem[] = [];
+  const newStructs = refs.map((r) => {
+    const ref = r as ExportRef;
+    const newElem = r.elem as StructElem;
+    const rootElem = ref.fromRef.elem as StructElem;
+    origElems.push(rootElem);
+
+    const newMembers = newElem.members?.map((m) =>
+      loadFnOrStructText(m, r.expMod, renames)
+    );
+    const rootMembers = rootElem.members?.map((m) =>
+      loadFnOrStructText(m, ref.fromRef.expMod, renames)
+    );
+    const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
+    const membersText = allMembers.join(",\n");
+    return `struct ${rootElem.name} {\n${membersText}\n}`;
+  });
+  return {
+    mergedText: newStructs.join("\n\n"),
+    origElems
+  }
+}
+
 /** edit src to remove #import statements for clarity and also because #import
  * statements not in comments will likely cause errors in webgpu webgl parsing */
 function rmImports(srcModule: TextModule2): string {
@@ -146,11 +195,11 @@ function loadModuleSlice(
  * optionally replace fn/struct name with 'import as' name
  */
 function loadFnOrStructText(
-  fn: FnElem | StructElem | VarElem,
+  elem: AbstractElem,
   mod: TextModule2,
   renames: RenameMap,
   replaces: [string, string][] = []
 ): string {
-  const { start, end } = fn;
+  const { start, end } = elem;
   return loadModuleSlice(mod, start, end, renames, replaces);
 }
