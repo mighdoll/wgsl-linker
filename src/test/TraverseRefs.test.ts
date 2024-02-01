@@ -327,7 +327,7 @@ test("traverse #importMerge", () => {
     struct B {
       x: u32
     }
-  `
+  `;
   const module1 = `
     #export
     struct A {
@@ -352,7 +352,7 @@ test("traverse with local support struct", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  const refNames = refs.map(r=>r.elem.name);
+  const refNames = refs.map((r) => r.elem.name);
   expect(refNames).deep.eq(["A"]);
 });
 
