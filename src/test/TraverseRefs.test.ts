@@ -338,6 +338,24 @@ test("traverse #importMerge", () => {
   expect(refs[0].elem.name).toBe("A");
 });
 
+test("traverse with local support struct", () => {
+  const src = `
+    #import A
+
+    fn b() { var a: A; var b: B; }
+
+    struct B { x: u32 }
+  `;
+  const module1 = `
+    #export
+    struct A { y: i32 }
+  `;
+
+  const refs = traverseTest(src, module1);
+  const refNames = refs.map(r=>r.elem.name);
+  expect(refNames).deep.eq(["A"]);
+});
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,

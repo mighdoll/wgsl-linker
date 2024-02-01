@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   CallElem,
   ExportElem,
@@ -72,37 +71,41 @@ export function traverseRefs(
 ): void {
   const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
-  const refs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
+  const srcRefs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
     kind: "local",
     expMod,
     elem,
   }));
-  recursiveRefs(refs, srcModule, registry, fn);
+  if (!srcRefs.length) return;
+
+  // recurse on the external refs from the src root elements
+  const childRefs = srcRefs.flatMap((srcRef) =>
+    elemRefs(srcRef, srcModule, registry).filter((r) => r.kind === "exp")
+  );
+  recursiveRefs(childRefs, registry, fn);
 }
 
 /*
- * traversal of the wgsl src reference graph:
+ * traversal of the wgsl src reference graph as follows:
  *  fn -> calls -> (local fn or import+export+fn)
  *  fn -> typeRefs -> (local struct or import+export+struct)
  *  struct -> typeRefs -> (local struct or import+export+struct)
  *  struct -> importMerge -> (local struct or import+export+struct)
  *  var -> typeRefs -> (local struct or import+export+struct)
- *
  */
-export function recursiveRefs(
-  srcRefs: FoundRef[],
-  mod: TextModule2,
+function recursiveRefs(
+  refs: FoundRef[],
   registry: ModuleRegistry2,
   fn: (ref: FoundRef) => boolean
 ): void {
-  if (!srcRefs.length) return;
-  const refs = srcRefs.flatMap((srcRef) => elemRefs(srcRef, mod, registry));
-
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
   const filtered = refs.filter((r) => fn(r));
   const modGroups = groupBy(filtered, (r) => r.expMod);
-  [...modGroups.entries()].forEach(([m, refs]) => {
-    recursiveRefs(refs, m, registry, fn);
+  [...modGroups.entries()].forEach(([mod, refs]) => {
+    if (refs.length) {
+      const childRefs = refs.flatMap((r) => elemRefs(r, mod, registry));
+      recursiveRefs(childRefs, registry, fn);
+    }
   });
 }
 
