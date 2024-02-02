@@ -334,7 +334,7 @@ test("#import a struct", () => {
   expect(linked).contains("struct AStruct {");
 });
 
-test("#importMerge a struct", () => {
+test("#importMerge a struct in the root src", () => {
   const src = `
     #importMerge AStruct 
     struct MyStruct {
@@ -356,6 +356,65 @@ test("#importMerge a struct", () => {
   expect(linked.match(/struct MyStruct {/g)).toHaveLength(1);
   expect(linked).toContain(`struct MyStruct {\n  x: u32,\n  y: u32\n}`);
 });
+
+test("#importMerge a struct in a module", () => {
+  const src = `
+    #import AStruct
+    fn main() {
+      let a: AStruct; 
+    }
+  `;
+  const module1 = `
+    #export
+    #importMerge BStruct
+    struct AStruct {
+      x: i32,
+    }
+  `;
+  const module2 = `
+    #export 
+    struct BStruct {
+      z: u32
+    }
+  `;
+
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl3(src, registry);
+  expect(linked.match(/struct AStruct/g)).toHaveLength(1);
+  expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
+});
+
+test.skip("#importMerge struct with imp/exp param", () => {
+  const src = `
+    #import AStruct(i32)
+    fn main() {
+      let a: AStruct; 
+    }
+  `;
+  const module1 = `
+    #export(X)
+    #importMerge BStruct
+    struct AStruct {
+      x: X,
+    }
+  `;
+  const module2 = `
+    #export 
+    struct BStruct {
+      z: u32
+    }
+  `;
+
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl3(src, registry);
+  console.log(linked);
+  expect(linked.match(/struct AStruct/g)).toHaveLength(1);
+  // expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
+});
+
+// TODO
+test.skip("two #importMerges on the same struct", () => {});
+test.skip("#importMerges with as renaming", () => {});
 
 test("import fn with support struct constructor", () => {
   const src = `

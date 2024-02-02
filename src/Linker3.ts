@@ -3,7 +3,7 @@ import { AbstractElem, FnElem, StructElem, VarElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 import { BothRefs, ExportRef, FoundRef, traverseRefs } from "./TraverseRefs.js";
-import { grouped, multiKeySet, replaceTokens3 } from "./Util.js";
+import { grouped, multiKeySet, partition, replaceTokens3 } from "./Util.js";
 
 export function linkWgsl3(
   src: string,
@@ -17,27 +17,20 @@ export function linkWgsl3(
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
   const renames = uniquify(refs, decls); // construct rename map to make struct and fn names unique at the top level
 
-  // split import refs until merge and non-merge
-  const nonMergeRefs: FoundRef[] = [];
-  const mergeRefs: FoundRef[] = [];
-  refs.forEach((r) => {
-    if (r.kind === "exp" && r.fromImport.kind === "importMerge") {
-      mergeRefs.push(r);
-    } else {
-      nonMergeRefs.push(r);
-    }
-  });
+  const { mergeRefs, loadRefs } = prepMergeRefs(refs);
+  const rootMergeRefs = mergeRefs.filter(
+    (r) => r.kind === "exp" && r.impMod === srcModule
+  );
 
   // extract export texts, rewriting via rename map and exp/imp args
-  const importedText = extractTexts(nonMergeRefs, renames);
+  const importedText = extractTexts(loadRefs, renames);
 
-  // construct merge texts for #importMerge 
-  const { mergedText, origElems } = mergeTexts(mergeRefs, renames);
+  // construct merge texts for #importMerge
+  const { mergedText, origElems } = mergeTexts(rootMergeRefs, renames);
 
   /* edit src to remove: 
-      . #import statements for clarity and because #import
-        statements not in comments will likely cause errors in wgsl parsing 
-      . the original structs that for which we've created new merged structs
+      . #import statements to not cause errors in wgsl parsing 
+      . original structs for which we've created new merged structs
   */
   const slicedSrc = rmElems(src, [...origElems, ...srcModule.imports]);
 
@@ -54,10 +47,7 @@ function findReferences(
   traverseRefs(srcModule, registry, handleRef);
 
   function handleRef(ref: FoundRef): boolean {
-    const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
-    const impArgs = expImpArgs.map(([_, arg]) => arg);
-    const argsStr = "(" + impArgs.join(",") + ")";
-    const fullName = ref.expMod.name + "." + ref.elem.name + argsStr;
+    const fullName = refFullName(ref);
 
     if (visited.has(fullName)) return false;
 
@@ -66,6 +56,13 @@ function findReferences(
     return true;
   }
   return found;
+}
+
+function refFullName(ref: FoundRef): string {
+  const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
+  const impArgs = expImpArgs.map(([_, arg]) => arg);
+  const argsStr = "(" + impArgs.join(",") + ")";
+  return ref.expMod.name + "." + ref.elem.name + argsStr;
 }
 
 type RenameMap = Map<string, Map<string, string>>;
@@ -127,10 +124,47 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
   }
 }
 
+interface MergeAndNonMerge {
+  mergeRefs: FoundRef[];
+  loadRefs: FoundRef[];
+}
+
+function prepMergeRefs(refs: FoundRef[]): MergeAndNonMerge {
+  const [e, localRefs] = partition(refs, (r) => r.kind === "exp");
+  const exportRefs = e as ExportRef[];
+  const [m, n] = partition(
+    exportRefs,
+    (r) => r.fromImport.kind === "importMerge"
+  );
+  const mergeRefs = m as ExportRef[];
+  const nonMergeRefs = n as ExportRef[];
+
+  // map from the full name of a struct annotated with #importMerge to the merge refs
+  const mergeElems = new Map<string, ExportRef[]>();
+  mergeRefs.forEach((r) => {
+    const fullName = refFullName(r.fromRef);
+    const merges = mergeElems.get(fullName) || [];
+    merges.push(r);
+    mergeElems.set(fullName, merges);
+  });
+
+  nonMergeRefs.forEach((r) => {
+    const fullName = refFullName(r);
+    const merges = mergeElems.get(fullName) || [];
+    r.mergeRefs = merges;
+  });
+
+  const loadRefs = [...localRefs, ...nonMergeRefs];
+
+  return { mergeRefs, loadRefs };
+}
+
 function extractTexts(refs: FoundRef[], renames: RenameMap): string {
   return refs
     .map((r) => {
-      // console.log("extracting:", r.fn.name);
+      if (r.kind === "exp" && r.elem.kind === "struct") {
+        return loadStruct(r, renames);
+      }
       const replaces = r.kind === "exp" ? r.expImpArgs : [];
       return loadElemText(r.elem, r.expMod, renames, replaces);
     })
@@ -142,7 +176,30 @@ interface MergedText {
   origElems: AbstractElem[];
 }
 
-/** re-issue importMerge structs with members inserted from imported struct */
+function loadStruct(r: ExportRef, renames: RenameMap): string {
+  const replaces = r.kind === "exp" ? r.expImpArgs : [];
+  if (!r.mergeRefs || !r.mergeRefs.length ) return loadElemText(r.elem, r.expMod, renames, replaces);
+
+  const structElem = r.elem as StructElem;
+
+  const rootMembers = structElem.members?.map((m) =>
+    loadElemText(m, r.expMod, renames, r.expImpArgs)
+  );
+
+  const newMembers = r.mergeRefs?.flatMap((merge) => {
+    // TODO recursively load struct members if merge.elem also has #importMerges
+    const mergeStruct = merge.elem as StructElem;
+    return mergeStruct.members?.map((member) =>
+      loadElemText(member, merge.expMod, renames, merge.expImpArgs)
+    );
+  });
+
+  const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
+  const membersText = allMembers.join(",\n");
+  return `struct ${r.elem.name} {\n${membersText}\n}`;
+}
+
+/** re-write importMerge'd structs with members inserted from imported struct */
 function mergeTexts(refs: FoundRef[], renames: RenameMap): MergedText {
   const origElems: AbstractElem[] = [];
   const newStructs = refs.map((r) => {
@@ -177,10 +234,9 @@ function rmElems(src: String, elems: AbstractElem[]): string {
   return edits.map(([start, end]) => src.slice(start, end)).join("\n");
 }
 
-/** extract a the text for an element a module,
+/** extract the text for an element a module,
  * optionally replace export params with corresponding import arguments
  * optionally replace fn/struct name with 'import as' name
- * TODO apply importMerges here too?
  */
 function loadElemText(
   elem: AbstractElem,

@@ -53,6 +53,8 @@ export interface ExportRef {
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
+
+  mergeRefs?: ExportRef[];
 }
 
 /**
@@ -119,19 +121,19 @@ function elemRefs(
   let fnRefs: FoundRef[] = [];
   let mergeRefs: FoundRef[] = [];
   if (elem.kind === "fn") {
-    fnRefs = elemListRefs(srcRef, elem.calls, mod, registry);
+    fnRefs = elemChildrenRefs(srcRef, elem.calls, mod, registry);
   } else if (elem.kind === "struct") {
     mergeRefs = importMergeRefs(srcRef, elem, mod, registry);
   }
   const userTypeRefs = elem.typeRefs.filter((ref) => !stdType(ref.name));
-  const tRefs = elemListRefs(srcRef, userTypeRefs, mod, registry);
+  const tRefs = elemChildrenRefs(srcRef, userTypeRefs, mod, registry);
   return [...fnRefs, ...tRefs, ...mergeRefs];
 }
 
 /** find fn/struct references from children of a fn or struct elem
  * (children being call references and type references from the fn or struct)
  */
-function elemListRefs(
+function elemChildrenRefs(
   srcRef: FoundRef,
   children: (CallElem | VarElem | StructElem | TypeRefElem)[],
   mod: TextModule2,
@@ -153,6 +155,7 @@ function elemListRefs(
   });
 }
 
+// TODO coalesce merges for the same element
 function importMergeRefs(
   srcRef: FoundRef,
   elem: StructElem,
