@@ -384,6 +384,41 @@ test("#importMerge a struct in a module", () => {
   expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
 
+test("two #importMerges on the same struct", () => {
+  const src = `
+    #import AStruct
+    fn main() {
+      let a: AStruct; 
+    }
+  `;
+  const module1 = `
+    #export
+    #importMerge BStruct
+    #importMerge CStruct
+    struct AStruct {
+      x: i32,
+    }
+  `;
+  const module2 = `
+    #export 
+    struct BStruct {
+      z: u32
+    }
+  `;
+  const module3 = `
+    #export 
+    struct CStruct {
+      d: f32 
+    }
+  `;
+
+
+  const registry = new ModuleRegistry2(module1, module2, module3);
+  const linked = linkWgsl3(src, registry);
+  expect(linked.match(/struct AStruct/g)).toHaveLength(1);
+  expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32,\n  d: f32\n}`);
+});
+
 test.skip("#importMerge struct with imp/exp param", () => {
   const src = `
     #import AStruct(i32)
@@ -413,7 +448,6 @@ test.skip("#importMerge struct with imp/exp param", () => {
 });
 
 // TODO
-test.skip("two #importMerges on the same struct", () => {});
 test.skip("#importMerges with as renaming", () => {});
 
 test("import fn with support struct constructor", () => {
