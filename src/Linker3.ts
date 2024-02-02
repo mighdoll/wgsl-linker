@@ -31,12 +31,17 @@ export function linkWgsl3(
   // extract export texts, rewriting via rename map and exp/imp args
   const importedText = extractTexts(nonMergeRefs, renames);
 
-  const {mergedText, origElems}= mergeTexts(mergeRefs, renames);
+  // construct merge texts for #importMerge 
+  const { mergedText, origElems } = mergeTexts(mergeRefs, renames);
 
-  // TODO slice out origElems too
-  // TODO consider what about slicing out of merged structs in modules?
+  /* edit src to remove: 
+      . #import statements for clarity and because #import
+        statements not in comments will likely cause errors in wgsl parsing 
+      . the original structs that for which we've created new merged structs
+  */
+  const slicedSrc = rmElems(src, [...origElems, ...srcModule.imports]);
 
-  return rmImports(srcModule) + "\n\n" + mergedText + "\n\n" + importedText;
+  return [slicedSrc, mergedText, importedText].join("\n\n");
 }
 
 /** find references to structs and fns we might import */
@@ -127,7 +132,7 @@ function extractTexts(refs: FoundRef[], renames: RenameMap): string {
     .map((r) => {
       // console.log("extracting:", r.fn.name);
       const replaces = r.kind === "exp" ? r.expImpArgs : [];
-      return loadFnOrStructText(r.elem, r.expMod, renames, replaces);
+      return loadElemText(r.elem, r.expMod, renames, replaces);
     })
     .join("\n\n");
 }
@@ -139,7 +144,7 @@ interface MergedText {
 
 /** re-issue importMerge structs with members inserted from imported struct */
 function mergeTexts(refs: FoundRef[], renames: RenameMap): MergedText {
-  const origElems:AbstractElem[] = [];
+  const origElems: AbstractElem[] = [];
   const newStructs = refs.map((r) => {
     const ref = r as ExportRef;
     const newElem = r.elem as StructElem;
@@ -147,10 +152,10 @@ function mergeTexts(refs: FoundRef[], renames: RenameMap): MergedText {
     origElems.push(rootElem);
 
     const newMembers = newElem.members?.map((m) =>
-      loadFnOrStructText(m, r.expMod, renames)
+      loadElemText(m, r.expMod, renames)
     );
     const rootMembers = rootElem.members?.map((m) =>
-      loadFnOrStructText(m, ref.fromRef.expMod, renames)
+      loadElemText(m, ref.fromRef.expMod, renames)
     );
     const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
     const membersText = allMembers.join(",\n");
@@ -158,18 +163,33 @@ function mergeTexts(refs: FoundRef[], renames: RenameMap): MergedText {
   });
   return {
     mergedText: newStructs.join("\n\n"),
-    origElems
-  }
+    origElems,
+  };
 }
 
-/** edit src to remove #import statements for clarity and also because #import
- * statements not in comments will likely cause errors in webgpu webgl parsing */
-function rmImports(srcModule: TextModule2): string {
-  const src = srcModule.src;
-  const startEnds = srcModule.imports.flatMap((imp) => [imp.start, imp.end]);
+function rmElems(src: String, elems: AbstractElem[]): string {
+  const startEnds = [...elems]
+    .sort((a, b) => a.start - b.start)
+    .flatMap((e) => [e.start, e.end]);
+
   const slicePoints = [0, ...startEnds, src.length];
   const edits = grouped(slicePoints, 2);
   return edits.map(([start, end]) => src.slice(start, end)).join("\n");
+}
+
+/** extract a the text for an element a module,
+ * optionally replace export params with corresponding import arguments
+ * optionally replace fn/struct name with 'import as' name
+ * TODO apply importMerges here too?
+ */
+function loadElemText(
+  elem: AbstractElem,
+  mod: TextModule2,
+  renames: RenameMap,
+  replaces: [string, string][] = []
+): string {
+  const { start, end } = elem;
+  return loadModuleSlice(mod, start, end, renames, replaces);
 }
 
 function loadModuleSlice(
@@ -188,18 +208,4 @@ function loadModuleSlice(
   // LATER be more precise with replacing e.g. rename for call sites, etc.
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
   return replaceTokens3(slice, rewrite);
-}
-
-/** extract a function or struct from a module,
- * optionally replace export params with corresponding import arguments
- * optionally replace fn/struct name with 'import as' name
- */
-function loadFnOrStructText(
-  elem: AbstractElem,
-  mod: TextModule2,
-  renames: RenameMap,
-  replaces: [string, string][] = []
-): string {
-  const { start, end } = elem;
-  return loadModuleSlice(mod, start, end, renames, replaces);
 }

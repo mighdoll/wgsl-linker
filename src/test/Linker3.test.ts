@@ -334,8 +334,7 @@ test("#import a struct", () => {
   expect(linked).contains("struct AStruct {");
 });
 
-// TODO
-test.only("#importMerge a struct", () => {
+test("#importMerge a struct", () => {
   const src = `
     #importMerge AStruct 
     struct MyStruct {
@@ -354,7 +353,8 @@ test.only("#importMerge a struct", () => {
   `;
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
+  expect(linked.match(/struct MyStruct {/g)).toHaveLength(1);
+  expect(linked).toContain(`struct MyStruct {\n  x: u32,\n  y: u32\n}`);
 });
 
 test("import fn with support struct constructor", () => {
