@@ -1,6 +1,9 @@
-
-
-export function multiKeySet<A, B, V>(m: Map<A, Map<B, V>>, a: A, b: B, v: V): void {
+export function multiKeySet<A, B, V>(
+  m: Map<A, Map<B, V>>,
+  a: A,
+  b: B,
+  v: V
+): void {
   const bMap = m.get(a) || new Map();
   m.set(a, bMap);
   bMap.set(b, v);
@@ -32,4 +35,14 @@ export function groupBy<T, K>(a: T[], key: (t: T) => K): Map<K, T[]> {
     groups.set(k, group);
   }
   return groups;
+}
+
+/** partition an array into two parts by a discriminator function */
+export function partition<T>(a: T[], partFn: (t: T) => boolean): [T[], T[]] {
+  const yesPart: T[] = [];
+  const noPart: T[] = [];
+  for (const t of a) {
+    partFn(t) ? yesPart.push(t) : noPart.push(t);
+  }
+  return [yesPart, noPart];
 }
