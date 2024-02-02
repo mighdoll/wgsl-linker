@@ -83,12 +83,6 @@ function matchMergeImports(src: string, parsed: AbstractElem[]): void {
       srcLog(src, mergeElem.start, `#importMerge not followed by a struct`);
     }
   });
-
-  for (let i = 0; i < parsed.length; i++) {
-    const elem = parsed[i];
-    if (elem.kind === "importMerge") {
-    }
-  }
 }
 
 function findKind<T extends AbstractElem>(
