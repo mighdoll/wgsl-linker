@@ -49,34 +49,33 @@ export function parseModule2(
 }
 
 function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
-  const exports: TextExport2[] = [];
-  parsed.forEach((elem, i) => {
-    if (elem.kind === "export") {
-      const next = parsed[i + 1];
-      if (next?.kind === "fn") {
-        exports.push({ ...elem, ref: next });
-      } else if (next?.kind === "struct") {
-        exports.push({ ...elem, ref: next });
-      } else {
-        srcLog(src, elem.start, `#export what? (#export not followed by fn)`);
-      }
-    }
-  });
-  return exports;
-}
+  const results: TextExport2[] = [];
+  const exports = findKind<ExportElem>(parsed, "export");
 
-/** fill in importMerges field of structs */
-function matchMergeImports(src: string, parsed: AbstractElem[]): void {
-  const importMerges = parsed.flatMap((elem, i) =>
-    elem.kind === "importMerge"
-      ? ([[elem, i]] as [ImportMergeElem, number][])
-      : []
-  );
-  importMerges.forEach(([mergeElem, i]) => {
+  exports.forEach(([elem, i]) => {
     let next: AbstractElem | undefined;
     do {
       next = parsed[++i];
     } while (next?.kind === "importMerge");
+    if (elem.kind === "export") {
+      if (next?.kind === "fn" || next?.kind === "struct") {
+        results.push({ ...elem, ref: next });
+      } else {
+        srcLog(src, elem.start, `#export what? (#export a fn or struct)`);
+      }
+    }
+  });
+  return results;
+}
+
+/** fill in importMerges field of structs */
+function matchMergeImports(src: string, parsed: AbstractElem[]): void {
+  const importMerges = findKind<ImportMergeElem>(parsed, "importMerge");
+  importMerges.forEach(([mergeElem, i]) => {
+    let next: AbstractElem | undefined;
+    do {
+      next = parsed[++i];
+    } while (next?.kind === "importMerge" || next?.kind === "export");
     if (next?.kind === "struct") {
       next.importMerges = next.importMerges ?? [];
       next.importMerges.push(mergeElem);
@@ -90,4 +89,13 @@ function matchMergeImports(src: string, parsed: AbstractElem[]): void {
     if (elem.kind === "importMerge") {
     }
   }
+}
+
+function findKind<T extends AbstractElem>(
+  parsed: AbstractElem[],
+  kind: T["kind"]
+): [T, number][] {
+  return parsed.flatMap((elem, i) =>
+    elem.kind === kind ? ([[elem, i]] as [T, number][]) : []
+  );
 }
