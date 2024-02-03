@@ -54,7 +54,9 @@ export interface ExportRef {
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
 
-  mergeRefs?: ExportRef[];
+  /** refs to importMerge elements on this same element 
+   * (added in a post processing step after traverse) */
+  mergeRefs?: ExportRef[]; // TODO make separate type for ExportRef after processing?
 }
 
 /**

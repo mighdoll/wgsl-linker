@@ -412,12 +412,15 @@ test("two #importMerges on the same struct", () => {
     }
   `;
 
-
   const registry = new ModuleRegistry2(module1, module2, module3);
   const linked = linkWgsl3(src, registry);
   expect(linked.match(/struct AStruct/g)).toHaveLength(1);
-  expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32,\n  d: f32\n}`);
+  expect(linked).toContain(
+    `struct AStruct {\n  x: i32,\n  z: u32,\n  d: f32\n}`
+  );
 });
+
+test.skip("#importMerges with as renaming", () => {});
 
 test.skip("#importMerge struct with imp/exp param", () => {
   const src = `
@@ -448,7 +451,8 @@ test.skip("#importMerge struct with imp/exp param", () => {
 });
 
 // TODO
-test.skip("#importMerges with as renaming", () => {});
+
+test.skip("transitive #importMerge ", () => {});
 
 test("import fn with support struct constructor", () => {
   const src = `
