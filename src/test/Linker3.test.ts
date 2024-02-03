@@ -420,9 +420,7 @@ test("two #importMerges on the same struct", () => {
   );
 });
 
-test.skip("#importMerges with as renaming", () => {});
-
-test.skip("#importMerge struct with imp/exp param", () => {
+test("#importMerge struct with imp/exp param", () => {
   const src = `
     #import AStruct(i32)
     fn main() {
@@ -447,7 +445,7 @@ test.skip("#importMerge struct with imp/exp param", () => {
   const linked = linkWgsl3(src, registry);
   console.log(linked);
   expect(linked.match(/struct AStruct/g)).toHaveLength(1);
-  // expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
+  expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
 
 // TODO
