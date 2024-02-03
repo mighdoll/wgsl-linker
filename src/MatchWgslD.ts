@@ -35,6 +35,14 @@ export const mainTokens = tokenMatcher(
   "main"
 );
 
+export const moduleTokens = tokenMatcher(
+  {
+    ws: /\s+/,
+    moduleName:/[a-zA-Z_][\w.]*/,
+  },
+  "moduleName"
+)
+
 const eol = /\n/;
 
 /** matching tokens at the start of a '//' line comment that might contain #directives */

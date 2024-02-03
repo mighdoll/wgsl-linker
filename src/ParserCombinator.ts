@@ -101,6 +101,23 @@ export function or<
   e: CombinatorArg<X>,
   f: CombinatorArg<Y>
 ): Parser<T | U | V | W | X | Y>;
+export function or<
+  T = Token,
+  U = Token,
+  V = Token,
+  W = Token,
+  X = Token,
+  Y = Token,
+  Z = Token
+>(
+  a: CombinatorArg<T>,
+  b: CombinatorArg<U>,
+  c: CombinatorArg<V>,
+  d: CombinatorArg<W>,
+  e: CombinatorArg<X>,
+  f: CombinatorArg<Y>,
+  g: CombinatorArg<Z>,
+): Parser<T | U | V | W | X | Y | Z>;
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
   return parser("or", (state: ParserContext): ParserResult<any> | null => {
     for (const stage of stages) {

@@ -481,3 +481,10 @@ test("parse #importMerge", () => {
     }
   `);
 });
+
+test("parse #module foo.bar.ca", () => {
+  const src = `#module foo.bar.ca`;
+  const appState = parseWgslD(src);
+  expect(appState[0].kind).eq("module");
+  expect(appState[0].name).eq("foo.bar.ca");
+});
