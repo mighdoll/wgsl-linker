@@ -157,11 +157,11 @@ export const fnDecl = seq(
   "fn",
   req(word.named("name")),
   req(fnParamList),
-  opt(seq("->", optAttributes, word.named("returnType"))),
+  opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
   req(block)
 )
   .map((r) => {
-    const e = makeElem<FnElem>("fn", r, ["name", "returnType"]);
+    const e = makeElem<FnElem>("fn", r, ["name"]);
     e.calls = r.named.calls || [];
     e.typeRefs = r.named.typeRefs?.flat() || [];
     r.app.state.push(e);

@@ -396,7 +396,7 @@ test("fnDecl parses fn with return type", () => {
     fn foo() -> MyType { }
   `;
   const { appState } = testParse(fnDecl, src);
-  expect((appState[0] as FnElem).returnType).eq("MyType");
+  expect((appState[0] as FnElem).typeRefs[0].name).eq("MyType");
 });
 
 test("fnDecl parses :type specifier in fn args", () => {

@@ -11,6 +11,8 @@ export type AbstractElem =
   | VarElem
   | TypeRefElem;
 
+export type NamedElem = Extract<AbstractElem, { name: string }>;
+
 /** 'interesting' elements found in the source */
 export interface AbstractElemBase {
   kind: string;
@@ -28,7 +30,6 @@ export interface FnElem extends AbstractElemBase {
   name: string;
   calls: CallElem[];
   typeRefs: TypeRefElem[];
-  returnType?: string;
 }
 
 export interface TypeRefElem extends AbstractElemBase {

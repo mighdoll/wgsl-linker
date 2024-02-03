@@ -356,6 +356,22 @@ test("traverse with local support struct", () => {
   expect(refNames).deep.eq(["A"]);
 });
 
+test("traverse from return type of function", () => {
+  const src = `
+    #import A
+
+    fn b() -> A { }
+  `;
+  const module1 = `
+    #export
+    struct A { y: i32 }
+  `;
+
+  const refs = traverseTest(src, module1);
+  const refNames = refs.map((r) => r.elem.name);
+  expect(refNames).deep.eq(["A"]);
+});
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
