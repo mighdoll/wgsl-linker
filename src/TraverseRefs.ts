@@ -1,9 +1,11 @@
 import {
+  AbstractElem,
   CallElem,
   ExportElem,
   FnElem,
   ImportElem,
   ImportMergeElem,
+  NamedElem,
   StructElem,
   TypeRefElem,
   VarElem,
@@ -54,9 +56,9 @@ export interface ExportRef {
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
 
-  /** refs to importMerge elements on this same element 
+  /** refs to importMerge elements on this same element
    * (added in a post processing step after traverse) */
-  mergeRefs?: ExportRef[]; // TODO make separate type for ExportRef after processing?
+  mergeRefs?: ExportRef[]; // CONSIDER make separate type for ExportRef after processing?
 }
 
 /**
@@ -141,23 +143,30 @@ function elemChildrenRefs(
   mod: TextModule2,
   registry: ModuleRegistry2
 ): FoundRef[] {
-  return children.flatMap((elem) => {
-    if (exportArgRef(srcRef, elem.name)) return [];
-
-    const foundRef =
-      importRef(srcRef, elem.name, mod, registry) ??
-      importingRef(srcRef, elem.name, mod, registry) ??
-      localRef(elem.name, mod);
-
-    if (foundRef) return [foundRef];
-
-    const src = srcRef.expMod.src;
-    srcLog(src, elem.start, `reference not found`);
-    return [];
-  });
+  return children.flatMap((elem) => elemRef(elem, srcRef, mod, registry));
 }
 
-// TODO coalesce merges for the same element
+function elemRef(
+  elem: NamedElem,
+  srcRef: FoundRef,
+  mod: TextModule2,
+  registry: ModuleRegistry2
+) {
+  if (exportArgRef(srcRef, elem.name)) return [];
+
+  const foundRef =
+    importRef(srcRef, elem.name, mod, registry) ??
+    importingRef(srcRef, elem.name, mod, registry) ??
+    localRef(elem.name, mod);
+
+  if (foundRef) return [foundRef];
+
+  const src = srcRef.expMod.src;
+  srcLog(src, elem.start, `reference not found`);
+  return [];
+}
+
+/** create references to any importMerge elements attached to this struct */
 function importMergeRefs(
   srcRef: FoundRef,
   elem: StructElem,
