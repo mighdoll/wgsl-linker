@@ -1,7 +1,6 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { linkWgsl3 } from "../Linker3.js";
-import { dlog } from "berry-pretty";
 
 test("simple #import", () => {
   const myModule = `
@@ -479,7 +478,7 @@ test("transitive #importMerge ", () => {
   expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
 });
 
-test.only("transitive #importMerge from root", () => {
+test("transitive #importMerge from root", () => {
   const src = `
     #importMerge BStruct
     struct AStruct {
@@ -501,7 +500,6 @@ test.only("transitive #importMerge from root", () => {
   `;
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
   expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
   expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
 });
