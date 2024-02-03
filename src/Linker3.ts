@@ -148,6 +148,11 @@ function prepMergeRefs(
   rootModule: TextModule2
 ): MergeAndNonMerge {
   const { localRefs, mergeRefs, nonMergeRefs } = partitionRefTypes(refs);
+  // dlog({
+  //   mergeRefs: mergeRefs.map((r) => r.elem.name),
+  //   nonMergeRefs: nonMergeRefs.map((r) => r.elem.name),
+  //   localRefs: localRefs.map((r) => r.elem.name),
+  // });
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
   const loadRefs = [...localRefs, ...expRefs];
 
@@ -167,21 +172,30 @@ function combineMergeRefs(
   nonMergeRefs: ExportRef[]
 ): ExportRef[] {
   // map from the element name of a struct annotated with #importMerge to the merge refs
-  const mergeElems = new Map<string, ExportRef[]>();
+  const mergeMap = new Map<string, ExportRef[]>();
   mergeRefs.forEach((r) => {
     const fullName = refFullName(r.fromRef);
-    const merges = mergeElems.get(fullName) || [];
+    const merges = mergeMap.get(fullName) || [];
     merges.push(r);
-    mergeElems.set(fullName, merges);
+    mergeMap.set(fullName, merges);
   });
 
   // combine the merge refs into the export refs on the same element
-  const expRefs: ExportRef[] = nonMergeRefs.map((r) => {
-    const fullName = refFullName(r);
-    const mergeRefs = mergeElems.get(fullName);
-    return { ...r, mergeRefs };
-  });
+  const expRefs: ExportRef[] = nonMergeRefs.map((ref) => ({
+    ...ref,
+    mergeRefs: recursiveMerges(ref),
+  }));
+
   return expRefs;
+
+  /** find the importMerges on this element, 
+   * and recurse to find importMerges on the merging source element */
+  function recursiveMerges(ref: ExportRef): ExportRef[] {
+    const fullName = refFullName(ref);
+    const merges = mergeMap.get(fullName) ?? [];
+    const transitiveMerges = merges.flatMap(recursiveMerges);
+    return [...merges, ...transitiveMerges];
+  }
 }
 
 interface RefTypes {
@@ -197,7 +211,6 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
     exportRefs,
     (r) => r.fromImport.kind === "importMerge"
   );
-  const nonMergeRefs = nonMerge as ExportRef[];
 
   return {
     mergeRefs: merge as ExportRef[],
@@ -252,7 +265,9 @@ function loadStruct(r: ExportRef, renames: RenameMap): string {
     loadElemText(m, r.expMod, renames, r.expImpArgs)
   );
 
+  // dlog(r.mergeRefs?.length, r.elem.name);
   const newMembers = r.mergeRefs?.flatMap((merge) => {
+    // dlog(merge.elem.name, merge.kind);
     // TODO recursively load struct members if merge.elem also has #importMerges
     const mergeStruct = merge.elem as StructElem;
     return mergeStruct.members?.map((member) =>

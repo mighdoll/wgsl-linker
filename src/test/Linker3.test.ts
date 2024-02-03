@@ -443,14 +443,41 @@ test("#importMerge struct with imp/exp param", () => {
 
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
   expect(linked.match(/struct AStruct/g)).toHaveLength(1);
   expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
 
-// TODO
+test("transitive #importMerge ", () => {
+  const src = `
+    #import AStruct 
 
-test.skip("transitive #importMerge ", () => {});
+    fn main() {
+      let a: AStruct; 
+    }
+  `;
+  const module1 = `
+    #export
+    #importMerge BStruct
+    struct AStruct {
+      x: u32,
+    }
+
+    #export
+    #importMerge CStruct
+    struct BStruct {
+      y: u32
+    }
+
+    #export
+    struct CStruct {
+      z: u32
+    }
+  `;
+  const registry = new ModuleRegistry2(module1);
+  const linked = linkWgsl3(src, registry);
+  expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
+  expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
+});
 
 test("import fn with support struct constructor", () => {
   const src = `
