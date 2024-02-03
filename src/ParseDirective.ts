@@ -1,4 +1,9 @@
-import { ExportElem, ImportElem, ImportMergeElem } from "./AbstractElems.js";
+import {
+  ExportElem,
+  ImportElem,
+  ImportMergeElem,
+  ModuleElem,
+} from "./AbstractElems.js";
 import { resultLog, srcLog } from "./LinkerUtil.js";
 import { argsTokens, lineCommentTokens, mainTokens } from "./MatchWgslD.js";
 import { ExtendedResult, Parser, ParserContext } from "./Parser.js";
@@ -174,13 +179,21 @@ const endifDirective = seq("#endif", eolf)
   })
   .traceName("#endif");
 
+const moduleDirective = seq("#module", req(kind(mainTokens.word)), eolf)
+  .map((r) => {
+    const e = makeElem<ModuleElem>("module", r, ["name"]);
+    r.app.state.push(e);
+  })
+  .traceName("#module");
+
 export const directive = or(
   exportDirective,
   importDirective,
   importMergeDirective,
   ifDirective,
   elseDirective,
-  endifDirective
+  endifDirective,
+  moduleDirective
 ).traceName("directive");
 
 /** parse a line comment possibly containg a #directive
