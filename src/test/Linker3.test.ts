@@ -479,6 +479,34 @@ test("transitive #importMerge ", () => {
   expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
 });
 
+test.only("transitive #importMerge from root", () => {
+  const src = `
+    #importMerge BStruct
+    struct AStruct {
+      x: u32,
+    }
+  `;
+  const module1 = `
+    #export
+    #importMerge CStruct
+    struct BStruct {
+      y: u32
+    }
+  `;
+  const module2 = `
+    #export
+    struct CStruct {
+      z: u32
+    }
+  `;
+  const registry = new ModuleRegistry2(module1, module2);
+  const linked = linkWgsl3(src, registry);
+  console.log(linked);
+  expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
+  expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
+});
+
+
 test("import fn with support struct constructor", () => {
   const src = `
     #import elemOne 
