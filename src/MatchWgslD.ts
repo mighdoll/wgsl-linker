@@ -4,7 +4,7 @@ import { escapeRegex, tokenMatcher } from "./TokenMatcher.js";
 
 const directive = /#[a-zA-Z_]\w*/;
 export const word = /[a-zA-Z_]\w*/; // consider making this 'ident' per wgsl spec (incl. non-ascii)
-const symbolSet = 
+const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
@@ -20,7 +20,6 @@ function matchOneOf(syms: string): RegExp {
 }
 
 const digits = /[0-9]+/;
-// TODO consider parsing size suffixes to numbers, e.g. 10u
 
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
@@ -38,10 +37,10 @@ export const mainTokens = tokenMatcher(
 export const moduleTokens = tokenMatcher(
   {
     ws: /\s+/,
-    moduleName:/[a-zA-Z_][\w.]*/,
+    moduleName: /[a-zA-Z_][\w.]*/,
   },
   "moduleName"
-)
+);
 
 const eol = /\n/;
 
@@ -60,7 +59,7 @@ export const lineCommentTokens = tokenMatcher(
 export const argsTokens = tokenMatcher(
   {
     word,
-    digits,
+    arg: /[\w\d._-]+/,
     symbol: matchOneOf("( ) , = !"),
     ws: /[ \t]+/, // don't include \n, so we can find eol separately
     eol,

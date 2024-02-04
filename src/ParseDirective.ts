@@ -29,11 +29,11 @@ import { ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
-const argsWord = kind(argsTokens.word);
+const argsWord = or(kind(argsTokens.arg), kind(argsTokens.word));
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
-export const wordArgsLine: Parser<string[]> = 
+export const directiveArgs: Parser<string[]> = 
   seq(
     "(", 
     withSep(",", argsWord), 
@@ -49,7 +49,7 @@ function importPhrase<T extends ImportElem | ImportMergeElem>(
 ): Parser<T> {
   const p = seq(
     argsWord.named("name"),
-    opt(wordArgsLine.named("args")),
+    opt(directiveArgs.named("args")),
     opt(seq("as", argsWord.named("as"))),
     opt(seq("from", argsWord.named("from")))
   )
@@ -102,7 +102,7 @@ export const importMergeDirective = seq(
 export const exportDirective = seq(
   "#export",
     seq(
-      opt(wordArgsLine.named("args")), 
+      opt(directiveArgs.named("args")), 
       opt(importing), 
       eolf
     ).tokens(argsTokens)
@@ -119,7 +119,7 @@ const ifDirective: Parser<any> = seq(
   "#if",
   seq(
     opt("!").named("invert"), 
-    req(kind(mainTokens.word).named("name")), 
+    req(kind(argsTokens.word).named("name")), 
     eolf
   )
     .tokens(argsTokens)

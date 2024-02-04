@@ -1,5 +1,11 @@
 import { expect, test } from "vitest";
-import { FnElem, ModuleElem, StructElem, VarElem } from "../AbstractElems.js";
+import {
+  FnElem,
+  ImportElem,
+  ModuleElem,
+  StructElem,
+  VarElem,
+} from "../AbstractElems.js";
 import {
   fnDecl,
   globalVar,
@@ -472,4 +478,11 @@ test("parse #module foo.bar.ca", () => {
   const appState = parseWgslD(src);
   expect(appState[0].kind).eq("module");
   expect((appState[0] as ModuleElem).name).eq("foo.bar.ca");
+});
+
+test("parse import with numeric types", () => {
+  const nums = "1u 2.0F 0x010 -7.0 1e7".split(" ");
+  const src = `#import foo(${nums.join(",")})`;
+  const appState = parseWgslD(src);
+  expect((appState[0] as ImportElem).args).deep.eq(nums);
 });
