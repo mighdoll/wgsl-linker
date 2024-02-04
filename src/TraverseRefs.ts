@@ -42,7 +42,7 @@ export interface ExportRef {
   /** reference that led us to find this ref (for mapping imp/exp args) */
   fromRef: FoundRef;
 
-  /** import elem that resolved to this export  TODO remove */
+  /** import elem that resolved to this export */
   fromImport: ImportElem | ImportMergeElem;
 
   /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
