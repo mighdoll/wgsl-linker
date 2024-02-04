@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
-import { ModuleRegistry2 } from "../ModuleRegistry2.js";
+import { ModuleRegistry2, Template } from "../ModuleRegistry2.js";
 import { linkWgsl3 } from "../Linker3.js";
+import { replaceTokens3 } from "../Util.js";
 
 test("simple #import", () => {
   const myModule = `
@@ -623,24 +624,30 @@ test("import a struct with name conflicting support struct", () => {
   expect(linked).contains("x: Base0");
 });
 
-// test("import with template replace", () => {
-//   const myModule = `
-//     #template replacer
-//     #export(threads)
-//     fn foo() {
-//       for (var step = 0; step < 4; step++) { //#replace 4=threads
-//       }
-//     }
-//   `;
-//   const src = `
-//     #import foo(128)
-//     foo();
-//   `;
-//   const registry = new ModuleRegistry(myModule);
-//   registry.registerTemplate(replacerTemplate);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).includes("step < 128");
-// });
+test("import with simple template", () => {
+  const simpleTemplate:Template = {
+    name: "simple",
+    apply: (src, extParams) => {
+      return replaceTokens3(src, extParams);
+    }
+  }
+  const myModule = `
+    #template simple
+    #export
+    fn foo() {
+      for (var step = 0; step < 4; step++) { }
+    }
+  `;
+  const src = `
+    #import foo
+    fn main() { foo(); }
+  `;
+  const registry = new ModuleRegistry2(myModule);
+  registry.registerTemplate(simpleTemplate);
+  const linked = linkWgsl3(src, registry, { "4": "128" });
+  console.log(linked);
+  expect(linked).includes("step < 128");
+});
 
 // test("#import snippet w/o support functions", () => {
 //   const module1 = `

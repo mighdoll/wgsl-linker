@@ -1,18 +1,16 @@
-import {
-  CodeGenFn,
-  GeneratorExport,
-  GeneratorModule
-} from "./Linker.js";
+import { CodeGenFn, GeneratorExport, GeneratorModule } from "./Linker.js";
 import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
   name: string;
-  applyTemplate: ApplyTemplate;
+  apply: ApplyTemplateFn;
 }
-export type ApplyTemplate = (
+
+export type ApplyTemplateFn = (
   src: string,
-  params: Record<string, string>
+  extParams: Record<string, string>,
+  importExportParams: Record<string, string>
 ) => string;
 
 /** a single export from a module */
@@ -42,7 +40,7 @@ let unnamedCodeDex = 0;
 export class ModuleRegistry2 {
   // map from export names to a map of module names to exports
   private exports = new Map<string, ModuleExport2[]>();
-  private templates = new Map<string, ApplyTemplate>();
+  private templates = new Map<string, ApplyTemplateFn>();
 
   constructor(...src: string[]) {
     this.registerModules(...src);
@@ -81,11 +79,11 @@ export class ModuleRegistry2 {
 
   /** register a template processor  */
   registerTemplate(...templates: Template[]): void {
-    templates.forEach((t) => this.templates.set(t.name, t.applyTemplate));
+    templates.forEach((t) => this.templates.set(t.name, t.apply));
   }
 
   /** fetch a template processor */
-  getTemplate(name: string): ApplyTemplate | undefined {
+  getTemplate(name: string): ApplyTemplateFn | undefined {
     return this.templates.get(name);
   }
 
@@ -132,11 +130,10 @@ export class ModuleRegistry2 {
   }
 }
 
-function exportName(moduleExport: ModuleExport2):string {
+function exportName(moduleExport: ModuleExport2): string {
   if (moduleExport.kind === "text") {
     return moduleExport.export.ref.name;
   } else {
     return moduleExport.export.name;
   }
-  
 }
