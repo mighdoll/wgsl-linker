@@ -39,20 +39,18 @@ test("match #importMerge", () => {
   expect(merges[1].name).eq("Bar");
 });
 
-// test("read simple struct export", () => {
-//   const exportPrefix = `// #export`;
-//   const src = `
-//     struct Elem {
-//       sum: f32;
-//     }
-//   `;
-//   const module = parseModule(exportPrefix + "\n" + src);
-//   expect(module.exports.length).toBe(1);
-//   const firstExport = module.exports[0];
-//   expect(firstExport.name).toBe("Elem");
-//   expect(firstExport.params).deep.equals([]);
-//   expect(firstExport.src).toBe(src);
-// });
+test("read simple struct export", () => {
+  const exportPrefix = `// #export`;
+  const src = `
+    struct Elem {
+      sum: f32
+    }
+  `;
+  const module = parseModule2(exportPrefix + "\n" + src);
+  expect(module.exports.length).toBe(1);
+  const firstExport = module.exports[0];
+  expect(firstExport.ref.name).toBe("Elem");
+});
 
 test("read #module", () => {
   const src = `
