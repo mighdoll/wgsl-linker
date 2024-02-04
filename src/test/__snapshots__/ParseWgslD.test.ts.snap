@@ -23,54 +23,12 @@ exports[`importing parses importing bar(A) fog(B) 1`] = `
 ]
 `;
 
-exports[`lineComment parse // #export foo 1`] = `
-[
-  {
-    "end": 14,
-    "kind": "export",
-    "name": "foo",
-    "start": 3,
-  },
-]
-`;
-
-exports[`parse #export foo 1`] = `
+exports[`lineComment parse // #export  1`] = `
 [
   {
     "end": 11,
     "kind": "export",
-    "name": "foo",
-    "start": 0,
-  },
-]
-`;
-
-exports[`parse #export foo(bar) 1`] = `
-[
-  {
-    "args": [
-      "bar",
-    ],
-    "end": 16,
-    "kind": "export",
-    "name": "foo",
-    "start": 0,
-  },
-]
-`;
-
-exports[`parse #export foo(bar, baz, boo) 1`] = `
-[
-  {
-    "args": [
-      "bar",
-      "baz",
-      "boo",
-    ],
-    "end": 26,
-    "kind": "export",
-    "name": "foo",
-    "start": 0,
+    "start": 3,
   },
 ]
 `;
@@ -94,7 +52,6 @@ exports[`parse #export(A, B) importing bar(A) 1`] = `
     },
   ],
   "kind": "export",
-  "name": "bar",
   "start": 5,
 }
 `;

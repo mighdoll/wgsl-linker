@@ -102,7 +102,6 @@ export const importMergeDirective = seq(
 export const exportDirective = seq(
   "#export",
     seq(
-      opt(argsWord.named("name")), 
       opt(wordArgsLine.named("args")), 
       opt(importing), 
       eolf
@@ -110,7 +109,7 @@ export const exportDirective = seq(
 )
   .map((r) => {
     // flatten 'args' by putting it with the other extracted names
-    const e = makeElem<ExportElem>("export", r, ["name", "args"], ["importing"]);
+    const e = makeElem<ExportElem>("export", r, ["args"], ["importing"]);
     r.app.state.push(e);
   })
   .traceName("export");

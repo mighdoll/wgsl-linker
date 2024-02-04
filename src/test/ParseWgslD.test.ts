@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FnElem, StructElem, VarElem } from "../AbstractElems.js";
+import { FnElem, ModuleElem, StructElem, VarElem } from "../AbstractElems.js";
 import {
   fnDecl,
   globalVar,
@@ -41,21 +41,6 @@ test("parse #export", () => {
   expect(parsed[0].kind).equals("export");
 });
 
-test("parse #export foo", () => {
-  const parsed = parseWgslD("#export foo");
-  expect(parsed).toMatchSnapshot();
-});
-
-test("parse #export foo(bar)", () => {
-  const parsed = parseWgslD("#export foo(bar)");
-  expect(parsed).toMatchSnapshot();
-});
-
-test("parse #export foo(bar, baz, boo)", () => {
-  const parsed = parseWgslD("#export foo(bar, baz, boo)");
-  expect(parsed).toMatchSnapshot();
-});
-
 test("parse #import foo", () => {
   const parsed = parseWgslD("#import foo");
   expect(parsed).toMatchSnapshot();
@@ -79,8 +64,8 @@ test("lineComment parse // foo bar \\n", () => {
   expect(position).eq(comment.length);
 });
 
-test("lineComment parse // #export foo", () => {
-  const src = "// #export foo";
+test("lineComment parse // #export ", () => {
+  const src = "// #export ";
   const { position, appState: app } = testParse(lineCommentOptDirective, src);
   expect(position).eq(src.length);
   expect(app).toMatchSnapshot();
@@ -379,15 +364,15 @@ test("unexpected token", () => {
 });
 
 test("#export w/o closing paren", () => {
-  const src = `#export foo(A
+  const src = `#export (A
     )
     `;
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => parseWgslD(src));
   expect(logged()).toMatchInlineSnapshot(`
     "expected text ')''
-    #export foo(A (Ln 1)
-                 ^"
+    #export (A (Ln 1)
+              ^"
   `);
 });
 
@@ -486,5 +471,5 @@ test("parse #module foo.bar.ca", () => {
   const src = `#module foo.bar.ca`;
   const appState = parseWgslD(src);
   expect(appState[0].kind).eq("module");
-  expect(appState[0].name).eq("foo.bar.ca");
+  expect((appState[0] as ModuleElem).name).eq("foo.bar.ca");
 });
