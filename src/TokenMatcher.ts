@@ -124,3 +124,14 @@ const regexSpecials = /[$+*.?|(){}[\]\\/^]/g;
 export function escapeRegex(s: string): string {
   return s.replace(regexSpecials, "\\$&");
 }
+
+/** @return a regexp to match any of the space separated tokens in the provided string.
+ *
+ * regex special characters are escaped in strings are escaped, and the matchers
+ * are sorted by length so that longer matches are preferred.
+ */
+export function matchOneOf(syms: string): RegExp {
+  const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
+  const escaped = symbolList.map(escapeRegex);
+  return new RegExp(escaped.join("|"));
+}

@@ -1,4 +1,4 @@
-import { escapeRegex, tokenMatcher } from "./TokenMatcher.js";
+import { escapeRegex, matchOneOf, tokenMatcher } from "./TokenMatcher.js";
 
 /** token matchers for wgsl with #directives */
 
@@ -8,18 +8,6 @@ const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 
-/** @return a regexp to match any of the space separated tokens in the provided string.
- *
- * regex special characters are escaped in strings are escaped, and the matchers
- * are sorted by length so that longer matches are preferred.
- */
-function matchOneOf(syms: string): RegExp {
-  const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
-  const escaped = symbolList.map(escapeRegex);
-  return new RegExp(escaped.join("|"));
-}
-
-const digits = /[0-9]+/;
 
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
@@ -27,7 +15,7 @@ export const mainTokens = tokenMatcher(
     directive,
     attr: /@[a-zA-Z_]\w*/,
     word,
-    digits,
+    digits:/\d+/, // TODO do we need this?
     symbol: matchOneOf(symbolSet),
     ws: /\s+/,
   },
