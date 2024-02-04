@@ -50,6 +50,7 @@ exports[`simple fn export 1`] = `
     }
   ",
   "structs": [],
+  "template": undefined,
   "vars": [],
 }
 `;
@@ -88,6 +89,7 @@ exports[`simple fn import 1`] = `
     fn bar() { foo(); }
   ",
   "structs": [],
+  "template": undefined,
   "vars": [],
 }
 `;

@@ -7,6 +7,7 @@ import {
   ImportMergeElem,
   ModuleElem,
   StructElem,
+  TemplateElem,
   VarElem,
 } from "./AbstractElems.js";
 import { srcLog } from "./LinkerUtil.js";
@@ -36,19 +37,27 @@ export function parseModule2(
 ): TextModule2 {
   const parsed = parseWgslD(src);
   const exports = findExports(src, parsed);
-  const fns = parsed.filter((e) => e.kind === "fn") as FnElem[];
+  const fns = filterElems<FnElem>(parsed, "fn");
   const imports = parsed.filter(
     (e) => e.kind === "import" || e.kind === "importMerge"
   ) as (ImportElem | ImportMergeElem)[];
-  const structs = parsed.filter((e) => e.kind === "struct") as StructElem[];
-  const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
-  const moduleName = parsed
-    .filter((e) => e.kind === "module")
-    ?.map((e) => (e as ModuleElem).name)[0];
+  const structs = filterElems<StructElem>(parsed, "struct");
+  // const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
+  const vars = filterElems<VarElem>(parsed, "var");
+  const template = filterElems<TemplateElem>(parsed, "template")[0]?.name;
+  matchMergeImports(src, parsed);
+  const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(src, parsed);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
-  return { name, exports, fns, structs, vars, imports, src };
+  return { name, exports, fns, structs, vars, imports, src, template };
+}
+
+function filterElems<T extends AbstractElem>(
+  parsed: AbstractElem[],
+  kind: T["kind"]
+): T[] {
+  return parsed.filter((e) => e.kind === kind) as T[];
 }
 
 function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {

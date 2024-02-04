@@ -488,9 +488,8 @@ test("parse import with numeric types", () => {
   expect((appState[0] as ImportElem).args).deep.eq(nums);
 });
 
-test.only("parse template", () => {
+test("parse template", () => {
   const src = `#template foo.cz/magic-strings`;
   const appState = parseWgslD(src);
-  dlog(appState);
   expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
 });
