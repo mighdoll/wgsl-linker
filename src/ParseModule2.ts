@@ -42,7 +42,6 @@ export function parseModule2(
     (e) => e.kind === "import" || e.kind === "importMerge"
   ) as (ImportElem | ImportMergeElem)[];
   const structs = filterElems<StructElem>(parsed, "struct");
-  // const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")[0]?.name;
   matchMergeImports(src, parsed);
