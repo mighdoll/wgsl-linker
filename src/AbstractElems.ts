@@ -53,7 +53,6 @@ export interface StructMemberElem extends AbstractElemBase {
 
 export interface ExportElem extends AbstractElemBase {
   kind: "export";
-  name?: string; // TODO drop this?
   args?: string[];
   importing?: ImportElem[];
 }

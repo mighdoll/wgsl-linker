@@ -5,6 +5,7 @@ import {
   FnElem,
   ImportElem,
   ImportMergeElem,
+  ModuleElem,
   StructElem,
   VarElem,
 } from "./AbstractElems.js";
@@ -43,7 +44,7 @@ export function parseModule2(
   const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
   const moduleName = parsed
     .filter((e) => e.kind === "module")
-    ?.map((e) => e.name)[0];
+    ?.map((e) => (e as ModuleElem).name)[0];
   matchMergeImports(src, parsed);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
