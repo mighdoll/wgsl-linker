@@ -159,7 +159,6 @@ export class Parser<T> {
    * note that named results are collected into an array,
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
-  // TODO make name param optional and use the name from a text() or kind() match?
   named(name: string | symbol): Parser<T> {
     return this._cloneWith({ resultName: name });
   }
