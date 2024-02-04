@@ -9,8 +9,7 @@ export interface Template {
 
 export type ApplyTemplateFn = (
   src: string,
-  extParams: Record<string, string>,
-  importExportParams: Record<string, string>
+  extParams: Record<string, any>
 ) => string;
 
 /** a single export from a module */
