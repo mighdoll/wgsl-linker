@@ -1,8 +1,10 @@
 import {
+  AbstractElem,
   ExportElem,
   ImportElem,
   ImportMergeElem,
   ModuleElem,
+  NamedElem,
 } from "./AbstractElems.js";
 import { resultLog, srcLog } from "./LinkerUtil.js";
 import {
@@ -183,16 +185,24 @@ const endifDirective = seq("#endif", eolf)
   })
   .traceName("#endif");
 
-const moduleDirective = seq(
-  "#module",
-  req(kind(moduleTokens.moduleName).named("name").tokens(moduleTokens)),
-  eolf
-)
-  .map((r) => {
-    const e = makeElem<ModuleElem>("module", r, ["name"]);
-    r.app.state.push(e);
-  })
-  .traceName("#module");
+const moduleDirective = oneArgDirective("module").traceName("#module");
+
+const templateDirective = oneArgDirective("template").traceName("#template");
+
+function oneArgDirective<T extends NamedElem>(
+  elemKind: T["kind"]
+): Parser<void> {
+  return seq(
+    `#${elemKind}`,
+    req(kind(moduleTokens.moduleName).named("name").tokens(moduleTokens)),
+    eolf
+  )
+    .map((r) => {
+      const e = makeElem<T>(elemKind, r, ["name"]);
+      r.app.state.push(e);
+    })
+    .traceName(`#${elemKind}`);
+}
 
 export const directive = or(
   exportDirective,
@@ -201,7 +211,8 @@ export const directive = or(
   ifDirective,
   elseDirective,
   endifDirective,
-  moduleDirective
+  moduleDirective,
+  templateDirective,
 ).traceName("directive");
 
 /** parse a line comment possibly containg a #directive

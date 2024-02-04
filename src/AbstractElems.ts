@@ -5,6 +5,7 @@ export type AbstractElem =
   | ImportMergeElem
   | ExportElem
   | ModuleElem 
+  | TemplateElem 
   | FnElem
   | CallElem
   | StructElem
@@ -83,4 +84,9 @@ export interface VarElem extends AbstractElemBase {
   kind: "var";
   name: string;
   typeRefs: TypeRefElem[];
+}
+
+export interface TemplateElem extends AbstractElemBase {
+  kind: "template";
+  name: string;
 }

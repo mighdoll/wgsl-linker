@@ -4,6 +4,7 @@ import {
   ImportElem,
   ModuleElem,
   StructElem,
+  TemplateElem,
   VarElem,
 } from "../AbstractElems.js";
 import {
@@ -485,4 +486,11 @@ test("parse import with numeric types", () => {
   const src = `#import foo(${nums.join(",")})`;
   const appState = parseWgslD(src);
   expect((appState[0] as ImportElem).args).deep.eq(nums);
+});
+
+test.only("parse template", () => {
+  const src = `#template foo.cz/magic-strings`;
+  const appState = parseWgslD(src);
+  dlog(appState);
+  expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
 });
