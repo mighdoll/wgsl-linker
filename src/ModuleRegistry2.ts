@@ -82,8 +82,8 @@ export class ModuleRegistry2 {
   }
 
   /** fetch a template processor */
-  getTemplate(name: string): ApplyTemplateFn | undefined {
-    return this.templates.get(name);
+  getTemplate(name?: string): ApplyTemplateFn | undefined {
+    return name ? this.templates.get(name) : undefined;
   }
 
   /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
