@@ -635,7 +635,7 @@ test("import with simple template", () => {
     #template simple
     #export
     fn foo() {
-      for (var step = 0; step < 4; step++) { }
+      for (var step = 0; step < WORKGROUP_SIZE; step++) { }
     }
   `;
   const src = `
@@ -644,8 +644,7 @@ test("import with simple template", () => {
   `;
   const registry = new ModuleRegistry2(myModule);
   registry.registerTemplate(simpleTemplate);
-  const linked = linkWgsl3(src, registry, { "4": "128" });
-  console.log(linked);
+  const linked = linkWgsl3(src, registry, { WORKGROUP_SIZE: "128" });
   expect(linked).includes("step < 128");
 });
 
