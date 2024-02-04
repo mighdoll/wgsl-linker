@@ -54,37 +54,12 @@ test("match #importMerge", () => {
 //   expect(firstExport.src).toBe(src);
 // });
 
-// test("read #module", () => {
-//   const myModule = `
-//     // #module myModule
-//     // #export
-//     fn foo() {}
-//   `;
-//   const textModule = parseModule(myModule);
-//   expect(textModule.name).toBe("myModule");
-// });
-
-// test("parse #export log", () => {
-//   const myModule = `
-//     #export log(myVar)
-
-//     _log(myVar)
-//   `;
-//   const textModule = parseModule(myModule);
-//   expect(textModule.exports[0].name).toBe("log");
-// });
-
-// test("parse #export log with #endInsert", () => {
-//   const myModule = `
-//     #export log(myVar)
-//     _log(myVar);
-//     #endInsert
-
-//     fn _log(myVar: i32) {}
-//   `;
-//   const textModule = parseModule(myModule);
-//   const firstExport = textModule.exports[0];
-//   expect(firstExport.name).toBe("log");
-//   expect(firstExport.src.trim()).toBe("_log(myVar);");
-//   expect(firstExport.rootSrc!.trim()).toBe("fn _log(myVar: i32) {}");
-// });
+test("read #module", () => {
+  const src = `
+    // #module my.module.com
+    // #export
+    fn foo() {}
+  `;
+  const textModule = parseModule2(src);
+  expect(textModule.name).toBe("my.module.com");
+});

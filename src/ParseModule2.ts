@@ -41,7 +41,9 @@ export function parseModule2(
   ) as (ImportElem | ImportMergeElem)[];
   const structs = parsed.filter((e) => e.kind === "struct") as StructElem[];
   const vars = parsed.filter((e) => e.kind === "var") as VarElem[];
-  const moduleName = undefined; // TODO parse #module
+  const moduleName = parsed
+    .filter((e) => e.kind === "module")
+    ?.map((e) => e.name)[0];
   matchMergeImports(src, parsed);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
