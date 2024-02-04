@@ -16,6 +16,12 @@ import {
   replaceTokens3,
 } from "./Util.js";
 
+interface Rewriting {
+  renames: RenameMap;
+  extParams: Record<string, any>;
+  registry: ModuleRegistry2;
+}
+
 export function linkWgsl3(
   src: string,
   registry: ModuleRegistry2,
@@ -31,11 +37,12 @@ export function linkWgsl3(
   // mix the merge refs into the import/export refs
   const { rootMergeRefs, loadRefs } = prepMergeRefs(refs, srcModule);
 
+  const rewriting: Rewriting = { renames, extParams, registry };
   // extract export texts, rewriting via rename map and exp/imp args
-  const importedText = extractTexts(loadRefs, renames, extParams, registry);
+  const importedText = extractTexts(loadRefs, rewriting);
 
   // construct merge texts for #importMerge
-  const root = mergeRootStructs(rootMergeRefs, renames, extParams, registry);
+  const root = mergeRootStructs(rootMergeRefs, rewriting);
   const { mergedText, origElems } = root;
 
   /* edit src to remove: 
@@ -238,64 +245,33 @@ function syntheticRootExp(
   return exp;
 }
 
-function extractTexts(
-  refs: FoundRef[],
-  renames: RenameMap,
-  extParams: Record<string, any>,
-  registry: ModuleRegistry2
-): string {
+function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
       if (r.kind === "exp" && r.elem.kind === "struct") {
-        return loadStruct(r, renames, extParams, registry);
+        return loadStruct(r, rewriting);
       }
       const replaces = r.kind === "exp" ? r.expImpArgs : [];
-      return loadElemText(
-        r.elem,
-        r.expMod,
-        renames,
-        replaces,
-        extParams,
-        registry
-      );
+      return loadElemText(r.elem, r.expMod, replaces, rewriting);
     })
     .join("\n\n");
 }
 
-function loadStruct(
-  r: ExportRef,
-  renames: RenameMap,
-  extParams: Record<string, any>,
-  registry: ModuleRegistry2
-): string {
+function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
   if (!r.mergeRefs || !r.mergeRefs.length)
-    return loadElemText(
-      r.elem,
-      r.expMod,
-      renames,
-      replaces,
-      extParams,
-      registry
-    );
+    return loadElemText(r.elem, r.expMod, replaces, rewriting);
 
   const structElem = r.elem as StructElem;
 
   const rootMembers = structElem.members?.map((m) =>
-    loadElemText(m, r.expMod, renames, r.expImpArgs, extParams, registry)
+    loadElemText(m, r.expMod, r.expImpArgs, rewriting)
   );
 
   const newMembers = r.mergeRefs?.flatMap((merge) => {
     const mergeStruct = merge.elem as StructElem;
     return mergeStruct.members?.map((member) =>
-      loadElemText(
-        member,
-        merge.expMod,
-        renames,
-        merge.expImpArgs,
-        extParams,
-        registry
-      )
+      loadElemText(member, merge.expMod, replaces, rewriting)
     );
   });
 
@@ -310,13 +286,8 @@ interface MergedText {
 }
 
 /** re-write root level importMerge structs with members inserted from imported struct */
-function mergeRootStructs(
-  refs: ExportRef[],
-  renames: RenameMap,
-  extParams: Record<string, any>,
-  registry: ModuleRegistry2
-): MergedText {
-  const texts = refs.map((r) => loadStruct(r, renames, extParams, registry));
+function mergeRootStructs(refs: ExportRef[], rewriting: Rewriting): MergedText {
+  const texts = refs.map((r) => loadStruct(r, rewriting));
   const origElems = refs.map((r) => r.fromRef.elem);
   return {
     mergedText: texts.join("\n\n"),
@@ -342,35 +313,25 @@ function rmElems(src: String, elems: AbstractElem[]): string {
 function loadElemText(
   elem: AbstractElem,
   mod: TextModule2,
-  renames: RenameMap,
   replaces: [string, string][],
-  extParams: Record<string, any>,
-  registry: ModuleRegistry2
+  rewriting: Rewriting
 ): string {
   const { start, end } = elem;
-  return loadModuleSlice(
-    mod,
-    start,
-    end,
-    renames,
-    replaces,
-    extParams,
-    registry
-  );
+  return loadModuleSlice(mod, start, end, replaces, rewriting);
 }
 
 function loadModuleSlice(
   mod: TextModule2,
   start: number,
   end: number,
-  /** renaming from uniquificiation */
-  renames: RenameMap,
   /** renaming from exp/imp params and as name */
   replaces: [string, string][],
-  extParams: Record<string, string>,
-  registry: ModuleRegistry2
+
+  rewriting: Rewriting
 ): string {
+  const { renames, extParams, registry } = rewriting;
   const slice = mod.src.slice(start, end);
+
   const template = registry.getTemplate(mod.template);
   const templated = template ? template(slice, extParams) : slice;
 
