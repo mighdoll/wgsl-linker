@@ -53,7 +53,7 @@ export function parseModule2(
   return { name, exports, fns, structs, vars, imports, src, template };
 }
 
-function filterElems<T extends AbstractElem>(
+export function filterElems<T extends AbstractElem>(
   parsed: AbstractElem[],
   kind: T["kind"]
 ): T[] {

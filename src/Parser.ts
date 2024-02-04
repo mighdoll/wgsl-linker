@@ -107,10 +107,10 @@ export function parser<T>(
 /** Create a Parser from a function that parses and returns a value (w/no child parsers) */
 export function simpleParser<T>(
   traceName: string,
-  fn: (state: ParserContext) => T | null | undefined
+  fn: (ctx: ParserContext) => T | null | undefined
 ): Parser<T> {
-  const parserFn: ParseFn<T> = (state: ParserContext) => {
-    const r = fn(state);
+  const parserFn: ParseFn<T> = (ctx: ParserContext) => {
+    const r = fn(ctx);
     if (r == null || r === undefined) return null;
 
     return { value: r, named: {} };

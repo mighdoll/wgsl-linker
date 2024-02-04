@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   CallElem,
@@ -18,13 +19,20 @@ import {
   word,
   wordNumArgs,
 } from "./ParseSupport.js";
-import { Parser, ParserInit } from "./Parser.js";
+import {
+  Parser,
+  ParserContext,
+  ParserInit,
+  parser,
+  simpleParser,
+} from "./Parser.js";
 import {
   anyNot,
   anyThrough,
   eof,
   fn,
   kind,
+  not,
   opt,
   or,
   repeat,
@@ -110,6 +118,16 @@ export const structDecl = seq(
   })
   .traceName("structDecl");
 
+// keywords that can be followed by (), not to be confused with fn calls
+const callishKeyword = simpleParser("keyword", (ctx: ParserContext) => {
+  const keywords = ["if", "for", "while", "const_assert", "return"];
+  const token = ctx.lexer.next();
+  const text = token?.text;
+  if (text && keywords.includes(text)) {
+    return text;
+  }
+});
+
 export const fnCall = seq(
   word
     .named("name")
@@ -143,6 +161,7 @@ const block: Parser<any> = seq(
   "{",
   repeat(
     or(
+      callishKeyword,
       fnCall,
       fn(() => block),
       variableDecl,

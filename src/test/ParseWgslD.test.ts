@@ -31,6 +31,7 @@ import { or, repeat } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { dlog } from "berry-pretty";
+import { filterElems } from "../ParseModule2.js";
 enableTracing();
 
 test("parse empty string", () => {
@@ -492,4 +493,16 @@ test("parse template", () => {
   const src = `#template foo.cz/magic-strings`;
   const appState = parseWgslD(src);
   expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
+});
+
+test("parse for(;;) {} not as a fn call", () => {
+  const src = `
+    fn main() {
+      for (var a = 1; a < 10; a++) {}
+    }
+  `;
+  const appState = parseWgslD(src);
+  const fnElem = filterElems<FnElem>(appState, "fn")[0];
+  expect(fnElem).toBeDefined();
+  expect(fnElem.calls.length).eq(0);
 });
