@@ -328,13 +328,14 @@ function loadElemText(
   return loadModuleSlice(mod, start, end, replaces, rewriting);
 }
 
+/** load and transform a chunk of text from a module
+ * @param replaces - renaming from exp/imp params and as name
+ */
 function loadModuleSlice(
   mod: TextModule2,
   start: number,
   end: number,
-  /** renaming from exp/imp params and as name */
   replaces: [string, string][],
-
   rewriting: Rewriting
 ): string {
   const { extParams, registry } = rewriting;
