@@ -11,7 +11,7 @@ interface Patched {
 export function patchLine(
   ctx: ParserContext,
   line: string,
-  replaces: [string, string][],
+  replaces: [string, string][]
 ): string[] {
   const dict: Record<string, any> = ctx.app.context;
 
@@ -36,14 +36,14 @@ export function patchLine(
       const replaceValue = dict[replaceKey] || missingValue(replaceKey);
       return { patchedPrefix: start + replaceValue, suffix };
     } else {
-      ctxLog(ctx, `replace key "${key}" not found`);
+      ctxLog(ctx, `replace target "${key}" not found`);
       return current;
     }
   }
 
-  function missingValue(key: string): string {
-    console.log(`replace value not found: ${key} in line TBD:\n>> ${line}`);
-    return `??TBD??`;
+  function missingValue(replaceKey: string): string {
+    ctxLog(ctx, `replace value not found for ${replaceKey}`);
+    return `?${replaceKey}?`;
   }
 }
 
