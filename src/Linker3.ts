@@ -57,7 +57,7 @@ export function linkWgsl3(
     ...templateElem,
   ]);
 
-  const templatedSrc = applyTemplate(slicedSrc, srcModule, rewriting);
+  const templatedSrc = applyTemplate(slicedSrc, srcModule, extParams, registry);
 
   return [templatedSrc, mergedText, importedText].join("\n\n");
 }
@@ -337,8 +337,10 @@ function loadModuleSlice(
 
   rewriting: Rewriting
 ): string {
+  const { extParams, registry } = rewriting;
   const slice = mod.src.slice(start, end);
-  const templated = applyTemplate(slice, mod, rewriting);
+  const params = { ...Object.fromEntries(replaces), ...extParams };
+  const templated = applyTemplate(slice, mod, params, registry);
   const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
 
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
@@ -348,9 +350,9 @@ function loadModuleSlice(
 function applyTemplate(
   src: string,
   mod: TextModule2,
-  rewriting: Rewriting
+  params: Record<string, any>,
+  registry: ModuleRegistry2
 ): string {
-  const { registry, extParams } = rewriting;
   const template = registry.getTemplate(mod.template?.name);
-  return template ? template(src, extParams) : src;
+  return template ? template(src, params) : src;
 }

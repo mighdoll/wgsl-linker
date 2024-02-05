@@ -673,11 +673,8 @@ test("#import using replace template and ext param", () => {
   const registry = new ModuleRegistry2(module1);
   registry.registerTemplate(replaceTemplate);
   const linked = linkWgsl3(src, registry, { threads: 128 });
-  expect(linked).contains('step < 128');
+  expect(linked).contains("step < 128");
 });
-
-// TODO
-test.skip("#import using replace template and imp/exp param", () => {});
 
 test("#template in src", () => {
   const src = `
@@ -692,6 +689,29 @@ test("#template in src", () => {
   const params = { threads: 128 };
   const linked = linkWgsl3(src, registry, params);
   expect(linked).includes("step < 128");
+});
+
+test("#import using replace template and imp/exp param", () => {
+  const src = `
+    // #import foo(128)
+
+    fn main() { foo(); }
+  `;
+
+  const module1 = `
+    // #template replace
+
+    // #export(threads)
+    fn foo () {
+      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      }
+    }
+  `;
+
+  const registry = new ModuleRegistry2(module1);
+  registry.registerTemplate(replaceTemplate);
+  const linked = linkWgsl3(src, registry);
+  expect(linked).contains("step < 128");
 });
 
 // test("#import snippet w/ support functions", () => {

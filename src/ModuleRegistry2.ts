@@ -9,7 +9,7 @@ export interface Template {
 
 export type ApplyTemplateFn = (
   src: string,
-  extParams: Record<string, any>
+  params: Record<string, any> // combination of external params and imp/exp params
 ) => string;
 
 /** a single export from a module */

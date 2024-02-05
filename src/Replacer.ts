@@ -68,10 +68,10 @@ const line = seq(lineStart.named("line"), opt(replaceClause), eolf)
 // enableTracing();
 const root = seq(repeat(line), eof()).traceName("root");
 
-export function replacer(src: string, extParams: Record<string, any>): string {
+export function replacer(src: string, params: Record<string, any>): string {
   const lexer = matchingLexer(src, replaceTokens);
   const lines: string[] = [];
-  const app = { state: lines, context: extParams };
+  const app = { state: lines, context: params };
   root.parse({ lexer, app, maxParseCount: 1000 });
 
   return lines.join("\n");
