@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { matchingLexer } from "./MatchingLexer.js";
 import { Template } from "./ModuleRegistry2.js";
 import { ParserInit } from "./Parser.js";
@@ -13,8 +12,8 @@ import {
   seq,
 } from "./ParserCombinator.js";
 import { enableTracing } from "./ParserTracing.js";
-import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
 import { patchLine } from "./PatchLine.js";
+import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
 
 export const replaceTemplate: Template = {
   name: "replace",
@@ -64,26 +63,14 @@ const line = seq(lineStart.named("line"), opt(replaceClause), eolf)
   })
   .traceName("line");
 
+// enableTracing();
 const root = seq(repeat(line), eof());
 
 export function replacer(src: string, extParams: Record<string, any>): string {
-  const lines = parseSrc(src, extParams);
-  return lines.join("\n");
-}
-
-function parseSrc(src: string, extParams: Record<string, any>): string[] {
   const lexer = matchingLexer(src, replaceTokens);
-  const state: string[] = [];
-  const app = {
-    state,
-    context: extParams,
-  };
-  const init: ParserInit = {
-    lexer,
-    app,
-    maxParseCount: 100,
-  };
-  root.parse(init);
+  const lines: string[] = [];
+  const app = { state: lines, context: extParams };
+  root.parse({ lexer, app, maxParseCount: 1000 });
 
-  return init.app.state;
+  return lines.join("\n");
 }
