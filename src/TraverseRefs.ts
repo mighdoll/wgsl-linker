@@ -49,9 +49,6 @@ export interface ExportRef {
    * name might still be rewritten by global uniqueness remapping */
   proposedName: string;
 
-  /** module containing the import that requested this export */
-  impMod: TextModule2;
-
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
@@ -209,7 +206,6 @@ function importRef(
     kind: "exp",
     fromRef,
     fromImport,
-    impMod,
     expMod,
     expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
     elem: exp.ref,
@@ -259,7 +255,6 @@ function importingRef(
       kind: "exp",
       fromRef: srcRef,
       fromImport,
-      impMod,
       expMod: modExp.module as TextModule2,
       expImpArgs: importingArgs(fromImport, exp, srcRef),
       elem: exp.ref,
@@ -297,7 +292,7 @@ function importingArgs(
   exp: ExportElem,
   srcRef: ExportRef
 ): StringPairs {
-  const expImp = matchImportExportArgs(srcRef.impMod, imp, srcRef.expMod, exp); // X -> D
+  const expImp = matchImportExportArgs(srcRef.fromRef.expMod, imp, srcRef.expMod, exp); // X -> D
   const srcExpImp = srcRef.expImpArgs;
   return expImp.flatMap(([iExp, iImp]) => {
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B

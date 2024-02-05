@@ -128,8 +128,8 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
 
     const ref = r as BothRefs;
     // record rename for this import in the importing module
-    if (ref.impMod && linkName !== proposedName) {
-      multiKeySet(renames, ref.impMod.name, proposedName, linkName);
+    if (ref.fromRef && linkName !== proposedName) {
+      multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
     }
   });
 
@@ -169,7 +169,7 @@ function prepMergeRefs(
   const loadRefs = [...localRefs, ...expRefs];
 
   // create refs for the root module in the same form as module refs
-  const rawRootMerges = mergeRefs.filter((r) => r.impMod === rootModule);
+  const rawRootMerges = mergeRefs.filter((r) => r.fromRef.expMod === rootModule);
   const byElem = groupBy(rawRootMerges, (r) => r.fromRef.elem.name);
   const rootMergeRefs = [...byElem.entries()].flatMap(([, merges]) => {
     const fromRef = merges[0].fromRef;
@@ -249,7 +249,6 @@ function syntheticRootExp(
     proposedName: null as any,
     fromImport: null as any,
     expImpArgs: [],
-    impMod: null as any,
   };
 
   return exp;
