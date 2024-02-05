@@ -679,9 +679,9 @@ test("#import using replace template and ext param", () => {
 // TODO
 test.skip("#import using replace template and imp/exp param", () => {});
 
-test.skip("#template in src", () => {
+test("#template in src", () => {
   const src = `
-    #template replacer
+    #template replace
     fn main() {
       for (var step = 0; step < 4; step++) { //#replace 4=threads
       }

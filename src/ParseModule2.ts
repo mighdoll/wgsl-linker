@@ -15,7 +15,7 @@ import { parseWgslD } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
-  template?: string;
+  template?: TemplateElem;
   exports: TextExport2[];
   fns: FnElem[];
   vars: VarElem[];
@@ -43,7 +43,7 @@ export function parseModule2(
   ) as (ImportElem | ImportMergeElem)[];
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
-  const template = filterElems<TemplateElem>(parsed, "template")[0]?.name;
+  const template = filterElems<TemplateElem>(parsed, "template")?.[0];
   matchMergeImports(src, parsed);
   const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(src, parsed);

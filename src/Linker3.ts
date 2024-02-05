@@ -49,9 +49,17 @@ export function linkWgsl3(
       . #import statements to not cause errors in wgsl parsing 
       . original structs for which we've created new merged structs
   */
-  const slicedSrc = rmElems(src, [...origElems, ...srcModule.imports]); // TODO apply template
+  const { template } = srcModule;
+  const templateElem = template ? [template] : [];
+  const slicedSrc = rmElems(src, [
+    ...origElems,
+    ...srcModule.imports,
+    ...templateElem,
+  ]);
 
-  return [slicedSrc, mergedText, importedText].join("\n\n");
+  const templatedSrc = applyTemplate(slicedSrc, srcModule, rewriting);
+
+  return [templatedSrc, mergedText, importedText].join("\n\n");
 }
 
 /** find references to structs and fns we might import */
@@ -329,15 +337,20 @@ function loadModuleSlice(
 
   rewriting: Rewriting
 ): string {
-  const { renames, extParams, registry } = rewriting;
   const slice = mod.src.slice(start, end);
+  const templated = applyTemplate(slice, mod, rewriting);
+  const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
 
-  const template = registry.getTemplate(mod.template);
-  const templated = template ? template(slice, extParams) : slice;
-
-  const moduleRenames = renames.get(mod.name)?.entries() ?? [];
-
-  // LATER be more precise with replacing e.g. rename for call sites, etc.
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
   return replaceTokens3(templated, rewrite);
+}
+
+function applyTemplate(
+  src: string,
+  mod: TextModule2,
+  rewriting: Rewriting
+): string {
+  const { registry, extParams } = rewriting;
+  const template = registry.getTemplate(mod.template?.name);
+  return template ? template(src, extParams) : src;
 }
