@@ -10,6 +10,9 @@ export function multiKeySet<A, B, V>(
 }
 
 const tokenRegex = /\b(\w+)\b/gi;
+/** replace strings in a text according to a relacement map
+ * replaced strings must be 'tokens', surrounded by spaces or punctuation
+ */
 export function replaceTokens3(
   text: string,
   replace: Record<string, string>

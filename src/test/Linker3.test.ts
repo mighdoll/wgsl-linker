@@ -4,6 +4,7 @@ import { linkWgsl3 } from "../Linker3.js";
 import { replaceTokens3 } from "../Util.js";
 import { replaceTemplate } from "../Replacer.js";
 import { dlog } from "berry-pretty";
+import { simpleTemplate } from "../SimpleTemplate.js";
 
 test("simple #import", () => {
   const myModule = `
@@ -630,12 +631,6 @@ test("import a struct with name conflicting support struct", () => {
 });
 
 test("import with simple template", () => {
-  const simpleTemplate: Template = {
-    name: "simple",
-    apply: (src, extParams) => {
-      return replaceTokens3(src, extParams);
-    },
-  };
   const myModule = `
     #template simple
     #export
@@ -737,64 +732,10 @@ test("#import using external param", () => {
   expect(linked).contains("step < 128");
 });
 
-// test("#import snippet w/ support functions", () => {
-//   const module1 = `
-//     var logVar: u32;
+// TODO
+test.skip("#import twice with different params", () => {
+});
 
-//     #template replacer
-//     #export log(logVar, logType)
-//       log(logVar);
-//     #endInsert
-//     fn log(myVar: u32) {} // #replace u32=logType
-//   `;
-
-//   const src = `
-//     fn foo() {
-//       myVar: i32 = 1;
-//       #import log(myVar, i32)
-//     }
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   registry.registerTemplate(replacerTemplate);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).includes("log(myVar);");
-//   expect(linked).includes("fn log(myVar: i32) {}");
-// });
-
-// test("resolve conflicting import support struct imports", () => {
-//   const module1 = `
-//     #export
-//     fn foo() {
-//       e: Elem = Elem(1);
-//     }
-
-//     struct Elem {
-//       v: i32,
-//     }
-
-//     var <workgroup> a: array<Elem, 64>;
-//   `;
-
-//   const src = `
-//      #import foo
-//      #import foo as bar
-
-//      struct Elem {
-//        other: f32;
-//      }
-
-//      foo();
-//      bar();
-//     `;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   const origMatch = linked.matchAll(/\bElem\b/g);
-//   expect([...origMatch].length).toBe(1);
-//   const module1Match = linked.matchAll(/\bElem_0\b/g);
-//   expect([...module1Match].length).toBe(4);
-//   const module2Match = linked.matchAll(/\bElem_1\b/g);
-//   expect([...module2Match].length).toBe(4);
-// });
 
 // test("#import from code generator", () => {
 //   function generate(params: { name: string }): string {
