@@ -31,7 +31,7 @@ import { ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
-const argsWord = or(kind(argsTokens.arg), kind(argsTokens.word));
+const argsWord = kind(argsTokens.arg);
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
@@ -72,7 +72,9 @@ export const importing = seq(
   "importing",
   seq(importElemPhrase.named("importing")),
   repeat(seq(",", importElemPhrase.named("importing")))
-).traceName("importing");
+)
+  .tokens(argsTokens)
+  .traceName("importing");
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
@@ -121,7 +123,7 @@ const ifDirective: Parser<any> = seq(
   "#if",
   seq(
     opt("!").named("invert"), 
-    req(kind(argsTokens.word).named("name")), 
+    req(argsWord.named("name")), 
     eolf
   )
     .tokens(argsTokens)
@@ -212,8 +214,10 @@ export const directive = or(
   elseDirective,
   endifDirective,
   moduleDirective,
-  templateDirective,
-).traceName("directive");
+  templateDirective
+)
+  .tokens(argsTokens)
+  .traceName("directive");
 
 /** parse a line comment possibly containg a #directive
  *    // <#import|#export|any>

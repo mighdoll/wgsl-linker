@@ -223,9 +223,7 @@ test("parse nested #if", () => {
 });
 
 test("importing parses importing bar(A) fog(B)", () => {
-  const src = `
-    importing bar(A), fog(B)
-  `;
+  const src = ` importing bar(A), fog(B)`;
   const { parsed } = testParse(importing, src);
   expect(parsed?.named.importing).toMatchSnapshot();
 });
