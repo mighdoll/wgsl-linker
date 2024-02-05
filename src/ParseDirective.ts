@@ -68,12 +68,13 @@ function importPhrase<T extends ImportElem | ImportMergeElem>(
 const importElemPhrase = importPhrase<ImportElem>("import");
 const importMergeElemPhrase = importPhrase<ImportMergeElem>("importMerge");
 
+
 export const importing = seq(
   "importing",
   seq(importElemPhrase.named("importing")),
   repeat(seq(",", importElemPhrase.named("importing")))
 )
-  .tokens(argsTokens)
+  .tokens(argsTokens) 
   .traceName("importing");
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
@@ -205,6 +206,8 @@ function oneArgDirective<T extends NamedElem>(
     })
     .traceName(`#${elemKind}`);
 }
+
+// TODO clean out most of these 'tokens' calls in favor of the directive.tokens() call
 
 export const directive = or(
   exportDirective,
