@@ -1,0 +1,89 @@
+import { dlog } from "berry-pretty";
+import { matchingLexer } from "./MatchingLexer.js";
+import { Template } from "./ModuleRegistry2.js";
+import { ParserInit } from "./Parser.js";
+import {
+  anyNot,
+  eof,
+  kind,
+  makeEolf,
+  opt,
+  or,
+  repeat,
+  seq,
+} from "./ParserCombinator.js";
+import { enableTracing } from "./ParserTracing.js";
+import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
+import { patchLine } from "./PatchLine.js";
+
+export const replaceTemplate: Template = {
+  name: "replace",
+  apply: replacer,
+};
+
+const symbolSet = "= //";
+const replaceTokens = tokenMatcher(
+  {
+    ws: /[ \t]+/,
+    eol: /\n/,
+    quote: /(?:")\S+(?:")/,
+    word: /[\w-.]+/,
+    directive: /#[\w-.]+/,
+    symbol: matchOneOf(symbolSet),
+    other: /./,
+  },
+  "replace"
+);
+
+const replaceValue = or(kind(replaceTokens.word), kind(replaceTokens.quote));
+
+const nameValue = seq(replaceValue, "=", replaceValue)
+  .map((r) => [r.value[0], r.value[2]])
+  .named("nameValue")
+  .traceName("nameValue");
+
+// prettier-ignore
+const replaceClause = seq(
+  "//", 
+  "#replace", 
+  nameValue, 
+  repeat(nameValue), 
+);
+
+const eolf = makeEolf(replaceTokens, replaceTokens.ws);
+
+const lineStart = seq(anyNot(replaceClause), repeat(anyNot(replaceClause)))
+  .map((r) => r.src.slice(r.start, r.end))
+  .traceName("lineStart");
+
+const line = seq(lineStart.named("line"), opt(replaceClause), eolf)
+  .map((r) => {
+    const line = r.named.line[0];
+    const patched = patchLine(r.ctx, line, r.named.nameValue ?? []);
+    r.app.state.push(patched);
+  })
+  .traceName("line");
+
+const root = seq(repeat(line), eof());
+
+export function replacer(src: string, extParams: Record<string, any>): string {
+  const lines = parseSrc(src, extParams);
+  return lines.join("\n");
+}
+
+function parseSrc(src: string, extParams: Record<string, any>): string[] {
+  const lexer = matchingLexer(src, replaceTokens);
+  const state: string[] = [];
+  const app = {
+    state,
+    context: extParams,
+  };
+  const init: ParserInit = {
+    lexer,
+    app,
+    maxParseCount: 100,
+  };
+  root.parse(init);
+
+  return init.app.state;
+}
