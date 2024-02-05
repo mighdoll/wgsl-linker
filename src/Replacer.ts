@@ -1,6 +1,5 @@
 import { matchingLexer } from "./MatchingLexer.js";
 import { Template } from "./ModuleRegistry2.js";
-import { ParserInit } from "./Parser.js";
 import {
   anyNot,
   eof,
@@ -21,11 +20,11 @@ export const replaceTemplate: Template = {
 };
 
 const symbolSet = "= //";
-const replaceTokens = tokenMatcher(
+export const replaceTokens = tokenMatcher(
   {
     ws: /[ \t]+/,
     eol: /\n/,
-    quote: /(?:")\S+(?:")/,
+    quote: /"[^"\n]+"/,
     word: /[\w-.]+/,
     directive: /#[\w-.]+/,
     symbol: matchOneOf(symbolSet),
@@ -34,7 +33,10 @@ const replaceTokens = tokenMatcher(
   "replace"
 );
 
-const replaceValue = or(kind(replaceTokens.word), kind(replaceTokens.quote));
+const replaceValue = or(
+  kind(replaceTokens.word),
+  kind(replaceTokens.quote).map((r) => r.value.slice(1, -1))
+);
 
 const nameValue = seq(replaceValue, "=", replaceValue)
   .map((r) => [r.value[0], r.value[2]])
@@ -47,7 +49,7 @@ const replaceClause = seq(
   "#replace", 
   nameValue, 
   repeat(nameValue), 
-);
+).traceName("replaceClause");
 
 const eolf = makeEolf(replaceTokens, replaceTokens.ws);
 
@@ -64,7 +66,7 @@ const line = seq(lineStart.named("line"), opt(replaceClause), eolf)
   .traceName("line");
 
 // enableTracing();
-const root = seq(repeat(line), eof());
+const root = seq(repeat(line), eof()).traceName("root");
 
 export function replacer(src: string, extParams: Record<string, any>): string {
   const lexer = matchingLexer(src, replaceTokens);
