@@ -9,6 +9,7 @@ import {
   eof,
   fn,
   kind,
+  makeEolf,
   opt,
   or,
   repeat,
@@ -23,10 +24,7 @@ export const word = kind(mainTokens.word);
 export const wordNum = or(word, kind(mainTokens.digits));
 
 // prettier-ignore
-export const eolf = seq(
-  opt(kind(argsTokens.ws)), 
-  or("\n", eof())
-).tokens(argsTokens).tokenIgnore().traceName("eolf");
+export const eolf = makeEolf(argsTokens, argsTokens.ws);
 
 export const unknown = any().map((r) => {
   srcLog(r.src, r.start, `???`, r.value, ` Pos. ${r.start}`);
@@ -58,9 +56,9 @@ export const wordNumArgs: Parser<string[]> = seq(
   .traceName("wordNumArgs");
 
 /** create an AbstractElem from parse results
- * @param named keys in the named result to copy to 
+ * @param named keys in the named result to copy to
  *  like named fields in the abstract elem (as a single value)
- * @param namedArray keys in the named result to copy to 
+ * @param namedArray keys in the named result to copy to
  *  like named fields in the abstract elem (as an array)
  */
 export function makeElem<U extends AbstractElem>(

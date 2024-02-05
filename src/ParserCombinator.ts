@@ -116,8 +116,8 @@ export function or<
   d: CombinatorArg<D>,
   e: CombinatorArg<E>,
   f: CombinatorArg<F>,
-  g: CombinatorArg<G>,
-): Parser<A | B | C | D | E | F | G >;
+  g: CombinatorArg<G>
+): Parser<A | B | C | D | E | F | G>;
 export function or<
   A = Token,
   B = Token,
@@ -135,8 +135,8 @@ export function or<
   e: CombinatorArg<E>,
   f: CombinatorArg<F>,
   g: CombinatorArg<G>,
-  h: CombinatorArg<H>,
-): Parser<A | B | C | D | E | F | G | H >;
+  h: CombinatorArg<H>
+): Parser<A | B | C | D | E | F | G | H>;
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
   return parser("or", (state: ParserContext): ParserResult<any> | null => {
     for (const stage of stages) {
@@ -227,8 +227,7 @@ export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
 }
 
 /** return true if the provided parser _doesn't_ match
- * does not consume any tokens
- * */
+ * does not consume any tokens */
 export function not<T>(stage: CombinatorArg<T>): Parser<true> {
   return parser("not", (state: ParserContext): OptParserResult<true> => {
     const pos = state.lexer.position();
@@ -249,14 +248,14 @@ export function any(): Parser<Token> {
   });
 }
 
+/** yield next token if the provided parser doesn't match */
 export function anyNot<T>(arg: CombinatorArg<T>): Parser<Token> {
   return seq(not(arg), any())
     .map((r) => r.value[1])
     .traceName("anyNot");
 }
 
-/** match everything until a terminator (and the terminator too)
- * including optional embedded comments */
+/** match everything until a terminator (and the terminator too) */
 export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
   return seq(repeat(anyNot(arg)), arg);
 }
@@ -346,6 +345,20 @@ export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
   return opt(seq(p.named(elem), repeat(seq(sep, p.named(elem)))))
     .map((r) => r.named[elem] as T[])
     .traceName("withSep");
+}
+
+// TODO make this use it's own tokenMatcher or regex
+/** return a parser that matches end of line, or end of file,
+ * optionally preceded by white space 
+ * @param ws should not match \n */
+export function makeEolf(tokens: TokenMatcher, ws: string): Parser<any> {
+  // prettier-ignore
+  return seq(
+    opt(kind(ws)), 
+    or("\n", eof())
+  ).tokens(tokens)
+   .tokenIgnore() // disable automatic ws skipping so we can match it above
+   .traceName("eolf");
 }
 
 /** convert naked string arguments into text() parsers */
