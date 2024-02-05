@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
@@ -15,10 +16,11 @@ import {
   partition,
   replaceTokens3,
 } from "./Util.js";
+import { refLog, srcLog } from "./LinkerUtil.js";
 
 interface Rewriting {
   renames: RenameMap;
-  extParams: Record<string, any>;
+  extParams: Record<string, any>; // TODO any=>string
   registry: ModuleRegistry2;
 }
 
@@ -259,7 +261,7 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       if (r.kind === "exp" && r.elem.kind === "struct") {
         return loadStruct(r, rewriting);
       }
-      const replaces = r.kind === "exp" ? r.expImpArgs : [];
+      const replaces = refReplacements(r, rewriting.extParams);
       return loadElemText(r.elem, r.expMod, replaces, rewriting);
     })
     .join("\n\n");
@@ -286,6 +288,22 @@ function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
   const membersText = allMembers.join(",\n");
   return `struct ${r.elem.name} {\n${membersText}\n}`;
+}
+
+function refReplacements(
+  ref: FoundRef,
+  extParams: Record<string, string>
+): [string, string][] {
+  const expImp = ref.kind === "exp" ? ref.expImpArgs : [];
+  return expImp.map(([exp, imp]) => {
+    if (imp.startsWith("ext.")) {
+      const value = extParams[imp.slice(4)];
+      if (value) return [exp, value];
+
+      refLog(ref, "missing ext param", imp, extParams);
+    }
+    return [exp, imp];
+  });
 }
 
 interface MergedText {

@@ -714,6 +714,29 @@ test("#import using replace template and imp/exp param", () => {
   expect(linked).contains("step < 128");
 });
 
+test("#import using external param", () => {
+  const src = `
+    // #import foo(ext.workgroupSize)
+
+    fn main() { foo(); }
+  `;
+
+  const module1 = `
+    // #template replace
+
+    // #export(threads)
+    fn foo () {
+      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      }
+    }
+  `;
+
+  const registry = new ModuleRegistry2(module1);
+  registry.registerTemplate(replaceTemplate);
+  const linked = linkWgsl3(src, registry, { workgroupSize: 128 });
+  expect(linked).contains("step < 128");
+});
+
 // test("#import snippet w/ support functions", () => {
 //   const module1 = `
 //     var logVar: u32;

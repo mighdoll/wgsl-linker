@@ -1,6 +1,6 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger } from "./ParserTracing.js";
-
+import { FoundRef } from "./TraverseRefs.js";
 
 /** log an error along with the source line and a caret indicating the error position in the line */
 export function srcLog(src: string, pos: number, ...msgs: any[]): void {
@@ -11,8 +11,12 @@ export function srcLog(src: string, pos: number, ...msgs: any[]): void {
   logger(caret);
 }
 
-export function resultLog<T>(result: ExtendedResult<T>, ...msgs:any[]): void {
+export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
   srcLog(result.src, result.start, ...msgs);
+}
+
+export function refLog(ref: FoundRef, ...msgs: any[]): void {
+  srcLog(ref.expMod.src, ref.elem.start, ...msgs);
 }
 
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
