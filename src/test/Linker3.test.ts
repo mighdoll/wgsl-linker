@@ -2,6 +2,8 @@ import { expect, test } from "vitest";
 import { ModuleRegistry2, Template } from "../ModuleRegistry2.js";
 import { linkWgsl3 } from "../Linker3.js";
 import { replaceTokens3 } from "../Util.js";
+import { replaceTemplate } from "../Replacer.js";
+import { dlog } from "berry-pretty";
 
 test("simple #import", () => {
   const myModule = `
@@ -476,7 +478,9 @@ test("transitive #importMerge ", () => {
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
   expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
-  expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
+  expect(linked).toContain(
+    `struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`
+  );
 });
 
 test("transitive #importMerge from root", () => {
@@ -502,9 +506,10 @@ test("transitive #importMerge from root", () => {
   const registry = new ModuleRegistry2(module1, module2);
   const linked = linkWgsl3(src, registry);
   expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
-  expect(linked).toContain(`struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`);
+  expect(linked).toContain(
+    `struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`
+  );
 });
-
 
 test("import fn with support struct constructor", () => {
   const src = `
@@ -625,12 +630,12 @@ test("import a struct with name conflicting support struct", () => {
 });
 
 test("import with simple template", () => {
-  const simpleTemplate:Template = {
+  const simpleTemplate: Template = {
     name: "simple",
     apply: (src, extParams) => {
       return replaceTokens3(src, extParams);
-    }
-  }
+    },
+  };
   const myModule = `
     #template simple
     #export
@@ -648,26 +653,46 @@ test("import with simple template", () => {
   expect(linked).includes("step < 128");
 });
 
-// test("#import snippet w/o support functions", () => {
-//   const module1 = `
-//     var logVar: u32;
+test("#import using replace template and ext param", () => {
+  const src = `
+    // #import foo
 
-//     #template replacer
-//     #export log(logVar, logType)
-//       log(logVar, "u32"); // #replace u32=logType
-//   `;
+    fn main() { foo(); }
+  `;
 
-//   const src = `
-//     fn foo() {
-//       myVar: i32 = 1;
-//       #import log(myVar, i32)
-//     }
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   registry.registerTemplate(replacerTemplate);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).contains('log(myVar, "i32");');
-// });
+  const module1 = `
+    // #template replace
+
+    // #export
+    fn foo () {
+      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      }
+    }
+  `;
+
+  const registry = new ModuleRegistry2(module1);
+  registry.registerTemplate(replaceTemplate);
+  const linked = linkWgsl3(src, registry, { threads: 128 });
+  expect(linked).contains('step < 128');
+});
+
+// TODO
+test.skip("#import using replace template and imp/exp param", () => {});
+
+test.skip("#template in src", () => {
+  const src = `
+    #template replacer
+    fn main() {
+      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      }
+    }
+  `;
+  const registry = new ModuleRegistry2();
+  registry.registerTemplate(replaceTemplate);
+  const params = { threads: 128 };
+  const linked = linkWgsl3(src, registry, params);
+  expect(linked).includes("step < 128");
+});
 
 // test("#import snippet w/ support functions", () => {
 //   const module1 = `
@@ -815,19 +840,4 @@ test("import with simple template", () => {
 //   const registry = new ModuleRegistry(module1);
 //   const linked = linkWgsl(src, registry);
 //   expect(linked).toMatchSnapshot();
-// });
-
-// test("#template in src", () => {
-//   const src = `
-//     #template replacer
-//     fn main() {
-//       for (var step = 0; step < 4; step++) { //#replace 4=threads
-//       }
-//     }
-//   `;
-//   const registry = new ModuleRegistry();
-//   registry.registerTemplate(replacerTemplate);
-//   const params = { threads: 128 };
-//   const linked = linkWgsl(src, registry, params);
-//   expect(linked).includes("step < 128");
 // });
