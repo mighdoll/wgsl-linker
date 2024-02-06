@@ -794,6 +794,30 @@ test("#import with ext.arg from code generator", () => {
   expect(linked).contains("zogImpl");
 });
 
+test("#import conficted code gen fn", () => {
+  function generate(fnName: string, params: Record<string, string>): string {
+    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
+  }
+  const src = `
+    #import bar
+    fn foo() { bar(); }
+  `;
+
+  const module0 = `
+    #import foo(boo)
+
+    #export
+    fn bar() { foo(); }
+  `;
+
+  const registry = new ModuleRegistry2(module0);
+  registry.registerGenerator("foo", generate, ["name"]);
+  const linked = linkWgsl3(src, registry, { zee: "zog" });
+  expect(linked).contains("booImpl");
+  expect(linked).contains("fn foo0()");
+  expect(linked).contains("foo0();");
+});
+
 // test("#import code generator snippet with support", () => {
 //   function generate(params: { name: string; logType: string }): TextInsert {
 //     return {
