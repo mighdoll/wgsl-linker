@@ -1,3 +1,5 @@
+import { srcLog } from "./ParserLogging.js";
+
 export interface Token {
   kind: string;
   text: string;
@@ -67,9 +69,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
       const token = { kind, text };
       if (startPos != startEnd[0]) {
         // grammar didn't recognize something, and regex skipped ahead to match
-        console.warn(
-          `skipped '${src.slice(startPos, startEnd[0])}' to get to: '${text}' at ${startPos}`
-        );
+        srcLog(src, startPos, `skipped: '${src.slice(startPos, startEnd[0])}' to get to: '${text}'`);
       }
       cache.set(startPos, token);
       return token;
