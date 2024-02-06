@@ -3,7 +3,7 @@ import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 import {
-  BothRefs,
+  PartialRef,
   ExportRef,
   FoundRef,
   GeneratorRef,
@@ -132,7 +132,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
       multiKeySet(renames, r.expMod.name, refName(r), linkName);
     }
 
-    const ref = r as BothRefs;
+    const ref = r as PartialRef;
     // record rename for this import in the importing module
     if (ref.fromRef && linkName !== proposedName) {
       multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
@@ -280,7 +280,8 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
         }
 
         const fnName = generatedFnName(r, rewriting.renames);
-        const expImp = Object.fromEntries(r.expImpArgs);
+        const expImpEntries = refExpImp(r, rewriting.extParams);
+        const expImp = Object.fromEntries(expImpEntries);
         const params = { ...expImp, ...rewriting.extParams };
 
         const text = genExp?.generate(fnName, params);
@@ -326,7 +327,7 @@ function refExpImp(
   ref: FoundRef,
   extParams: Record<string, string>
 ): [string, string][] {
-  const expImp = ref.kind === "exp" ? ref.expImpArgs : [];
+  const expImp = (ref as PartialRef).expImpArgs ?? [];
   return expImp.map(([exp, imp]) => {
     if (imp.startsWith("ext.")) {
       const value = extParams[imp.slice(4)];

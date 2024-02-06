@@ -26,9 +26,9 @@ export type TextRef = ExportRef | LocalRef;
 
 export type StringPairs = [string, string][];
 
-export type BothRefs = Partial<Omit<LocalRef, "kind">> &
+export type PartialRef = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<ExportRef, "kind">> &
-  Pick<LocalRef, "elem" | "expMod">;
+  Partial<Omit<GeneratorRef, "kind" | "expMod">>;
 
 export interface LocalRef {
   kind: "local";
@@ -106,7 +106,7 @@ export function traverseRefs(
   if (!srcRefs.length) return;
 
   // recurse on the external refs from the src root elements
-  const nonGenRefs = textRefs(srcRefs); 
+  const nonGenRefs = textRefs(srcRefs);
   const childRefs = nonGenRefs.flatMap((srcRef) =>
     elemRefs(srcRef, srcModule, registry)
   );
@@ -258,7 +258,7 @@ function importRef(
       expMod,
       expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
       proposedName: fromImport.as ?? exp.name,
-      name:exp.name
+      name: exp.name,
     };
   }
 }
@@ -272,7 +272,8 @@ function matchImportExportArgs(
   const impArgs = imp.args ?? [];
   const expArgs = exp.args ?? [];
   if (expArgs.length !== impArgs.length) {
-    impMod.kind === "text" && srcLog(impMod.src, imp.start, "mismatched import and export params");
+    impMod.kind === "text" &&
+      srcLog(impMod.src, imp.start, "mismatched import and export params");
     expMod.kind === "text" && srcLog(expMod.src, (exp as ExportElem).start);
   }
   return expArgs.map((p, i) => [p, impArgs[i]]);
@@ -417,6 +418,6 @@ function stdType(name: string): boolean {
   return stdTypes.includes(name);
 }
 
-export function refName(ref:FoundRef):string {
+export function refName(ref: FoundRef): string {
   return ref.kind === "gen" ? ref.name : ref.elem.name;
 }
