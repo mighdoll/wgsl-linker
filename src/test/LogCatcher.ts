@@ -6,11 +6,10 @@ export interface LogCatcher {
 
 export function logCatch(): LogCatcher {
   const lines: string[] = [];
-  function log(...params: any[]) {
+  function log(...params: any[]): void {
     lines.push(params.join(" "));
-    // console.log("catch", params);
   }
-  function logged() {
+  function logged(): string {
     return lines.join("\n");
   }
   return { log, logged };

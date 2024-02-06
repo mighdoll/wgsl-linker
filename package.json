@@ -10,7 +10,7 @@
     "test": "vitest",
     "organize": "organize-imports-cli tsconfig.json",
     "format": "prettier-eslint \"src/**/*.ts\" --write",
-    "lint": "eslint ."
+    "lint": "eslint src"
   },
   "type": "module",
   "repository": "github:mighdoll/thimbleberry",

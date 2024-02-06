@@ -138,7 +138,7 @@ function recursiveRefs(
   });
 }
 
-function textRefs<T>(refs: FoundRef[]): TextRef[] {
+function textRefs(refs: FoundRef[]): TextRef[] {
   return refs.filter(textRef);
 }
 
@@ -369,7 +369,7 @@ function importingArgs(
   });
 }
 
-function isDefined<T>(a: T | undefined): asserts a is T {}
+function isDefined<T>(a: T | undefined): asserts a is T {/* */}
 
 function matchingExport(
   imp: ImportElem | ImportMergeElem | undefined,

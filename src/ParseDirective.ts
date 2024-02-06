@@ -2,14 +2,14 @@ import {
   ExportElem,
   ImportElem,
   ImportMergeElem,
-  NamedElem
+  NamedElem,
 } from "./AbstractElems.js";
 import { resultLog } from "./LinkerLogging.js";
 import {
   argsTokens,
   lineCommentTokens,
   mainTokens,
-  moduleTokens
+  moduleTokens,
 } from "./MatchWgslD.js";
 import { ExtendedResult, Parser, setTraceName } from "./Parser.js";
 import {
@@ -22,7 +22,7 @@ import {
   repeatWhile,
   req,
   seq,
-  withSep
+  withSep,
 } from "./ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 import { eolf, makeElem } from "./ParseSupport.js";
@@ -130,6 +130,37 @@ const ifDirective: Parser<any> = seq(
     })
 );
 
+const elseDirective = seq("#else", eolf).toParser((r) => {
+  const oldTruth = popIfState(r);
+  if (oldTruth === undefined) resultLog(r, "unmatched #else");
+  pushIfState(r, !oldTruth);
+  return ifBody(r);
+});
+
+const notIfDirective = seq(not("#if"), not("#else"), not("#endif"), any());
+
+const endifDirective = seq("#endif", eolf).map((r) => {
+  const oldTruth = popIfState(r);
+  if (oldTruth === undefined) resultLog(r, "unmatched #endif");
+});
+
+/** consume everything until we get to #else or #endif */
+const skipIfBody = repeatWhile(notIfDirective, skippingIfBody);
+
+const moduleDirective = oneArgDirective("module");
+
+const templateDirective = oneArgDirective("template");
+
+function ifBody(
+  r: ExtendedResult<unknown, ParseState>
+): Parser<unknown> | undefined {
+  if (skippingIfBody(r)) return skipIfBody;
+}
+
+function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
+  return !r.app.context.ifStack.every((truthy) => truthy);
+}
+
 function pushIfState<T>(
   r: ExtendedResult<T, ParseState>,
   truthy: boolean
@@ -147,33 +178,6 @@ function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
   return result;
 }
 
-function ifBody(
-  r: ExtendedResult<unknown, ParseState>
-): Parser<unknown> | undefined {
-  if (skippingIfBody(r)) return skipIfBody;
-}
-
-function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
-  return !r.app.context.ifStack.every((truthy) => truthy);
-}
-
-const elseDirective = seq("#else", eolf).toParser((r) => {
-  const oldTruth = popIfState(r);
-  if (oldTruth === undefined) resultLog(r, "unmatched #else");
-  pushIfState(r, !oldTruth);
-  return ifBody(r);
-});
-
-const notIfDirective = seq(not("#if"), not("#else"), not("#endif"), any());
-
-const endifDirective = seq("#endif", eolf).map((r) => {
-  const oldTruth = popIfState(r);
-  if (oldTruth === undefined) resultLog(r, "unmatched #endif");
-});
-
-const moduleDirective = oneArgDirective("module");
-
-const templateDirective = oneArgDirective("template");
 
 function oneArgDirective<T extends NamedElem>(
   elemKind: T["kind"]
@@ -208,11 +212,6 @@ export const lineCommentOptDirective = seq(
   or(directive, kind(lineCommentTokens.notDirective).tokens(lineCommentTokens))
 ).tokens(mainTokens);
 
-/** consume everything until we get to #else or #endif */
-const skipIfBody = repeatWhile(notIfDirective, skippingIfBody).traceName(
-  "skipIfBody"
-);
-
 // enableTracing();
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
@@ -231,7 +230,7 @@ if (tracing) {
     moduleDirective,
     templateDirective,
     directive,
-    skipIfBody
+    skipIfBody,
   };
 
   Object.entries(names).forEach(([name, parser]) => {

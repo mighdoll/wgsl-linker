@@ -3,7 +3,7 @@ import { ParserContext } from "./Parser.js";
 export let tracing = false;
 
 /** enable tracing of parser activity via .trace() */
-export function enableTracing() {
+export function enableTracing(): void {
   tracing = true;
 }
 
@@ -56,7 +56,13 @@ export interface TraceLogging {
   tstate: ParserContext;
 }
 
-export const withTraceLogging = () =>
+type TraceLoggingFn<T> = (
+  ctx: any,
+  trace: TraceOptions | undefined,
+  fn: (ctx: ParserContext) => T
+) => T;
+
+export const withTraceLogging = <T>(): TraceLoggingFn<T> =>
   tracing ? withTraceLoggingInternal : stubTraceLogging;
 
 function stubTraceLogging<T>(
@@ -115,7 +121,7 @@ function withTraceLoggingInternal<T>(
 }
 
 /** padding for current indent level */
-function currentIndent(ctx?: TraceContext) {
+function currentIndent(ctx?: TraceContext): string {
   return "  ".repeat(ctx?.indent || 0);
 }
 

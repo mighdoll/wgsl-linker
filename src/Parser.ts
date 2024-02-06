@@ -6,7 +6,7 @@ import {
   TraceContext,
   TraceOptions,
   tracing,
-  withTraceLogging
+  withTraceLogging,
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
@@ -91,34 +91,6 @@ interface ConstructArgs<T> extends ParserArgs {
   fn: ParseFn<T>;
 }
 
-/** Create a Parser from a ParseFn
- * @param fn the parser function
- * @param args static arguments provided by the user as the parser is constructed
- */
-export function parser<T>(
-  traceName: string,
-  fn: ParseFn<T>,
-  terminal?: boolean
-): Parser<T> {
-  const terminalArg = terminal ? { terminal } : {};
-  return new Parser<T>({ fn, traceName, ...terminalArg });
-}
-
-/** Create a Parser from a function that parses and returns a value (w/no child parsers) */
-export function simpleParser<T>(
-  traceName: string,
-  fn: (ctx: ParserContext) => T | null | undefined
-): Parser<T> {
-  const parserFn: ParseFn<T> = (ctx: ParserContext) => {
-    const r = fn(ctx);
-    if (r == null || r === undefined) return null;
-
-    return { value: r, named: {} };
-  };
-
-  return parser(traceName, parserFn, true);
-}
-
 /** a composable parsing element */
 export class Parser<T> {
   tracingName: string | undefined;
@@ -143,7 +115,7 @@ export class Parser<T> {
       trace: this.traceOptions,
       terminal: this.terminal,
       fn: this.fn,
-      ...p
+      ...p,
     });
   }
 
@@ -190,7 +162,7 @@ export class Parser<T> {
         ...init,
         _preParse: [],
         _parseCount: 0,
-        _preCacheFails: new Map()
+        _preCacheFails: new Map(),
       });
     } catch (e) {
       if (!(e instanceof ParseError)) {
@@ -229,6 +201,34 @@ export class Parser<T> {
   }
 }
 
+/** Create a Parser from a ParseFn
+ * @param fn the parser function
+ * @param args static arguments provided by the user as the parser is constructed
+ */
+export function parser<T>(
+  traceName: string,
+  fn: ParseFn<T>,
+  terminal?: boolean
+): Parser<T> {
+  const terminalArg = terminal ? { terminal } : {};
+  return new Parser<T>({ fn, traceName, ...terminalArg });
+}
+
+/** Create a Parser from a function that parses and returns a value (w/no child parsers) */
+export function simpleParser<T>(
+  traceName: string,
+  fn: (ctx: ParserContext) => T | null | undefined
+): Parser<T> {
+  const parserFn: ParseFn<T> = (ctx: ParserContext) => {
+    const r = fn(ctx);
+    if (r == null || r === undefined) return null;
+
+    return { value: r, named: {} };
+  };
+
+  return parser(traceName, parserFn, true);
+}
+
 /** modify the trace name of this parser */
 export function setTraceName(parser: Parser<any>, traceName: string): void {
   parser.tracingName = traceName;
@@ -260,37 +260,41 @@ function runParser<T>(
   const origPosition = lexer.position();
 
   // setup trace logging if enabled and active for this parser
-  return withTraceLogging()(context, p.traceOptions, (tContext) => {
-    const traceSuccessOnly = tContext._trace?.successOnly;
-    if (!p.terminal && tracing && !traceSuccessOnly)
-      parserLog(`..${p.tracingName}`);
+  return withTraceLogging<OptParserResult<T>>()(
+    context,
+    p.traceOptions,
+    (tContext) => {
+      const traceSuccessOnly = tContext._trace?.successOnly;
+      if (!p.terminal && tracing && !traceSuccessOnly)
+        parserLog(`..${p.tracingName}`);
 
-    execPreParsers(tContext);
+      execPreParsers(tContext);
 
-    // run the parser function for this stage
-    const result = p.fn(tContext);
+      // run the parser function for this stage
+      const result = p.fn(tContext);
 
-    if (result === null || result === undefined) {
-      // parser failed
-      tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
-      lexer.position(origPosition);
-      context.app.context = origAppContext;
-      return null;
-    } else {
-      // parser succeded
-      tracing && parserLog(`✓ ${p.tracingName}`);
-      if (p.namedResult) {
-        // merge named result (if user set a name for this stage's result)
-        return {
-          value: result.value,
-          named: mergeNamed(result.named, {
-            [p.namedResult]: [result.value]
-          })
-        };
+      if (result === null || result === undefined) {
+        // parser failed
+        tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
+        lexer.position(origPosition);
+        context.app.context = origAppContext;
+        return null;
+      } else {
+        // parser succeded
+        tracing && parserLog(`✓ ${p.tracingName}`);
+        if (p.namedResult) {
+          // merge named result (if user set a name for this stage's result)
+          return {
+            value: result.value,
+            named: mergeNamed(result.named, {
+              [p.namedResult]: [result.value],
+            }),
+          };
+        }
+        return { value: result.value, named: result.named };
       }
-      return { value: result.value, named: result.named };
     }
-  });
+  );
 }
 
 function execPreParsers(ctx: ParserContext): void {
@@ -397,7 +401,7 @@ function disablePreParse<T>(
     }
     const newPreparse = [
       ...preps.slice(0, foundDex),
-      ...preps.slice(foundDex + 1)
+      ...preps.slice(foundDex + 1),
     ];
     const newCtx = { ...ctx, _preParse: newPreparse };
     return mainParser._run(newCtx);

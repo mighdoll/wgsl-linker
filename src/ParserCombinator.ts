@@ -8,7 +8,7 @@ import {
   ParserContext,
   ParserResult,
   runExtended,
-  simpleParser
+  simpleParser,
 } from "./Parser.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
@@ -33,6 +33,12 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  * in the array app[], which is provided by the user and available for
  * all user constructed parsers.
  */
+
+export class ParseError extends Error {
+  constructor(msg?: string) {
+    super(msg);
+  }
+}
 
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
 export type CombinatorArg<T> = Parser<T> | string;
@@ -92,7 +98,7 @@ export function or<
   C = Token,
   D = Token,
   E = Token,
-  F = Token
+  F = Token,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -108,7 +114,7 @@ export function or<
   D = Token,
   E = Token,
   F = Token,
-  G = Token
+  G = Token,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -126,7 +132,7 @@ export function or<
   E = Token,
   F = Token,
   G = Token,
-  H = Token
+  H = Token,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -152,7 +158,7 @@ export function or(...stages: CombinatorArg<any>[]): Parser<any> {
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
-export function seq<A = Token, B = Token>(a: CombinatorArg<A>): Parser<[A]>;
+export function seq<A = Token>(a: CombinatorArg<A>): Parser<[A]>;
 export function seq<A = Token, B = Token>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>
@@ -181,7 +187,7 @@ export function seq<
   C = Token,
   D = Token,
   E = Token,
-  F = Token
+  F = Token,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -213,7 +219,7 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
  * If the parser fails, return false and don't advance the input. Returning false
  * indicates a successful parse, so combinators like seq() will succeed.
  */
-export function opt<T>(stage: string): Parser<string | boolean>;
+export function opt(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
 export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
   return parser(
@@ -285,7 +291,7 @@ function repeatWhileFilter<T>(
     const values: (T | string)[] = [];
     let results = {};
     const p = parserArg(arg);
-    while (true) {
+    for (;;) {
       const result = runExtended<T | string>(ctx, p);
 
       // continue acccumulating until we get a null or the filter tells us to stop
@@ -330,12 +336,6 @@ export function req<T>(
     }
     return result;
   });
-}
-
-export class ParseError extends Error {
-  constructor(msg?: string) {
-    super(msg);
-  }
 }
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
