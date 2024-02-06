@@ -731,7 +731,27 @@ test("#import using external param", () => {
 });
 
 // TODO
-test.skip("#import twice with different params", () => {});
+test.skip("#import twice with different params", () => {
+  const src = `
+    #import foo(A)
+    #import foo(B) as bar
+
+    fn main() {
+      bar();
+      foo();
+    }
+  `;
+  const module0 = `
+    #export(X)
+    fn foo() { /** X */}
+  `;
+
+  const registry = new ModuleRegistry2(module0);
+  const linked = linkWgsl3(src, registry);
+  console.log(linked);
+  expect(linked).includes("fn bar() { /** B **/ }");
+  expect(linked).includes("fn foo() { /** A **/ }");
+});
 
 test("#import from code generator", () => {
   function generate(fnName: string, params: Record<string, string>): string {
