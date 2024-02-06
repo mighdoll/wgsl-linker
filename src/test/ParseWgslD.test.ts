@@ -5,21 +5,21 @@ import {
   ModuleElem,
   StructElem,
   TemplateElem,
-  VarElem
+  VarElem,
 } from "../AbstractElems.js";
 import {
   fnDecl,
   globalVar,
   parseWgslD,
   structDecl,
-  typeSpecifier
+  typeSpecifier,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
   directive,
   importing,
-  lineCommentOptDirective
+  lineCommentOptDirective,
 } from "../ParseDirective.js";
 import { filterElems } from "../ParseModule2.js";
 import { or, repeat } from "../ParserCombinator.js";
@@ -28,7 +28,7 @@ import {
   comment,
   skipBlockComment,
   unknown,
-  wordNumArgs
+  wordNumArgs,
 } from "../ParseSupport.js";
 import { logCatch } from "./LogCatcher.js";
 
@@ -182,6 +182,17 @@ test("parse // #if !foo", () => {
     `;
   const parsed = parseWgslD(src, { foo: false });
   expect((parsed[0] as FnElem).name).eq("f");
+});
+
+test("parse #if !foo (true)", () => {
+  const src = `
+    // #if !foo
+      fn f() { }
+    // #endif 
+    `;
+  expectNoLogErr(() => {
+    parseWgslD(src, { foo: true });
+  });
 });
 
 test("parse #if !foo #else #endif", () => {
