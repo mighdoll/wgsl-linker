@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule2 } from "../ParseModule2.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 import {
   ExportRef,
   FoundRef,
@@ -9,8 +10,6 @@ import {
   traverseRefs,
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
-import { _withBaseLogger } from "../ParserTracing.js";
-import { dlog } from "berry-pretty";
 
 test("traverse nested import with params and support fn", () => {
   const src = `

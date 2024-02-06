@@ -92,7 +92,7 @@ function findReferences(
 
 function refFullName(ref: FoundRef): string {
   const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
-  const impArgs = expImpArgs.map(([_, arg]) => arg);
+  const impArgs = expImpArgs.map(([, arg]) => arg);
   const argsStr = "(" + impArgs.join(",") + ")";
   return ref.expMod.name + "." + refName(ref) + argsStr;
 }
@@ -354,7 +354,7 @@ function mergeRootStructs(refs: ExportRef[], rewriting: Rewriting): MergedText {
 }
 
 /** rewrite src with elements removed */
-function rmElems(src: String, elems: AbstractElem[]): string {
+function rmElems(src: string, elems: AbstractElem[]): string {
   const startEnds = [...elems]
     .sort((a, b) => a.start - b.start)
     .flatMap((e) => [e.start, e.end]);

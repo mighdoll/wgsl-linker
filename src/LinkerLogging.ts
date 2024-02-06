@@ -55,7 +55,7 @@ export function srcLine(src: string, pos: number): SrcLine {
 
   // binary search to find start,end positions that surround provided pos
   while (start + 1 < end) {
-    let mid = (start + end) >> 1;
+    const mid = (start + end) >> 1;
     if (pos >= starts[mid]) {
       start = mid;
     } else {
