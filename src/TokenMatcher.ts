@@ -66,6 +66,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
       const text = src.slice(startEnd[0], startEnd[1]);
       const token = { kind, text };
       if (startPos != startEnd[0]) {
+        // grammar didn't recognize something, and regex skipped ahead to match
         console.warn(
           `skipped '${src.slice(startPos, startEnd[0])}' to get to: '${text}' at ${startPos}`
         );

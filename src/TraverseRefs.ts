@@ -7,16 +7,17 @@ import {
   NamedElem,
   StructElem,
   TypeRefElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
-import { refLog, srcLog } from "./LinkerLogging.js";
+import { refLog } from "./LinkerLogging.js";
 import {
   GeneratorExport,
   GeneratorModule,
   ModuleExport2,
-  ModuleRegistry2
+  ModuleRegistry2,
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
+import { srcLog } from "./ParserLogging.js";
 import { groupBy } from "./Util.js";
 
 export type FoundRef = TextRef | GeneratorRef;
@@ -99,7 +100,7 @@ export function traverseRefs(
   const srcRefs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
     kind: "local",
     expMod,
-    elem
+    elem,
   }));
   if (!srcRefs.length) return;
 
@@ -243,7 +244,7 @@ function importRef(
       expMod,
       expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
       elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name
+      proposedName: fromImport.as ?? exp.ref.name,
     };
   } else if (expMod.kind === "generator") {
     const exp = modExp.export as GeneratorExport;
@@ -254,7 +255,7 @@ function importRef(
       expMod,
       expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
       proposedName: fromImport.as ?? exp.name,
-      name: exp.name
+      name: exp.name,
     };
   }
 }
@@ -309,7 +310,7 @@ function importingRef(
       expMod: modExp.module as TextModule2,
       expImpArgs: importingArgs(fromImport, exp, srcRef),
       elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name
+      proposedName: fromImport.as ?? exp.ref.name,
     };
   } else if (modExp.kind === "function") {
     const exp = modExp.export;
@@ -320,7 +321,7 @@ function importingRef(
       expMod: modExp.module,
       expImpArgs: importingArgs(fromImport, exp, srcRef),
       proposedName: fromImport.as ?? exp.name,
-      name: exp.name
+      name: exp.name,
     };
   }
 
@@ -369,7 +370,9 @@ function importingArgs(
   });
 }
 
-function isDefined<T>(a: T | undefined): asserts a is T {/* */}
+function isDefined<T>(a: T | undefined): asserts a is T {
+  /* */
+}
 
 function matchingExport(
   imp: ImportElem | ImportMergeElem | undefined,

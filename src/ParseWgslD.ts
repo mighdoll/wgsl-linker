@@ -221,7 +221,6 @@ export function parseWgslD(
   return init.app.state;
 }
 
-// enableTracing();
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
     globalDirectiveOrAssert,

@@ -9,8 +9,8 @@ import {
   TemplateElem,
   VarElem
 } from "./AbstractElems.js";
-import { srcLog } from "./LinkerLogging.js";
 import { parseWgslD } from "./ParseWgslD.js";
+import { srcLog } from "./ParserLogging.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
