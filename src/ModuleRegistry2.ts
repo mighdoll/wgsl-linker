@@ -1,11 +1,14 @@
-import { TextExport2, TextModule2, parseModule2 } from "./ParseModule2.js";
+import { parseModule2, TextExport2, TextModule2 } from "./ParseModule2.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
   name: string;
   apply: ApplyTemplateFn;
 }
-export type CodeGenFn = (name:string, params: Record<string, string>) => string;
+export type CodeGenFn = (
+  name: string,
+  params: Record<string, string>
+) => string;
 
 export interface GeneratorExport {
   name: string;
@@ -79,17 +82,17 @@ export class ModuleRegistry2 {
     const exp: GeneratorExport = {
       name: exportName,
       args: params ?? [],
-      generate: fn,
+      generate: fn
     };
     const module: GeneratorModule = {
       kind: "generator",
       name: moduleName ?? `funModule${unnamedCodeDex++}`,
-      exports: [exp],
+      exports: [exp]
     };
     const moduleExport: GeneratorModuleExport2 = {
       module,
       export: exp,
-      kind: "function",
+      kind: "function"
     };
     this.addModuleExport(moduleExport);
   }
@@ -130,7 +133,7 @@ export class ModuleRegistry2 {
       const moduleExport: TextModuleExport2 = {
         module,
         export: e,
-        kind: "text",
+        kind: "text"
       };
       this.addModuleExport(moduleExport);
     });

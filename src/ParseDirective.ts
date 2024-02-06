@@ -2,14 +2,14 @@ import {
   ExportElem,
   ImportElem,
   ImportMergeElem,
-  NamedElem,
+  NamedElem
 } from "./AbstractElems.js";
 import { resultLog } from "./LinkerLogging.js";
 import {
   argsTokens,
   lineCommentTokens,
   mainTokens,
-  moduleTokens,
+  moduleTokens
 } from "./MatchWgslD.js";
 import { ExtendedResult, Parser, setTraceName } from "./Parser.js";
 import {
@@ -22,9 +22,9 @@ import {
   repeatWhile,
   req,
   seq,
-  withSep,
+  withSep
 } from "./ParserCombinator.js";
-import { enableTracing, tracing } from "./ParserTracing.js";
+import { tracing } from "./ParserTracing.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 import { ParseState } from "./ParseWgslD.js";
 
@@ -231,7 +231,7 @@ if (tracing) {
     moduleDirective,
     templateDirective,
     directive,
-    skipIfBody 
+    skipIfBody
   };
 
   Object.entries(names).forEach(([name, parser]) => {

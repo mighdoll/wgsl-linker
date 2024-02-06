@@ -33,7 +33,7 @@ export interface DeclaredNames {
 export function globalDeclarations(wgsl: string): DeclaredNames {
   return {
     fns: new Set(fnDecls(wgsl)),
-    structs: new Set(structDecls(wgsl)),
+    structs: new Set(structDecls(wgsl))
   };
 }
 
@@ -59,13 +59,17 @@ export function resolveNameConflicts(
   const unchangedModuleNames = declDifference(moduleDeclared, conflicts);
   const deconflictedNames = declUnion(unchangedModuleNames, newNames);
 
-  return { src, declared: deconflictedNames, conflicted: !declIsEmpty(conflicts) };
+  return {
+    src,
+    declared: deconflictedNames,
+    conflicted: !declIsEmpty(conflicts)
+  };
 }
 
 /** find function declarations in a wgsl text */
 export function fnDecls(wgsl: string): string[] {
   const matches = wgsl.matchAll(fnRegexGlobal);
-  const fnNames = [...matches].flatMap(matchDecl => {
+  const fnNames = [...matches].flatMap((matchDecl) => {
     const decl = matchDecl[0];
     const groups = decl.match(fnRegex)?.groups;
     if (!groups) {
@@ -80,7 +84,7 @@ export function fnDecls(wgsl: string): string[] {
 /** find struct declarations in a wgsl text */
 export function structDecls(wgsl: string): string[] {
   const matches = wgsl.matchAll(structRegexGlobal);
-  const fnNames = [...matches].flatMap(matchDecl => {
+  const fnNames = [...matches].flatMap((matchDecl) => {
     const decl = matchDecl[0];
     const groups = decl.match(structRegex)?.groups;
     if (!groups) {
@@ -93,7 +97,11 @@ export function structDecls(wgsl: string): string[] {
 }
 
 /** replace function calls in a wgsl text */
-export function replaceFnCalls(text: string, fnName: string, newName: string): string {
+export function replaceFnCalls(
+  text: string,
+  fnName: string,
+  newName: string
+): string {
   const nameRegex = new RegExp(fnName);
   const fnRegex = regexConcat("g", notFnDecl, nameRegex, parenStartAhead);
   return text.replaceAll(fnRegex, `${newName}`);
@@ -105,21 +113,37 @@ function replaceFnDecl(text: string, fnName: string, newName: string): string {
   return text.replace(declRegex, `fn ${newName}`);
 }
 
-function replaceStructDecl(text: string, structName: string, newName: string): string {
+function replaceStructDecl(
+  text: string,
+  structName: string,
+  newName: string
+): string {
   const nameRegex = new RegExp(structName);
   const structRegex = regexConcat("", structPrefix, nameRegex, braceStartAhead);
   return text.replace(structRegex, `struct ${newName}`);
 }
 
-function replaceStructRefs(text: string, structName: string, newName: string): string {
+function replaceStructRefs(
+  text: string,
+  structName: string,
+  newName: string
+): string {
   const nameRegex = new RegExp(structName);
   // replace ': MyStruct' with a: MyStruct_0
   const structTypeExpression = regexConcat("g", colonBehind, nameRegex);
   const expressionsReplaced = text.replaceAll(structTypeExpression, newName);
 
   // replace 'MyStruct(' with MyStruct_0(
-  const structConstructor = regexConcat("g", notFnDecl, nameRegex, parenStartAhead);
-  const constructReplaced = expressionsReplaced.replaceAll(structConstructor, newName);
+  const structConstructor = regexConcat(
+    "g",
+    notFnDecl,
+    nameRegex,
+    parenStartAhead
+  );
+  const constructReplaced = expressionsReplaced.replaceAll(
+    structConstructor,
+    newName
+  );
 
   // replace '<MyStruct' with <MyStruct_0
   const structTemplate = regexConcat("g", ltBehind, nameRegex, commaOrGtAhead);
@@ -132,11 +156,16 @@ interface DeclRewrites {
 }
 
 /** @return a map of old name to renamed copy */
-function deconflictNames(conflicts: DeclaredNames, conflictCount: number): DeclRewrites {
+function deconflictNames(
+  conflicts: DeclaredNames,
+  conflictCount: number
+): DeclRewrites {
   const fns: Map<string, string> = new Map();
   const structs: Map<string, string> = new Map();
-  conflicts.fns.forEach(name => fns.set(name, `${name}_${conflictCount}`));
-  conflicts.structs.forEach(name => structs.set(name, `${name}_${conflictCount}`));
+  conflicts.fns.forEach((name) => fns.set(name, `${name}_${conflictCount}`));
+  conflicts.structs.forEach((name) =>
+    structs.set(name, `${name}_${conflictCount}`)
+  );
   return { fns, structs };
 }
 
@@ -189,7 +218,7 @@ function declDifference(a: DeclaredNames, b: DeclaredNames): DeclaredNames {
 }
 
 function intersection<T>(a: Set<T>, b: Set<T>): Set<T> {
-  const both = [...a.keys()].filter(k => b.has(k));
+  const both = [...a.keys()].filter((k) => b.has(k));
   return new Set(both);
 }
 
@@ -198,6 +227,6 @@ function union<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
-  const diff = [...a.keys()].filter(k => !b.has(k));
+  const diff = [...a.keys()].filter((k) => !b.has(k));
   return new Set(diff);
 }

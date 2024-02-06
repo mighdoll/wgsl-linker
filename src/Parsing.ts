@@ -14,7 +14,12 @@ const optParams = /\s*(\((?<params>[\w, ]*)\))?/;
 const name = /(?<name>[\w]+)/;
 const optName = /(?<name>[\w]+)?/;
 const optBang = /(?<bang>!)?/;
-export const exportRegex = regexConcatI(optComment, exportDirective, optName, optParams);
+export const exportRegex = regexConcatI(
+  optComment,
+  exportDirective,
+  optName,
+  optParams
+);
 export const importRegex = regexConcatI(
   optComment,
   importCmd,
@@ -45,7 +50,12 @@ export const structPrefix = /\bstruct\s+/;
 const braceStart = /\s*{\s*/;
 export const braceStartAhead = /(?=\s*{)/;
 export const structRegex = regexConcatI(structPrefix, name, braceStart);
-export const structRegexGlobal = regexConcat("g", structPrefix, name, braceStart);
+export const structRegexGlobal = regexConcat(
+  "g",
+  structPrefix,
+  name,
+  braceStart
+);
 
 export const colonBehind = /(?<=:\s*)/;
 export const notFnDecl = /(?<!fn\s+)(?<!@\s*)/;
@@ -53,7 +63,7 @@ export const ltBehind = /(?<=<\s*)/;
 export const commaOrGtAhead = /(?=\s*(,|>))/;
 
 export function regexConcat(flags: string, ...exp: RegExp[]): RegExp {
-  const concat = exp.map(e => e.source).join("");
+  const concat = exp.map((e) => e.source).join("");
   return new RegExp(concat, flags);
 }
 
@@ -61,6 +71,9 @@ function regexConcatI(...exp: RegExp[]): RegExp {
   return regexConcat("i", ...exp);
 }
 
-export function replaceTokens(text: string, replace: Record<string, string>): string {
-  return text.replaceAll(tokenRegex, s => (s in replace ? replace[s] : s));
+export function replaceTokens(
+  text: string,
+  replace: Record<string, string>
+): string {
+  return text.replaceAll(tokenRegex, (s) => (s in replace ? replace[s] : s));
 }

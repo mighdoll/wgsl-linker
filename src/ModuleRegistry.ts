@@ -3,7 +3,7 @@ import {
   GeneratorExport,
   GeneratorModule,
   TextExport,
-  TextModule,
+  TextModule
 } from "./Linker.js";
 import { parseModule } from "./ParseModule.js";
 
@@ -12,7 +12,10 @@ export interface Template {
   name: string;
   applyTemplate: ApplyTemplate;
 }
-export type ApplyTemplate = (src: string, params: Record<string, string>) => string;
+export type ApplyTemplate = (
+  src: string,
+  params: Record<string, string>
+) => string;
 
 /** a single export from a module */
 type ModuleExport = TextModuleExport | GeneratorModuleExport;
@@ -31,13 +34,13 @@ export interface GeneratorModuleExport {
 /** unique index for naming otherwise unnamed generator modules */
 let unnamedCodeDex = 0;
 
-/** 
- * A ModuleRegistry collects exportable code fragments, code generator functions, 
- * and template processors. 
+/**
+ * A ModuleRegistry collects exportable code fragments, code generator functions,
+ * and template processors.
  *
- * The ModuleRegistry provides everything required for linkWgsl to process 
+ * The ModuleRegistry provides everything required for linkWgsl to process
  * #import statements and generate a complete wgsl shader.
-*/
+ */
 export class ModuleRegistry {
   // map from export names to a map of module names to exports
   private exports = new Map<string, ModuleExport[]>();
@@ -49,7 +52,7 @@ export class ModuleRegistry {
 
   /** register modules' exports */
   registerModules(...sources: string[]): void {
-    sources.forEach(src => this.registerOneModule(src));
+    sources.forEach((src) => this.registerOneModule(src));
   }
 
   /** register one module's exports  */
@@ -66,14 +69,21 @@ export class ModuleRegistry {
     moduleName?: string
   ): void {
     const exp = { name: exportName, params: params ?? [], generate: fn };
-    const module = { name: moduleName ?? `funModule${unnamedCodeDex++}`, exports: [exp] };
-    const moduleExport: GeneratorModuleExport = { module, export: exp, kind: "function" };
+    const module = {
+      name: moduleName ?? `funModule${unnamedCodeDex++}`,
+      exports: [exp]
+    };
+    const moduleExport: GeneratorModuleExport = {
+      module,
+      export: exp,
+      kind: "function"
+    };
     this.addModuleExport(moduleExport);
   }
 
   /** register a template processor  */
   registerTemplate(...templates: Template[]): void {
-    templates.forEach(t => this.templates.set(t.name, t.applyTemplate));
+    templates.forEach((t) => this.templates.set(t.name, t.applyTemplate));
   }
 
   /** fetch a template processor */
@@ -82,16 +92,19 @@ export class ModuleRegistry {
   }
 
   /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
-  getModuleExport(exportName: string, moduleName?: string): ModuleExport | undefined {
+  getModuleExport(
+    exportName: string,
+    moduleName?: string
+  ): ModuleExport | undefined {
     const exports = this.exports.get(exportName);
     if (!exports) {
       return undefined;
     } else if (moduleName) {
-      return exports.find(e => e.module.name === moduleName);
+      return exports.find((e) => e.module.name === moduleName);
     } else if (exports.length === 1) {
       return exports[0];
     } else {
-      const moduleNames = exports.map(e => e.module.name).join(", ");
+      const moduleNames = exports.map((e) => e.module.name).join(", ");
       console.warn(
         `Multiple modules export "${exportName}". (${moduleNames}) ` +
           `Use "#import ${exportName} from <moduleName>" to select which one import`
@@ -100,8 +113,12 @@ export class ModuleRegistry {
   }
 
   private addTextModule(module: TextModule): void {
-    module.exports.forEach(e => {
-      const moduleExport: TextModuleExport = { module, export: e, kind: "text" };
+    module.exports.forEach((e) => {
+      const moduleExport: TextModuleExport = {
+        module,
+        export: e,
+        kind: "text"
+      };
       this.addModuleExport(moduleExport);
     });
   }

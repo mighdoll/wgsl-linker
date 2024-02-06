@@ -41,7 +41,6 @@ test("read #module", () => {
   expect(textModule.name).toBe("myModule");
 });
 
-
 test("parse #export log", () => {
   const myModule = `
     #export log(myVar)

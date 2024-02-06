@@ -6,7 +6,10 @@ interface IfState {
 }
 
 /** strip out lines elided by #if #endif directives (and the directives themselves) */
-export function stripIfDirectives(src: string, params: Record<string, any>): string {
+export function stripIfDirectives(
+  src: string,
+  params: Record<string, any>
+): string {
   const out: string[] = [];
   const ifStack: IfState[] = [];
   src.split("\n").forEach((line, lineNum) => {
@@ -27,7 +30,7 @@ export function stripIfDirectives(src: string, params: Record<string, any>): str
     } else if (endifMatch) {
       ifStack.pop();
     } else {
-      if (ifStack.length === 0 || ifStack.every(s => s.valid)) {
+      if (ifStack.length === 0 || ifStack.every((s) => s.valid)) {
         out.push(line);
       }
     }

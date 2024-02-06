@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { parseModule2 } from "../ParseModule2.js";
-import { dlog } from "berry-pretty";
 
 test("simple fn export", () => {
   const src = `

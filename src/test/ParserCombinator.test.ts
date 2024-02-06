@@ -13,9 +13,9 @@ import {
   repeatWhile,
   req,
   seq,
-  text,
+  text
 } from "../ParserCombinator.js";
-import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
+import { enableTracing, _withBaseLogger } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
 

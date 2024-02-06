@@ -9,15 +9,15 @@ import {
   opt,
   or,
   repeat,
-  seq,
+  seq
 } from "./ParserCombinator.js";
-import { enableTracing, tracing } from "./ParserTracing.js";
+import { tracing } from "./ParserTracing.js";
 import { patchLine } from "./PatchLine.js";
 import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
 
 export const replaceTemplate: Template = {
   name: "replace",
-  apply: replacer,
+  apply: replacer
 };
 
 const symbolSet = "= //";
@@ -29,7 +29,7 @@ export const replaceTokens = tokenMatcher(
     word: /[\w-.]+/,
     directive: /#[\w-.]+/,
     symbol: matchOneOf(symbolSet),
-    other: /./,
+    other: /./
   },
   "replace"
 );
@@ -82,7 +82,7 @@ if (tracing) {
     replaceClause,
     lineStart,
     line,
-    root,
+    root
   };
 
   Object.entries(names).forEach(([name, parser]) => {

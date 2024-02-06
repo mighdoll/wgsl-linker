@@ -5,33 +5,32 @@ import {
   ModuleElem,
   StructElem,
   TemplateElem,
-  VarElem,
+  VarElem
 } from "../AbstractElems.js";
 import {
   fnDecl,
   globalVar,
   parseWgslD,
   structDecl,
-  typeSpecifier,
+  typeSpecifier
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
   directive,
   importing,
-  lineCommentOptDirective,
+  lineCommentOptDirective
 } from "../ParseDirective.js";
+import { filterElems } from "../ParseModule2.js";
+import { or, repeat } from "../ParserCombinator.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 import {
   comment,
   skipBlockComment,
   unknown,
-  wordNumArgs,
+  wordNumArgs
 } from "../ParseSupport.js";
-import { or, repeat } from "../ParserCombinator.js";
-import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
-import { dlog } from "berry-pretty";
-import { filterElems } from "../ParseModule2.js";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");

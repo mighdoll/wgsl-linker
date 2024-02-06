@@ -5,7 +5,7 @@ import {
   fnRegex,
   importRegex,
   replaceTokens,
-  templateRegex,
+  templateRegex
 } from "../Parsing.js";
 
 test("export regex w/o params", () => {

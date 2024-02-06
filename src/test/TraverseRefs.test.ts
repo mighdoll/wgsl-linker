@@ -7,7 +7,7 @@ import {
   FoundRef,
   LocalRef,
   refName,
-  traverseRefs,
+  traverseRefs
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
 

@@ -72,7 +72,6 @@ export function matchingLexer(
     return { p, token };
   }
 
-
   function pushMatcher(newMatcher: TokenMatcher, newIgnore: Set<string>): void {
     const position = matcher.position();
     matcherStack.push({ matcher, ignore });
@@ -131,7 +130,7 @@ export function matchingLexer(
     withIgnore,
     eof,
     skipIgnored,
-    src,
+    src
   };
 }
 

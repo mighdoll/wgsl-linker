@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   ExportElem,
@@ -8,7 +7,7 @@ import {
   ModuleElem,
   StructElem,
   TemplateElem,
-  VarElem,
+  VarElem
 } from "./AbstractElems.js";
 import { srcLog } from "./LinkerLogging.js";
 import { parseWgslD } from "./ParseWgslD.js";

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { replacerTemplate } from "../ReplaceTemplate.js";
-import { CodeGenFn, TextInsert, linkWgsl } from "../Linker.js";
+import { CodeGenFn, linkWgsl, TextInsert } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
+import { replacerTemplate } from "../ReplaceTemplate.js";
 
 test("simple #import", () => {
   const myModule = `
@@ -322,7 +322,7 @@ test("#import code generator snippet with support", () => {
   function generate(params: { name: string; logType: string }): TextInsert {
     return {
       src: `log(${params.name});`,
-      rootSrc: `fn log(logVar: ${params.logType}) {}`,
+      rootSrc: `fn log(logVar: ${params.logType}) {}`
     };
   }
 
@@ -477,9 +477,9 @@ test("#if !foo", () => {
     #if !foo
       bar();
     #endif
-  `
+  `;
   const registry = new ModuleRegistry();
-  const params = { };
+  const params = {};
   const linked = linkWgsl(src, registry, params);
   expect(linked).includes("bar();");
 });
@@ -491,9 +491,9 @@ test("#if #else", () => {
     #else
       bar();
     #endif
-  `
+  `;
   const registry = new ModuleRegistry();
-  const params = { };
+  const params = {};
   const linked = linkWgsl(src, registry, params);
   expect(linked).not.includes("foo();");
   expect(linked).includes("bar();");

@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
-import { srcLog, srcLine } from "../LinkerLogging.js";
-import { logCatch } from "./LogCatcher.js";
+import { expect, test } from "vitest";
+import { srcLine, srcLog } from "../LinkerLogging.js";
 import { _withBaseLogger } from "../ParserTracing.js";
+import { logCatch } from "./LogCatcher.js";
 
 test("srcLine", () => {
   const src1 = "1";

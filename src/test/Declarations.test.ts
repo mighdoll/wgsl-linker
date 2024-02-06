@@ -1,4 +1,4 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 import { fnDecls, replaceFnCalls, structDecls } from "../Declarations.js";
 
 test("find all fn declarations", () => {

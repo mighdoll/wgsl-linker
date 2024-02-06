@@ -39,7 +39,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
   const expParts = Object.values(matchers).map(toRegexSource).join("|");
   const exp = new RegExp(expParts, "midg");
 
-  function start(text: string, position: number = 0): void {
+  function start(text: string, position = 0): void {
     if (src !== text) {
       cache.clear();
     }
@@ -89,7 +89,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
     start,
     next,
     position,
-    _traceName: traceName,
+    _traceName: traceName
   } as FullTokenMatcher<T>;
 }
 

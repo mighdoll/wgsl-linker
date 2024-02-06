@@ -1,23 +1,21 @@
 import { AbstractElem } from "./AbstractElems.js";
-import { resultLog, srcLog } from "./LinkerLogging.js";
+import { resultLog } from "./LinkerLogging.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser, setTraceName } from "./Parser.js";
 import {
   any,
   anyNot,
-  eof,
   fn,
   kind,
   makeEolf,
-  opt,
   or,
   repeat,
   req,
   seq,
-  withSep,
+  withSep
 } from "./ParserCombinator.js";
-import { enableTracing, tracing } from "./ParserTracing.js";
+import { tracing } from "./ParserTracing.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */
 
@@ -95,7 +93,7 @@ if (tracing) {
   const names: Record<string, Parser<unknown>> = {
     skipBlockComment,
     comment,
-    wordNumArgs,
+    wordNumArgs
   };
 
   Object.entries(names).forEach(([name, parser]) => {

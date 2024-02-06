@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   CallElem,
@@ -6,26 +5,17 @@ import {
   StructElem,
   StructMemberElem,
   TypeRefElem,
-  VarElem,
+  VarElem
 } from "./AbstractElems.js";
-import { resultLog } from "./LinkerLogging.js";
-import { mainTokens } from "./MatchWgslD.js";
 import { matchingLexer } from "./MatchingLexer.js";
+import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
-import {
-  comment,
-  makeElem,
-  unknown,
-  word,
-  wordNumArgs,
-} from "./ParseSupport.js";
 import {
   Parser,
   ParserContext,
   ParserInit,
-  parser,
   setTraceName,
-  simpleParser,
+  simpleParser
 } from "./Parser.js";
 import {
   anyNot,
@@ -33,15 +23,21 @@ import {
   eof,
   fn,
   kind,
-  not,
   opt,
   or,
   repeat,
   req,
   seq,
-  withSep,
+  withSep
 } from "./ParserCombinator.js";
-import { enableTracing, tracing } from "./ParserTracing.js";
+import { tracing } from "./ParserTracing.js";
+import {
+  comment,
+  makeElem,
+  unknown,
+  word,
+  wordNumArgs
+} from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -82,25 +78,23 @@ export const template: Parser<any> = seq(
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
   word.named(possibleTypeRef),
   opt(template)
-)
-  .map((r) =>
-    r.named[possibleTypeRef].map((name) => {
-      const e = makeElem<TypeRefElem>("typeRef", r);
-      e.name = name;
-      return e;
-    })
-  );
+).map((r) =>
+  r.named[possibleTypeRef].map((name) => {
+    const e = makeElem<TypeRefElem>("typeRef", r);
+    e.name = name;
+    return e;
+  })
+);
 
 export const structMember = seq(
   optAttributes,
   word.named("name"),
   ":",
   req(typeSpecifier.named("typeRefs"))
-)
-  .map((r) => {
-    const e = makeElem<StructMemberElem>("member", r, ["name"]);
-    return e;
-  });
+).map((r) => {
+  const e = makeElem<StructMemberElem>("member", r, ["name"]);
+  return e;
+});
 
 // prettier-ignore
 export const structDecl = seq(
@@ -141,12 +135,7 @@ const fnParam = seq(
   opt(seq(":", req(typeSpecifier.named("typeRefs"))))
 );
 
-const fnParamList = seq(
-  lParen,
-  optAttributes,
-  withSep(",", fnParam),
-  rParen
-);
+const fnParamList = seq(lParen, optAttributes, withSep(",", fnParam), rParen);
 
 // prettier-ignore
 const variableDecl = seq(
@@ -177,13 +166,12 @@ export const fnDecl = seq(
   req(fnParamList),
   opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
   req(block)
-)
-  .map((r) => {
-    const e = makeElem<FnElem>("fn", r, ["name"]);
-    e.calls = r.named.calls || [];
-    e.typeRefs = r.named.typeRefs?.flat() || [];
-    r.app.state.push(e);
-  });
+).map((r) => {
+  const e = makeElem<FnElem>("fn", r, ["name"]);
+  e.calls = r.named.calls || [];
+  e.typeRefs = r.named.typeRefs?.flat() || [];
+  r.app.state.push(e);
+});
 
 export const globalVar = seq(
   optAttributes,
@@ -220,12 +208,12 @@ export function parseWgslD(
   const context: ParseState = { ifStack: [], params };
   const app = {
     context,
-    state,
+    state
   };
   const init: ParserInit = {
     lexer,
     app,
-    maxParseCount: 1000,
+    maxParseCount: 1000
   };
 
   root.parse(init);
@@ -250,7 +238,7 @@ if (tracing) {
     globalAlias,
     globalDecl,
     rootDecl,
-    root,
+    root
   };
 
   Object.entries(names).forEach(([name, parser]) => {

@@ -1,4 +1,8 @@
-import { declAdd, globalDeclarations, resolveNameConflicts } from "./Declarations.js";
+import {
+  declAdd,
+  globalDeclarations,
+  resolveNameConflicts
+} from "./Declarations.js";
 import { linkWgsl3 } from "./Linker3.js";
 import { ModuleRegistry, TextModuleExport } from "./ModuleRegistry.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
@@ -87,7 +91,7 @@ export function linkWgsl(
   return insertImportsRecursive(src, registry, new Set(), 0, params);
 }
 
-/** If a #template is specified in the source, run the named template engine over 
+/** If a #template is specified in the source, run the named template engine over
  * the source text, and return the result. Otherwise return the source text unchanged. */
 function applyLinkedTemplate(
   src: string,
@@ -128,14 +132,33 @@ function insertImportsRecursive(
 
       // import module text
       const importName = groups!.name;
-      const params = groups?.params?.split(",").map(p => p.trim()) ?? [];
+      const params = groups?.params?.split(",").map((p) => p.trim()) ?? [];
       const asRename = groups?.importAs;
       const moduleName = groups?.importFrom;
-      const _args = { importName, moduleName, registry, params, extParams, asRename };
-      const args = { ..._args, imported, lineNum, declarations, line, conflictCount };
+      const _args = {
+        importName,
+        moduleName,
+        registry,
+        params,
+        extParams,
+        asRename
+      };
+      const args = {
+        ..._args,
+        imported,
+        lineNum,
+        declarations,
+        line,
+        conflictCount
+      };
       const [insertSrc, rootSrc] = importModule(args);
-      const resolved = [insertSrc, rootSrc].map(s => {
-        const result = resolveNameConflicts(s, declarations, conflictCount, extParams);
+      const resolved = [insertSrc, rootSrc].map((s) => {
+        const result = resolveNameConflicts(
+          s,
+          declarations,
+          conflictCount,
+          extParams
+        );
         result.conflicted && conflictCount++;
         return result;
       });
@@ -168,12 +191,15 @@ interface ImportModuleArgs {
 /** import a an exported entry from a module.
  * @return the text to be inserted at the import and the text to be put at the root level */
 function importModule(args: ImportModuleArgs): string[] {
-  const { importName, asRename, moduleName, registry, params, extParams } = args;
+  const { importName, asRename, moduleName, registry, params, extParams } =
+    args;
   const { imported, lineNum, line, conflictCount } = args;
 
   const moduleExport = registry.getModuleExport(importName, moduleName);
   if (!moduleExport) {
-    console.error(`#import "${importName}" not found: at ${lineNum}\n>>\t${line}`);
+    console.error(
+      `#import "${importName}" not found: at ${lineNum}\n>>\t${line}`
+    );
     return emptyImport;
   }
 
@@ -196,12 +222,17 @@ function importModule(args: ImportModuleArgs): string[] {
   if (moduleExport.kind === "text") {
     texts = templateText(moduleExport, importParams, extParams, registry);
   } else if (moduleExport.kind === "function") {
-    texts = generateText(moduleExport.export, { ...importParams, ...extParams });
+    texts = generateText(moduleExport.export, {
+      ...importParams,
+      ...extParams
+    });
   } else {
-    console.error(`unexpected module export: ${JSON.stringify(moduleExport, null, 2)}`);
+    console.error(
+      `unexpected module export: ${JSON.stringify(moduleExport, null, 2)}`
+    );
     return emptyImport;
   }
-  const withImports = texts.map(s =>
+  const withImports = texts.map((s) =>
     insertImportsRecursive(s, registry, imported, conflictCount, extParams)
   );
 
@@ -219,11 +250,11 @@ function templateText(
   const template = moduleExport.module.template;
   const { src, rootSrc = "" } = moduleExport.export;
   const importWithExt = mapForward(importParams, extParams);
-  const templated = [src, rootSrc].map(s =>
+  const templated = [src, rootSrc].map((s) =>
     applyTemplate(s, { ...extParams, ...importWithExt }, template, registry)
   );
 
-  return templated.map(s => replaceTokens(s, importParams)); // replace import params
+  return templated.map((s) => replaceTokens(s, importParams)); // replace import params
 }
 
 /** return a new record by replacing values in 'a' with 'b' as a map.
@@ -241,7 +272,10 @@ function mapForward(
 }
 
 /** run a src generator fn, returning insert text src and root text src  */
-function generateText(exp: GeneratorExport, params: Record<string, string>): string[] {
+function generateText(
+  exp: GeneratorExport,
+  params: Record<string, string>
+): string[] {
   const result = exp.generate(params);
   if (typeof result === "string") {
     return [result, ""];
@@ -279,7 +313,11 @@ function applyTemplate(
 }
 
 /** optinally find and replace a string (to support import as renaming) */
-function replaceText(text: string | undefined, find: string, replace?: string): string {
+function replaceText(
+  text: string | undefined,
+  find: string,
+  replace?: string
+): string {
   if (!text) {
     return "";
   } else if (!replace) {

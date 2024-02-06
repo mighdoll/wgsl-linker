@@ -56,7 +56,7 @@ export interface TraceLogging {
   tstate: ParserContext;
 }
 
-export let withTraceLogging = () =>
+export const withTraceLogging = () =>
   tracing ? withTraceLoggingInternal : stubTraceLogging;
 
 function stubTraceLogging<T>(

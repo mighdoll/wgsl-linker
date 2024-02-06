@@ -1,5 +1,5 @@
-import { ParserContext } from "./Parser.js";
 import { ctxLog } from "./LinkerLogging.js";
+import { ParserContext } from "./Parser.js";
 
 /** for incrementally patching a line with #replace */
 interface Patched {

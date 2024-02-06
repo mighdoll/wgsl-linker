@@ -1,6 +1,5 @@
-import { test, expect } from "vitest";
-import { replaceTokens, replacer } from "../Replacer.js";
-import { dlog } from "berry-pretty";
+import { expect, test } from "vitest";
+import { replacer } from "../Replacer.js";
 
 test("parse blank line", () => {
   const src = "";

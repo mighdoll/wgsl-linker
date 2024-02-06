@@ -1,12 +1,12 @@
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import {
-  TraceContext,
-  TraceOptions,
   logger,
   parserLog,
+  TraceContext,
+  TraceOptions,
   tracing,
-  withTraceLogging,
+  withTraceLogging
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
@@ -143,7 +143,7 @@ export class Parser<T> {
       trace: this.traceOptions,
       terminal: this.terminal,
       fn: this.fn,
-      ...p,
+      ...p
     });
   }
 
@@ -190,7 +190,7 @@ export class Parser<T> {
         ...init,
         _preParse: [],
         _parseCount: 0,
-        _preCacheFails: new Map(),
+        _preCacheFails: new Map()
       });
     } catch (e) {
       if (!(e instanceof ParseError)) {
@@ -284,8 +284,8 @@ function runParser<T>(
         return {
           value: result.value,
           named: mergeNamed(result.named, {
-            [p.namedResult]: [result.value],
-          }),
+            [p.namedResult]: [result.value]
+          })
         };
       }
       return { value: result.value, named: result.named };
@@ -397,7 +397,7 @@ function disablePreParse<T>(
     }
     const newPreparse = [
       ...preps.slice(0, foundDex),
-      ...preps.slice(foundDex + 1),
+      ...preps.slice(foundDex + 1)
     ];
     const newCtx = { ...ctx, _preParse: newPreparse };
     return mainParser._run(newCtx);

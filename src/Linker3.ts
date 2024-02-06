@@ -1,23 +1,23 @@
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
-import { TextModule2, parseModule2 } from "./ParseModule2.js";
+import { parseModule2, TextModule2 } from "./ParseModule2.js";
 import {
   ExportRef,
   FoundRef,
   GeneratorRef,
   LocalRef,
   PartialRef,
-  TextRef,
   refName,
-  traverseRefs,
+  TextRef,
+  traverseRefs
 } from "./TraverseRefs.js";
 import {
   groupBy,
   grouped,
   multiKeySet,
   partition,
-  replaceTokens3,
+  replaceTokens3
 } from "./Util.js";
 
 interface Rewriting {
@@ -62,7 +62,7 @@ export function linkWgsl3(
   const slicedSrc = rmElems(src, [
     ...origElems,
     ...srcModule.imports,
-    ...templateElem,
+    ...templateElem
   ]);
 
   const templatedSrc = applyTemplate(slicedSrc, srcModule, extParams, registry);
@@ -205,7 +205,7 @@ function combineMergeRefs(
   // combine the merge refs into the export refs on the same element
   const expRefs: ExportRef[] = nonMergeRefs.map((ref) => ({
     ...ref,
-    mergeRefs: recursiveMerges(ref),
+    mergeRefs: recursiveMerges(ref)
   }));
 
   return expRefs;
@@ -237,7 +237,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   return {
     mergeRefs: merge as ExportRef[],
     nonMergeRefs: nonMerge as ExportRef[],
-    localRefs: local as LocalRef[],
+    localRefs: local as LocalRef[]
   };
 }
 
@@ -255,7 +255,7 @@ function syntheticRootExp(
 
     proposedName: null as any,
     fromImport: null as any,
-    expImpArgs: [],
+    expImpArgs: []
   };
 
   return exp;
@@ -349,7 +349,7 @@ function mergeRootStructs(refs: ExportRef[], rewriting: Rewriting): MergedText {
   const origElems = refs.map((r) => (r.fromRef as TextRef).elem);
   return {
     mergedText: texts.join("\n\n"),
-    origElems,
+    origElems
   };
 }
 

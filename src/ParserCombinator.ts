@@ -1,14 +1,14 @@
-import { ctxLog, srcLog } from "./LinkerLogging.js";
+import { ctxLog } from "./LinkerLogging.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
   OptParserResult,
   Parser,
+  parser,
   ParserContext,
   ParserResult,
-  parser,
   runExtended,
-  simpleParser,
+  simpleParser
 } from "./Parser.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
@@ -348,7 +348,7 @@ export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
 
 // TODO make this use it's own tokenMatcher or regex
 /** return a parser that matches end of line, or end of file,
- * optionally preceded by white space 
+ * optionally preceded by white space
  * @param ws should not match \n */
 export function makeEolf(tokens: TokenMatcher, ws: string): Parser<any> {
   // prettier-ignore

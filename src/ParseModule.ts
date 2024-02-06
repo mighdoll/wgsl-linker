@@ -6,13 +6,16 @@ import {
   exportRegex,
   fnOrStructRegex,
   moduleRegex,
-  templateRegex,
+  templateRegex
 } from "./Parsing.js";
 
 let unnamedModuleDex = 0;
 
 /** parse module text to find the #export, #template, and #module declaraions */
-export function parseModule(src: string, defaultModuleName?: string): TextModule {
+export function parseModule(
+  src: string,
+  defaultModuleName?: string
+): TextModule {
   let template: string | undefined;
   const exports: TextExport[] = [];
   let currentExport: Partial<TextExport> | undefined;
@@ -21,7 +24,7 @@ export function parseModule(src: string, defaultModuleName?: string): TextModule
   let rootLines: string[] | undefined;
 
   parseWgslD(""); // temporary to check minified size of build. TODO remove
-  src.split("\n").forEach(line => {
+  src.split("\n").forEach((line) => {
     const matches = matchModuleDirectives(line);
     const { exportMatch, endInsertMatch, endExportMatch } = matches;
     const { templateMatch, moduleMatch } = matches;
@@ -30,8 +33,8 @@ export function parseModule(src: string, defaultModuleName?: string): TextModule
 
       const groups = exportMatch.groups;
       currentExport = {
-        params: groups?.params?.split(",").map(p => p.trim()) ?? [],
-        name: groups?.name,
+        params: groups?.params?.split(",").map((p) => p.trim()) ?? [],
+        name: groups?.name
       };
     } else if (templateMatch) {
       template = templateMatch.groups?.name;

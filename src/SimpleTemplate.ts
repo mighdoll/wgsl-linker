@@ -5,5 +5,5 @@ export const simpleTemplate: Template = {
   name: "simple",
   apply: (src, extParams) => {
     return replaceTokens3(src, extParams);
-  },
+  }
 };

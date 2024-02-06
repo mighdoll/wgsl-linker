@@ -4,7 +4,7 @@ import {
   keyValuesRegex,
   parseReplaceDirective,
   replaceRegex,
-  scan,
+  scan
 } from "../ReplaceTemplate.js";
 
 test("#replace regex", () => {
@@ -18,11 +18,13 @@ test("key value pairs regex", () => {
 });
 
 test("replaceDirective", () => {
-  const result = parseReplaceDirective(`// #replace 4=threads "quoted str"=foo`)!;
+  const result = parseReplaceDirective(
+    `// #replace 4=threads "quoted str"=foo`
+  )!;
   const { replaceKeys, bareLine } = result;
   expect(replaceKeys).to.deep.equal([
     ["4", "threads"],
-    ["quoted str", "foo"],
+    ["quoted str", "foo"]
   ]);
   expect(bareLine).to.equal("// ");
 });

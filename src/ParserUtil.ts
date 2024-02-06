@@ -10,4 +10,3 @@ export function mergeNamed(
   const shared = Object.fromEntries(sharedEntries);
   return { ...a, ...b, ...shared }; // shared keys overwritten with combined arrays
 }
-
