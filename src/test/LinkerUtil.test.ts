@@ -25,7 +25,7 @@ test("srcLine", () => {
   expect(line3).eq(src3);
 });
 
-test("srcErr", () => {
+test("srcLog", () => {
   const src = `a\n12345\nb`;
 
   const { log, logged } = logCatch();

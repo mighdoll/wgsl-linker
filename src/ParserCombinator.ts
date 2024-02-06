@@ -325,8 +325,7 @@ export function req<T>(
     const parser = parserArg(arg);
     const result = parser._run(ctx);
     if (result === null) {
-      const m = msg ?? `expected ${parser.debugName}`;
-      srcLog(ctx.lexer.src, ctx.lexer.position(), m);
+      ctxLog(ctx, msg ?? `expected ${parser.debugName}`);
       throw new ParseError();
     }
     return result;

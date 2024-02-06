@@ -1,13 +1,13 @@
-import { dlog } from "berry-pretty";
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
+import { refLog } from "./LinkerUtil.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { TextModule2, parseModule2 } from "./ParseModule2.js";
 import {
-  PartialRef,
   ExportRef,
   FoundRef,
   GeneratorRef,
   LocalRef,
+  PartialRef,
   TextRef,
   refName,
   traverseRefs,
@@ -19,7 +19,6 @@ import {
   partition,
   replaceTokens3,
 } from "./Util.js";
-import { refLog, srcLog } from "./LinkerUtil.js";
 
 interface Rewriting {
   renames: RenameMap;

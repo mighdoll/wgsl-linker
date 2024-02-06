@@ -363,7 +363,7 @@ test("unexpected token", () => {
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => testParse(p, "a b"));
   expect(logged()).toMatchInlineSnapshot(`
-    "??? [object Object]  Pos. 2
+    "??? word: 'b'
     a b (Ln 1)
       ^"
   `);

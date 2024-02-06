@@ -1,5 +1,5 @@
 import { AbstractElem } from "./AbstractElems.js";
-import { srcLog } from "./LinkerUtil.js";
+import { resultLog, srcLog } from "./LinkerUtil.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 import { ExtendedResult, Parser } from "./Parser.js";
@@ -27,7 +27,8 @@ export const wordNum = or(word, kind(mainTokens.digits));
 export const eolf = makeEolf(argsTokens, argsTokens.ws);
 
 export const unknown = any().map((r) => {
-  srcLog(r.src, r.start, `???`, r.value, ` Pos. ${r.start}`);
+  const {kind, text} = r.value;
+  resultLog(r, `??? ${kind}: '${text}'`);
 });
 
 export const skipBlockComment: Parser<any> = seq(

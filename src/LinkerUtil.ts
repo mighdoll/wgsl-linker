@@ -2,7 +2,7 @@ import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger } from "./ParserTracing.js";
 import { FoundRef } from "./TraverseRefs.js";
 
-/** log an error along with the source line and a caret indicating the error position in the line */
+/** log an message along with the source line and a caret indicating the error position in the line */
 export function srcLog(src: string, pos: number, ...msgs: any[]): void {
   logger(...msgs);
   const { line, lineNum, linePos } = srcLine(src, pos);
@@ -16,7 +16,11 @@ export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
 }
 
 export function refLog(ref: FoundRef, ...msgs: any[]): void {
-  srcLog(ref.expMod.src, ref.elem.start, ...msgs);
+  if (ref.kind !== "gen") {
+    srcLog(ref.expMod.src, ref.elem.start, ...msgs);
+  } else {
+    logger(ref.name, ...msgs);
+  }
 }
 
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
@@ -37,6 +41,7 @@ interface SrcLine {
   lineNum: number;
 }
 
+/** return the line in the src containing a given character postion */
 export function srcLine(src: string, pos: number): SrcLine {
   const starts = getStarts(src);
 
@@ -67,6 +72,8 @@ export function srcLine(src: string, pos: number): SrcLine {
   return { line, linePos: pos - starts[start], lineNum: start + 1 };
 }
 
+/** return an array of the character positions of the start of each line in the src.
+ * cached to avoid recomputation */
 function getStarts(src: string): number[] {
   const found = startCache.get(src);
   if (found) return found;

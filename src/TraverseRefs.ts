@@ -195,8 +195,7 @@ function elemRef(
 
   if (foundRef) return [foundRef];
 
-  const src = srcRef.expMod.src;
-  srcLog(src, elem.start, `reference not found`);
+  srcLog(srcRef.expMod.src, elem.start, `reference not found`);
   return [];
 }
 
@@ -213,8 +212,7 @@ function importMergeRefs(
     const foundRef = importRef(srcRef, merge.name, mod, registry);
     if (foundRef) return [foundRef];
 
-    const src = srcRef.expMod.src;
-    srcLog(src, merge.start, `import merge reference not found`);
+    srcLog(srcRef.expMod.src, merge.start, `import merge reference not found`);
     return [];
   });
 }

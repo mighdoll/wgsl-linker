@@ -1,19 +1,17 @@
 import {
-  AbstractElem,
   ExportElem,
   ImportElem,
   ImportMergeElem,
-  ModuleElem,
-  NamedElem,
+  NamedElem
 } from "./AbstractElems.js";
-import { resultLog, srcLog } from "./LinkerUtil.js";
+import { resultLog } from "./LinkerUtil.js";
 import {
   argsTokens,
   lineCommentTokens,
   mainTokens,
   moduleTokens,
 } from "./MatchWgslD.js";
-import { ExtendedResult, Parser, ParserContext } from "./Parser.js";
+import { ExtendedResult, Parser } from "./Parser.js";
 import {
   any,
   kind,
