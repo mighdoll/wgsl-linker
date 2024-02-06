@@ -6,6 +6,7 @@ import {
   BothRefs,
   ExportRef,
   FoundRef,
+  GeneratorRef,
   LocalRef,
   TextRef,
   refName,
@@ -268,19 +269,31 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
         return loadStruct(r, rewriting);
       }
       if (r.kind === "exp" || r.kind === "local") {
-        const replaces = refReplacements(r, rewriting.extParams);
+        const replaces = refExpImp(r, rewriting.extParams);
         return loadElemText(r.elem, r.expMod, replaces, rewriting);
       }
       if (r.kind === "gen") {
-        // TODO which args here?
+        // TODO apply exp/imp arg renaming
+        const fnName = generatedFnName(r, rewriting.renames);
+        dlog({fnName});
+        
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
         if (!genExp) refLog(r, "missing generator", r.name);
-        const text = genExp?.generate(rewriting.extParams);
+        const text = genExp?.generate(fnName, rewriting.extParams);
         return text;
       }
     })
     .join("\n\n");
 }
+
+function generatedFnName(ref:GeneratorRef, renameMap:RenameMap):string {
+  const moduleRenames = renameMap.get(ref.expMod.name)?.entries() ?? [];
+  const rename = new Map(moduleRenames);
+  const asName = ref.proposedName;
+  const name = rename.get(asName) || asName;
+  return name;
+}
+
 
 function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
@@ -305,7 +318,8 @@ function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   return `struct ${r.elem.name} {\n${membersText}\n}`;
 }
 
-function refReplacements(
+/** get the export/import param map if appropriate for this ref */
+function refExpImp(
   ref: FoundRef,
   extParams: Record<string, string>
 ): [string, string][] {

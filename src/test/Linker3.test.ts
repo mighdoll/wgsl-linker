@@ -734,7 +734,7 @@ test("#import using external param", () => {
 test.skip("#import twice with different params", () => {});
 
 test("#import from code generator", () => {
-  function generate(params: { name: string }): string {
+  function generate(fnName:string, params: { name: string }): string {
     return `fn foo() { /* ${params.name}Impl */ }`;
   }
 
@@ -752,6 +752,22 @@ test("#import from code generator", () => {
   );
   const linked = linkWgsl3(src, registry, { name: "bar" });
   expect(linked).contains("barImpl");
+});
+
+test("#import as from code generator", () => {
+  const generate = ((fnName:string, params: { name: string }): string => {
+    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
+  }) as CodeGenFn;
+
+  const src = `
+    #import foo(bar) as zip
+
+    fn main() { zip(); }
+  `;
+  const registry = new ModuleRegistry2();
+  registry.registerGenerator("foo", generate, ["name"], "genModule");
+  const linked = linkWgsl3(src, registry, { name: "bar" });
+  expect(linked).contains("fn zip()");
 });
 
 // test("#import as with code generator", () => {

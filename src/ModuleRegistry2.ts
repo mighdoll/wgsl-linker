@@ -5,7 +5,7 @@ export interface Template {
   name: string;
   apply: ApplyTemplateFn;
 }
-export type CodeGenFn = (params: Record<string, string>) => string;
+export type CodeGenFn = (name:string, params: Record<string, string>) => string;
 
 export interface GeneratorExport {
   name: string;
