@@ -229,6 +229,11 @@ export class Parser<T> {
   }
 }
 
+/** modify the trace name of this parser */
+export function setTraceName(parser: Parser<any>, traceName: string): void {
+  parser.tracingName = traceName;
+}
+
 /**
  * Execute a parser by running the core parsing fn given the parsing context
  * also:

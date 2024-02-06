@@ -1,5 +1,6 @@
 import { matchingLexer } from "./MatchingLexer.js";
 import { Template } from "./ModuleRegistry2.js";
+import { Parser, setTraceName } from "./Parser.js";
 import {
   anyNot,
   eof,
@@ -10,7 +11,7 @@ import {
   repeat,
   seq,
 } from "./ParserCombinator.js";
-import { enableTracing } from "./ParserTracing.js";
+import { enableTracing, tracing } from "./ParserTracing.js";
 import { patchLine } from "./PatchLine.js";
 import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
 
@@ -40,8 +41,7 @@ const replaceValue = or(
 
 const nameValue = seq(replaceValue, "=", replaceValue)
   .map((r) => [r.value[0], r.value[2]])
-  .named("nameValue")
-  .traceName("nameValue");
+  .named("nameValue");
 
 // prettier-ignore
 const replaceClause = seq(
@@ -49,24 +49,21 @@ const replaceClause = seq(
   "#replace", 
   nameValue, 
   repeat(nameValue), 
-).traceName("replaceClause");
+)
 
 const eolf = makeEolf(replaceTokens, replaceTokens.ws);
 
-const lineStart = seq(anyNot(replaceClause), repeat(anyNot(replaceClause)))
-  .map((r) => r.src.slice(r.start, r.end))
-  .traceName("lineStart");
+const lineStart = seq(anyNot(replaceClause), repeat(anyNot(replaceClause))).map(
+  (r) => r.src.slice(r.start, r.end)
+);
 
-const line = seq(lineStart.named("line"), opt(replaceClause), eolf)
-  .map((r) => {
-    const line = r.named.line[0];
-    const patched = patchLine(r.ctx, line, r.named.nameValue ?? []);
-    r.app.state.push(patched);
-  })
-  .traceName("line");
+const line = seq(lineStart.named("line"), opt(replaceClause), eolf).map((r) => {
+  const line = r.named.line[0];
+  const patched = patchLine(r.ctx, line, r.named.nameValue ?? []);
+  r.app.state.push(patched);
+});
 
-// enableTracing();
-const root = seq(repeat(line), eof()).traceName("root");
+const root = seq(repeat(line), eof());
 
 export function replacer(src: string, params: Record<string, any>): string {
   const lexer = matchingLexer(src, replaceTokens);
@@ -75,4 +72,20 @@ export function replacer(src: string, params: Record<string, any>): string {
   root.parse({ lexer, app, maxParseCount: 1000 });
 
   return lines.join("\n");
+}
+
+// enableTracing();
+if (tracing) {
+  const names: Record<string, Parser<unknown>> = {
+    replaceValue,
+    nameValue,
+    replaceClause,
+    lineStart,
+    line,
+    root,
+  };
+
+  Object.entries(names).forEach(([name, parser]) => {
+    setTraceName(parser, name);
+  });
 }

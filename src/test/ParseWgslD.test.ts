@@ -32,7 +32,6 @@ import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { dlog } from "berry-pretty";
 import { filterElems } from "../ParseModule2.js";
-enableTracing();
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");

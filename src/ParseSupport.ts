@@ -2,7 +2,7 @@ import { AbstractElem } from "./AbstractElems.js";
 import { resultLog, srcLog } from "./LinkerLogging.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
-import { ExtendedResult, Parser } from "./Parser.js";
+import { ExtendedResult, Parser, setTraceName } from "./Parser.js";
 import {
   any,
   anyNot,
@@ -17,6 +17,7 @@ import {
   seq,
   withSep,
 } from "./ParserCombinator.js";
+import { enableTracing, tracing } from "./ParserTracing.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */
 
@@ -27,7 +28,7 @@ export const wordNum = or(word, kind(mainTokens.digits));
 export const eolf = makeEolf(argsTokens, argsTokens.ws);
 
 export const unknown = any().map((r) => {
-  const {kind, text} = r.value;
+  const { kind, text } = r.value;
   resultLog(r, `??? ${kind}: '${text}'`);
 });
 
@@ -40,21 +41,19 @@ export const skipBlockComment: Parser<any> = seq(
     )
   ),
   req("*/")
-).traceName("skipBlockComment");
+);
 
 export const comment = or(
   fn(() => lineCommentOptDirective),
   skipBlockComment
-).traceName("comment");
+);
 
 /** ( a1, b1* ) with optinal comments, spans lines */
 export const wordNumArgs: Parser<string[]> = seq(
   "(",
   withSep(",", wordNum),
   req(")")
-)
-  .map((r) => r.value[1])
-  .traceName("wordNumArgs");
+).map((r) => r.value[1]);
 
 /** create an AbstractElem from parse results
  * @param named keys in the named result to copy to
@@ -89,4 +88,17 @@ function mapIfDefined<A>(
     else return [[k, v]];
   });
   return Object.fromEntries(entries);
+}
+
+// enableTracing();
+if (tracing) {
+  const names: Record<string, Parser<unknown>> = {
+    skipBlockComment,
+    comment,
+    wordNumArgs,
+  };
+
+  Object.entries(names).forEach(([name, parser]) => {
+    setTraceName(parser, name);
+  });
 }

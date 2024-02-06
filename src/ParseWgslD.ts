@@ -24,6 +24,7 @@ import {
   ParserContext,
   ParserInit,
   parser,
+  setTraceName,
   simpleParser,
 } from "./Parser.js";
 import {
@@ -40,6 +41,7 @@ import {
   seq,
   withSep,
 } from "./ParserCombinator.js";
+import { enableTracing, tracing } from "./ParserTracing.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -58,7 +60,7 @@ const possibleTypeRef = Symbol("typeRef");
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
   req(anyThrough(";"))
-).traceName("globalDirectiveOrAssert");
+);
 
 /** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
@@ -74,7 +76,7 @@ export const template: Parser<any> = seq(
     )
   ),
   req(">")
-).traceName("template");
+);
 
 /** find possible references to user structs in this type specifier and any templates */
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
@@ -87,8 +89,7 @@ export const typeSpecifier: Parser<TypeRefElem[]> = seq(
       e.name = name;
       return e;
     })
-  )
-  .traceName("typeSpecifier");
+  );
 
 export const structMember = seq(
   optAttributes,
@@ -99,8 +100,7 @@ export const structMember = seq(
   .map((r) => {
     const e = makeElem<StructMemberElem>("member", r, ["name"]);
     return e;
-  })
-  .traceName("structMember");
+  });
 
 // prettier-ignore
 export const structDecl = seq(
@@ -115,8 +115,7 @@ export const structDecl = seq(
     const e = makeElem<StructElem>("struct", r, ["name", "members"]);
     e.typeRefs = r.named.typeRefs?.flat() || []; 
     r.app.state.push(e);
-  })
-  .traceName("structDecl");
+  });
 
 // keywords that can be followed by (), not to be confused with fn calls
 const callishKeyword = simpleParser("keyword", (ctx: ParserContext) => {
@@ -134,7 +133,7 @@ export const fnCall = seq(
     .map((r) => makeElem<CallElem>("call", r, ["name"]))
     .named("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
-).traceName("fnCall");
+);
 
 // prettier-ignore
 const fnParam = seq(
@@ -147,7 +146,7 @@ const fnParamList = seq(
   optAttributes,
   withSep(",", fnParam),
   rParen
-).traceName("fnParamList");
+);
 
 // prettier-ignore
 const variableDecl = seq(
@@ -155,7 +154,7 @@ const variableDecl = seq(
   word, 
   ":", 
   req(typeSpecifier).named("typeRefs")
-).traceName("variableDecl");
+);
 
 const block: Parser<any> = seq(
   "{",
@@ -169,7 +168,7 @@ const block: Parser<any> = seq(
     )
   ),
   req("}")
-).traceName("block");
+);
 
 export const fnDecl = seq(
   optAttributes,
@@ -184,8 +183,7 @@ export const fnDecl = seq(
     e.calls = r.named.calls || [];
     e.typeRefs = r.named.typeRefs?.flat() || [];
     r.app.state.push(e);
-  })
-  .traceName("fnDecl");
+  });
 
 export const globalVar = seq(
   optAttributes,
@@ -194,30 +192,22 @@ export const globalVar = seq(
   word.named("name"),
   opt(seq(":", req(typeSpecifier.named("typeRefs")))),
   req(anyThrough(";"))
-)
-  .map((r) => {
-    // resultErr(r, "globalVar");
-    const e = makeElem<VarElem>("var", r, ["name", "typeRefs"]);
-    r.app.state.push(e);
-  })
-  .traceName("globalVar");
+).map((r) => {
+  // resultErr(r, "globalVar");
+  const e = makeElem<VarElem>("var", r, ["name", "typeRefs"]);
+  r.app.state.push(e);
+});
 
 export const globalAlias = seq("alias", req(anyThrough(";")));
 
-const globalDecl = or(
-  fnDecl,
-  globalVar,
-  globalAlias,
-  structDecl,
-  ";"
-).traceName("globalDecl");
+const globalDecl = or(fnDecl, globalVar, globalAlias, structDecl, ";");
 
 const rootDecl = or(
   globalDirectiveOrAssert,
   globalDecl,
   directive,
   unknown
-).traceName("rootDecl");
+).trace();
 
 const root = seq(repeat(rootDecl), eof()).preParse(comment);
 
@@ -241,4 +231,29 @@ export function parseWgslD(
   root.parse(init);
 
   return init.app.state;
+}
+
+// enableTracing();
+if (tracing) {
+  const names: Record<string, Parser<unknown>> = {
+    globalDirectiveOrAssert,
+    template,
+    typeSpecifier,
+    structMember,
+    structDecl,
+    fnCall,
+    fnParam,
+    fnParamList,
+    block,
+    fnDecl,
+    globalVar,
+    globalAlias,
+    globalDecl,
+    rootDecl,
+    root,
+  };
+
+  Object.entries(names).forEach(([name, parser]) => {
+    setTraceName(parser, name);
+  });
 }
