@@ -9,3 +9,6 @@ dist
 
 # vi temp files
 *.swp
+
+# typescript build info cache files 
+*.tsbuildinfo
