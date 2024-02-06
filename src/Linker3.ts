@@ -273,27 +273,30 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
         return loadElemText(r.elem, r.expMod, replaces, rewriting);
       }
       if (r.kind === "gen") {
-        // TODO apply exp/imp arg renaming
-        const fnName = generatedFnName(r, rewriting.renames);
-        dlog({fnName});
-        
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
-        if (!genExp) refLog(r, "missing generator", r.name);
-        const text = genExp?.generate(fnName, rewriting.extParams);
+        if (!genExp) {
+          refLog(r, "missing generator", r.name);
+          return "//?";
+        }
+
+        const fnName = generatedFnName(r, rewriting.renames);
+        const expImp = Object.fromEntries(r.expImpArgs);
+        const params = { ...expImp, ...rewriting.extParams };
+
+        const text = genExp?.generate(fnName, params);
         return text;
       }
     })
     .join("\n\n");
 }
 
-function generatedFnName(ref:GeneratorRef, renameMap:RenameMap):string {
+function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
   const moduleRenames = renameMap.get(ref.expMod.name)?.entries() ?? [];
   const rename = new Map(moduleRenames);
   const asName = ref.proposedName;
   const name = rename.get(asName) || asName;
   return name;
 }
-
 
 function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
