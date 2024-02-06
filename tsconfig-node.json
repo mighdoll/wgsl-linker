@@ -4,8 +4,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "types": ["node"],
-    "skipLibCheck": true,
-    "noEmit": true,
+    "skipLibCheck": true
   },
   "files": ["vite.config.ts"]
 }
