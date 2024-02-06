@@ -195,7 +195,7 @@ const rootDecl = or(
   globalDecl,
   directive,
   unknown
-).trace();
+);
 
 const root = seq(repeat(rootDecl), eof()).preParse(comment);
 
