@@ -5,6 +5,7 @@ import {
   ExportRef,
   FoundRef,
   LocalRef,
+  refName,
   traverseRefs,
 } from "../TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
@@ -199,7 +200,7 @@ test("traverse a struct to struct ref", () => {
 
   const refs = traverseTest(src, module1);
   expect(refs[0].kind).toBe("exp");
-  expect(refs[0].elem.name).toBe("AStruct");
+  expect(refName(refs[0])).toBe("AStruct");
 });
 
 test("traverse a fn to struct ref", () => {
@@ -268,8 +269,8 @@ test("traverse transitive struct refs", () => {
   `;
 
   const refs = traverseTest(src, module1, module2);
-  expect(refs[0].elem.name).toBe("AStruct");
-  expect(refs[1].elem.name).toBe("BStruct");
+  expect(refName(refs[0])).toBe("AStruct");
+  expect(refName(refs[1])).toBe("BStruct");
 });
 
 test("traverse #export importing struct to struct", () => {
@@ -298,8 +299,8 @@ test("traverse #export importing struct to struct", () => {
     }
   `;
   const refs = traverseTest(src, module1, module2);
-  expect(refs[0].elem.name).toBe("AStruct");
-  expect(refs[1].elem.name).toBe("BStruct");
+  expect(refName(refs[0])).toBe("AStruct");
+  expect(refName(refs[1])).toBe("BStruct");
 });
 
 test("traverse ref from struct constructor", () => {
@@ -318,7 +319,7 @@ test("traverse ref from struct constructor", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  expect(refs[0].elem.name).toBe("AStruct");
+  expect(refName(refs[0])).toBe("AStruct");
 });
 
 test("traverse #importMerge", () => {
@@ -335,7 +336,7 @@ test("traverse #importMerge", () => {
     }
   `;
   const refs = traverseTest(src, module1);
-  expect(refs[0].elem.name).toBe("A");
+  expect(refName(refs[0])).toBe("A");
 });
 
 test("traverse with local support struct", () => {
@@ -352,8 +353,8 @@ test("traverse with local support struct", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  const refNames = refs.map((r) => r.elem.name);
-  expect(refNames).deep.eq(["A"]);
+  const refNames = refs.map(refName);
+  expect(refNames).deep.eq(["A", "B"]);
 });
 
 test("traverse from return type of function", () => {
@@ -368,7 +369,7 @@ test("traverse from return type of function", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  const refNames = refs.map((r) => r.elem.name);
+  const refNames = refs.map(refName);
   expect(refNames).deep.eq(["A"]);
 });
 

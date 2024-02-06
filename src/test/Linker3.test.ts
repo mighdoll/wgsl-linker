@@ -1,9 +1,7 @@
 import { expect, test } from "vitest";
-import { ModuleRegistry2, Template } from "../ModuleRegistry2.js";
 import { linkWgsl3 } from "../Linker3.js";
-import { replaceTokens3 } from "../Util.js";
+import { CodeGenFn, ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { replaceTemplate } from "../Replacer.js";
-import { dlog } from "berry-pretty";
 import { simpleTemplate } from "../SimpleTemplate.js";
 
 test("simple #import", () => {
@@ -733,25 +731,28 @@ test("#import using external param", () => {
 });
 
 // TODO
-test.skip("#import twice with different params", () => {
+test.skip("#import twice with different params", () => {});
+
+test("#import from code generator", () => {
+  function generate(params: { name: string }): string {
+    return `fn foo() { /* ${params.name}Impl */ }`;
+  }
+
+  const src = `
+    #import foo(bar)
+
+    fn main() { foo(); }
+  `;
+  const registry = new ModuleRegistry2();
+  registry.registerGenerator(
+    "foo",
+    generate as CodeGenFn,
+    ["name"],
+    "genModule"
+  );
+  const linked = linkWgsl3(src, registry, { name: "bar" });
+  expect(linked).contains("barImpl");
 });
-
-
-// test("#import from code generator", () => {
-//   function generate(params: { name: string }): string {
-//     return `fn foo() { /* ${params.name}Impl */ }`;
-//   }
-
-//   const src = `
-//     #import foo(bar)
-
-//     foo();
-//   `;
-//   const registry = new ModuleRegistry();
-//   registry.registerGenerator("foo", generate as CodeGenFn, ["name"]);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).contains("barImpl");
-// });
 
 // test("#import as with code generator", () => {
 //   function generate(params: { name: string }): string {

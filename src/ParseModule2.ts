@@ -15,6 +15,7 @@ import { parseWgslD } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
+  kind: "text";
   template?: TemplateElem;
   exports: TextExport2[];
   fns: FnElem[];
@@ -25,6 +26,7 @@ export interface TextModule2 {
   src: string;
 }
 
+/** an export elem annotated with the fn/struct to which it refers */
 export interface TextExport2 extends ExportElem {
   ref: FnElem | StructElem;
 }
@@ -49,7 +51,8 @@ export function parseModule2(
   matchMergeImports(src, parsed);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
-  return { name, exports, fns, structs, vars, imports, src, template };
+  const kind = "text";
+  return { kind, name, exports, fns, structs, vars, imports, src, template };
 }
 
 export function filterElems<T extends AbstractElem>(

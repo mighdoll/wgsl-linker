@@ -42,6 +42,7 @@ exports[`simple fn export 1`] = `
     },
   ],
   "imports": [],
+  "kind": "text",
   "name": "my.module",
   "src": "
     // #export
@@ -83,6 +84,7 @@ exports[`simple fn import 1`] = `
       "start": 8,
     },
   ],
+  "kind": "text",
   "name": "my.module",
   "src": "
     // #import foo

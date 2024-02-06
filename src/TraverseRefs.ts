@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   CallElem,
@@ -10,12 +11,18 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { srcLog } from "./LinkerUtil.js";
-import { ModuleExport2, ModuleRegistry2 } from "./ModuleRegistry2.js";
+import { refLog, srcLog } from "./LinkerUtil.js";
+import {
+  GeneratorExport,
+  GeneratorModule,
+  ModuleExport2,
+  ModuleRegistry2,
+} from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
 import { groupBy } from "./Util.js";
 
-export type FoundRef = ExportRef | LocalRef;
+export type FoundRef = TextRef | GeneratorRef;
+export type TextRef = ExportRef | LocalRef;
 
 export type StringPairs = [string, string][];
 
@@ -29,16 +36,7 @@ export interface LocalRef {
   elem: FnElem | StructElem | VarElem;
 }
 
-/** found reference to an exported function or struct */
-export interface ExportRef {
-  kind: "exp";
-
-  /** module containing the exported funciton */
-  expMod: TextModule2;
-
-  /** reference to the exported function or struct */
-  elem: FnElem | StructElem;
-
+interface ExportRefBase {
   /** reference that led us to find this ref (for mapping imp/exp args) */
   fromRef: FoundRef;
 
@@ -52,6 +50,32 @@ export interface ExportRef {
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
+}
+
+export interface GeneratorRef extends ExportRefBase {
+  kind: "gen";
+
+  /** module containing the exported function */
+  expMod: GeneratorModule;
+
+  /** name of the generated function (may be renamed by import as) */
+  name: string;
+}
+
+/** found reference to an exported function or struct.
+ * describes the links:
+ *  from a source element (e.g. CallElem)
+ *  -> to an import in the same module
+ *  -> to the resolved export in another module
+ */
+export interface ExportRef extends ExportRefBase {
+  kind: "exp";
+
+  /** module containing the exported function */
+  expMod: TextModule2;
+
+  /** reference to the exported function or struct */
+  elem: FnElem | StructElem;
 
   /** refs to importMerge elements on this same element
    * (added in a post processing step after traverse) */
@@ -82,8 +106,9 @@ export function traverseRefs(
   if (!srcRefs.length) return;
 
   // recurse on the external refs from the src root elements
-  const childRefs = srcRefs.flatMap((srcRef) =>
-    elemRefs(srcRef, srcModule, registry).filter((r) => r.kind === "exp")
+  const nonGenRefs = textRefs(srcRefs); 
+  const childRefs = nonGenRefs.flatMap((srcRef) =>
+    elemRefs(srcRef, srcModule, registry)
   );
   recursiveRefs(childRefs, registry, fn);
 }
@@ -103,7 +128,10 @@ function recursiveRefs(
 ): void {
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
   const filtered = refs.filter((r) => fn(r));
-  const modGroups = groupBy(filtered, (r) => r.expMod);
+
+  const nonGenRefs = textRefs(filtered); // we don't need to find imports in generated text
+
+  const modGroups = groupBy(nonGenRefs, (r) => r.expMod);
   [...modGroups.entries()].forEach(([mod, refs]) => {
     if (refs.length) {
       const childRefs = refs.flatMap((r) => elemRefs(r, mod, registry));
@@ -112,9 +140,17 @@ function recursiveRefs(
   });
 }
 
+function textRefs<T>(refs: FoundRef[]): TextRef[] {
+  return refs.filter(textRef);
+}
+
+function textRef(ref: FoundRef): ref is TextRef {
+  return ref.kind !== "gen";
+}
+
 /** return all struct/fn refs from a src element */
 function elemRefs(
-  srcRef: FoundRef,
+  srcRef: TextRef,
   mod: TextModule2,
   registry: ModuleRegistry2
 ): FoundRef[] {
@@ -132,10 +168,9 @@ function elemRefs(
 }
 
 /** find fn/struct references from children of a fn or struct elem
- * (children being call references and type references from the fn or struct)
- */
+ * (children being call references and type references from the fn or struct) */
 function elemChildrenRefs(
-  srcRef: FoundRef,
+  srcRef: TextRef,
   children: (CallElem | VarElem | StructElem | TypeRefElem)[],
   mod: TextModule2,
   registry: ModuleRegistry2
@@ -143,13 +178,15 @@ function elemChildrenRefs(
   return children.flatMap((elem) => elemRef(elem, srcRef, mod, registry));
 }
 
+/** given a source elem that references a struct or fn, return a TextRef linking
+ * the src elem to its referent, possibly through an import/export */
 function elemRef(
   elem: NamedElem,
-  srcRef: FoundRef,
+  srcRef: TextRef,
   mod: TextModule2,
   registry: ModuleRegistry2
-) {
-  if (exportArgRef(srcRef, elem.name)) return [];
+): FoundRef[] {
+  if (importArgRef(srcRef, elem.name)) return [];
 
   const foundRef =
     importRef(srcRef, elem.name, mod, registry) ??
@@ -165,7 +202,7 @@ function elemRef(
 
 /** create references to any importMerge elements attached to this struct */
 function importMergeRefs(
-  srcRef: FoundRef,
+  srcRef: TextRef,
   elem: StructElem,
   mod: TextModule2,
   registry: ModuleRegistry2
@@ -183,59 +220,72 @@ function importMergeRefs(
 }
 
 /** @return true if the ref is to an import parameter */
-function exportArgRef(srcRef: FoundRef, name: string): boolean | undefined {
+function importArgRef(srcRef: FoundRef, name: string): boolean | undefined {
   if (srcRef.kind === "exp") {
     return !!srcRef.expImpArgs.find(([expArg]) => expArg === name);
   }
 }
 
-/** If this call element references an #import function
+/** If this src element references an #import function
  * @return an ExportRef describing the export to link */
 function importRef(
   fromRef: FoundRef,
   name: string,
   impMod: TextModule2,
   registry: ModuleRegistry2
-): ExportRef | undefined {
+): ExportRef | GeneratorRef | undefined {
   const fromImport = impMod.imports.find((imp) => importName(imp) == name);
   const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp || !fromImport) return;
-  const exp = modExp.export as TextExport2;
-  const expMod = modExp.module as TextModule2;
-  return {
-    kind: "exp",
-    fromRef,
-    fromImport,
-    expMod,
-    expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
-    elem: exp.ref,
-    proposedName: fromImport.as ?? exp.ref.name,
-  };
+  const expMod = modExp.module;
+  if (expMod.kind === "text") {
+    const exp = modExp.export as TextExport2;
+    return {
+      kind: "exp",
+      fromRef,
+      fromImport,
+      expMod,
+      expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
+      elem: exp.ref,
+      proposedName: fromImport.as ?? exp.ref.name,
+    };
+  } else if (expMod.kind === "generator") {
+    const exp = modExp.export as GeneratorExport;
+    return {
+      kind: "gen",
+      fromRef,
+      fromImport,
+      expMod,
+      expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
+      proposedName: fromImport.as ?? exp.name,
+      name:exp.name
+    };
+  }
 }
 
 function matchImportExportArgs(
-  impMod: TextModule2,
+  impMod: TextModule2 | GeneratorModule,
   imp: ImportElem | ImportMergeElem,
-  expMod: TextModule2,
-  exp: ExportElem
+  expMod: TextModule2 | GeneratorModule,
+  exp: ExportElem | GeneratorExport
 ): StringPairs {
   const impArgs = imp.args ?? [];
   const expArgs = exp.args ?? [];
   if (expArgs.length !== impArgs.length) {
-    srcLog(impMod.src, imp.start, "mismatched import and export params");
-    srcLog(expMod.src, exp.start);
+    impMod.kind === "text" && srcLog(impMod.src, imp.start, "mismatched import and export params");
+    expMod.kind === "text" && srcLog(expMod.src, (exp as ExportElem).start);
   }
   return expArgs.map((p, i) => [p, impArgs[i]]);
 }
 
-/** If this call element references an #export.. importing function
- * @return an ExportRef describing the export to link */
+/** If this element references an #export.. importing function
+ * @return a ref describing the export to link */
 function importingRef(
   srcRef: FoundRef,
   name: string,
   impMod: TextModule2,
   registry: ModuleRegistry2
-): ExportRef | undefined {
+): ExportRef | GeneratorRef | undefined {
   let fromImport: ImportElem | undefined;
   // find a matching 'importing' phrase in an #export
   const textExport = impMod.exports.find((exp) => {
@@ -248,9 +298,13 @@ function importingRef(
   isDefined(fromImport);
   isDefined(textExport);
 
-  if (srcRef.kind === "exp") {
-    const exp = modExp.export as TextExport2;
+  if (srcRef.kind !== "exp") {
+    refLog(srcRef, "unexpected srcRef", srcRef.kind);
+    return;
+  }
 
+  if (modExp.kind === "text") {
+    const exp = modExp.export;
     return {
       kind: "exp",
       fromRef: srcRef,
@@ -260,10 +314,17 @@ function importingRef(
       elem: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
-  } else {
-    const src = srcRef.expMod.src;
-    const pos = srcRef.elem.start;
-    srcLog(src, pos, "unexpected srcRef not an export", srcRef.kind);
+  } else if (modExp.kind === "function") {
+    const exp = modExp.export;
+    return {
+      kind: "gen",
+      fromRef: srcRef,
+      fromImport,
+      expMod: modExp.module,
+      expImpArgs: importingArgs(fromImport, exp, srcRef),
+      proposedName: fromImport.as ?? exp.name,
+      name: exp.name,
+    };
   }
 
   return undefined;
@@ -289,10 +350,15 @@ function importingRef(
  */
 function importingArgs(
   imp: ImportElem,
-  exp: ExportElem,
+  exp: ExportElem | GeneratorExport,
   srcRef: ExportRef
 ): StringPairs {
-  const expImp = matchImportExportArgs(srcRef.fromRef.expMod, imp, srcRef.expMod, exp); // X -> D
+  const expImp = matchImportExportArgs(
+    srcRef.fromRef.expMod,
+    imp,
+    srcRef.expMod,
+    exp
+  ); // X -> D
   const srcExpImp = srcRef.expImpArgs;
   return expImp.flatMap(([iExp, iImp]) => {
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
@@ -349,4 +415,8 @@ const stdTypes = (
 /** return true if the name is for a built in type (not a user struct) */
 function stdType(name: string): boolean {
   return stdTypes.includes(name);
+}
+
+export function refName(ref:FoundRef):string {
+  return ref.kind === "gen" ? ref.name : ref.elem.name;
 }
