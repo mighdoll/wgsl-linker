@@ -7,6 +7,7 @@ const directive = /#[a-zA-Z_]\w*/;
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
+const symbol = matchOneOf(symbolSet);
 
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
@@ -15,7 +16,7 @@ export const mainTokens = tokenMatcher(
     attr: /@[a-zA-Z_]\w*/,
     word: /[a-zA-Z_]\w*/, // consider making this 'ident' per wgsl spec (incl. non-ascii)   word,
     digits: /\d+/, // TODO do we need this?
-    symbol: matchOneOf(symbolSet),
+    symbol,
     ws: /\s+/
   },
   "main"
@@ -45,7 +46,7 @@ export const argsTokens = tokenMatcher(
   {
     directive,
     arg: /[\w._-]+/,
-    symbol: matchOneOf("( ) , = !"),
+    symbol, 
     ws: /[ \t]+/, // don't include \n, so we can find eol separately
     eol
   },
