@@ -1,8 +1,8 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
-import dts from 'vite-plugin-dts'
-
+import dts from "vite-plugin-dts";
 
 export default defineConfig({
   plugins: [tsconfigPaths(), dts()],
@@ -14,5 +14,8 @@ export default defineConfig({
       ],
     },
     sourcemap: true,
+  },
+  test: {
+    setupFiles: "./src/test/TestSetup.ts",
   },
 });
