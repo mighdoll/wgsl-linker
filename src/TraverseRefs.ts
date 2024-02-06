@@ -11,7 +11,7 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { refLog, srcLog } from "./LinkerUtil.js";
+import { refLog, srcLog } from "./LinkerLogging.js";
 import {
   GeneratorExport,
   GeneratorModule,

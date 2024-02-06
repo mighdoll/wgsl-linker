@@ -4,7 +4,7 @@ import {
   ImportMergeElem,
   NamedElem
 } from "./AbstractElems.js";
-import { resultLog } from "./LinkerUtil.js";
+import { resultLog } from "./LinkerLogging.js";
 import {
   argsTokens,
   lineCommentTokens,

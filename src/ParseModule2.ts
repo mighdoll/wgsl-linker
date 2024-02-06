@@ -10,7 +10,7 @@ import {
   TemplateElem,
   VarElem,
 } from "./AbstractElems.js";
-import { srcLog } from "./LinkerUtil.js";
+import { srcLog } from "./LinkerLogging.js";
 import { parseWgslD } from "./ParseWgslD.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */

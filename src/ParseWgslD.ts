@@ -8,7 +8,7 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { resultLog } from "./LinkerUtil.js";
+import { resultLog } from "./LinkerLogging.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { directive } from "./ParseDirective.js";

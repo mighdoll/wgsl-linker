@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { srcLog, srcLine } from "../LinkerUtil.js";
+import { srcLog, srcLine } from "../LinkerLogging.js";
 import { logCatch } from "./LogCatcher.js";
 import { _withBaseLogger } from "../ParserTracing.js";
 
