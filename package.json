@@ -7,7 +7,10 @@
   ],
   "scripts": {
     "build": "vite build",
-    "test": "vitest"
+    "test": "vitest",
+    "organize": "organize-imports-cli tsconfig.json",
+    "format": "prettier-eslint \"src/**/*.ts\" --write",
+    "lint": "eslint ."
   },
   "type": "module",
   "repository": "github:mighdoll/thimbleberry",
@@ -30,6 +33,8 @@
     "berry-pretty": "^0.0.4",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "organize-imports-cli": "^0.10.0",
+    "prettier-eslint-cli": "^8.0.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.2",
     "vite-plugin-dts": "^3.6.4",
