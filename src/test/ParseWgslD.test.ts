@@ -524,3 +524,15 @@ test("eolf followed by comment", () => {
   `;
   expectNoLogErr(() => parseWgslD(src));
 });
+
+test.only("#if inside struct", () => {
+  const src=`
+  struct Input { 
+  // #if typecheck 
+  // #endif
+  }`
+  
+  // const appState = parseWgslD(src);
+  expectNoLogErr(() => parseWgslD(src));
+
+})
