@@ -275,11 +275,11 @@ function runParser<T>(
 
       if (!p.preDisabled) {
         if (tContext._preParse.length)
-          parserLog(
-            "preParse",
-            p.debugName,
-            tContext._preParse.map((p) => p.debugName)
-          );
+          // parserLog(
+          //   "preParse",
+          //   p.debugName,
+          //   tContext._preParse.map((p) => p.debugName)
+          // );
         execPreParsers(tContext);
       } else {
         tContext._preParse = [];
