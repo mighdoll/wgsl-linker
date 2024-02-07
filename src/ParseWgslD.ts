@@ -213,7 +213,7 @@ export function parseWgslD(
   const init: ParserInit = {
     lexer,
     app,
-    maxParseCount: 1000
+    maxParseCount: 50000
   };
 
   root.parse(init);
