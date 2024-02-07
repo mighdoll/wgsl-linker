@@ -6,7 +6,7 @@ import dts from "vite-plugin-dts";
 import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), dts(), visualizer({ brotliSize: true })],
+  plugins: [tsconfigPaths(), dts(), visualizer({ brotliSize: true, gzipSize: true })],
   build: {
     lib: {
       entry: [
