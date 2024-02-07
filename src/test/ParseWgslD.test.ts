@@ -373,7 +373,7 @@ test("unexpected token", () => {
   _withBaseLogger(log, () => testParse(p, "a b"));
   expect(logged()).toMatchInlineSnapshot(`
     "??? word: 'b'
-    a b (Ln 1)
+    a b   Ln 1
       ^"
   `);
 });
@@ -386,7 +386,7 @@ test("#export w/o closing paren", () => {
   _withBaseLogger(log, () => parseWgslD(src));
   expect(logged()).toMatchInlineSnapshot(`
     "expected text ')''
-    #export (A (Ln 1)
+    #export (A   Ln 1
               ^"
   `);
 });

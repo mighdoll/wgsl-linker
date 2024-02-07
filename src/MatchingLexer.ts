@@ -1,4 +1,5 @@
-import { parserLog, tracing } from "./ParserTracing.js";
+import { srcTrace } from "./ParserLogging.js";
+import { tracing } from "./ParserTracing.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
@@ -40,10 +41,11 @@ export function matchingLexer(
   matcher.start(src);
 
   function next(): Token | undefined {
+    const start = matcher.position();
     const { token } = toNextToken();
     if (token && tracing) {
       const text = quotedText(token?.text);
-      parserLog(`: ${text} (${token?.kind}) ${matcher.position()}`);
+      srcTrace(src, start, `: ${text} (${token?.kind})`);
     }
     return token;
   }
@@ -130,7 +132,7 @@ export function matchingLexer(
     withIgnore,
     eof,
     skipIgnored,
-    src
+    src,
   };
 }
 

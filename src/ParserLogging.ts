@@ -1,14 +1,26 @@
-import { logger } from "./ParserTracing.js";
+import { logger, parserLog } from "./ParserTracing.js";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
 export function srcLog(src: string, pos: number, ...msgs: any[]): void {
-  logger(...msgs);
-  const { line, lineNum, linePos } = srcLine(src, pos);
-  logger(line, `(Ln ${lineNum})`);
-  const caret = " ".repeat(linePos) + "^";
-  logger(caret);
+  logInternal(logger, src, pos, ...msgs);
 }
 
+export function srcTrace(src: string, pos: number, ...msgs: any[]): void {
+  logInternal(parserLog, src, pos, ...msgs);
+}
+
+function logInternal(
+  log: typeof console.log,
+  src: string,
+  pos: number,
+  ...msgs: any[]
+): void {
+  log(...msgs);
+  const { line, lineNum, linePos } = srcLine(src, pos);
+  log(line, `  Ln ${lineNum}`);
+  const caret = " ".repeat(linePos) + "^";
+  log(caret);
+}
 
 // map from src strings to line start positions
 const startCache = new Map<string, number[]>();

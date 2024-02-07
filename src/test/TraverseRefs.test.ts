@@ -153,10 +153,10 @@ test("importing args don't match", () => {
   const { log } = traverseWithLog(src, module1, module2);
   expect(log).toMatchInlineSnapshot(`
     "importing arg doesn't match export
-        #export(C, D) importing bar(E) (Ln 2)
+        #export(C, D) importing bar(E)   Ln 2
                                 ^
     reference not found
-        fn bar(x:X) { }  (Ln 3)
+        fn bar(x:X) { }    Ln 3
                  ^"
   `);
 });
@@ -174,10 +174,10 @@ test("mismatched import export params", () => {
   const { log } = traverseWithLog(src, module1);
   expect(log).toMatchInlineSnapshot(`
     "mismatched import and export params
-        #import foo(A, B) (Ln 2)
+        #import foo(A, B)   Ln 2
         ^
 
-        #export(C)  (Ln 2)
+        #export(C)    Ln 2
         ^"
   `);
 });

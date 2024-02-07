@@ -34,7 +34,7 @@ test("srcLog", () => {
   });
   expect(logged()).toMatchInlineSnapshot(`
     "uh-oh:
-    12345 (Ln 2)
+    12345   Ln 2
        ^"
   `);
 });
@@ -52,7 +52,7 @@ test("srcLine on longer example", () => {
   });
   expect(logged()).toMatchInlineSnapshot(`
     "ugh:
-        fn support(d:D) { bar(d); } (Ln 5)
+        fn support(d:D) { bar(d); }   Ln 5
                           ^"
   `);
 });
