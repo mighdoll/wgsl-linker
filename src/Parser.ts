@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import {
@@ -274,12 +275,6 @@ function runParser<T>(
         parserLog(`..${p.tracingName}`);
 
       if (!p.preDisabled) {
-        if (tContext._preParse.length)
-          // parserLog(
-          //   "preParse",
-          //   p.debugName,
-          //   tContext._preParse.map((p) => p.debugName)
-          // );
         execPreParsers(tContext);
       } else {
         tContext._preParse = [];
