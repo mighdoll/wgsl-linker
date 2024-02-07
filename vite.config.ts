@@ -15,10 +15,10 @@ export default defineConfig({
     lib: {
       entry: [
         resolve(__dirname, "src/index.ts"),
-        resolve(__dirname, "src/ReplaceTemplate.ts"),
+        resolve(__dirname, "src/Replacer.ts"),
       ],
     },
-    minify: 'terser',
+    // minify: 'terser',
     sourcemap: true,
   },
   test: {
