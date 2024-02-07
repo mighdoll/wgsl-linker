@@ -85,6 +85,8 @@ export interface ParserArgs {
   /** true for elements without children like kind(), and text(),
    * (to avoid intro log statement while tracing) */
   terminal?: boolean;
+
+  preDisabled?: true;
 }
 
 interface ConstructArgs<T> extends ParserArgs {
@@ -97,6 +99,7 @@ export class Parser<T> {
   namedResult: string | symbol | undefined;
   traceOptions: TraceOptions | undefined;
   terminal: boolean | undefined;
+  preDisabled: true | undefined;
   fn: ParseFn<T>;
 
   constructor(args: ConstructArgs<T>) {
@@ -104,6 +107,7 @@ export class Parser<T> {
     this.namedResult = args.resultName;
     this.traceOptions = args.trace;
     this.terminal = args.terminal;
+    this.preDisabled = args.preDisabled;
     this.fn = args.fn;
   }
 
@@ -114,6 +118,7 @@ export class Parser<T> {
       resultName: this.namedResult,
       trace: this.traceOptions,
       terminal: this.terminal,
+      preDisabled: this.preDisabled,
       fn: this.fn,
       ...p,
     });
@@ -180,8 +185,8 @@ export class Parser<T> {
 
   /** disable a previously attached pre-parser,
    * e.g. to disable a comment preparser in a quoted string parser */
-  disablePreParse(pre: Parser<unknown>): Parser<T> {
-    return disablePreParse<T>(this, pre);
+  disablePreParse(): Parser<T> {
+    return this._cloneWith({ preDisabled: true });
   }
 
   /** set which token kinds to ignore while executing this parser and its descendants.
@@ -268,7 +273,17 @@ function runParser<T>(
       if (!p.terminal && tracing && !traceSuccessOnly)
         parserLog(`..${p.tracingName}`);
 
-      execPreParsers(tContext);
+      if (!p.preDisabled) {
+        if (tContext._preParse.length)
+          parserLog(
+            "preParse",
+            p.debugName,
+            tContext._preParse.map((p) => p.debugName)
+          );
+        execPreParsers(tContext);
+      } else {
+        tContext._preParse = [];
+      }
 
       // run the parser function for this stage
       const result = p.fn(tContext);
@@ -387,25 +402,6 @@ function tokens<T>(mainParser: Parser<T>, matcher: TokenMatcher): Parser<T> {
       });
     }
   );
-}
-
-function disablePreParse<T>(
-  mainParser: Parser<T>,
-  pre: Parser<unknown>
-): Parser<T> {
-  return parser("disablePreParse", (ctx: ParserContext): OptParserResult<T> => {
-    const preps = ctx._preParse;
-    const foundDex = preps.findIndex((p) => p === pre);
-    if (foundDex < 0) {
-      logger("disablePreParse: pre parser to disable not found");
-    }
-    const newPreparse = [
-      ...preps.slice(0, foundDex),
-      ...preps.slice(foundDex + 1),
-    ];
-    const newCtx = { ...ctx, _preParse: newPreparse };
-    return mainParser._run(newCtx);
-  });
 }
 
 /** run parser, return extended results to support map() or toParser() */

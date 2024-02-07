@@ -197,7 +197,7 @@ test("disable preParse inside quote", () => {
       "^"
     )
     .map((r) => r.named.contents.map((tok) => tok.text).join(""))
-    .disablePreParse(comment)
+    .disablePreParse()
     .tokenIgnore() // disable ws skipping
     .traceName("quote");
 
@@ -235,7 +235,7 @@ test("req logs a message on failure", () => {
   });
   expect(logged()).toMatchInlineSnapshot(`
     "expected text 'b''
-    a 1; (Ln 1)
+    a 1;   Ln 1
      ^"
   `);
 });

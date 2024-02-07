@@ -13,7 +13,7 @@ import {
   repeat,
   req,
   seq,
-  withSep
+  withSep,
 } from "./ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 
@@ -21,9 +21,6 @@ import { tracing } from "./ParserTracing.js";
 
 export const word = kind(mainTokens.word);
 export const wordNum = or(word, kind(mainTokens.digits));
-
-// prettier-ignore
-export const eolf = makeEolf(argsTokens, argsTokens.ws);
 
 export const unknown = any().map((r) => {
   const { kind, text } = r.value;
@@ -45,6 +42,9 @@ export const comment = or(
   fn(() => lineCommentOptDirective),
   skipBlockComment
 );
+
+export const eolf: Parser<any> = makeEolf(argsTokens, argsTokens.ws)
+  .disablePreParse();
 
 /** ( a1, b1* ) with optinal comments, spans lines */
 export const wordNumArgs: Parser<string[]> = seq(
@@ -93,7 +93,7 @@ if (tracing) {
   const names: Record<string, Parser<unknown>> = {
     skipBlockComment,
     comment,
-    wordNumArgs
+    wordNumArgs,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
