@@ -94,7 +94,7 @@ function withTraceLoggingInternal<T>(
   }
 
   // if we're inheriting a trace, but this one is marked hide, stop inheriting further
-  if (_trace && trace?.hide) {
+  if (_trace && (trace?.hide || trace?.shallow)) {
     _trace = undefined;
   }
 
