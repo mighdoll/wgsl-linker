@@ -1,2 +1,2 @@
-export * from "./Linker.js";
-export * from "./ModuleRegistry.js";
+export * from "./Linker3.js";
+export * from "./ModuleRegistry2.js";
