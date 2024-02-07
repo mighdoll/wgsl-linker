@@ -513,3 +513,14 @@ test("parse for(;;) {} not as a fn call", () => {
   expect(fnElem).toBeDefined();
   expect(fnElem.calls.length).eq(0);
 });
+
+test("eolf followed by comment", () => {
+  const src = `
+    // #if typecheck
+    // #endif
+
+    // #export
+    fn foo() { }
+  `;
+  expectNoLogErr(() => parseWgslD(src));
+});
