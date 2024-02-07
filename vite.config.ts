@@ -3,10 +3,14 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
 import dts from "vite-plugin-dts";
-import { visualizer } from "rollup-plugin-visualizer";
+// import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), dts(), visualizer({ brotliSize: true, gzipSize: true })],
+  plugins: [
+    tsconfigPaths(),
+    dts(), // generate 
+    // visualizer({ brotliSize: true, gzipSize: true }), // generate stats.html size report
+  ],
   build: {
     lib: {
       entry: [
@@ -14,6 +18,7 @@ export default defineConfig({
         resolve(__dirname, "src/ReplaceTemplate.ts"),
       ],
     },
+    minify: 'terser',
     sourcemap: true,
   },
   test: {
