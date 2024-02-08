@@ -2,7 +2,7 @@ import { AbstractElem } from "./AbstractElems.js";
 import { resultLog } from "./LinkerLogging.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
-import { ExtendedResult, Parser, setTraceName } from "./Parser.js";
+import { ExtendedResult, Parser, setTraceName } from "../packages/mini-parse/src/Parser.js";
 import {
   any,
   anyNot,
@@ -14,7 +14,7 @@ import {
   req,
   seq,
   withSep,
-} from "./ParserCombinator.js";
+} from "../packages/mini-parse/src/ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */

@@ -21,7 +21,7 @@
       "thimbleberry": ["../../src/shader-util"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "packages/mini-parse/src/MatchingLexer.ts", "packages/mini-parse/src/ParserCombinator.ts", "packages/mini-parse/src/Parser.ts"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig-node.json" }]
 }

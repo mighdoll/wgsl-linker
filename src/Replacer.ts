@@ -1,6 +1,6 @@
-import { matchingLexer } from "./MatchingLexer.js";
+import { matchingLexer } from "../packages/mini-parse/src/MatchingLexer.js";
 import { Template } from "./ModuleRegistry2.js";
-import { Parser, setTraceName } from "./Parser.js";
+import { Parser, setTraceName } from "../packages/mini-parse/src/Parser.js";
 import {
   anyNot,
   eof,
@@ -10,7 +10,7 @@ import {
   or,
   repeat,
   seq
-} from "./ParserCombinator.js";
+} from "../packages/mini-parse/src/ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 import { patchLine } from "./PatchLine.js";
 import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";

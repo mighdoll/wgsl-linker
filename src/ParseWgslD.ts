@@ -7,7 +7,7 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { matchingLexer } from "./MatchingLexer.js";
+import { matchingLexer } from "../packages/mini-parse/src/MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
 import {
@@ -16,7 +16,7 @@ import {
   ParserInit,
   setTraceName,
   simpleParser,
-} from "./Parser.js";
+} from "../packages/mini-parse/src/Parser.js";
 import {
   anyNot,
   anyThrough,
@@ -29,7 +29,7 @@ import {
   req,
   seq,
   withSep,
-} from "./ParserCombinator.js";
+} from "../packages/mini-parse/src/ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 import {
   comment,

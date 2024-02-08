@@ -1,4 +1,4 @@
-import { ctxLog } from "./LinkerLogging.js";
+import { ctxLog } from "../../../src/LinkerLogging.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -10,8 +10,8 @@ import {
   runExtended,
   simpleParser,
 } from "./Parser.js";
-import { mergeNamed } from "./ParserUtil.js";
-import { Token, TokenMatcher } from "./TokenMatcher.js";
+import { mergeNamed } from "../../../src/ParserUtil.js";
+import { Token, TokenMatcher } from "../../../src/TokenMatcher.js";
 
 /** Parsing Combinators
  *

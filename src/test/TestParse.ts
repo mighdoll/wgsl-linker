@@ -1,8 +1,8 @@
 import { expect } from "vitest";
 import { AbstractElem } from "../AbstractElems.js";
-import { matchingLexer } from "../MatchingLexer.js";
+import { matchingLexer } from "../../packages/mini-parse/src/MatchingLexer.js";
 import { mainTokens } from "../MatchWgslD.js";
-import { OptParserResult, Parser } from "../Parser.js";
+import { OptParserResult, Parser } from "../../packages/mini-parse/src/Parser.js";
 import { _withBaseLogger } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 

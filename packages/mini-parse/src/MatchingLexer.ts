@@ -1,6 +1,6 @@
-import { srcTrace } from "./ParserLogging.js";
-import { tracing } from "./ParserTracing.js";
-import { Token, TokenMatcher } from "./TokenMatcher.js";
+import { srcTrace } from "../../../src/ParserLogging.js";
+import { tracing } from "../../../src/ParserTracing.js";
+import { Token, TokenMatcher } from "../../../src/TokenMatcher.js";
 
 export interface Lexer {
   /** return the next token, advancing the the current position */

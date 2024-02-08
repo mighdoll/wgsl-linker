@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { mainTokens } from "../MatchWgslD.js";
-import { Parser } from "../Parser.js";
+import { Parser } from "../../packages/mini-parse/src/Parser.js";
 import {
   any,
   anyNot,
@@ -14,7 +14,7 @@ import {
   req,
   seq,
   text
-} from "../ParserCombinator.js";
+} from "../../packages/mini-parse/src/ParserCombinator.js";
 import { enableTracing, _withBaseLogger } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse } from "./TestParse.js";
