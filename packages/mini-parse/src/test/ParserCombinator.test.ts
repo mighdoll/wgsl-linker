@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { mainTokens } from "../../../../src/MatchWgslD.js";
+import { mainTokens } from "../../../linker/src/MatchWgslD.js";
 import { Parser } from "../Parser.js";
 import {
   any,

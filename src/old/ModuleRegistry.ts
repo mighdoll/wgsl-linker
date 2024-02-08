@@ -4,8 +4,8 @@ import {
   GeneratorModule,
   TextExport,
   TextModule
-} from "./old/Linker.js";
-import { parseModule } from "./old/ParseModule.js";
+} from "./Linker.js";
+import { parseModule } from "./ParseModule.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {

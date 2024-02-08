@@ -1,6 +1,6 @@
-import { ExtendedResult, ParserContext } from "../packages/mini-parse/src/Parser.js";
-import { srcLog } from "../packages/mini-parse/src/ParserLogging.js";
-import { logger } from "../packages/mini-parse/src/ParserTracing.js";
+import { ExtendedResult, ParserContext } from "../../mini-parse/src/Parser.js";
+import { srcLog } from "../../mini-parse/src/ParserLogging.js";
+import { logger } from "../../mini-parse/src/ParserTracing.js";
 import { FoundRef } from "./TraverseRefs.js";
 
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {

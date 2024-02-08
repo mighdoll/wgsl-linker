@@ -11,7 +11,7 @@ import {
   mainTokens,
   moduleTokens,
 } from "./MatchWgslD.js";
-import { ExtendedResult, Parser, setTraceName } from "../packages/mini-parse/src/Parser.js";
+import { ExtendedResult, Parser, setTraceName } from "../../mini-parse/src/Parser.js";
 import {
   any,
   anyThrough,
@@ -24,8 +24,8 @@ import {
   req,
   seq,
   withSep,
-} from "../packages/mini-parse/src/ParserCombinator.js";
-import { tracing } from "../packages/mini-parse/src/ParserTracing.js";
+} from "../../mini-parse/src/ParserCombinator.js";
+import { tracing } from "../../mini-parse/src/ParserTracing.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 import { ParseState } from "./ParseWgslD.js";
 

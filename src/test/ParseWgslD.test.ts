@@ -7,7 +7,7 @@ import {
   StructElem,
   TemplateElem,
   VarElem,
-} from "../AbstractElems.js";
+} from "../../packages/linker/src/AbstractElems.js";
 import {
   fnDecl,
   globalVar,
@@ -15,15 +15,15 @@ import {
   structDecl,
   traceRoot,
   typeSpecifier,
-} from "../ParseWgslD.js";
+} from "../../packages/linker/src/ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
 
 import {
   directive,
   importing,
   lineCommentOptDirective,
-} from "../ParseDirective.js";
-import { filterElems } from "../ParseModule2.js";
+} from "../../packages/linker/src/ParseDirective.js";
+import { filterElems } from "../../packages/linker/src/ParseModule2.js";
 import { or, repeat } from "../../packages/mini-parse/src/ParserCombinator.js";
 import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
 import {
@@ -31,7 +31,7 @@ import {
   skipBlockComment,
   unknown,
   wordNumArgs,
-} from "../ParseSupport.js";
+} from "../../packages/linker/src/ParseSupport.js";
 import { logCatch } from "./LogCatcher.js";
 
 test("parse empty string", () => {

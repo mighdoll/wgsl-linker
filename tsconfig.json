@@ -21,7 +21,7 @@
       "thimbleberry": ["../../src/shader-util"]
     }
   },
-  "include": ["src/**/*", "packages/mini-parse/src/MatchingLexer.ts", "packages/mini-parse/src/ParserCombinator.ts", "packages/mini-parse/src/Parser.ts", "packages/replacer/src/Replacer.ts", "packages/mini-parse/src/test/ParserCombinator.test.ts", "packages/mini-parse/src/ParserLogging.ts", "packages/mini-parse/src/ParserTracing.ts", "packages/mini-parse/src/TokenMatcher.ts", "packages/mini-parse/src/ParserUtil.ts", "packages/replacer/src/PatchLine.ts"],
+  "include": ["src/**/*", "packages/mini-parse/src/MatchingLexer.ts", "packages/mini-parse/src/ParserCombinator.ts", "packages/mini-parse/src/Parser.ts", "packages/replacer/src/Replacer.ts", "packages/mini-parse/src/test/ParserCombinator.test.ts", "packages/mini-parse/src/ParserLogging.ts", "packages/mini-parse/src/ParserTracing.ts", "packages/mini-parse/src/TokenMatcher.ts", "packages/mini-parse/src/ParserUtil.ts", "packages/replacer/src/PatchLine.ts", "packages/linker/src/AbstractElems.ts", "packages/linker/src/Linker3.ts", "packages/linker/src/LinkerLogging.ts", "packages/linker/src/ParseSupport.ts", "packages/linker/src/MatchWgslD.ts", "packages/linker/src/ParseWgslD.ts", "src/old/ModuleRegistry.ts", "packages/linker/src/ModuleRegistry2.ts", "packages/linker/src/ParseDirective.ts", "packages/linker/src/ParseModule2.ts", "packages/linker/src/TraverseRefs.ts", "packages/linker/src/Util.ts", "packages/linker/src/index.ts"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig-node.json" }]
 }

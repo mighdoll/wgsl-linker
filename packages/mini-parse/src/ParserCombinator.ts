@@ -1,4 +1,4 @@
-import { ctxLog } from "../../../src/LinkerLogging.js";
+import { ctxLog } from "../../linker/src/LinkerLogging.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,

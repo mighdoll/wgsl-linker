@@ -13,7 +13,7 @@ import {
   structRegex,
   structRegexGlobal
 } from "./Parsing.js";
-import { stripIfDirectives } from "../Preprocess.js";
+import { stripIfDirectives } from "./Preprocess.js";
 
 export interface Deconflicted {
   src: string;

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { ModuleRegistry2 } from "../ModuleRegistry2.js";
-import { parseModule2 } from "../ParseModule2.js";
+import { ModuleRegistry2 } from "../../packages/linker/src/ModuleRegistry2.js";
+import { parseModule2 } from "../../packages/linker/src/ParseModule2.js";
 import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
 import {
   ExportRef,
@@ -8,7 +8,7 @@ import {
   LocalRef,
   refName,
   traverseRefs
-} from "../TraverseRefs.js";
+} from "../../packages/linker/src/TraverseRefs.js";
 import { logCatch } from "./LogCatcher.js";
 
 test("traverse nested import with params and support fn", () => {

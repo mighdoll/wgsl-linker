@@ -1,4 +1,4 @@
-import { ctxLog } from "../../../src/LinkerLogging.js";
+import { ctxLog } from "../../linker/src/LinkerLogging.js";
 import { ParserContext } from "../../mini-parse/src/Parser.js";
 
 /** for incrementally patching a line with #replace */

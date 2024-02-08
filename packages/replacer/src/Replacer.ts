@@ -1,5 +1,5 @@
 import { matchingLexer } from "../../mini-parse/src/MatchingLexer.js";
-import { Template } from "../../../src/ModuleRegistry2.js";
+import { Template } from "../../linker/src/ModuleRegistry2.js";
 import { Parser, setTraceName } from "../../mini-parse/src/Parser.js";
 import {
   anyNot,
