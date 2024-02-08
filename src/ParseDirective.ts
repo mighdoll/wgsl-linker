@@ -14,6 +14,7 @@ import {
 import { ExtendedResult, Parser, setTraceName } from "./Parser.js";
 import {
   any,
+  anyThrough,
   kind,
   not,
   opt,
@@ -178,7 +179,6 @@ function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
   return result;
 }
 
-
 function oneArgDirective<T extends NamedElem>(
   elemKind: T["kind"]
 ): Parser<void> {
@@ -209,7 +209,7 @@ export const directive = or(
  * by pushing an AbstractElem to the app context) */
 export const lineCommentOptDirective = seq(
   "//",
-  or(directive, kind(lineCommentTokens.notDirective).tokens(lineCommentTokens), eolf)
+  or(directive, anyThrough(eolf).tokens(lineCommentTokens)),
 ).tokens(mainTokens);
 
 // enableTracing();

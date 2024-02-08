@@ -13,6 +13,7 @@ import {
   globalVar,
   parseWgslD,
   structDecl,
+  traceRoot,
   typeSpecifier,
 } from "../ParseWgslD.js";
 import { expectNoLogErr, testParse } from "./TestParse.js";
@@ -65,10 +66,9 @@ test("lineComment parse // foo bar", () => {
 });
 
 test("lineComment parse // foo bar \\n", () => {
-  const comment = "// foo bar";
-  const src = comment + "\n x";
+  const src = "// foo bar\n";
   const { position } = testParse(lineCommentOptDirective, src);
-  expect(position).eq(comment.length);
+  expect(position).eq(src.length);
 });
 
 test("lineComment parse // #export ", () => {
@@ -527,21 +527,26 @@ test("eolf followed by comment", () => {
 });
 
 test.skip("#if inside struct", () => {
-  const src=`
+  const src = `
   struct Input { 
   // #if typecheck 
   // #endif
-  }`
-  
+  }`;
+
   // parseWgslD(src);
   expectNoLogErr(() => parseWgslD(src));
+});
 
-})
-
-test("empty comment is parsed w/o error", () => {
-  const src= `
+test("parse empty line comment", () => {
+  const src = `
   var workgroupThreads= 4;                          // 
-  `
+  `;
   expectNoLogErr(() => parseWgslD(src));
+});
 
+test("parse line comment with #replace", () => {
+  const src = ` 
+  const workgroupThreads= 4;                          // #replace 4=workgroupThreads
+  `;
+  expectNoLogErr(() => parseWgslD(src));
 });
