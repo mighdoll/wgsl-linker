@@ -193,11 +193,14 @@ const globalDecl = or(fnDecl, globalVar, globalAlias, structDecl, ";");
 const rootDecl = or(globalDirectiveOrAssert, globalDecl, directive, unknown);
 
 const root = seq(repeat(rootDecl), eof()).preParse(comment);
-// const root = seq(repeat(rootDecl), eof()).preParse(comment).trace();
+
+// for debug tracing
+export const traceRoot = root.trace();
 
 export function parseWgslD(
   src: string,
-  params: Record<string, any> = {}
+  params: Record<string, any> = {},
+  grammar = root
 ): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
   const state: AbstractElem[] = [];
@@ -212,7 +215,7 @@ export function parseWgslD(
     maxParseCount: 50000,
   };
 
-  root.parse(init);
+  grammar.parse(init);
 
   return init.app.state;
 }
