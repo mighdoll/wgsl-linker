@@ -17,8 +17,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "paths": {
-    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"],
