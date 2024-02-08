@@ -193,6 +193,7 @@ const globalDecl = or(fnDecl, globalVar, globalAlias, structDecl, ";");
 const rootDecl = or(globalDirectiveOrAssert, globalDecl, directive, unknown);
 
 const root = seq(repeat(rootDecl), eof()).preParse(comment);
+// const root = seq(repeat(rootDecl), eof()).preParse(comment).trace();
 
 export function parseWgslD(
   src: string,

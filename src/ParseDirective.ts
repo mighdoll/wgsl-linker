@@ -209,7 +209,7 @@ export const directive = or(
  * by pushing an AbstractElem to the app context) */
 export const lineCommentOptDirective = seq(
   "//",
-  or(directive, kind(lineCommentTokens.notDirective).tokens(lineCommentTokens))
+  or(directive, kind(lineCommentTokens.notDirective).tokens(lineCommentTokens), eolf)
 ).tokens(mainTokens);
 
 // enableTracing();

@@ -537,3 +537,11 @@ test.skip("#if inside struct", () => {
   expectNoLogErr(() => parseWgslD(src));
 
 })
+
+test("empty comment is parsed w/o error", () => {
+  const src= `
+  var workgroupThreads= 4;                          // 
+  `
+  expectNoLogErr(() => parseWgslD(src));
+
+});
