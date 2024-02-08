@@ -3,12 +3,12 @@ import {
   globalDeclarations,
   resolveNameConflicts
 } from "./Declarations.js";
-import { linkWgsl3 } from "./Linker3.js";
-import { ModuleRegistry, TextModuleExport } from "./ModuleRegistry.js";
-import { ModuleRegistry2 } from "./ModuleRegistry2.js";
+import { linkWgsl3 } from "../Linker3.js";
+import { ModuleRegistry, TextModuleExport } from "../ModuleRegistry.js";
+import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule } from "./ParseModule.js";
 import { importRegex, replaceTokens } from "./Parsing.js";
-import { stripIfDirectives } from "./Preprocess.js";
+import { stripIfDirectives } from "../Preprocess.js";
 
 /*
  * The linker supports import/export of wgsl code fragments.

@@ -21,7 +21,7 @@
       "thimbleberry": ["../../src/shader-util"]
     }
   },
-  "include": ["src/**/*", "packages/mini-parse/src/MatchingLexer.ts", "packages/mini-parse/src/ParserCombinator.ts", "packages/mini-parse/src/Parser.ts", "packages/replacer/src/Replacer.ts", "packages/mini-parse/src/test/ParserCombinator.test.ts", "packages/mini-parse/src/ParserLogging.ts", "packages/mini-parse/src/ParserTracing.ts", "packages/mini-parse/src/TokenMatcher.ts", "packages/mini-parse/src/ParserUtil.ts"],
+  "include": ["src/**/*", "packages/mini-parse/src/MatchingLexer.ts", "packages/mini-parse/src/ParserCombinator.ts", "packages/mini-parse/src/Parser.ts", "packages/replacer/src/Replacer.ts", "packages/mini-parse/src/test/ParserCombinator.test.ts", "packages/mini-parse/src/ParserLogging.ts", "packages/mini-parse/src/ParserTracing.ts", "packages/mini-parse/src/TokenMatcher.ts", "packages/mini-parse/src/ParserUtil.ts", "packages/replacer/src/PatchLine.ts"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig-node.json" }]
 }

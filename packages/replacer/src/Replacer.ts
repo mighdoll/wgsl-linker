@@ -12,7 +12,7 @@ import {
   seq
 } from "../../mini-parse/src/ParserCombinator.js";
 import { tracing } from "../../mini-parse/src/ParserTracing.js";
-import { patchLine } from "../../../src/PatchLine.js";
+import { patchLine } from "./PatchLine.js";
 import { matchOneOf, tokenMatcher } from "../../mini-parse/src/TokenMatcher.js";
 
 export const replaceTemplate: Template = {

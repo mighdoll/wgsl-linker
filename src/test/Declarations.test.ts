@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { fnDecls, replaceFnCalls, structDecls } from "../Declarations.js";
+import { fnDecls, replaceFnCalls, structDecls } from "../old/Declarations.js";
 
 test("find all fn declarations", () => {
   const src = `

@@ -1,4 +1,4 @@
-import { elseRegex, endifRegex, ifRegex } from "./Parsing.js";
+import { elseRegex, endifRegex, ifRegex } from "./old/Parsing.js";
 
 interface IfState {
   name: string;

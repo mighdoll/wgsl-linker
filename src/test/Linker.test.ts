@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { CodeGenFn, linkWgsl, TextInsert } from "../Linker.js";
+import { CodeGenFn, linkWgsl, TextInsert } from "../old/Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
-import { replacerTemplate } from "../ReplaceTemplate.js";
+import { replacerTemplate } from "../old/ReplaceTemplate.js";
 
 test("simple #import", () => {
   const myModule = `
