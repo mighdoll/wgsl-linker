@@ -17,7 +17,7 @@ import {
   ModuleRegistry2,
 } from "./ModuleRegistry2.js";
 import { TextExport2, TextModule2 } from "./ParseModule2.js";
-import { srcLog } from "./ParserLogging.js";
+import { srcLog } from "../packages/mini-parse/src/ParserLogging.js";
 import { groupBy } from "./Util.js";
 
 export type FoundRef = TextRef | GeneratorRef;

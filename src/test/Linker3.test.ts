@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { linkWgsl3 } from "../Linker3.js";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
-import { replaceTemplate } from "../Replacer.js";
+import { replaceTemplate } from "../../packages/replacer/src/Replacer.js";
 import { simpleTemplate } from "../SimpleTemplate.js";
 
 test("simple #import", () => {

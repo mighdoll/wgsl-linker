@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { mainTokens } from "../MatchWgslD.js";
-import { Parser } from "../../packages/mini-parse/src/Parser.js";
+import { mainTokens } from "../../../../src/MatchWgslD.js";
+import { Parser } from "../Parser.js";
 import {
   any,
   anyNot,
@@ -14,10 +14,10 @@ import {
   req,
   seq,
   text
-} from "../../packages/mini-parse/src/ParserCombinator.js";
+} from "../ParserCombinator.js";
 import { enableTracing, _withBaseLogger } from "../ParserTracing.js";
-import { logCatch } from "./LogCatcher.js";
-import { testParse } from "./TestParse.js";
+import { logCatch } from "../../../../src/test/LogCatcher.js";
+import { testParse } from "../../../../src/test/TestParse.js";
 
 const m = mainTokens;
 

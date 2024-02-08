@@ -3,7 +3,7 @@ import { AbstractElem } from "../AbstractElems.js";
 import { matchingLexer } from "../../packages/mini-parse/src/MatchingLexer.js";
 import { mainTokens } from "../MatchWgslD.js";
 import { OptParserResult, Parser } from "../../packages/mini-parse/src/Parser.js";
-import { _withBaseLogger } from "../ParserTracing.js";
+import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 
 interface TestParseResult<T> {

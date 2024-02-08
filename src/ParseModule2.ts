@@ -10,7 +10,7 @@ import {
   VarElem
 } from "./AbstractElems.js";
 import { parseWgslD } from "./ParseWgslD.js";
-import { srcLog } from "./ParserLogging.js";
+import { srcLog } from "../packages/mini-parse/src/ParserLogging.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {

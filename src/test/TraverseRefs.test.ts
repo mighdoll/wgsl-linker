@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule2 } from "../ParseModule2.js";
-import { _withBaseLogger } from "../ParserTracing.js";
+import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
 import {
   ExportRef,
   FoundRef,

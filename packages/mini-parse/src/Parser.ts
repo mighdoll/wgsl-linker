@@ -8,9 +8,9 @@ import {
   TraceOptions,
   tracing,
   withTraceLogging,
-} from "../../../src/ParserTracing.js";
-import { mergeNamed } from "../../../src/ParserUtil.js";
-import { TokenMatcher } from "../../../src/TokenMatcher.js";
+} from "./ParserTracing.js";
+import { mergeNamed } from "./ParserUtil.js";
+import { TokenMatcher } from "./TokenMatcher.js";
 
 export interface AppState<A> {
   /**

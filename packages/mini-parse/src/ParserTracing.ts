@@ -1,4 +1,4 @@
-import { ParserContext } from "../packages/mini-parse/src/Parser.js";
+import { ParserContext } from "./Parser.js";
 
 export let tracing = false;
 

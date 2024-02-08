@@ -1,6 +1,6 @@
-import { matchingLexer } from "../packages/mini-parse/src/MatchingLexer.js";
-import { Template } from "./ModuleRegistry2.js";
-import { Parser, setTraceName } from "../packages/mini-parse/src/Parser.js";
+import { matchingLexer } from "../../mini-parse/src/MatchingLexer.js";
+import { Template } from "../../../src/ModuleRegistry2.js";
+import { Parser, setTraceName } from "../../mini-parse/src/Parser.js";
 import {
   anyNot,
   eof,
@@ -10,10 +10,10 @@ import {
   or,
   repeat,
   seq
-} from "../packages/mini-parse/src/ParserCombinator.js";
-import { tracing } from "./ParserTracing.js";
-import { patchLine } from "./PatchLine.js";
-import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
+} from "../../mini-parse/src/ParserCombinator.js";
+import { tracing } from "../../mini-parse/src/ParserTracing.js";
+import { patchLine } from "../../../src/PatchLine.js";
+import { matchOneOf, tokenMatcher } from "../../mini-parse/src/TokenMatcher.js";
 
 export const replaceTemplate: Template = {
   name: "replace",

@@ -25,7 +25,7 @@ import {
 } from "../ParseDirective.js";
 import { filterElems } from "../ParseModule2.js";
 import { or, repeat } from "../../packages/mini-parse/src/ParserCombinator.js";
-import { _withBaseLogger } from "../ParserTracing.js";
+import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
 import {
   comment,
   skipBlockComment,

@@ -30,7 +30,7 @@ import {
   seq,
   withSep,
 } from "../packages/mini-parse/src/ParserCombinator.js";
-import { tracing } from "./ParserTracing.js";
+import { tracing } from "../packages/mini-parse/src/ParserTracing.js";
 import {
   comment,
   makeElem,
