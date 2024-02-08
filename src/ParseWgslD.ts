@@ -5,7 +5,7 @@ import {
   StructElem,
   StructMemberElem,
   TypeRefElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
 import { matchingLexer } from "./MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
@@ -15,7 +15,7 @@ import {
   ParserContext,
   ParserInit,
   setTraceName,
-  simpleParser
+  simpleParser,
 } from "./Parser.js";
 import {
   anyNot,
@@ -28,7 +28,7 @@ import {
   repeat,
   req,
   seq,
-  withSep
+  withSep,
 } from "./ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 import {
@@ -36,7 +36,7 @@ import {
   makeElem,
   unknown,
   word,
-  wordNumArgs
+  wordNumArgs,
 } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
@@ -190,12 +190,7 @@ export const globalAlias = seq("alias", req(anyThrough(";")));
 
 const globalDecl = or(fnDecl, globalVar, globalAlias, structDecl, ";");
 
-const rootDecl = or(
-  globalDirectiveOrAssert,
-  globalDecl,
-  directive,
-  unknown
-);
+const rootDecl = or(globalDirectiveOrAssert, globalDecl, directive, unknown);
 
 const root = seq(repeat(rootDecl), eof()).preParse(comment);
 
@@ -208,12 +203,12 @@ export function parseWgslD(
   const context: ParseState = { ifStack: [], params };
   const app = {
     context,
-    state
+    state,
   };
   const init: ParserInit = {
     lexer,
     app,
-    maxParseCount: 50000
+    maxParseCount: 50000,
   };
 
   root.parse(init);
@@ -237,7 +232,7 @@ if (tracing) {
     globalAlias,
     globalDecl,
     rootDecl,
-    root
+    root,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
