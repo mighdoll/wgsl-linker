@@ -4,58 +4,115 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-devDependencies:
-  '@types/node':
-    specifier: ^20.11.16
-    version: 20.11.16
-  '@typescript-eslint/eslint-plugin':
-    specifier: ^6.21.0
-    version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.56.0)(typescript@5.3.3)
-  '@typescript-eslint/parser':
-    specifier: ^6.21.0
-    version: 6.21.0(eslint@8.56.0)(typescript@5.3.3)
-  '@vitest/ui':
-    specifier: ^1.1.1
-    version: 1.1.1(vitest@1.2.2)
-  berry-pretty:
-    specifier: ^0.0.4
-    version: 0.0.4
-  esbuild:
-    specifier: ^0.20.0
-    version: 0.20.0
-  eslint:
-    specifier: ^8.56.0
-    version: 8.56.0
-  eslint-config-prettier:
-    specifier: ^9.1.0
-    version: 9.1.0(eslint@8.56.0)
-  organize-imports-cli:
-    specifier: ^0.10.0
-    version: 0.10.0
-  prettier-eslint-cli:
-    specifier: ^8.0.1
-    version: 8.0.1(prettier-eslint@16.3.0)
-  rollup-plugin-visualizer:
-    specifier: ^5.12.0
-    version: 5.12.0
-  terser:
-    specifier: ^5.27.0
-    version: 5.27.0
-  typescript:
-    specifier: ^5.3.3
-    version: 5.3.3
-  vite:
-    specifier: ^5.0.12
-    version: 5.0.12(@types/node@20.11.16)(terser@5.27.0)
-  vite-plugin-dts:
-    specifier: ^3.6.4
-    version: 3.6.4(@types/node@20.11.16)(typescript@5.3.3)(vite@5.0.12)
-  vite-tsconfig-paths:
-    specifier: ^4.2.1
-    version: 4.2.2(typescript@5.3.3)(vite@5.0.12)
-  vitest:
-    specifier: ^1.2.2
-    version: 1.2.2(@types/node@20.11.16)(@vitest/ui@1.1.1)(terser@5.27.0)
+importers:
+
+  .:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.16
+        version: 20.11.16
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.21.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.56.0)(typescript@5.3.3)
+      '@typescript-eslint/parser':
+        specifier: ^6.21.0
+        version: 6.21.0(eslint@8.56.0)(typescript@5.3.3)
+      '@vitest/ui':
+        specifier: ^1.1.1
+        version: 1.1.1(vitest@1.2.2)
+      berry-pretty:
+        specifier: ^0.0.4
+        version: 0.0.4
+      esbuild:
+        specifier: ^0.20.0
+        version: 0.20.0
+      eslint:
+        specifier: ^8.56.0
+        version: 8.56.0
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.56.0)
+      organize-imports-cli:
+        specifier: ^0.10.0
+        version: 0.10.0
+      prettier-eslint-cli:
+        specifier: ^8.0.1
+        version: 8.0.1(prettier-eslint@16.3.0)
+      rollup-plugin-visualizer:
+        specifier: ^5.12.0
+        version: 5.12.0
+      terser:
+        specifier: ^5.27.0
+        version: 5.27.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.3.3
+      vite:
+        specifier: ^5.0.12
+        version: 5.0.12(@types/node@20.11.16)(terser@5.27.0)
+      vite-plugin-dts:
+        specifier: ^3.6.4
+        version: 3.6.4(@types/node@20.11.16)(typescript@5.3.3)(vite@5.0.12)
+      vite-tsconfig-paths:
+        specifier: ^4.2.1
+        version: 4.2.2(typescript@5.3.3)(vite@5.0.12)
+      vitest:
+        specifier: ^1.2.2
+        version: 1.2.2(@types/node@20.11.16)(@vitest/ui@1.1.1)(terser@5.27.0)
+
+  packages/mini-parse:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.16
+        version: 20.11.16
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.21.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.56.0)(typescript@5.3.3)
+      '@typescript-eslint/parser':
+        specifier: ^6.21.0
+        version: 6.21.0(eslint@8.56.0)(typescript@5.3.3)
+      '@vitest/ui':
+        specifier: ^1.1.1
+        version: 1.1.1(vitest@1.2.2)
+      berry-pretty:
+        specifier: ^0.0.4
+        version: 0.0.4
+      esbuild:
+        specifier: ^0.20.0
+        version: 0.20.0
+      eslint:
+        specifier: ^8.56.0
+        version: 8.56.0
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.56.0)
+      organize-imports-cli:
+        specifier: ^0.10.0
+        version: 0.10.0
+      prettier-eslint-cli:
+        specifier: ^8.0.1
+        version: 8.0.1(prettier-eslint@16.3.0)
+      rollup-plugin-visualizer:
+        specifier: ^5.12.0
+        version: 5.12.0
+      terser:
+        specifier: ^5.27.0
+        version: 5.27.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.3.3
+      vite:
+        specifier: ^5.0.12
+        version: 5.0.12(@types/node@20.11.16)(terser@5.27.0)
+      vite-plugin-dts:
+        specifier: ^3.6.4
+        version: 3.6.4(@types/node@20.11.16)(typescript@5.3.3)(vite@5.0.12)
+      vite-tsconfig-paths:
+        specifier: ^4.2.1
+        version: 4.2.2(typescript@5.3.3)(vite@5.0.12)
+      vitest:
+        specifier: ^1.2.2
+        version: 1.2.2(@types/node@20.11.16)(@vitest/ui@1.1.1)(terser@5.27.0)
 
 packages:
 
@@ -1017,7 +1074,7 @@ packages:
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
-      semver: 7.5.4
+      semver: 7.6.0
       ts-api-utils: 1.2.1(typescript@5.3.3)
       typescript: 5.3.3
     transitivePeerDependencies:
@@ -1037,7 +1094,7 @@ packages:
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.3.3)
       eslint: 8.56.0
-      semver: 7.5.4
+      semver: 7.6.0
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -3137,7 +3194,7 @@ packages:
     dependencies:
       '@volar/typescript': 1.11.1
       '@vue/language-core': 1.8.25(typescript@5.3.3)
-      semver: 7.5.4
+      semver: 7.6.0
       typescript: 5.3.3
     dev: true
 

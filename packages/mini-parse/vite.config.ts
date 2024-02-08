@@ -13,6 +13,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
+      name: "mini-parse",
       entry: [
         resolve(__dirname, "src/index.ts"),
       ],
