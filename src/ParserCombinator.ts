@@ -263,7 +263,8 @@ export function anyNot<T>(arg: CombinatorArg<T>): Parser<Token> {
 
 /** match everything until a terminator (and the terminator too) */
 export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
-  return seq(repeat(anyNot(arg)), arg);
+  const p = parserArg(arg);
+  return seq(repeat(anyNot(p)), p).traceName(`anyThrough ${p.debugName}`);
 }
 
 export function repeat(stage: string): Parser<string[]>;
