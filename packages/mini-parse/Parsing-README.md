@@ -30,12 +30,11 @@ using a mature parser generator based tool suite like
 [Lezer](https://lezer.codemirror.net/), 
 or [Antlr](https://www.antlr.org/). 
 Parser generators are more complicated to adopt than parser combinator libraries, 
-less modular and flexible, and typically larger.
-For more demanding parsing jobs, the complexity of a parser generator tool is 
+less flexible, and typically larger.
+But for more demanding parsing jobs, the complexity of a parser generator tool is 
 easily worth the investment.
 
 * For maximum flexibilty and lightweight adoption, consider a parser generator. 
-They're typically plenty fast enough!
 **MiniParse** is in this category. Other worthy parser generators currently
 active in the Javascript ecosystem include 
 [ts-parsec](https://github.com/microsoft/ts-parsec) 

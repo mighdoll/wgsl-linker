@@ -1,85 +1,113 @@
 ## wgsl-linker
 
-wgsl-linker adds features to wgsl to support engineering larger wgsl code bases, 
-starting with combining modules (linking/bundling), but also struct inheritance, preproocessing, etc.
+**wgsl-linker** enriches wgsl with with a module system for linking/bundling, 
+struct inheritance, conditional compilation, templating, and code generation.
 
-Features include the following
+### Wgsl Extensions 
 
-- #import / #export support in wgsl 
-  * linking is wgsl syntax aware, including import deduplication and token renaming. 
-  (Think typescript import/export + bundling more than #include in c.)
-  * Integrated support for writing typescript functions that generating wgsl at runtime, 
-  transparently to the importer. 
-  (mostly write wgsl, but the escape hatch is there for complex cases)
+- **#import** / **#export** - combine functions and structs from other modules.
+  * Linking is wgsl syntax aware, including import deduplication and token renaming. 
+  It's used like import / export in TypeScript.
+  (And internally, wgsl-linker works like a javascript module bundler.)
+
+- **#export(arg, ..)** - parameterize exports with import specific arguments.
+  - Imports and exports can take parameters, to enable code reuse.
+    * Typically you'll use import parameters like you would use type parameters 
+      in TypesScript, to write generic functions that can be reused in many ways.
+    ```
+    #import workgroupReduce(Elem) as reduceElem
+    #import workgroupReduce(Histogram) as reduceHistogram
+    ```
+
+- **#if** / **#else** / **#endif** - compile differently depending on runtime variables.
+
+- **#template**  - plug in a string template engine to tweak the wgsl with runtime variables.
+
+- **#importMerge** - combine members from multiple structs.
+  * Use it like you might use `extends` in TypesScript, to mix in member elements from
+  a struct in another module.
+
+- **#module** - organize exports semantically.
+
+- **wgsl-linker** will also parse directives that are in line comments. 
+So you can continue to use static wgsl tools like code formatters and wgsl-analyzer 
+by simply prefixing the directives with `// `.
+
+### Other Features
+- The library is small, currently about 8kb (compressed). 
+Call `linkWgsl()` at runtime to handle dynamic situations, 
+and without needing to add any new steps into your build process.
+
+- Code generation 
+  * Typically write static wgsl (perhaps with some simple templates), but
+  know that the escape hatch of arbitrary code generation is available for complex situations. 
+  * You can register a function to generate wgsl text for an exported module function. 
+  * Imports work identically on code generated exports.
   
-- syntax compatible with static wgsl tools like code formatters and wgsl-analyzer
-  * all the directives may be placed in comments. e.g. ```// #import```
-
-- **#if** / **#else** / **#endif** to compile differently depending on use case, or runtime environment.
-
-- pick your own string template engine. 
-  * Use {{mustache}} or regex, or whatever you'd like.
-  * (a **// #replace** template engine is available if you want to keep 
-  compability with current wgsl tools like wgsl-analyzer.)
-
-- parameterized imports and exports, for reuse.
-  * typically you'll use 'em like type parameters to export generic functions.
-  
-- **#importMerge** to combine structs 
-  * aka traits/inheritance. Like 'extends' in typescript.
-
-- only 10kb compressed, so it's OK to link at runtime with no build step required.
 
 #### Example
 
 Export functions and structs:
 
 ```
+#module wgsl-utils
+
 #export
 fn rand() -> u32 { /* .. */ }
 
 #export 
-struct CoolStruct {
-  coolMember: i32;
+struct RandomXY {
+  x: i32,
+  y: i32
 }
 
 ```
 
-Importing a wgsl functions, structs and random
+Import functions and structs
 
 ```
-#import rand
+// #import rand from wgsl-utils
 
 fn myFn() {
   let x:u32 = rand();
 }
 
+// #importMerge RandomXY from wgsl-utils
+struct MyStruct {
+  color: vec4<u32>
+}
 
 ```
 
-
-Linking at runtime. 
-```
-import randWgsl from "./randModule.wgsl?raw";  // ?raw is vite syntax. See Build Support.
-import myShaderWgsl from "./myShader.wgsl?raw";
-const registry = new ModuleRegistry(randWgsl); // register the linkable exports
-
-const code = linkWgsl(myShaderWgsl, registry); // link my code with imports
-
-device.createShaderModule({ code });           // pass the linked wgsl to WebGPU as normal
-```
 
 ### Main API
 
 `new ModuleRegistry(wgslFragment1, wgslFragment2)` register wgsl modules for imports to use.
 
-`linkWgsl(src, registry, params?)` merge any imported wgsl fragments into src with optional dynamic parameters.
+`linkWgsl(src, registry, params?)` process wgsl, integrate imports, using runtime parameters environment.
 
-#### Advanced features
-`registry.registerTemplate()` register a templating function for transforming text.
+`registry.registerTemplate()` register a string templating for transforming text.
 
-`registry.registerGenerator(name, fn, params?, moduleName?)` register a code generation function
-that can be imported.
+`registry.registerGenerator(name, fn, params?, moduleName?)` register a code generation function to produce an export.
+
+### Example
+
+```
+// load wgsl text
+import randWgsl from "./randModule.wgsl?raw";  // ?raw is vite syntax. See Build Support.
+import myShaderWgsl from "./myShader.wgsl?raw";
+
+// register the linkable exports
+const registry = new ModuleRegistry(randWgsl); 
+registry.registerTemplate(simpleTemplate);
+
+// link my shader code with imported modules, 
+// using the provided variables for conditional compilation and string templates
+const code = linkWgsl(myShaderWgsl, registry, {WorkgroupSize: 128, DEBUG: true}
+
+// pass the linked wgsl to WebGPU as normal
+device.createShaderModule({ code });           
+```
 
 ### Syntax
 
@@ -91,53 +119,40 @@ that can be imported.
 The linker will globally string replace params in the exported text
 with params provided by the importer.
 
+`#export(param1) importing name(param1)` 
+
+#### Import
+
+`#import name`  import code, selected by export name.
+
+`#import name from moduleName`  import code, selected by module and export name.
+
+`#import name <from moduleName> as rename` and rewrite the imported fn or struct to a new name.
+
+`#import name (arg1, arg2) <from moduleName> <as rename>` pass parameters to
+an export with parameters.
+
+#### Template
 `#template name` specify a template function for additional processing
 of exported text in this module.
 The template function is passed any import parameters,
 and runs prior to #export parameter string replacement.
 
+- Two example template engines are published in `wgsl-linker/templates`: 
+  * `"simple"` - replaces strings with values provided by a runtime dictionary. 
+  * `"replacer"` - provides a **// #replace** directive for specifiying string 
+  replacement in comments. 
+  This allows for templating while keeping syntax compability with wgsl. 
+  Replacements are of the form `srcText=runtimeVariable`.
+
+    ```
+    for (let i = 0; i < 4; i++) { // #replace '4'=workgroupSize
+    ```
+
+#### Module
 `#module package.name` declare name of module.
 
-#### Import
-
-`#import name` import code, selected by export name.
-
-`#import name from moduleName` import code, selected by module and export name.
-
-`#import name <from moduleName> as rename` rewrite the imported fn or struct to a new name.
-
-`#import name (arg1, arg2) <from moduleName> <as rename>` pass parameters to
-match export parameters.
-
-### Dynamic Code
-An export can be customized by the importing code:
-1. **`#export` parameters** export parameters are replaced with the corresponding `#import` parameters in the exported text. Useful e.g. to map types to the importer's environment.
-
-Users can also provide runtime parameters to `linkWgsl` for templates or code generation.
-1. **template parameters** exports can specify a template engine to process their text 
-via the `#template` directive. 
-
-    The available `replacer` engine processes `#replace` directives to find and replace text on a line with dynamic variables.
-1. **code generation functions** `#import`s can be fulfilled by javascript/typescript 
-functions that generate wgsl.
-Just register a function with the `ModuleRegistry` along with a name so that it can be `#import`ed.
-
-The `#import` syntax is the same for all types of exports, 
-so the developer of exports can switch transparently between different generation techniques
-without requiring the importer to make any changes.
-
-#### Support for Static WGSL Tools.
-
-`// #<directive>` all directives may be placed inside comments
-so wgsl code formatters and other tools won't get confused.
-
-`#if typecheck 
-fn foo(){} 
-#endif` place static declarations in an `#if <false>` clause. The declarations will be visible to static wgsl typecheckers during development, and safely removed at runtime.
-
 ### Build Support
-
-Linking and parsing happens entirely at runtime, no additional build step is required.
 
 You can put your wgsl into strings in your typescript source if you'd like.
 Or you can store your shader and shader module templates as `.wgsl` files and load
@@ -159,7 +174,8 @@ them as strings with whatever build tool you use, e.g.:
   Extending `wgsl-analyzer` to typecheck imports would be better, these declarations
   should be provided by the exporter.
 
-- A command line tool or build tool plugin to register all relevant module files would 
-  be convenient for linking at build time rather than runtime.
+- Wrapping the linker into a command line tool to run the linker at build time 
+rather than at runtime would be useful in some situations when the
+environment is static.
 
 - It'd be fun to publish wgsl modules as esm modules aka glslify.
