@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { mergeNamed } from "../../packages/mini-parse/src/ParserUtil.js";
+import { mergeNamed } from "../ParserUtil.js";
 
 test("mergeNamed with symbols", () => {
   const s = Symbol("s");

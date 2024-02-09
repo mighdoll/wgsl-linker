@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`simple fn export 1`] = `
+{
+  "exports": [
+    {
+      "end": 16,
+      "kind": "export",
+      "ref": {
+        "calls": [],
+        "end": 59,
+        "kind": "fn",
+        "name": "one",
+        "start": 20,
+        "typeRefs": [
+          {
+            "end": 35,
+            "kind": "typeRef",
+            "name": "i32",
+            "start": 32,
+          },
+        ],
+      },
+      "start": 8,
+    },
+  ],
+  "fns": [
+    {
+      "calls": [],
+      "end": 59,
+      "kind": "fn",
+      "name": "one",
+      "start": 20,
+      "typeRefs": [
+        {
+          "end": 35,
+          "kind": "typeRef",
+          "name": "i32",
+          "start": 32,
+        },
+      ],
+    },
+  ],
+  "imports": [],
+  "kind": "text",
+  "name": "my.module",
+  "src": "
+    // #export
+    fn one() -> i32 {
+      return 1;
+    }
+  ",
+  "structs": [],
+  "template": undefined,
+  "vars": [],
+}
+`;
+
+exports[`simple fn import 1`] = `
+{
+  "exports": [],
+  "fns": [
+    {
+      "calls": [
+        {
+          "end": 38,
+          "kind": "call",
+          "name": "foo",
+          "start": 35,
+        },
+      ],
+      "end": 43,
+      "kind": "fn",
+      "name": "bar",
+      "start": 24,
+      "typeRefs": [],
+    },
+  ],
+  "imports": [
+    {
+      "end": 19,
+      "kind": "import",
+      "name": "foo",
+      "start": 8,
+    },
+  ],
+  "kind": "text",
+  "name": "my.module",
+  "src": "
+    // #import foo
+    fn bar() { foo(); }
+  ",
+  "structs": [],
+  "template": undefined,
+  "vars": [],
+}
+`;

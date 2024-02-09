@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { parseModule2 } from "../../packages/linker/src/ParseModule2.js";
+import { parseModule2 } from "../ParseModule2.js";
 
 test("simple fn export", () => {
   const src = `

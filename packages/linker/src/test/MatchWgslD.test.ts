@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { matchingLexer } from "../../packages/mini-parse/src/MatchingLexer.js";
-import { mainTokens } from "../../packages/linker/src/MatchWgslD.js";
+import { matchingLexer } from "../../../mini-parse/src/MatchingLexer.js";
+import { mainTokens } from "../MatchWgslD.js";
 
 test("lex #import foo", () => {
   const lexer = matchingLexer(`#import foo`, mainTokens);

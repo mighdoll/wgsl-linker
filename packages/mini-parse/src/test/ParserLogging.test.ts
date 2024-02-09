@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
+import { _withBaseLogger } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
-import { srcLine, srcLog } from "../../packages/mini-parse/src/ParserLogging.js";
+import { srcLine, srcLog } from "../ParserLogging.js";
 
 test("srcLine", () => {
   const src1 = "1";

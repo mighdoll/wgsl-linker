@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { tokenMatcher } from "../../packages/mini-parse/src/TokenMatcher.js";
+import { tokenMatcher } from "../TokenMatcher.js";
 
 test("token matcher", () => {
   const m = tokenMatcher({

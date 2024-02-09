@@ -1,10 +1,10 @@
 import { expect } from "vitest";
-import { AbstractElem } from "../../packages/linker/src/AbstractElems.js";
-import { matchingLexer } from "../../packages/mini-parse/src/MatchingLexer.js";
-import { mainTokens } from "../../packages/linker/src/MatchWgslD.js";
-import { OptParserResult, Parser } from "../../packages/mini-parse/src/Parser.js";
-import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
-import { logCatch } from "./LogCatcher.js";
+import { AbstractElem } from "../../../linker/src/AbstractElems.js";
+import { matchingLexer } from "../MatchingLexer.js";
+import { mainTokens } from "../../../linker/src/MatchWgslD.js";
+import { OptParserResult, Parser } from "../Parser.js";
+import { _withBaseLogger } from "../ParserTracing.js";
+import { logCatch } from "../../../linker/src/test/LogCatcher.js";
 
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;

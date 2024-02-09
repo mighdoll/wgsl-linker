@@ -7,7 +7,7 @@ import {
   StructElem,
   TemplateElem,
   VarElem,
-} from "../../packages/linker/src/AbstractElems.js";
+} from "../AbstractElems.js";
 import {
   fnDecl,
   globalVar,
@@ -15,24 +15,24 @@ import {
   structDecl,
   traceRoot,
   typeSpecifier,
-} from "../../packages/linker/src/ParseWgslD.js";
-import { expectNoLogErr, testParse } from "./TestParse.js";
+} from "../ParseWgslD.js";
 
 import {
   directive,
   importing,
   lineCommentOptDirective,
-} from "../../packages/linker/src/ParseDirective.js";
-import { filterElems } from "../../packages/linker/src/ParseModule2.js";
-import { or, repeat } from "../../packages/mini-parse/src/ParserCombinator.js";
-import { _withBaseLogger } from "../../packages/mini-parse/src/ParserTracing.js";
+} from "../ParseDirective.js";
+import { filterElems } from "../ParseModule2.js";
+import { or, repeat } from "../../../mini-parse/src/ParserCombinator.js";
+import { _withBaseLogger } from "../../../mini-parse/src/ParserTracing.js";
 import {
   comment,
   skipBlockComment,
   unknown,
   wordNumArgs,
-} from "../../packages/linker/src/ParseSupport.js";
+} from "../ParseSupport.js";
 import { logCatch } from "./LogCatcher.js";
+import { testParse, expectNoLogErr } from "../../../mini-parse/src/test/TestParse.js";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");

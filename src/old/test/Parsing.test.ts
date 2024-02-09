@@ -6,7 +6,7 @@ import {
   importRegex,
   replaceTokens,
   templateRegex
-} from "../old/Parsing.js";
+} from "../Parsing.js";
 
 test("export regex w/o params", () => {
   const result = "// #export".match(exportRegex);
