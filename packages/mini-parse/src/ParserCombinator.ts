@@ -235,9 +235,10 @@ export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens */
 export function not<T>(stage: CombinatorArg<T>): Parser<true> {
+  const p = parserArg(stage)
   return parser("not", (state: ParserContext): OptParserResult<true> => {
     const pos = state.lexer.position();
-    const result = parserArg(stage)._run(state);
+    const result = p._run(state);
     if (!result) {
       return { value: true, named: {} };
     }
