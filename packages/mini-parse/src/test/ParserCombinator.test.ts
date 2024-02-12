@@ -19,7 +19,7 @@ import { enableTracing, _withBaseLogger } from "../ParserTracing.js";
 import { logCatch } from "../../../linker/src/test/LogCatcher.js";
 import { testParse } from "./TestParse.js";
 
-const m = mainTokens;
+const m = mainTokens; // TODO use a test token set, rather than this from WgslD
 
 test("or() finds first match", () => {
   const src = "#import";
