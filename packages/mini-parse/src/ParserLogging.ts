@@ -1,3 +1,4 @@
+import { ExtendedResult } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
@@ -5,8 +6,13 @@ export function srcLog(src: string, pos: number, ...msgs: any[]): void {
   logInternal(logger, src, pos, ...msgs);
 }
 
+/** log a message along with src line, but only if tracing is active in the current parser */
 export function srcTrace(src: string, pos: number, ...msgs: any[]): void {
   logInternal(parserLog, src, pos, ...msgs);
+}
+
+export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
+  srcLog(result.src, result.start, ...msgs);
 }
 
 function logInternal(
