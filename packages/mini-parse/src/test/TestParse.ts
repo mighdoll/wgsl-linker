@@ -5,6 +5,7 @@ import { mainTokens } from "../../../linker/src/MatchWgslD.js";
 import { OptParserResult, Parser } from "../Parser.js";
 import { _withBaseLogger } from "../ParserTracing.js";
 import { logCatch } from "../../../linker/src/test/LogCatcher.js";
+import { TokenMatcher } from "../TokenMatcher.js";
 
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;
@@ -16,7 +17,7 @@ interface TestParseResult<T> {
 export function testParse<T>(
   p: Parser<T>,
   src: string,
-  tokenMatcher = mainTokens
+  tokenMatcher:TokenMatcher = mainTokens
 ): TestParseResult<T> {
   const lexer = matchingLexer(src, tokenMatcher);
   const app = {
