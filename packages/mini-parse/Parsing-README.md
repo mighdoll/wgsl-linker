@@ -79,14 +79,23 @@ and [ParJS](https://github.com/GregRos/parjs).
 
 ## Calculator example
 
+## Left recursion
+Left recursive rules are traditionally disallowed in top down parsers, including MiniParse. 
+In the parser combinator setting, it's obvious why - a function calling itself 
+in its first statement is going to recurse forever.
+Best to write the grammar differently and put the recursion in the middle or at the end, 
+as you would with functions.
+
 ## Future Work
 PEG parsers like MiniParse can be sped up using a memoization algorithm called packrat parsing.
 
-Left recursive rules are traditionally disallowed in top down parsers, including MiniParse.
+
+
 [Tratt](https://tratt.net/laurie/research/pubs/html/tratt__direct_left_recursive_parsing_expression_grammars/)
-describes a technique to allow left recursive rules, based on 
+describes a technique to allow some left recursive rules, based on 
 [Warth](https://tinlizzie.org/VPRIPapers/tr2007002_packrat.pdf)'s proposal for left recursion
 with packrat parsing.
 [Rossum](https://medium.com/@gvanrossum_83706/left-recursive-peg-grammars-65dab3c580e1) also 
-has pursued this approach for Python.
+has pursued this approach for Python. 
+However, there is 
 
