@@ -3,6 +3,7 @@ import { srcLog } from "../../mini-parse/src/ParserLogging.js";
 import { logger } from "../../mini-parse/src/ParserTracing.js";
 import { FoundRef } from "./TraverseRefs.js";
 
+// TODO mv to ParserLogging
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
   srcLog(result.src, result.start, ...msgs);
 }
