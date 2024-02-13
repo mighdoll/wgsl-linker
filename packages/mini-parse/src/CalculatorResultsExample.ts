@@ -57,7 +57,7 @@ export const sum = seq(
 });
 /* */ expr     = sum; // prettier-ignore
 
-export const statement2 = repeat(expr);
+export const statement2 = (expr) as Parser<number>;
 
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
