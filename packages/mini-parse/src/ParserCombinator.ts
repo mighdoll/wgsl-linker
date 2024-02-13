@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { ctxLog } from "../../linker/src/LinkerLogging.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
@@ -235,7 +236,7 @@ export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens */
 export function not<T>(stage: CombinatorArg<T>): Parser<true> {
-  const p = parserArg(stage)
+  const p = parserArg(stage);
   return parser("not", (state: ParserContext): OptParserResult<true> => {
     const pos = state.lexer.position();
     const result = p._run(state);
@@ -309,9 +310,9 @@ function repeatWhileFilter<T>(
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
-export function fn<T>(fn: () => Parser<T>): Parser<T | string> {
-  return parser("fn", (state: ParserContext): OptParserResult<T | string> => {
-    const stage = parserArg(fn());
+export function fn<T>(fn: () => Parser<T>): Parser<T> {
+  return parser("fn", (state: ParserContext): OptParserResult<T> => {
+    const stage = fn();
     return stage._run(state);
   });
 }

@@ -27,11 +27,11 @@ export const unknown = any().map((r) => {
   resultLog(r, `??? ${kind}: '${text}'`);
 });
 
-export const skipBlockComment: Parser<any> = seq(
+export const blockComment: Parser<any> = seq(
   "/*",
   repeat(
     or(
-      fn(() => skipBlockComment),
+      () => blockComment,
       anyNot("*/")
     )
   ),
@@ -40,7 +40,7 @@ export const skipBlockComment: Parser<any> = seq(
 
 export const comment = or(
   fn(() => lineCommentOptDirective),
-  skipBlockComment
+  blockComment
 );
 
 export const eolf: Parser<any> = makeEolf(argsTokens, argsTokens.ws)
@@ -91,7 +91,7 @@ function mapIfDefined<A>(
 // enableTracing();
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
-    skipBlockComment,
+    skipBlockComment: blockComment,
     comment,
     wordNumArgs,
   };

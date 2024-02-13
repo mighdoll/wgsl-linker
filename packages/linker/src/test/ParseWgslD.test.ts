@@ -26,8 +26,8 @@ import { filterElems } from "../ParseModule2.js";
 import { or, repeat } from "../../../mini-parse/src/ParserCombinator.js";
 import { _withBaseLogger } from "../../../mini-parse/src/ParserTracing.js";
 import {
+  blockComment,
   comment,
-  skipBlockComment,
   unknown,
   wordNumArgs,
 } from "../ParseSupport.js";
@@ -353,10 +353,10 @@ test("parse alias", () => {
   });
 });
 
-test("skipBlockComment parses /* comment */", () => {
+test("blockComment parses /* comment */", () => {
   const src = "/* comment */";
   expectNoLogErr(() => {
-    const { parsed } = testParse(skipBlockComment, src);
+    const { parsed } = testParse(blockComment, src);
     expect(parsed).toMatchSnapshot();
   });
 });
@@ -364,7 +364,7 @@ test("skipBlockComment parses /* comment */", () => {
 test("skipBlockComment parses nested comment", () => {
   const src = "/** comment1 /* comment2 */ */";
   expectNoLogErr(() => {
-    testParse(skipBlockComment, src);
+    testParse(blockComment, src);
   });
 });
 
