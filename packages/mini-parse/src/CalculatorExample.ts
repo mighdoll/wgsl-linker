@@ -3,7 +3,7 @@ import { fn, kind, opt, or, repeat, seq } from "./ParserCombinator.js";
 import { tracing } from "./ParserTracing.js";
 import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
 
-export const calcToken = tokenMatcher({
+export const calcTokens = tokenMatcher({
   number: /\d+/,
   ws: /\s+/,
   mulDiv: matchOneOf("* /"),
@@ -11,10 +11,11 @@ export const calcToken = tokenMatcher({
   symbol: matchOneOf("( ) ^"),
 });
 
+export const num       = kind(calcTokens.number); // prettier-ignore
+export const plusMinus = kind(calcTokens.plusMinus); // prettier-ignore
+export const mulDiv    = kind(calcTokens.mulDiv); // prettier-ignore
+
 let expr: Parser<any> = null as any; // help TS with forward reference
-const num       = kind(calcToken.number); // prettier-ignore
-const plusMinus = kind(calcToken.plusMinus); // prettier-ignore
-const mulDiv    = kind(calcToken.mulDiv); // prettier-ignore
 
 /* from: https://en.wikipedia.org/wiki/Parsing_expression_grammar#Example 
     Expr    ← Sum
@@ -26,8 +27,8 @@ const mulDiv    = kind(calcToken.mulDiv); // prettier-ignore
 
 const value    = or(num, seq("(", fn(() => expr), ")")); // prettier-ignore
 const power    = seq(value, opt(seq("^", value))); // prettier-ignore
-const product  = seq(power, repeat(seq(plusMinus, power))); // prettier-ignore
-const sum      = seq(product, seq(mulDiv, product)); // prettier-ignore
+const product  = seq(power, repeat(seq(mulDiv, power))); // prettier-ignore
+const sum      = seq(product, repeat(seq(plusMinus, product))); // prettier-ignore
 /* */ expr     = sum; // prettier-ignore
 
 export const statement = repeat(expr)
