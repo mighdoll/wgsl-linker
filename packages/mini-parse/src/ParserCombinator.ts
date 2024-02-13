@@ -41,7 +41,7 @@ export class ParseError extends Error {
 }
 
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
-export type CombinatorArg<T> = Parser<T> | string;
+export type CombinatorArg<T> = Parser<T> | string | (() => Parser<T>);
 
 /** Parse for a particular kind of token,
  * @return the matching text */
@@ -366,5 +366,11 @@ export function makeEolf(tokens: TokenMatcher, ws: string): Parser<any> {
 export function parserArg<T>(
   arg: CombinatorArg<T>
 ): Parser<T> | Parser<string> {
-  return typeof arg === "string" ? text(arg) : arg;
+  if (typeof arg === "string") {
+    return text(arg);
+  } else if (arg instanceof Parser) {
+    return arg;
+  }
+  // else arg:() => Parser<T>
+  return fn(arg);
 }
