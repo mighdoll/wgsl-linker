@@ -6,7 +6,7 @@
 You write a grammar by combining simple TypeScript 
 functions like `or()`, `repeat()`, and `seq()`. 
 It's just Typescript so it's easy to mix with your existing code,
-IDE, test framework, etc.
+IDE, test frameworks, etc.
 * **MiniParse** is a Parsing Expression Grammar (PEG) parser. 
 It parses top down, using recursive descent with backtracking. 
 Top down parsing is easy to understand. 
@@ -75,8 +75,7 @@ and [ParJS](https://github.com/GregRos/parjs).
 ## Parsing
 Typically you can write a parser by mixing combinator functions from the library.
 
-
-Here's a parser that parses potentially nested block comments:
+For example, here's a parser for nested block comments:
 ```
 export const blockComment: Parser<void> = seq(
   "/*",
@@ -90,19 +89,71 @@ export const blockComment: Parser<void> = seq(
 );
 ```
 
+The example above uses the combinators:
+`seq()`, `repeat()`, `or()`, `anyNot()`, and `req()` 
+More combinators are available and documented in [ParserCombinator.ts](./src/ParserCombinator.ts)
+
 ## Lexer
 
-## Calculator example
+Parsing relies on a lexer to divide the source string into parts, called tokens.
+(You could produce a token per character, but that would be comparatively slow)
+
+Here's an example token matcher to identify three kinds of tokens for a parsing 
+simple arithmetic expressions.
+```
+export const calcTokens = tokenMatcher({
+  number: /\d+/,
+  ws: /\s+/,
+  symbol: matchOneOf("( ) ^ + - * /"),
+});
+```
+
+To create a lexer that walks over a source text producing tokens, use:
+```
+const lexer = matchingLexer(text, calcTokens);
+```
+
+# Collecting Parsed Results
+.map
+
+r.value
+
+named results
+
+## Debug Tracing
+
+## Tricks
+
+### Combinator arguments
+You can pass three different things as arguments to combinators:
+* a string - a parser that accepts any token exactly matching the text
+* another parser
+* a function that returns a parser
+
+By default, the lexer will skip over whitespace tokens, but you can configure this
+dynamically.
+
+.preParse
+
+.tokens
+
+.toParser
+
+Write your own combinator
+
+## Examples
+Calculator parser
+Calculator parser with inline results.
+WGSL-D parser.
 
 ## Left recursion
-Left recursive rules are traditionally disallowed in top down parsers, including MiniParse. 
+Left recursive rules are typically disallowed in top down parsers, including MiniParse. 
 In the parser combinator setting, it's obvious why - a function calling itself 
 in its first statement is going to recurse forever.
-Best to write the grammar differently and put the recursion in the middle or at the end.
+Best to write the grammar to put the recursion in the middle or at the end.
 
 ## Future Work
 PEG parsers like MiniParse can be sped up using a memoization algorithm called packrat parsing.
-
 
 [Tratt](https://tratt.net/laurie/research/pubs/html/tratt__direct_left_recursive_parsing_expression_grammars/)
 describes a technique to allow some left recursive rules, based on 
@@ -113,4 +164,4 @@ has pursued this approach for Python.
 But per Tratt, note that the resulting parse order is not as predictable, and there
 are issues with rules that are simultaneously left and right recursive.
 
-
+Regex as a parser argument to avoid the need for a separate lexer in some cases.

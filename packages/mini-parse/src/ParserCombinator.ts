@@ -147,7 +147,7 @@ export function or<
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
   return parser("or", (state: ParserContext): ParserResult<any> | null => {
     for (const stage of stages) {
-      const parser = parserArg(stage);
+      const parser = parserArg(stage); // TODO move outside of function
       const result = parser._run(state);
       if (result !== null) {
         return result;
