@@ -202,7 +202,7 @@ export class Parser<T> {
   /** set which token kinds to ignore while executing this parser and its descendants.
    * If no parameters are provided, no tokens are ignored. */
   tokenIgnore(ignore?: Set<string>): Parser<T> {
-    return tokenIgnore<T>(this, ignore);
+    return tokenIgnore<T>(ignore, this);
   }
 
   /** use the provided token matcher with this parser and its descendants
@@ -378,9 +378,9 @@ function toParser<T, N>(
   });
 }
 
-function tokenIgnore<T>(
-  mainParser: Parser<T>,
-  ignore: Set<string> = new Set()
+export function tokenIgnore<T>(
+  ignore: Set<string> = new Set(),
+  mainParser: Parser<T>
 ): Parser<T> {
   return parser(
     "tokenIgnore",
