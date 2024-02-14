@@ -70,23 +70,23 @@ export function text(value: string): Parser<string> {
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
-export function or<A = Token>(a: CombinatorArg<A>): Parser<A>;
-export function or<A = Token, B = Token>(
+export function or<A = string>(a: CombinatorArg<A>): Parser<A>;
+export function or<A = string, B = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>
 ): Parser<A | B>;
-export function or<A = Token, B = Token, C = Token>(
+export function or<A = string, B = string, C = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
   c: CombinatorArg<C>
 ): Parser<A | B | C>;
-export function or<A = Token, B = Token, C = Token, D = Token>(
+export function or<A = string, B = string, C = string, D = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
   c: CombinatorArg<C>,
   d: CombinatorArg<D>
 ): Parser<A | B | C | D>;
-export function or<A = Token, B = Token, C = Token, D = Token, E = Token>(
+export function or<A = string, B = string, C = string, D = string, E = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
   c: CombinatorArg<C>,
@@ -94,12 +94,12 @@ export function or<A = Token, B = Token, C = Token, D = Token, E = Token>(
   e: CombinatorArg<E>
 ): Parser<A | B | C | D | E>;
 export function or<
-  A = Token,
-  B = Token,
-  C = Token,
-  D = Token,
-  E = Token,
-  F = Token,
+  A = string,
+  B = string,
+  C = string,
+  D = string,
+  E = string,
+  F = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -109,13 +109,13 @@ export function or<
   f: CombinatorArg<F>
 ): Parser<A | B | C | D | E | F>;
 export function or<
-  A = Token,
-  B = Token,
-  C = Token,
-  D = Token,
-  E = Token,
-  F = Token,
-  G = Token,
+  A = string,
+  B = string,
+  C = string,
+  D = string,
+  E = string,
+  F = string,
+  G = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -126,14 +126,14 @@ export function or<
   g: CombinatorArg<G>
 ): Parser<A | B | C | D | E | F | G>;
 export function or<
-  A = Token,
-  B = Token,
-  C = Token,
-  D = Token,
-  E = Token,
-  F = Token,
-  G = Token,
-  H = Token,
+  A = string,
+  B = string,
+  C = string,
+  D = string,
+  E = string,
+  F = string,
+  G = string,
+  H = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -159,23 +159,23 @@ export function or(...stages: CombinatorArg<any>[]): Parser<any> {
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
-export function seq<A = Token>(a: CombinatorArg<A>): Parser<[A]>;
-export function seq<A = Token, B = Token>(
+export function seq<A = string>(a: CombinatorArg<A>): Parser<[A]>;
+export function seq<A = string, B = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>
 ): Parser<[A, B]>;
-export function seq<A = Token, B = Token, C = Token>(
+export function seq<A = string, B = string, C = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
   c: CombinatorArg<C>
 ): Parser<[A, B, C]>;
-export function seq<A = Token, B = Token, C = Token, D = Token>(
+export function seq<A = string, B = string, C = string, D = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
   c: CombinatorArg<C>,
   d: CombinatorArg<D>
 ): Parser<[A, B, C, D]>;
-export function seq<A = Token, B = Token, C = Token, D = Token, E = Token>(
+export function seq<A = string, B = string, C = string, D = string, E = string>(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
   c: CombinatorArg<C>,
@@ -183,12 +183,12 @@ export function seq<A = Token, B = Token, C = Token, D = Token, E = Token>(
   e: CombinatorArg<E>
 ): Parser<[A, B, C, D, E]>;
 export function seq<
-  A = Token,
-  B = Token,
-  C = Token,
-  D = Token,
-  E = Token,
-  F = Token,
+  A = string,
+  B = string,
+  C = string,
+  D = string,
+  E = string,
+  F = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
