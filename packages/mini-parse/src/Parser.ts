@@ -170,11 +170,14 @@ export class Parser<T> {
   /** start parsing */
   parse(init: ParserInit): OptParserResult<T> {
     try {
+      const { lexer, maxParseCount, app = { context: {}, state: [] } } = init;
       return this._run({
-        ...init,
+        lexer,
+        app,
         _preParse: [],
         _parseCount: 0,
         _preCacheFails: new Map(),
+        maxParseCount,
       });
     } catch (e) {
       if (!(e instanceof ParseError)) {
