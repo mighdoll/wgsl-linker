@@ -190,7 +190,7 @@ export class Parser<T> {
   /** attach a pre-parser to try parsing before this parser runs.
    * (e.g. to recognize comments that can appear almost anywhere in the main grammar) */
   preParse(pre: Parser<unknown>): Parser<T> {
-    return preParse<T>(this, pre);
+    return preParse<T>(pre, this);
   }
 
   /** disable a previously attached pre-parser,
@@ -208,7 +208,7 @@ export class Parser<T> {
   /** use the provided token matcher with this parser and its descendants
    * (i.e. use a temporary lexing mode) */
   tokens(matcher: TokenMatcher): Parser<T> {
-    return tokens<T>(this, matcher);
+    return tokens<T>(matcher, this);
   }
 
   get debugName(): string {
@@ -389,7 +389,10 @@ function tokenIgnore<T>(
   );
 }
 
-function preParse<T>(mainParser: Parser<T>, pre: Parser<unknown>): Parser<T> {
+export function preParse<T>(
+  pre: Parser<unknown>,
+  mainParser: Parser<T>
+): Parser<T> {
   return parser("preParse", (ctx: ParserContext): OptParserResult<T> => {
     const newCtx = { ...ctx, _preParse: [pre, ...ctx._preParse] };
     return mainParser._run(newCtx);
@@ -397,7 +400,10 @@ function preParse<T>(mainParser: Parser<T>, pre: Parser<unknown>): Parser<T> {
 }
 
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
-function tokens<T>(mainParser: Parser<T>, matcher: TokenMatcher): Parser<T> {
+export function tokens<T>(
+  matcher: TokenMatcher,
+  mainParser: Parser<T>
+): Parser<T> {
   return parser(
     `tokens ${matcher._traceName}`,
     (state: ParserContext): OptParserResult<T> => {
