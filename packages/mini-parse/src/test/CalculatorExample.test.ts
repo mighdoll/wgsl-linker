@@ -8,6 +8,9 @@ import {
   sum,
 } from "../CalculatorResultsExample.js";
 import { Parser } from "../Parser.js";
+import { namedSum, simpleSum, simpleTokens, sumResults } from "../SumExample.js";
+import { dlog } from "berry-pretty";
+import { matchingLexer } from "../MatchingLexer.js";
 
 test("parse 3 + 4", () => {
   const src = "3 + 4";
@@ -49,6 +52,24 @@ test("parse 3 * 4 + 8", () => {
 test("parse 3^2 * 4 + 11", () => {
   const result = calcTest(statement2, "3^2 *4 + 11");
   expect(result).eq(47);
+});
+
+test("simple sum", () => {
+  const lexer = matchingLexer("4 + 8", simpleTokens);
+  const results = simpleSum.parse({ lexer });
+  expect(results?.value).deep.eq(["4", "+", "8"]);
+});
+
+test("simple sum results ", () => {
+  const lexer = matchingLexer("3 + 12", simpleTokens);
+  const results = sumResults.parse({ lexer });
+  expect(results?.value).eq(15);
+});
+
+test("named sum results ", () => {
+  const lexer = matchingLexer("1 + 2 + 9", simpleTokens);
+  const results = namedSum.parse({ lexer });
+  expect(results?.value).eq(12);
 });
 
 function calcTest(parser: Parser<number>, src: string): number | undefined {

@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { mulDiv, num, plusMinus } from "./CalculatorExample.js";
 import { Parser, setTraceName } from "./Parser.js";
 import { fn, opt, or, repeat, seq } from "./ParserCombinator.js";
