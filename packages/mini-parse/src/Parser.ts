@@ -29,14 +29,20 @@ export interface ParserInit<A = any> {
   lexer: Lexer;
 
   /** application specific context and result storage, shared with every parser */
-  app: AppState<A>;
+  app?: AppState<A>;
 
   /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
 }
 
 /* Information passed to the parsers during parsing */
-export interface ParserContext<A = any> extends ParserInit<A> {
+export interface ParserContext<A = any> {
+  lexer: Lexer;
+
+  app: AppState<A>;
+
+  maxParseCount?: number;
+
   /** during execution, debug trace logging */
   _trace?: TraceContext;
 
