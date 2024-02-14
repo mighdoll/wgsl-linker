@@ -24,7 +24,7 @@ const op = or("+", "-");
 
 export const namedSum = seq(
   int,
-  repeat(seq(op, int).named("opRights"))  // accumulate an array of [op, int] pairs
+  repeat(seq(op, int).named("opRights")) // accumulate an array of [op, int] pairs
 ).map((r) => {
   const { opRights } = r.named;
   const left = r.value[0];
@@ -41,4 +41,25 @@ const quoteTokens = tokenMatcher({
 });
 
 const nonQuote = kind(quoteTokens.nonQuote);
-const quote = seq('"', tokens(quoteTokens, repeat(nonQuote)), '"')
+const quote = seq('"', tokens(quoteTokens, repeat(nonQuote)), '"');
+
+
+type ASTElem = BinOpElem;
+
+interface BinOpElem {
+  kind: "binOp";
+  left: number | BinOpElem;
+  right: number | BinOpElem;
+  op: "+" | "-";
+}
+
+export const sumElem = seq(int, or("+", "-"), int).map((r) => {
+  const [a, op, b] = r.value;
+  const binOpElem:BinOpElem = {
+    kind: "binOp",
+    left: a,
+    right: b,
+    op: op as "+" | "-",
+  };
+  r.app.state.push(binOpElem);
+});

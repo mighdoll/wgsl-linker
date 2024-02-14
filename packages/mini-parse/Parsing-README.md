@@ -1,4 +1,4 @@
-**MiniParse** is a small Typescript parser combinator library with an efficient regex based lexer.
+**MiniParse** is a small TypeScript parser combinator library with an efficient regex based lexer.
 
 ## Parser Features
 
@@ -6,7 +6,7 @@
 - **MiniParse** is a combinator library.
   You write a grammar by combining simple TypeScript
   functions like `or()`, `repeat()`, and `seq()`.
-  It's just Typescript so it's easy to mix with your existing code,
+  It's just TypeScript so it's easy to mix with your existing code,
   IDE, test frameworks, etc.
 - **MiniParse** is a Parsing Expression Grammar (PEG) parser.
   It parses top down, using recursive descent with backtracking.
@@ -23,57 +23,6 @@
 - Stack parsers to parse things that can appear almost anywhere in your grammar.
   Handy for things like nested comments, semantic comments (jsdoc), or annotations.
 - Named accumulators make it easy to collect parsing results from deeply nested sub parsers.
-
-## Choosing a Parsing Approach
-
-Consider which category of parser you'd like.
-
-#### Custom parser code - maximum speed and ultimate malleability, but lots of work.
-
-For maximum speed and control, write a dedicated parser directly in Typescript.
-This is the most effort, but if you're writing a production compiler and need to squeeze
-every millisecond, it's worth it.
-Otherwise use a parser generator tool suite or a parser combinator library.
-
-#### Parser Generators - high speed, some work to adopt.
-
-Parser generators statically analyze and precompile a grammar description language.
-These mature tools can be a bit big, but there's lots of documentation,
-rich ecosystems of example code and support tools.
-
-Worthy examples include:
-[Nearley](https://nearley.js.org/),
-[Lezer](https://lezer.codemirror.net/),
-[Antlr](https://www.antlr.org/),
-or perhaps [Ohm](https://ohmjs.org/).
-Each parser generator has its own textual format to describe the grammar. The library
-compiles into an execution format before parsing.
-Each of the above libraries uses a different base algorithm (Earley, GLR, LL, Packrat)
-with different tradeoffs, but all have evolved robust features to classic parsing
-problems of error recovery, left recursion, producing parse results, tracing, etc.
-
-Parser generators are typically more complicated to adopt than parser combinator libraries,
-less flexible, require a separate build step, and they're more code than typical parser combinators.
-But for demanding parsing jobs, the complexity of a parser generator tool is
-easily worth the investment.
-
-#### Parser Combinators - most flexiblity, lightweight adoption.
-
-Parser combinators define a grammar by mixing simple TypeScript functions
-provided by the library or written by the user (aka combinator functions).
-Execution of the grammar involves simply running these functions.
-The simplicity makes parser combinators flexible and easy to adopt - you're using
-TypesScript for everything.
-
-Parser combinators are intepreting rather than compiling the grammar in advance,
-so they're slower to run. But they're plenty fast enough for most purposes.
-
-In the Parser Combinator category, **MiniParse** has a few interesting features
-and is notably lightweight.
-As you're parser shopping, also consider other worthy and more mature libraries
-in the TypeScript parser combinator category like:
-[ts-parsec](https://github.com/microsoft/ts-parsec)
-and [ParJS](https://github.com/GregRos/parjs).
 
 ## Parsing
 
@@ -96,8 +45,13 @@ export const blockComment: Parser<void> = seq(
 ```
 
 The example above uses the combinators:
-`seq()`, `repeat()`, `or()`, `anyNot()`, and `req()`
+`seq()`, `repeat()`, `or()`, `anyNot()`, and `req()`.
 More combinators are available and documented in [ParserCombinator.ts](./src/ParserCombinator.ts)
+
+To any combinator that accepts a parser as an argument, you can pass:
+- another parser
+- a function that returns a parser - uses the returned parser, but calls the function lazily
+- a string - a parser that accepts any token exactly matching the string
 
 ## Lexer
 
@@ -117,27 +71,39 @@ export const simpleTokens = tokenMatcher({
 
 To create a lexer that walks over a source text producing tokens, use:
 
-```
+```ts
 const text = "3 + 4";
 const lexer = matchingLexer(text, simpleTokens);
 ```
 
-# Parsing and Collecting Results
+By default, the lexer will skip over whitespace tokens that you designate with the name 'ws'.
+You can configure whether and which tokens to skip statically by passing the set of
+names skip when you construct the `matchingLexer`, or dynamically while parsing
+by using the `tokensIgnore()` combinator.
 
-To run a parser, give it a lexer
+## Running the Parser
+
+To run a parser, just give it a lexer attached to your source text.
 
 ```ts
 const result = simpleSum.parse({ lexer });
 ```
 
-The result will by default be the combined results of the parser stages, in this case `["3", "+", "4"]`.
+The result will contain the combined results of the parsers, in this case `["3", "+", "4"]`.
 
-But it's useful to process the results and return only what you need using the `.map`.
+### Selecting Parsing Results
+Typically, it's convenient to use `.map()` to select the relevant parts from a successful parse 
+and do a bit of format conversion. 
 
+This parser will return a number rather than a string:
 ```
-// return a number, rather than a string
 const int = num.map((r) => parseInt(r.value));
+```
 
+Here's an example that even does some computation, and returns a numeric sum or difference
+of the whole expression.
+It parses the same text as `simpleSum` above, but converts to numbers and then adds or subtracts.
+```
 // return the numeric sum, rather than a sequence of strings
 export const sumResults = seq(int, or("+", "-"), int).map((r) => {
   const [a, op, b] = r.value;
@@ -145,24 +111,39 @@ export const sumResults = seq(int, or("+", "-"), int).map((r) => {
 });
 ```
 
-Commonly, you might record
+Note that `.map()` is only called on successful parses of the mapped expression, 
+if the expression fails, the parser will backtrack and try any alternatives in the grammar 
+and `.map()` will not be called on the failed part of the parse.
 
-## Debug Tracing
+### App State 
+For larger parsers, you'll typically convert the parsed text into an intermediate form, sometimes
+called an [Abstract Syntax Tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
 
-## Tricks
+`.parse()` allows you to pass an application specific data structure that's visible in `.map()` 
+for convenience in building the abstract syntax tree with each successfully parsed element.
 
-### Combinator Arguments and Syntax
+```ts
+type ASTElem = BinOpElem;
 
-You typically pass other parsers as arguments to combinators:
+interface BinOpElem {
+  kind: "binOp";
+  left: number | BinOpElem;
+  right: number | BinOpElem;
+  op: "+" | "-";
+}
 
-- another parser
-- a function that returns a parser - uses the returned parser, but calls the function lazily
-- a string - converted to a parser that accepts any token exactly matching the text
+export const sumElem = seq(int, or("+", "-"), int).map((r) => {
+  const [a, op, b] = r.value;
+  const binOpElem:BinOpElem = {
+    kind: "binOp",
+    left: a,
+    right: b,
+    op: op as "+" | "-",
+  };
+  r.app.state.push(binOpElem);
+});
 
-### Skip Whitespace
-
-By default, the lexer will skip over whitespace tokens, tokens named "ws".
-You can configure whether and which tokens to skip dynamically.
+```
 
 ### Named Results
 
@@ -170,7 +151,7 @@ For complicated nested or repeating parsers,
 it's convenient to assign names to particular results of interest.
 You can use a `Symbol` or a string to name a result using the `.named()` 
 method on all parsers.
-Mulitple results with the same name are accumulated into an array.
+Multiple results with the same name are accumulated into an array.
 
 ```ts
 const op = or("+", "-");
@@ -189,18 +170,60 @@ export const namedSum = seq(
 });
 ```
 
-### tokens combinator
+## Debug Tracing
+For debugging your grammar, it's useful to debug your grammar in pieces.
+One of the nice features of parser combinators is that every part of the grammar is
+independently testable.
+
+To print out the progress of parsing, 
+* Call `enableTracing()` to turn on the tracing facility (normally off and removed from prod builds)
+* Use `.trace()` on any. See `TraceOptions` for options for customizing how much to print in the trace.
+* Add application relevant trace names to any parser to make the trace more clear.
+  * Use `.traceName()` on any parser to set the trace name for debugging.
+  * Alternately, you can use `setTraceName()` protected by a `tracing`
+    global and the javascript bundler will remove the code in production builds to save a few bytes.
+
+  ```ts
+  if (tracing) {
+    const names: Record<string, Parser<unknown>> = {
+      fnCall,
+      fnParam,
+      fnParamList,
+      fnDecl,
+      globalVar,
+      globalAlias,
+      globalDecl,
+      rootDecl,
+      root,
+    };
+
+    Object.entries(names).forEach(([name, parser]) => {
+      setTraceName(parser, name);
+    });
+  ```
+
+## Examples
+
+[Calculator]() - classic PEG style parser in **MiniParse** syntax.
+
+[Calculator with Results]() calculator example parser with inline calculation of results.
+
+[WGSL-D]() parsing some of the WebGPU [WGSL](https://www.w3.org/TR/WGSL/#grammar-recursive-descent) shader language with `#import` and `#export` extensions.
+
+
+## Special Situations
+
+### tokens() combinator
 Sometimes it's nice to let the grammar choose a different tokenizer 
 to parse different sections of the source text. 
 For example, to parse a programming langauge with quotes, 
-it's desirable to produce different tokens.
+you'll probably want a different tokenizer for the text inside of quotes:
 
 ```ts
 const quote = seq('"', tokens(quoteTokens, repeat(nonQuote)), '"')
 ```
 
-
-### .toParser
+### .toParser()
 
 In unusual cases, it can be handy to choose the next parser based
 on information outside the grammar itself.
@@ -210,7 +233,7 @@ and information outside the source text may be required to decide.
 If you want to check a runtime dictionary to decide which parser to
 use for the next tokens, than `.toParser` is of use.
 
-### preParse
+### preParse() combinator
 
 If the language you're parsing has some elements that can appear almost anywhere,
 it'd be awkward to mention those elements at every possible position in the grammar.
@@ -224,34 +247,39 @@ and if it fails to match at the current position, then the main parser will run.
 const p = preParse(blockComments, mainParser);
 ```
 
-
 Mulitple preparsers can be attached. Preparsing can also be temporarily disabled
 in the grammar, e.g. to disable comment skipping inside quotes.
 
-But save preparsing for special situations.
+Save preparsing for special situations.
 If the pervasive elements are easy to find and can be skipped, 
 then adding a few token types to skip in the lexer is simpler and faster.
 That's typically the approach for white space.  
 
-### App State and Context
+### app.context
 
+There are two application specific objects that are passed to every parser: 
+`state` and `context`. 
+`app.state`, as mentioned above, is handy for accumulating application results of successful parses.
 
+`app.context` is useful to to store ephemeral application state discovered
+during parsing. 
+Like `app.state`, `app.context` is similarly just for applications - **MiniParse** doesn't use it
+and applications can read and write it using the `.map()` method on any parser.
+But unlike `app.state` **MiniParse** will reset `app.context` when a sub-parser fails and backtracks. 
+`app.context` is passed to child parsers, but doesn't accumulate to parent parsers.
 
-## Examples
+An example of using `app.context` is for parsing nested `#ifdef` `#endif` clauses. 
+`app.context` is a good place to store the stack of active/inactive states discovered while
+parsing. 
 
-Calculator parser -
-
-Calculator parser with inline results.
-
-WGSL-D parser.
-
-## Left recursion
+### Left recursion
 
 Left recursive rules are typically disallowed in top down parsers, including MiniParse.
 In the parser combinator setting, it's obvious why - a function calling itself
 in its first statement is going to recurse forever.
 Best to write the grammar so that recursion is in the middle or at the end.
 See the block comment example or the calculator example.
+
 
 ## Future Work
 
@@ -266,4 +294,55 @@ has pursued this approach for Python.
 But per Tratt, note that the resulting parse order is not as predictable, and there
 are issues with rules that are simultaneously left and right recursive.
 
-Regex as a parser argument to avoid the need for a separate lexer in some cases.
+Allowing a regex as a parser argument would be convenient to avoid the need for a separate lexer in some cases.
+
+## Choosing a Parsing Approach
+
+Is **MiniParse** right for your project? Consider the alternatives:
+
+* **Full Custom Parser** - _maximum speed and ultimate malleability, lots of work._
+
+  For maximum speed and control, write a dedicated parser directly in Typescript.
+  This is the most effort, but if you're writing a production compiler and need to squeeze
+  every millisecond, it's worth it.
+  Otherwise use a parser generator tool suite or a parser combinator library.
+
+* **Parser Generator** - _high speed, some work to adopt._
+
+  Parser generators statically analyze and precompile a grammar description language.
+  These mature tools can be a bit big, but there's lots of documentation,
+  rich ecosystems of example code and support tools.
+
+  Worthy examples include:
+  [Nearley](https://nearley.js.org/),
+  [Lezer](https://lezer.codemirror.net/),
+  [Antlr](https://www.antlr.org/),
+  or perhaps [Ohm](https://ohmjs.org/).
+  Each parser generator has its own textual format to describe the grammar. The library
+  compiles into an execution format before parsing.
+  Each of the above libraries uses a different base algorithm (Earley, GLR, LL, Packrat)
+  with different tradeoffs, but all have evolved robust features to classic parsing
+  problems of error recovery, left recursion, producing parse results, tracing, etc.
+
+  Parser generators are typically more complicated to adopt than parser combinator libraries,
+  less flexible, require a separate build step, and they're more code than typical parser combinators.
+  But for demanding parsing jobs, the complexity of a parser generator tool is
+  easily worth the investment.
+
+* **Parser Combinators** - _lower speed, most flexiblity, lightweight adoption._
+
+  Parser combinators define a grammar by mixing simple TypeScript functions
+  provided by the library or written by the user (aka combinator functions).
+  Execution of the grammar involves simply running these functions.
+  The simplicity makes parser combinators flexible and easy to adopt - you're using
+  TypesScript for everything.
+
+  Parser combinators are intepreting rather than compiling the grammar in advance,
+  so they're slower to run. But they're plenty fast enough for most purposes.
+
+  In the Parser Combinator category, **MiniParse** has a few interesting features
+  and is notably lightweight.
+  As you're parser shopping, also consider other worthy and more mature libraries
+  in the TypeScript parser combinator category like:
+  [ts-parsec](https://github.com/microsoft/ts-parsec)
+  and [ParJS](https://github.com/GregRos/parjs).
