@@ -217,7 +217,7 @@ export function parseWgslD(
 
   grammar.parse(init);
 
-  return init.app.state;
+  return app.state;
 }
 
 if (tracing) {
