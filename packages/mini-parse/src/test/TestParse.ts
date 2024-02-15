@@ -1,10 +1,21 @@
 import { expect } from "vitest";
-import { mainTokens } from "../../../linker/src/MatchWgslD.js";
 import { matchingLexer } from "../MatchingLexer.js";
 import { OptParserResult, Parser } from "../Parser.js";
 import { _withBaseLogger } from "../ParserTracing.js";
-import { TokenMatcher } from "../TokenMatcher.js";
+import { TokenMatcher, matchOneOf, tokenMatcher } from "../TokenMatcher.js";
 import { logCatch } from "./LogCatcher.js";
+
+const symbolSet =
+  "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + 
+  ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
+const defaultTokens = tokenMatcher({
+  directive: /#[a-zA-Z_]\w*/,
+  word: /[a-zA-Z_]\w*/,
+  attr: /@[a-zA-Z_]\w*/,
+  symbol: matchOneOf(symbolSet),
+  digits: /\d+/,
+  ws: /\s+/,
+});
 
 export interface TestParseResult<T, S = any> {
   parsed: OptParserResult<T>;
@@ -16,7 +27,7 @@ export interface TestParseResult<T, S = any> {
 export function testParse<T, S = any>(
   p: Parser<T>,
   src: string,
-  tokenMatcher: TokenMatcher = mainTokens
+  tokenMatcher: TokenMatcher = defaultTokens
 ): TestParseResult<T, S> {
   const lexer = matchingLexer(src, tokenMatcher);
   const app = {

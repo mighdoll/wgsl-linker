@@ -37,12 +37,13 @@ import {
   structDecl,
   typeSpecifier,
 } from "../ParseWgslD.js";
+import { mainTokens } from "../MatchWgslD.js";
 
 function testAppParse<T>(
   parser: Parser<T>,
   src: string
 ): TestParseResult<T, AbstractElem> {
-  return testParse(parser, src);
+  return testParse(parser, src, mainTokens);
 }
 
 test("parse empty string", () => {
