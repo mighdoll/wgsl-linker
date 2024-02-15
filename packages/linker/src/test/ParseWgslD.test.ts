@@ -1,4 +1,6 @@
 import {
+  Parser,
+  TestParseResult,
   _withBaseLogger,
   expectNoLogErr,
   logCatch,
@@ -8,6 +10,7 @@ import {
 } from "mini-parse";
 import { expect, test } from "vitest";
 import {
+  AbstractElem,
   FnElem,
   ImportElem,
   ModuleElem,
@@ -35,14 +38,21 @@ import {
   typeSpecifier,
 } from "../ParseWgslD.js";
 
+function testAppParse<T>(
+  parser: Parser<T>,
+  src: string
+): TestParseResult<T, AbstractElem> {
+  return testParse(parser, src);
+}
+
 test("parse empty string", () => {
   const parsed = parseWgslD("");
   expect(parsed).toMatchSnapshot();
 });
 
 test("directive parses #export", () => {
-  const parsed = testParse(directive, "#export");
-  expect(parsed.appState[0].kind).equals("export");
+  const { appState } = testAppParse(directive, "#export");
+  expect(appState[0].kind).equals("export");
 });
 
 test("parse #export", () => {
@@ -62,13 +72,13 @@ test("parse #import foo(a,b) as baz from bar", () => {
 
 test("lineComment parse // foo bar", () => {
   const src = "// foo bar";
-  const { position } = testParse(lineCommentOptDirective, src);
+  const { position } = testAppParse(lineCommentOptDirective, src);
   expect(position).eq(src.length);
 });
 
 test("lineComment parse // foo bar \\n", () => {
   const src = "// foo bar\n";
-  const { position } = testParse(lineCommentOptDirective, src);
+  const { position } = testAppParse(lineCommentOptDirective, src);
   expect(position).eq(src.length);
 });
 
@@ -93,7 +103,7 @@ test("parse fn with calls", () => {
 
 test("structDecl parses struct member types", () => {
   const src = "struct Foo { a: f32, b: i32 }";
-  const { appState } = testParse(structDecl, src);
+  const { appState } = testAppParse(structDecl, src);
   const { typeRefs } = appState[0] as StructElem;
   expect(typeRefs[0].name).eq("f32");
   expect(typeRefs[1].name).eq("i32");
@@ -152,7 +162,7 @@ test("parse fn with line comment", () => {
 
 test("lineCommentOptDirective parses #export(foo) with trailing space", () => {
   const src = `// #export (Elem)    `;
-  const result = testParse(lineCommentOptDirective, src);
+  const result = testAppParse(lineCommentOptDirective, src);
   expect(result.appState[0].kind).eq("export");
 });
 
@@ -235,7 +245,7 @@ test("parse nested #if", () => {
 
 test("importing parses importing bar(A) fog(B)", () => {
   const src = ` importing bar(A), fog(B)`;
-  const { parsed } = testParse(importing, src);
+  const { parsed } = testAppParse(importing, src);
   expect(parsed?.named.importing).toMatchSnapshot();
 });
 
@@ -259,7 +269,7 @@ test("parse @attribute before fn", () => {
 
 test("wordNumArgs parses (a, b, 1)", () => {
   const src = `(a, b, 1)`;
-  const { parsed } = testParse(wordNumArgs, src);
+  const { parsed } = testAppParse(wordNumArgs, src);
   expect(parsed?.value).toMatchSnapshot();
 });
 
@@ -273,7 +283,7 @@ test("wordNumArgs parses (a, b, 1) with line comments everywhere", () => {
     1
     // satsified
     )`;
-  const { parsed } = testParse(wordNumArgs.preParse(comment), src);
+  const { parsed } = testAppParse(wordNumArgs.preParse(comment), src);
   expect(parsed?.value).toMatchSnapshot();
 });
 
@@ -357,7 +367,7 @@ test("parse alias", () => {
 test("blockComment parses /* comment */", () => {
   const src = "/* comment */";
   expectNoLogErr(() => {
-    const { parsed } = testParse(blockComment, src);
+    const { parsed } = testAppParse(blockComment, src);
     expect(parsed).toMatchSnapshot();
   });
 });
@@ -365,14 +375,14 @@ test("blockComment parses /* comment */", () => {
 test("skipBlockComment parses nested comment", () => {
   const src = "/** comment1 /* comment2 */ */";
   expectNoLogErr(() => {
-    testParse(blockComment, src);
+    testAppParse(blockComment, src);
   });
 });
 
 test("unexpected token", () => {
   const p = repeat(or("a", unknown));
   const { log, logged } = logCatch();
-  _withBaseLogger(log, () => testParse(p, "a b"));
+  _withBaseLogger(log, () => testAppParse(p, "a b"));
   expect(logged()).toMatchInlineSnapshot(`
     "??? word: 'b'
     a b   Ln 1
@@ -397,7 +407,7 @@ test("fnDecl parses fn with return type", () => {
   const src = `
     fn foo() -> MyType { }
   `;
-  const { appState } = testParse(fnDecl, src);
+  const { appState } = testAppParse(fnDecl, src);
   expect((appState[0] as FnElem).typeRefs[0].name).eq("MyType");
 });
 
@@ -405,7 +415,7 @@ test("fnDecl parses :type specifier in fn args", () => {
   const src = `
     fn foo(a: MyType) { }
   `;
-  const { appState } = testParse(fnDecl, src);
+  const { appState } = testAppParse(fnDecl, src);
   const { typeRefs } = appState[0] as FnElem;
   expect(typeRefs[0].name).eq("MyType");
 });
@@ -416,7 +426,7 @@ test("fnDecl parses :type specifier in fn block", () => {
       var b:MyType;
     }
   `;
-  const { appState } = testParse(fnDecl, src);
+  const { appState } = testAppParse(fnDecl, src);
   expect((appState[0] as FnElem).typeRefs[0].name).eq("MyType");
 });
 
@@ -424,7 +434,7 @@ test("parse type in <template> in fn args", () => {
   const src = `
     fn foo(a: vec2<MyStruct>) { };`;
 
-  const { appState } = testParse(fnDecl, src);
+  const { appState } = testAppParse(fnDecl, src);
   const { typeRefs } = appState[0] as FnElem;
   expect(typeRefs[0].name).eq("vec2");
   expect(typeRefs[1].name).eq("MyStruct");
@@ -433,7 +443,7 @@ test("parse type in <template> in fn args", () => {
 test("parse simple templated type", () => {
   const src = `array<MyStruct,4>`;
 
-  const { parsed } = testParse(typeSpecifier, src);
+  const { parsed } = testAppParse(typeSpecifier, src);
   expect(parsed?.value[0].name).eq("array");
   expect(parsed?.value[1].name).eq("MyStruct");
   expect(parsed?.value.length).eq(2);
@@ -442,14 +452,14 @@ test("parse simple templated type", () => {
 test("parse nested template that ends with >> ", () => {
   const src = `vec2<array <MyStruct,4>>`;
 
-  const { parsed } = testParse(typeSpecifier, src);
+  const { parsed } = testAppParse(typeSpecifier, src);
   const typeRefNames = parsed?.value.map((r) => r.name);
   expect(typeRefNames).deep.eq(["vec2", "array", "MyStruct"]);
 });
 
 test("parse struct member with templated type", () => {
   const src = `struct Foo { a: vec2<array<Bar,4>> }`;
-  const { appState } = testParse(structDecl, src);
+  const { appState } = testAppParse(structDecl, src);
   const typeRefs = (appState[0] as StructElem).typeRefs;
   const typeRefNames = typeRefs.map((r) => r.name);
   expect(typeRefNames).deep.eq(["vec2", "array", "Bar"]);
@@ -459,7 +469,7 @@ test("parse type in <template> in global var", () => {
   const src = `
     var x:vec2<MyStruct> = { x: 1, y: 2 };`;
 
-  const { appState } = testParse(globalVar, src);
+  const { appState } = testAppParse(globalVar, src);
   const typeRefs = (appState[0] as VarElem).typeRefs;
   expect(typeRefs[0].name).eq("vec2");
   expect(typeRefs[1].name).eq("MyStruct");
