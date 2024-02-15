@@ -15,7 +15,7 @@ export const mainTokens = tokenMatcher(
     directive,
     attr: /@[a-zA-Z_]\w*/,
     word: /[a-zA-Z_]\w*/, // LATER consider making this 'ident' per wgsl spec (incl. non-ascii)   word,
-    digits: /(?:0x)?[\d.]+[iuf])?/, // LATER parse more wgsl number variants
+    digits: /(?:0x)?[\d.]+[iuf]?/, // LATER parse more wgsl number variants
     symbol,
     ws: /\s+/
   },
