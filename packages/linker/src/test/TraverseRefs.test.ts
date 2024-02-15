@@ -1,15 +1,14 @@
+import { _withBaseLogger, logCatch } from "mini-parse";
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule2 } from "../ParseModule2.js";
-import { _withBaseLogger } from "mini-parse";
 import {
   ExportRef,
   FoundRef,
   LocalRef,
   refName,
-  traverseRefs
+  traverseRefs,
 } from "../TraverseRefs.js";
-import { logCatch } from "./LogCatcher.js";
 
 test("traverse nested import with params and support fn", () => {
   const src = `

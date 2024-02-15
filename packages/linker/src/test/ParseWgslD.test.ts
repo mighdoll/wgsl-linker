@@ -1,3 +1,11 @@
+import {
+  _withBaseLogger,
+  expectNoLogErr,
+  logCatch,
+  or,
+  repeat,
+  testParse,
+} from "mini-parse";
 import { expect, test } from "vitest";
 import {
   FnElem,
@@ -7,21 +15,6 @@ import {
   TemplateElem,
   VarElem,
 } from "../AbstractElems.js";
-import {
-  fnDecl,
-  globalVar,
-  parseWgslD,
-  structDecl,
-  typeSpecifier,
-} from "../ParseWgslD.js";
-
-import {
-  _withBaseLogger,
-  expectNoLogErr,
-  or,
-  repeat,
-  testParse,
-} from "mini-parse";
 import {
   directive,
   importing,
@@ -34,7 +27,13 @@ import {
   unknown,
   wordNumArgs,
 } from "../ParseSupport.js";
-import { logCatch } from "./LogCatcher.js";
+import {
+  fnDecl,
+  globalVar,
+  parseWgslD,
+  structDecl,
+  typeSpecifier,
+} from "../ParseWgslD.js";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");

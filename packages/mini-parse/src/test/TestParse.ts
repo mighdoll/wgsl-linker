@@ -1,11 +1,11 @@
 import { expect } from "vitest";
 import { AbstractElem } from "../../../linker/src/AbstractElems.js";
 import { mainTokens } from "../../../linker/src/MatchWgslD.js";
-import { logCatch } from "../../../linker/src/test/LogCatcher.js";
 import { matchingLexer } from "../MatchingLexer.js";
 import { OptParserResult, Parser } from "../Parser.js";
 import { _withBaseLogger } from "../ParserTracing.js";
 import { TokenMatcher } from "../TokenMatcher.js";
+import { logCatch } from "./LogCatcher.js";
 
 interface TestParseResult<T> {
   parsed: OptParserResult<T>;

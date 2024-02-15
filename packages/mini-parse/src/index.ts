@@ -5,3 +5,4 @@ export * from "./ParserTracing.js";
 export * from "./TokenMatcher.js";
 export * from "./ParserLogging.js";
 export * from "./test/TestParse.js";
+export * from "./test/LogCatcher.js";
