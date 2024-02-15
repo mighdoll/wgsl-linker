@@ -1,11 +1,10 @@
-import { tokens } from "../Parser.js";
-import { kind, or, repeat, seq } from "../ParserCombinator.js";
+import { kind, or, repeat, seq, tokens } from "../ParserCombinator.js";
 import { matchOneOf, tokenMatcher } from "../TokenMatcher.js";
 
 export const simpleTokens = tokenMatcher({
   number: /\d+/,
   symbol: matchOneOf("( ) ^ + - * /"),
-  ws: /\s+/
+  ws: /\s+/,
 });
 
 const num = kind(simpleTokens.number);
@@ -36,7 +35,7 @@ export const namedSum = seq(
 
 const quoteTokens = tokenMatcher({
   quote: /"/,
-  nonQuote: /[^"]+/
+  nonQuote: /[^"]+/,
 });
 
 const nonQuote = kind(quoteTokens.nonQuote);
@@ -57,7 +56,7 @@ export const sumElem = seq(int, or("+", "-"), int).map((r) => {
     kind: "binOp",
     left: a,
     right: b,
-    op: op as "+" | "-"
+    op: op as "+" | "-",
   };
   r.app.state.push(binOpElem);
 });

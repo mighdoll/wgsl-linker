@@ -1,12 +1,12 @@
 import { Lexer } from "./MatchingLexer.js";
-import { ParseError } from "./ParserCombinator.js";
+import { ParseError, tokens } from "./ParserCombinator.js";
 import {
   logger,
   parserLog,
   TraceContext,
   TraceOptions,
   tracing,
-  withTraceLogging
+  withTraceLogging,
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { TokenMatcher } from "./TokenMatcher.js";
@@ -126,7 +126,7 @@ export class Parser<T> {
       terminal: this.terminal,
       preDisabled: this.preDisabled,
       fn: this.fn,
-      ...p
+      ...p,
     });
   }
 
@@ -176,7 +176,7 @@ export class Parser<T> {
         _preParse: [],
         _parseCount: 0,
         _preCacheFails: new Map(),
-        maxParseCount
+        maxParseCount,
       });
     } catch (e) {
       if (!(e instanceof ParseError)) {
@@ -305,8 +305,8 @@ function runParser<T>(
           return {
             value: result.value,
             named: mergeNamed(result.named, {
-              [p.namedResult]: [result.value]
-            })
+              [p.namedResult]: [result.value],
+            }),
           };
         }
         return { value: result.value, named: result.named };
@@ -388,6 +388,8 @@ export function tokenIgnore<T>(
   );
 }
 
+/** attach a pre-parser to try parsing before this parser runs.
+ * (e.g. to recognize comments that can appear almost anywhere in the main grammar) */
 export function preParse<T>(
   pre: Parser<unknown>,
   mainParser: Parser<T>
