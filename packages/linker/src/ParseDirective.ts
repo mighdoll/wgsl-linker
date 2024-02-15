@@ -1,5 +1,7 @@
 import {
-  ExtendedResult, Parser, any,
+  ExtendedResult,
+  Parser,
+  any,
   anyThrough,
   kind,
   not,
@@ -9,7 +11,11 @@ import {
   repeatWhile,
   req,
   resultLog,
-  seq, setTraceName, tracing, withSep
+  seq,
+  setTraceName,
+  tokens,
+  tracing,
+  withSep,
 } from "mini-parse";
 import {
   ExportElem,
@@ -33,12 +39,13 @@ const argsWord = kind(argsTokens.arg);
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
 export const directiveArgs: Parser<string[]> = 
-  seq(
-    "(", 
-    withSep(",", argsWord), 
-    req(")")
+  tokens(argsTokens, 
+    seq(
+      "(", 
+      withSep(",", argsWord), 
+      req(")")
+    )
   )
-.tokens(argsTokens)
   .map((r) => r.value[1]);
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
@@ -62,16 +69,19 @@ function importPhrase<T extends ImportElem | ImportMergeElem>(
 const importElemPhrase = importPhrase<ImportElem>("import");
 const importMergeElemPhrase = importPhrase<ImportMergeElem>("importMerge");
 
-export const importing = seq(
-  "importing",
-  seq(importElemPhrase.named("importing")),
-  repeat(seq(",", importElemPhrase.named("importing")))
-).tokens(argsTokens);
+export const importing = tokens(
+  argsTokens,
+  seq(
+    "importing",
+    seq(importElemPhrase.named("importing")),
+    repeat(seq(",", importElemPhrase.named("importing")))
+  )
+);
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  seq(importElemPhrase.named("i"), eolf).tokens(argsTokens)
+  tokens(argsTokens, seq(importElemPhrase.named("i"), eolf))
 ).map((r) => {
   const imp: ImportElem = r.named.i[0];
   imp.start = r.start; // use start of #import, not import phrase
@@ -82,7 +92,7 @@ const importMergeSym = Symbol("importMerge");
 
 export const importMergeDirective = seq(
   "#importMerge",
-  seq(importMergeElemPhrase.named(importMergeSym), eolf).tokens(argsTokens)
+  tokens(argsTokens, seq(importMergeElemPhrase.named(importMergeSym), eolf))
 ).map((r) => {
   const imp: ImportMergeElem = r.named[importMergeSym][0];
   imp.start = r.start; // use start of #import, not import phrase
@@ -90,31 +100,28 @@ export const importMergeDirective = seq(
 });
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
-// prettier-ignore
 export const exportDirective = seq(
   "#export",
-    seq(
-      opt(directiveArgs.named("args")), 
-      opt(importing), 
-      eolf
-    ).tokens(argsTokens)
-)
-  .map((r) => {
-    // flatten 'args' by putting it with the other extracted names
-    const e = makeElem<ExportElem>("export", r, ["args"], ["importing"]);
-    r.app.state.push(e);
-  })
+  tokens(
+    argsTokens,
+    seq(opt(directiveArgs.named("args")), opt(importing), eolf)
+  )
+).map((r) => {
+  // flatten 'args' by putting it with the other extracted names
+  const e = makeElem<ExportElem>("export", r, ["args"], ["importing"]);
+  r.app.state.push(e);
+});
 
 // prettier-ignore
 const ifDirective: Parser<any> = seq(
   "#if",
-  seq(
-    opt("!").named("invert"), 
-    req(argsWord.named("name")), 
-    eolf
-  )
-    .tokens(argsTokens)
-    .toParser((r) => {
+  tokens(argsTokens, 
+    seq(
+      opt("!").named("invert"), 
+      req(argsWord.named("name")), 
+      eolf
+    )
+  ).toParser((r) => {
       // check if #if true or false
       const { params } = r.app.context;
       const ifArg = r.named["name"]?.[0] as string;
@@ -181,7 +188,7 @@ function oneArgDirective<T extends NamedElem>(
 ): Parser<void> {
   return seq(
     `#${elemKind}`,
-    req(kind(moduleTokens.moduleName).named("name").tokens(moduleTokens)),
+    tokens(moduleTokens, req(kind(moduleTokens.moduleName).named("name"))),
     eolf
   ).map((r) => {
     const e = makeElem<T>(elemKind, r, ["name"]);
@@ -189,25 +196,28 @@ function oneArgDirective<T extends NamedElem>(
   });
 }
 
-export const directive = or(
-  exportDirective,
-  importDirective,
-  importMergeDirective,
-  ifDirective,
-  elseDirective,
-  endifDirective,
-  moduleDirective,
-  templateDirective
-).tokens(argsTokens);
+export const directive = tokens(
+  argsTokens,
+  or(
+    exportDirective,
+    importDirective,
+    importMergeDirective,
+    ifDirective,
+    elseDirective,
+    endifDirective,
+    moduleDirective,
+    templateDirective
+  )
+);
 
 /** parse a line comment possibly containg a #directive
  *    // <#import|#export|any>
  * if a directive is found it is handled internally (e.g.
  * by pushing an AbstractElem to the app context) */
-export const lineCommentOptDirective = seq(
-  "//",
-  or(directive, anyThrough(eolf).tokens(lineCommentTokens))
-).tokens(mainTokens);
+export const lineCommentOptDirective = tokens(
+  mainTokens,
+  seq("//", tokens(lineCommentTokens, or(directive, anyThrough(eolf))))
+);
 
 // enableTracing();
 if (tracing) {

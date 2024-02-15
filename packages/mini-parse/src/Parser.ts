@@ -197,12 +197,6 @@ export class Parser<T> {
     return tokenIgnore<T>(ignore, this);
   }
 
-  /** use the provided token matcher with this parser and its descendants
-   * (i.e. use a temporary lexing mode) */
-  tokens(matcher: TokenMatcher): Parser<T> {
-    return tokens<T>(matcher, this);
-  }
-
   get debugName(): string {
     return this.tracingName ?? this.namedResult?.toString() ?? "parser";
   }
