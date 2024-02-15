@@ -5,6 +5,7 @@ import {
   expectNoLogErr,
   logCatch,
   or,
+  preParse,
   repeat,
   testParse,
 } from "mini-parse";
@@ -284,7 +285,7 @@ test("wordNumArgs parses (a, b, 1) with line comments everywhere", () => {
     1
     // satsified
     )`;
-  const { parsed } = testAppParse(wordNumArgs.preParse(comment), src);
+  const { parsed } = testAppParse(preParse(comment, wordNumArgs), src);
   expect(parsed?.value).toMatchSnapshot();
 });
 

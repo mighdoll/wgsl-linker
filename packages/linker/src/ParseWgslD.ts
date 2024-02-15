@@ -10,6 +10,7 @@ import {
   matchingLexer,
   opt,
   or,
+  preParse,
   repeat,
   req,
   seq,
@@ -190,7 +191,7 @@ const globalDecl = or(fnDecl, globalVar, globalAlias, structDecl, ";");
 
 const rootDecl = or(globalDirectiveOrAssert, globalDecl, directive, unknown);
 
-const root = seq(repeat(rootDecl), eof()).preParse(comment);
+const root = preParse(comment, seq(repeat(rootDecl), eof()));
 
 // for debug tracing
 export const traceRoot = root.trace();

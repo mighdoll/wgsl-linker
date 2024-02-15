@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Parser } from "../Parser.js";
+import { Parser, preParse } from "../Parser.js";
 import {
   any,
   anyNot,
@@ -173,7 +173,7 @@ test("preparse simple comment", () => {
     repeat(anyNot("*/")), 
     "*/"
   ).traceName("pre");
-  const p = repeat(kind(m.word)).preParse(pre);
+  const p = preParse(pre, repeat(kind(m.word)));
   const src = "boo /* bar */ baz";
 
   const { parsed } = testParse(p, src);
@@ -200,7 +200,7 @@ test("disable preParse inside quote", () => {
     .tokenIgnore() // disable ws skipping
     .traceName("quote");
 
-  const p = repeat(or(kind(m.word), quote)).preParse(comment);
+  const p = preParse(comment, repeat(or(kind(m.word), quote)));
   const src = "zug ^zip /* boo */^ zax";
 
   const { parsed } = testParse(p, src);
