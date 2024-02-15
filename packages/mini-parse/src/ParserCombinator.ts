@@ -7,7 +7,7 @@ import {
   ParserContext,
   ParserResult,
   runExtended,
-  simpleParser
+  simpleParser,
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
 import { mergeNamed } from "./ParserUtil.js";
@@ -98,7 +98,7 @@ export function or<
   C = string,
   D = string,
   E = string,
-  F = string
+  F = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -114,7 +114,7 @@ export function or<
   D = string,
   E = string,
   F = string,
-  G = string
+  G = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -132,7 +132,7 @@ export function or<
   E = string,
   F = string,
   G = string,
-  H = string
+  H = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -144,10 +144,10 @@ export function or<
   h: CombinatorArg<H>
 ): Parser<A | B | C | D | E | F | G | H>;
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
+  const parsers = stages.map(parserArg);
   return parser("or", (state: ParserContext): ParserResult<any> | null => {
-    for (const stage of stages) {
-      const parser = parserArg(stage); // TODO move outside of function
-      const result = parser._run(state);
+    for (const p of parsers) {
+      const result = p._run(state);
       if (result !== null) {
         return result;
       }
@@ -187,7 +187,7 @@ export function seq<
   C = string,
   D = string,
   E = string,
-  F = string
+  F = string,
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -198,12 +198,13 @@ export function seq<
 ): Parser<[A, B, C, D, E, F]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
 export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
+  const parsers = stages.map(parserArg);
+
   return parser("seq", (ctx: ParserContext) => {
     const values = [];
     let namedResults = {};
-    for (const stage of stages) {
-      const parser = parserArg(stage);
-      const result = parser._run(ctx);
+    for (const p of parsers) {
+      const result = p._run(ctx);
       if (result === null) return null;
 
       namedResults = mergeNamed(namedResults, result.named);
@@ -222,11 +223,11 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
 export function opt(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
 export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
+  const p = parserArg(stage);
   return parser(
     "opt",
     (state: ParserContext): OptParserResult<T | string | boolean> => {
-      const parser = parserArg(stage);
-      const result = parser._run(state);
+      const result = p._run(state);
       return result || { value: false, named: {} };
     }
   );
@@ -289,10 +290,10 @@ function repeatWhileFilter<T>(
   arg: CombinatorArg<T>,
   filterFn: ResultFilterFn<T> = () => true
 ): (ctx: ParserContext) => OptParserResult<(T | string)[]> {
+  const p = parserArg(arg);
   return (ctx: ParserContext): OptParserResult<(T | string)[]> => {
     const values: (T | string)[] = [];
     let results = {};
-    const p = parserArg(arg);
     for (;;) {
       const result = runExtended<T | string>(ctx, p);
 
@@ -329,11 +330,11 @@ export function req<T>(
   arg: CombinatorArg<T>,
   msg?: string
 ): Parser<T | string> {
+  const p = parserArg(arg);
   return parser("req", (ctx: ParserContext): OptParserResult<T | string> => {
-    const parser = parserArg(arg);
-    const result = parser._run(ctx);
+    const result = p._run(ctx);
     if (result === null) {
-      ctxLog(ctx, msg ?? `expected ${parser.debugName}`);
+      ctxLog(ctx, msg ?? `expected ${p.debugName}`);
       throw new ParseError();
     }
     return result;
@@ -362,7 +363,7 @@ export function makeEolf(tokens: TokenMatcher, ws: string): Parser<any> {
    .traceName("eolf");
 }
 
-/** convert naked string arguments into text() parsers */
+/** convert naked string arguments into text() parsers and functions into fn() parsers */
 export function parserArg<T>(
   arg: CombinatorArg<T>
 ): Parser<T> | Parser<string> {
