@@ -1,3 +1,4 @@
+import { verify } from "crypto";
 import { srcLog } from "./ParserLogging.js";
 
 export interface Token {
@@ -38,7 +39,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
   let src: string;
   // cache of tokens by position, so we don't have to reparse after backtracking
   const cache = new Cache<number, Token>(5);
-  const expParts = Object.values(matchers).map(toRegexSource).join("|");
+  const expParts = Object.entries(matchers).map(toRegexSource).join("|");
   const exp = new RegExp(expParts, "midg");
 
   function start(text: string, position = 0): void {
@@ -94,7 +95,7 @@ export function tokenMatcher<T extends Record<string, string | RegExp>>(
     start,
     next,
     position,
-    _traceName: traceName
+    _traceName: traceName,
   } as FullTokenMatcher<T>;
 }
 
@@ -116,11 +117,25 @@ function findGroupDex(
   }
 }
 
-function toRegexSource(e: RegExp | string): string {
+function toRegexSource(nameExp: [string, RegExp | string]): string {
+  const [name, e] = nameExp;
   if (typeof e === "string") {
-    return `(${escapeRegex(e)})`;
+    const expSrc = `(${escapeRegex(e)})`;
+    verifyNonCapturing(name, new RegExp(expSrc));
+    return expSrc;
   } else {
+    verifyNonCapturing(name, e);
     return `(${e.source})`;
+  }
+}
+
+function verifyNonCapturing(name: string, exp: RegExp): void {
+  const willMatch = new RegExp("|" + exp.source);
+  const result = willMatch.exec("")!;
+  if (result.length > 1) {
+    throw new Error(
+      `match expression groups must be non-capturing: ${name}: /${exp.source}/. Use (?:...) instead.`
+    );
   }
 }
 
