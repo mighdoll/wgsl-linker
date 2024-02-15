@@ -8,7 +8,7 @@ import {
   sum,
 } from "../CalculatorResultsExample.js";
 import { Parser } from "../Parser.js";
-import { namedSum, simpleSum, simpleTokens, sumResults } from "../SumExample.js";
+import { namedSum, simpleSum, simpleTokens, sumResults } from "../DocExamples.js";
 import { dlog } from "berry-pretty";
 import { matchingLexer } from "../MatchingLexer.js";
 
