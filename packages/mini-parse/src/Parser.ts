@@ -398,21 +398,6 @@ export function preParse<T>(
   });
 }
 
-/** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
-export function tokens<T>(
-  matcher: TokenMatcher,
-  mainParser: Parser<T>
-): Parser<T> {
-  return parser(
-    `tokens ${matcher._traceName}`,
-    (state: ParserContext): OptParserResult<T> => {
-      return state.lexer.withMatcher(matcher, () => {
-        return mainParser._run(state);
-      });
-    }
-  );
-}
-
 /** run parser, return extended results to support map() or toParser() */
 export function runExtended<T>(
   ctx: ParserContext,

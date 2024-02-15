@@ -349,17 +349,32 @@ export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
     .traceName("withSep");
 }
 
-// TODO make this use it's own tokenMatcher or regex
+/** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
+export function tokens<T>(
+  matcher: TokenMatcher,
+  mainParser: Parser<T>
+): Parser<T> {
+  return parser(
+    `tokens ${matcher._traceName}`,
+    (state: ParserContext): OptParserResult<T> => {
+      return state.lexer.withMatcher(matcher, () => {
+        return mainParser._run(state);
+      });
+    }
+  );
+}
+
 /** return a parser that matches end of line, or end of file,
  * optionally preceded by white space
  * @param ws should not match \n */
-export function makeEolf(tokens: TokenMatcher, ws: string): Parser<any> {
+export function makeEolf(matcher: TokenMatcher, ws: string): Parser<any> {
   // prettier-ignore
-  return seq(
-    opt(kind(ws)), 
-    or("\n", eof())
-  ).tokens(tokens)
-   .tokenIgnore() // disable automatic ws skipping so we can match it above
+  return tokens(matcher, 
+      seq(
+        opt(kind(ws)), 
+        or("\n", eof())
+      )
+    ).tokenIgnore() // disable automatic ws skipping so we can match it above
    .traceName("eolf");
 }
 
