@@ -185,12 +185,6 @@ export class Parser<T> {
     }
   }
 
-  /** set which token kinds to ignore while executing this parser and its descendants.
-   * If no parameters are provided, no tokens are ignored. */
-  tokenIgnore(ignore?: Set<string>): Parser<T> {
-    return tokenIgnore<T>(ignore, this);
-  }
-
   get debugName(): string {
     return this.tracingName ?? this.namedResult?.toString() ?? "parser";
   }
@@ -358,14 +352,19 @@ function toParser<T, N>(
   });
 }
 
-export function tokenIgnore<T>(
-  ignore: Set<string> = new Set(),
+const emptySet = new Set<string>();
+
+/** set which token kinds to ignore while executing this parser and its descendants.
+ * If no parameters are provided, no tokens are ignored. */
+export function tokenSkipSet<T>(
+  ignore: Set<string> | undefined | null,
   mainParser: Parser<T>
 ): Parser<T> {
+  const ignoreSet = ignore ?? emptySet;
   return parser(
     "tokenIgnore",
     (ctx: ParserContext): OptParserResult<T> =>
-      ctx.lexer.withIgnore(ignore, () => mainParser._run(ctx))
+      ctx.lexer.withIgnore(ignoreSet, () => mainParser._run(ctx))
   );
 }
 

@@ -8,6 +8,7 @@ import {
   ParserResult,
   runExtended,
   simpleParser,
+  tokenSkipSet,
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
 import { mergeNamed } from "./ParserUtil.js";
@@ -370,11 +371,13 @@ export function tokens<T>(
 export function makeEolf(matcher: TokenMatcher, ws: string): Parser<any> {
   // prettier-ignore
   return tokens(matcher, 
-      seq(
-        opt(kind(ws)), 
-        or("\n", eof())
+      tokenSkipSet(null, // disable automatic ws skipping so we can match newline
+        seq(
+          opt(kind(ws)), 
+          or("\n", eof())
+        )
       )
-    ).tokenIgnore() // disable automatic ws skipping so we can match it above
+    )
    .traceName("eolf");
 }
 

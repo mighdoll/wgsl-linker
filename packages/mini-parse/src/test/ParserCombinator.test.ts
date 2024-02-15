@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Parser, disablePreParse, preParse } from "../Parser.js";
+import { Parser, disablePreParse, preParse, tokenSkipSet } from "../Parser.js";
 import {
   any,
   anyNot,
@@ -190,15 +190,16 @@ test("disable preParse inside quote", () => {
 
   // prettier-ignore
   const quote = disablePreParse(
-      seq(
-        opt(kind(m.ws)),
-        "^", 
-        repeat(anyNot("^").named("contents")), 
-        "^"
+      tokenSkipSet(null, // disable ws skipping
+        seq(
+          opt(kind(m.ws)),
+          "^", 
+          repeat(anyNot("^").named("contents")), 
+          "^"
+        )
       )
     )
     .map((r) => r.named.contents.map((tok) => tok.text).join(""))
-    .tokenIgnore() // disable ws skipping
     .traceName("quote");
 
   const p = preParse(comment, repeat(or(kind(m.word), quote)));
@@ -214,7 +215,7 @@ test("tokenIgnore", () => {
   const { parsed: parsedNoSpace } = testParse(p, src);
   expect(parsedNoSpace?.value).deep.eq(["a", "b"]);
 
-  const { parsed } = testParse(p.tokenIgnore(), src);
+  const { parsed } = testParse(tokenSkipSet(null, p), src);
   expect(parsed?.value).deep.eq(["a", " ", "b"]);
 });
 
