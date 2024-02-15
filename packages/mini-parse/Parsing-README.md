@@ -58,7 +58,7 @@ To any combinator that accepts a parser as an argument, you can pass:
 Parsing relies on a lexer to divide the source string into parts, called tokens.
 (You could produce a token per character, but that would be comparatively slow)
 
-Here's an example token matcher to identify three kinds of tokens for a parsing
+Here's an example token matcher to identify three kinds of tokens for parsing
 simple arithmetic expressions.
 
 ```ts
@@ -175,10 +175,10 @@ For debugging your grammar, it's useful to debug your grammar in pieces.
 One of the nice features of parser combinators is that every part of the grammar is
 independently testable.
 
-To print out the progress of parsing, 
-* Call `enableTracing()` to turn on the tracing facility (normally off and removed from prod builds)
-* Use `.trace()` on any. See `TraceOptions` for options for customizing how much to print in the trace.
-* Add application relevant trace names to any parser to make the trace more clear.
+To print out the progress of parsing: 
+1. Call `enableTracing()` to turn on the tracing facility (normally off and removed from prod builds)
+1. Call `.trace(opts?)` on any Parser. See `TraceOptions` for options controlling trace levels.
+1. Add application relevant trace names to any parser using `.traceName()` or `setTraceName()`.
   * Use `.traceName()` on any parser to set the trace name for debugging.
   * Alternately, you can use `setTraceName()` protected by a `tracing`
     global and the javascript bundler will remove the code in production builds to save a few bytes.
@@ -190,11 +190,6 @@ To print out the progress of parsing,
       fnParam,
       fnParamList,
       fnDecl,
-      globalVar,
-      globalAlias,
-      globalDecl,
-      rootDecl,
-      root,
     };
 
     Object.entries(names).forEach(([name, parser]) => {
@@ -216,7 +211,7 @@ To print out the progress of parsing,
 ### tokens() combinator
 Sometimes it's nice to let the grammar choose a different tokenizer 
 to parse different sections of the source text. 
-For example, to parse a programming langauge with quotes, 
+For example, to parse a programming language with quotes, 
 you'll probably want a different tokenizer for the text inside of quotes:
 
 ```ts
@@ -228,7 +223,7 @@ const quote = seq('"', tokens(quoteTokens, repeat(nonQuote)), '"')
 In unusual cases, it can be handy to choose the next parser based
 on information outside the grammar itself.
 For example, to handle an `#ifdef` style preprocessor, the parsing
-proceeds diferrently depending on whether the `#ifdef` is true or false,
+proceeds differently depending on whether the `#ifdef` is true or false,
 and information outside the source text may be required to decide.
 If you want to check a runtime dictionary to decide which parser to
 use for the next tokens, than `.toParser` is of use.
@@ -247,7 +242,7 @@ and if it fails to match at the current position, then the main parser will run.
 const p = preParse(blockComments, mainParser);
 ```
 
-Mulitple preparsers can be attached. Preparsing can also be temporarily disabled
+Multiple preparsers can be attached. Preparsing can also be temporarily disabled
 in the grammar, e.g. to disable comment skipping inside quotes.
 
 Save preparsing for special situations.
@@ -261,9 +256,9 @@ There are two application specific objects that are passed to every parser:
 `state` and `context`. 
 `app.state`, as mentioned above, is handy for accumulating application results of successful parses.
 
-`app.context` is useful to to store ephemeral application state discovered
+`app.context` is useful to store ephemeral application state discovered
 during parsing. 
-Like `app.state`, `app.context` is similarly just for applications - **MiniParse** doesn't use it
+Like `app.state`, `app.context` is just for applications - **MiniParse** doesn't use it
 and applications can read and write it using the `.map()` method on any parser.
 But unlike `app.state` **MiniParse** will reset `app.context` when a sub-parser fails and backtracks. 
 `app.context` is passed to child parsers, but doesn't accumulate to parent parsers.
@@ -329,7 +324,7 @@ Is **MiniParse** right for your project? Consider the alternatives:
   But for demanding parsing jobs, the complexity of a parser generator tool is
   easily worth the investment.
 
-* **Parser Combinators** - _lower speed, most flexiblity, lightweight adoption._
+* **Parser Combinators** - _lower speed, most flexibility, lightweight adoption._
 
   Parser combinators define a grammar by mixing simple TypeScript functions
   provided by the library or written by the user (aka combinator functions).
@@ -337,7 +332,7 @@ Is **MiniParse** right for your project? Consider the alternatives:
   The simplicity makes parser combinators flexible and easy to adopt - you're using
   TypesScript for everything.
 
-  Parser combinators are intepreting rather than compiling the grammar in advance,
+  Parser combinators are interpreting rather than compiling the grammar in advance,
   so they're slower to run. But they're plenty fast enough for most purposes.
 
   In the Parser Combinator category, **MiniParse** has a few interesting features
