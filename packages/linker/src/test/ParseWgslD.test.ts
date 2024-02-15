@@ -12,12 +12,16 @@ import {
   globalVar,
   parseWgslD,
   structDecl,
-  typeSpecifier
+  typeSpecifier,
 } from "../ParseWgslD.js";
 
-import { or, repeat } from "mini-parse";
-import { _withBaseLogger } from "mini-parse";
-import { expectNoLogErr, testParse } from "../../../mini-parse/src/test/TestParse.js";
+import {
+  _withBaseLogger,
+  expectNoLogErr,
+  or,
+  repeat,
+  testParse,
+} from "mini-parse";
 import {
   directive,
   importing,
