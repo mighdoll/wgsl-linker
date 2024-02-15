@@ -1,4 +1,16 @@
 import {
+  ExtendedResult, Parser, any,
+  anyThrough,
+  kind,
+  not,
+  opt,
+  or,
+  repeat,
+  repeatWhile,
+  req,
+  seq, setTraceName, tracing, withSep
+} from "mini-parse";
+import {
   ExportElem,
   ImportElem,
   ImportMergeElem,
@@ -11,21 +23,6 @@ import {
   mainTokens,
   moduleTokens,
 } from "./MatchWgslD.js";
-import { ExtendedResult, Parser, setTraceName } from "../../mini-parse/src/Parser.js";
-import {
-  any,
-  anyThrough,
-  kind,
-  not,
-  opt,
-  or,
-  repeat,
-  repeatWhile,
-  req,
-  seq,
-  withSep,
-} from "../../mini-parse/src/ParserCombinator.js";
-import { tracing } from "../../mini-parse/src/ParserTracing.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 import { ParseState } from "./ParseWgslD.js";
 
@@ -209,7 +206,7 @@ export const directive = or(
  * by pushing an AbstractElem to the app context) */
 export const lineCommentOptDirective = seq(
   "//",
-  or(directive, anyThrough(eolf).tokens(lineCommentTokens)),
+  or(directive, anyThrough(eolf).tokens(lineCommentTokens))
 ).tokens(mainTokens);
 
 // enableTracing();

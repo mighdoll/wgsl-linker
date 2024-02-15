@@ -1,4 +1,24 @@
 import {
+  Parser,
+  ParserContext,
+  ParserInit,
+  anyNot,
+  anyThrough,
+  eof,
+  fn,
+  kind,
+  matchingLexer,
+  opt,
+  or,
+  repeat,
+  req,
+  seq,
+  setTraceName,
+  simpleParser,
+  tracing,
+  withSep,
+} from "mini-parse";
+import {
   AbstractElem,
   CallElem,
   FnElem,
@@ -7,30 +27,8 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { matchingLexer } from "../../mini-parse/src/MatchingLexer.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
-import {
-  Parser,
-  ParserContext,
-  ParserInit,
-  setTraceName,
-  simpleParser,
-} from "../../mini-parse/src/Parser.js";
-import {
-  anyNot,
-  anyThrough,
-  eof,
-  fn,
-  kind,
-  opt,
-  or,
-  repeat,
-  req,
-  seq,
-  withSep,
-} from "../../mini-parse/src/ParserCombinator.js";
-import { tracing } from "../../mini-parse/src/ParserTracing.js";
 import {
   comment,
   makeElem,

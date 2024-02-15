@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { expect, test } from "vitest";
 import {
   FnElem,
@@ -13,18 +12,18 @@ import {
   globalVar,
   parseWgslD,
   structDecl,
-  traceRoot,
-  typeSpecifier,
+  typeSpecifier
 } from "../ParseWgslD.js";
 
+import { or, repeat } from "mini-parse";
+import { _withBaseLogger } from "mini-parse";
+import { expectNoLogErr, testParse } from "../../../mini-parse/src/test/TestParse.js";
 import {
   directive,
   importing,
   lineCommentOptDirective,
 } from "../ParseDirective.js";
 import { filterElems } from "../ParseModule2.js";
-import { or, repeat } from "../../../mini-parse/src/ParserCombinator.js";
-import { _withBaseLogger } from "../../../mini-parse/src/ParserTracing.js";
 import {
   blockComment,
   comment,
@@ -32,7 +31,6 @@ import {
   wordNumArgs,
 } from "../ParseSupport.js";
 import { logCatch } from "./LogCatcher.js";
-import { testParse, expectNoLogErr } from "../../../mini-parse/src/test/TestParse.js";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");

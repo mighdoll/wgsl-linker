@@ -1,9 +1,6 @@
-import { AbstractElem } from "./AbstractElems.js";
-import { resultLog } from "./LinkerLogging.js";
-import { argsTokens, mainTokens } from "./MatchWgslD.js";
-import { lineCommentOptDirective } from "./ParseDirective.js";
-import { ExtendedResult, Parser, setTraceName } from "../../mini-parse/src/Parser.js";
 import {
+  ExtendedResult,
+  Parser,
   any,
   anyNot,
   fn,
@@ -13,9 +10,14 @@ import {
   repeat,
   req,
   seq,
+  setTraceName,
+  tracing,
   withSep,
-} from "../../mini-parse/src/ParserCombinator.js";
-import { tracing } from "../../mini-parse/src/ParserTracing.js";
+} from "mini-parse";
+import { AbstractElem } from "./AbstractElems.js";
+import { resultLog } from "./LinkerLogging.js";
+import { argsTokens, mainTokens } from "./MatchWgslD.js";
+import { lineCommentOptDirective } from "./ParseDirective.js";
 
 /* Basic parsing functions for comment handling, eol, etc. */
 
@@ -29,12 +31,7 @@ export const unknown = any().map((r) => {
 
 export const blockComment: Parser<any> = seq(
   "/*",
-  repeat(
-    or(
-      () => blockComment,
-      anyNot("*/")
-    )
-  ),
+  repeat(or(() => blockComment, anyNot("*/"))),
   req("*/")
 );
 
@@ -43,8 +40,10 @@ export const comment = or(
   blockComment
 );
 
-export const eolf: Parser<any> = makeEolf(argsTokens, argsTokens.ws)
-  .disablePreParse();
+export const eolf: Parser<any> = makeEolf(
+  argsTokens,
+  argsTokens.ws
+).disablePreParse();
 
 /** ( a1, b1* ) with optinal comments, spans lines */
 export const wordNumArgs: Parser<string[]> = seq(

@@ -1,4 +1,4 @@
-import { enableTracing } from "../../../mini-parse/src/ParserTracing.js";
+import { enableTracing } from "mini-parse";
 
 // enable parser tracing features
 enableTracing();

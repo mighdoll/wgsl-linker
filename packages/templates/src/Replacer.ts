@@ -1,23 +1,25 @@
-import { matchingLexer } from "../../mini-parse/src/MatchingLexer.js";
-import { Template } from "../../linker/src/ModuleRegistry2.js";
-import { Parser, setTraceName } from "../../mini-parse/src/Parser.js";
 import {
+  Parser,
   anyNot,
   eof,
   kind,
   makeEolf,
+  matchOneOf,
+  matchingLexer,
   opt,
   or,
   repeat,
-  seq
-} from "../../mini-parse/src/ParserCombinator.js";
-import { tracing } from "../../mini-parse/src/ParserTracing.js";
+  seq,
+  setTraceName,
+  tokenMatcher,
+  tracing,
+} from "mini-parse";
+import { Template } from "../../linker/src/ModuleRegistry2.js";
 import { patchLine } from "./PatchLine.js";
-import { matchOneOf, tokenMatcher } from "../../mini-parse/src/TokenMatcher.js";
 
 export const replaceTemplate: Template = {
   name: "replace",
-  apply: replacer
+  apply: replacer,
 };
 
 const symbolSet = "= //";
@@ -29,7 +31,7 @@ export const replaceTokens = tokenMatcher(
     word: /[\w-.]+/,
     directive: /#[\w-.]+/,
     symbol: matchOneOf(symbolSet),
-    other: /./
+    other: /./,
   },
   "replace"
 );
@@ -82,7 +84,7 @@ if (tracing) {
     replaceClause,
     lineStart,
     line,
-    root
+    root,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
