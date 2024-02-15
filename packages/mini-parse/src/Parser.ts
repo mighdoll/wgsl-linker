@@ -185,13 +185,6 @@ export class Parser<T> {
       return null;
     }
   }
-
-  /** attach a pre-parser to try parsing before this parser runs.
-   * (e.g. to recognize comments that can appear almost anywhere in the main grammar) */
-  preParse(pre: Parser<unknown>): Parser<T> {
-    return preParse<T>(pre, this);
-  }
-
   /** disable a previously attached pre-parser,
    * e.g. to disable a comment preparser in a quoted string parser */
   disablePreParse(): Parser<T> {
