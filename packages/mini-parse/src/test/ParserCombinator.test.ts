@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Parser, preParse } from "../Parser.js";
+import { Parser, disablePreParse, preParse } from "../Parser.js";
 import {
   any,
   anyNot,
@@ -12,13 +12,13 @@ import {
   repeatWhile,
   req,
   seq,
-  text
+  text,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
 import { testParse, testTokens } from "./TestParse.js";
 
-const m = testTokens; 
+const m = testTokens;
 
 test("or() finds first match", () => {
   const src = "#import";
@@ -189,14 +189,15 @@ test("disable preParse inside quote", () => {
   ).traceName("comment");
 
   // prettier-ignore
-  const quote = seq(
-      opt(kind(m.ws)),
-      "^", 
-      repeat(anyNot("^").named("contents")), 
-      "^"
+  const quote = disablePreParse(
+      seq(
+        opt(kind(m.ws)),
+        "^", 
+        repeat(anyNot("^").named("contents")), 
+        "^"
+      )
     )
     .map((r) => r.named.contents.map((tok) => tok.text).join(""))
-    .disablePreParse()
     .tokenIgnore() // disable ws skipping
     .traceName("quote");
 

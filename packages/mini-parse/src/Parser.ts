@@ -1,15 +1,14 @@
 import { Lexer } from "./MatchingLexer.js";
-import { ParseError, tokens } from "./ParserCombinator.js";
+import { ParseError } from "./ParserCombinator.js";
 import {
-  logger,
-  parserLog,
   TraceContext,
   TraceOptions,
+  logger,
+  parserLog,
   tracing,
   withTraceLogging,
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
-import { TokenMatcher } from "./TokenMatcher.js";
 
 export interface AppState<A> {
   /**
@@ -184,11 +183,6 @@ export class Parser<T> {
       }
       return null;
     }
-  }
-  /** disable a previously attached pre-parser,
-   * e.g. to disable a comment preparser in a quoted string parser */
-  disablePreParse(): Parser<T> {
-    return this._cloneWith({ preDisabled: true });
   }
 
   /** set which token kinds to ignore while executing this parser and its descendants.
@@ -385,6 +379,12 @@ export function preParse<T>(
     const newCtx = { ...ctx, _preParse: [pre, ...ctx._preParse] };
     return mainParser._run(newCtx);
   });
+}
+
+/** disable a previously attached pre-parser,
+ * e.g. to disable a comment preparser in a quoted string parser */
+export function disablePreParse<T>(parser: Parser<T>): Parser<T> {
+  return parser._cloneWith({ preDisabled: true });
 }
 
 /** run parser, return extended results to support map() or toParser() */
