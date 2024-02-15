@@ -1,4 +1,4 @@
-import { ExtendedResult } from "./Parser.js";
+import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
@@ -13,6 +13,10 @@ export function srcTrace(src: string, pos: number, ...msgs: any[]): void {
 
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
   srcLog(result.src, result.start, ...msgs);
+}
+
+export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
+  srcLog(ctx.lexer.src, ctx.lexer.position(), ...msgs);
 }
 
 function logInternal(

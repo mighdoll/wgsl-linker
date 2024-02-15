@@ -1,5 +1,3 @@
-import { dlog } from "berry-pretty";
-import { ctxLog } from "../../linker/src/LinkerLogging.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -11,6 +9,7 @@ import {
   runExtended,
   simpleParser,
 } from "./Parser.js";
+import { ctxLog } from "./ParserLogging.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 

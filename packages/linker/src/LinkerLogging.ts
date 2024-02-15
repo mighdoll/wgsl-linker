@@ -16,6 +16,7 @@ export function refLog(ref: FoundRef, ...msgs: any[]): void {
   }
 }
 
+// TODO mv to ParserLogging
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
   srcLog(ctx.lexer.src, ctx.lexer.position(), ...msgs);
 }

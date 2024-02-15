@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import {
