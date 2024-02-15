@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { mainTokens } from "../../../linker/src/MatchWgslD.js";
-import { logCatch } from "../../../linker/src/test/LogCatcher.js";
 import { Parser } from "../Parser.js";
 import {
   any,
@@ -18,6 +17,7 @@ import {
 } from "../ParserCombinator.js";
 import { enableTracing, _withBaseLogger } from "../ParserTracing.js";
 import { testParse } from "./TestParse.js";
+import { logCatch } from "./LogCatcher.js";
 
 const m = mainTokens; // TODO use a test token set, rather than this from WgslD
 
