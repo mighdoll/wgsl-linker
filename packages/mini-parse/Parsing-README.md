@@ -199,11 +199,11 @@ To print out the progress of parsing:
 
 ## Examples
 
-[Calculator]() - classic PEG style parser in **MiniParse** syntax.
+[Calculator](./src/examples/CalculatorExample.ts) - classic PEG style parser in **MiniParse** syntax.
 
-[Calculator with Results]() calculator example parser with inline calculation of results.
+[Calculator with Results](./src/examples/CalculatorResultsExample.ts) calculator example parser with inline calculation of results.
 
-[WGSL-D]() parsing some of the WebGPU [WGSL](https://www.w3.org/TR/WGSL/#grammar-recursive-descent) shader language with `#import` and `#export` extensions.
+[WGSL-D](../linker/src/ParseWgslD.ts) parsing selected parts of the WebGPU [WGSL](https://www.w3.org/TR/WGSL/#grammar-recursive-descent) shader language along with `#import` and `#export` extensions.
 
 
 ## Special Situations
