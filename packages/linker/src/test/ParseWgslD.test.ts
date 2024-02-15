@@ -8,6 +8,7 @@ import {
   preParse,
   repeat,
   testParse,
+  tokens,
 } from "mini-parse";
 import { expect, test } from "vitest";
 import {
@@ -38,7 +39,7 @@ import {
   structDecl,
   typeSpecifier,
 } from "../ParseWgslD.js";
-import { mainTokens } from "../MatchWgslD.js";
+import { argsTokens, mainTokens } from "../MatchWgslD.js";
 
 function testAppParse<T>(
   parser: Parser<T>,
@@ -247,7 +248,7 @@ test("parse nested #if", () => {
 
 test("importing parses importing bar(A) fog(B)", () => {
   const src = ` importing bar(A), fog(B)`;
-  const { parsed } = testAppParse(importing, src);
+  const { parsed } = testAppParse(tokens(argsTokens, importing), src);
   expect(parsed?.named.importing).toMatchSnapshot();
 });
 

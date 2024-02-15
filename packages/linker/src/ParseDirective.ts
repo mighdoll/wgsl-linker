@@ -39,14 +39,11 @@ const argsWord = kind(argsTokens.arg);
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
 export const directiveArgs: Parser<string[]> = 
-  tokens(argsTokens, 
-    seq(
-      "(", 
-      withSep(",", argsWord), 
-      req(")")
-    )
-  )
-  .map((r) => r.value[1]);
+  seq(
+    "(", 
+    withSep(",", argsWord), 
+    req(")")
+  ).map((r) => r.value[1]);
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
 function importPhrase<T extends ImportElem | ImportMergeElem>(
@@ -69,19 +66,16 @@ function importPhrase<T extends ImportElem | ImportMergeElem>(
 const importElemPhrase = importPhrase<ImportElem>("import");
 const importMergeElemPhrase = importPhrase<ImportMergeElem>("importMerge");
 
-export const importing = tokens(
-  argsTokens,
-  seq(
-    "importing",
-    seq(importElemPhrase.named("importing")),
-    repeat(seq(",", importElemPhrase.named("importing")))
-  )
+export const importing = seq(
+  "importing",
+  seq(importElemPhrase.named("importing")),
+  repeat(seq(",", importElemPhrase.named("importing")))
 );
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  tokens(argsTokens, seq(importElemPhrase.named("i"), eolf))
+  seq(importElemPhrase.named("i"), eolf)
 ).map((r) => {
   const imp: ImportElem = r.named.i[0];
   imp.start = r.start; // use start of #import, not import phrase
@@ -92,7 +86,7 @@ const importMergeSym = Symbol("importMerge");
 
 export const importMergeDirective = seq(
   "#importMerge",
-  tokens(argsTokens, seq(importMergeElemPhrase.named(importMergeSym), eolf))
+  seq(importMergeElemPhrase.named(importMergeSym), eolf)
 ).map((r) => {
   const imp: ImportMergeElem = r.named[importMergeSym][0];
   imp.start = r.start; // use start of #import, not import phrase
@@ -102,10 +96,7 @@ export const importMergeDirective = seq(
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 export const exportDirective = seq(
   "#export",
-  tokens(
-    argsTokens,
-    seq(opt(directiveArgs.named("args")), opt(importing), eolf)
-  )
+  seq(opt(directiveArgs.named("args")), opt(importing), eolf)
 ).map((r) => {
   // flatten 'args' by putting it with the other extracted names
   const e = makeElem<ExportElem>("export", r, ["args"], ["importing"]);
@@ -115,12 +106,10 @@ export const exportDirective = seq(
 // prettier-ignore
 const ifDirective: Parser<any> = seq(
   "#if",
-  tokens(argsTokens, 
-    seq(
-      opt("!").named("invert"), 
-      req(argsWord.named("name")), 
-      eolf
-    )
+  seq(
+    opt("!").named("invert"), 
+    req(argsWord.named("name")), 
+    eolf
   ).toParser((r) => {
       // check if #if true or false
       const { params } = r.app.context;
