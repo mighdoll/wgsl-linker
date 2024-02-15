@@ -9,13 +9,13 @@ import {
   or,
   repeat,
   req,
+  resultLog,
   seq,
   setTraceName,
   tracing,
   withSep,
 } from "mini-parse";
 import { AbstractElem } from "./AbstractElems.js";
-import { resultLog } from "./LinkerLogging.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 

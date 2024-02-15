@@ -8,6 +8,7 @@ import {
   repeat,
   repeatWhile,
   req,
+  resultLog,
   seq, setTraceName, tracing, withSep
 } from "mini-parse";
 import {
@@ -16,7 +17,6 @@ import {
   ImportMergeElem,
   NamedElem,
 } from "./AbstractElems.js";
-import { resultLog } from "./LinkerLogging.js";
 import {
   argsTokens,
   lineCommentTokens,

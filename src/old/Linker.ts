@@ -87,7 +87,6 @@ export function linkWgsl(
   registry: ModuleRegistry,
   params: Record<string, any> = {}
 ): string {
-  linkWgsl3("", new ModuleRegistry2()); // temporary to check minified size of build. TODO remove
   return insertImportsRecursive(src, registry, new Set(), 0, params);
 }
 

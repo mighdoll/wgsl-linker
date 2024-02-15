@@ -1,12 +1,11 @@
 import { TextExport, TextModule } from "./Linker.js";
-import { parseWgslD } from "../../packages/linker/src/ParseWgslD.js";
 import {
   endExportRegex,
   endInsertRegex,
   exportRegex,
   fnOrStructRegex,
   moduleRegex,
-  templateRegex
+  templateRegex,
 } from "./Parsing.js";
 
 let unnamedModuleDex = 0;
@@ -23,7 +22,6 @@ export function parseModule(
   let moduleName: string | undefined;
   let rootLines: string[] | undefined;
 
-  parseWgslD(""); // temporary to check minified size of build. TODO remove
   src.split("\n").forEach((line) => {
     const matches = matchModuleDirectives(line);
     const { exportMatch, endInsertMatch, endExportMatch } = matches;
@@ -34,7 +32,7 @@ export function parseModule(
       const groups = exportMatch.groups;
       currentExport = {
         params: groups?.params?.split(",").map((p) => p.trim()) ?? [],
-        name: groups?.name
+        name: groups?.name,
       };
     } else if (templateMatch) {
       template = templateMatch.groups?.name;
