@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { mainTokens } from "../../../linker/src/MatchWgslD.js";
 import { Parser } from "../Parser.js";
 import {
   any,
@@ -15,11 +14,11 @@ import {
   seq,
   text
 } from "../ParserCombinator.js";
-import { enableTracing, _withBaseLogger } from "../ParserTracing.js";
-import { testParse } from "./TestParse.js";
+import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 import { logCatch } from "./LogCatcher.js";
+import { testParse, testTokens } from "./TestParse.js";
 
-const m = mainTokens; // TODO use a test token set, rather than this from WgslD
+const m = testTokens; 
 
 test("or() finds first match", () => {
   const src = "#import";

@@ -8,7 +8,7 @@ import { logCatch } from "./LogCatcher.js";
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + 
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
-const defaultTokens = tokenMatcher({
+export const testTokens = tokenMatcher({
   directive: /#[a-zA-Z_]\w*/,
   word: /[a-zA-Z_]\w*/,
   attr: /@[a-zA-Z_]\w*/,
@@ -27,7 +27,7 @@ export interface TestParseResult<T, S = any> {
 export function testParse<T, S = any>(
   p: Parser<T>,
   src: string,
-  tokenMatcher: TokenMatcher = defaultTokens
+  tokenMatcher: TokenMatcher = testTokens
 ): TestParseResult<T, S> {
   const lexer = matchingLexer(src, tokenMatcher);
   const app = {
