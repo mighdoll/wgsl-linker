@@ -1,14 +1,14 @@
 import { expect, test } from "vitest";
-import { calcTokens, statement } from "../CalculatorExample.js";
+import { calcTokens, statement } from "../examples/CalculatorExample.js";
 import { testParse } from "./TestParse.js";
 import {
   power,
   product,
   statement2,
   sum,
-} from "../CalculatorResultsExample.js";
+} from "../examples/CalculatorResultsExample.js";
 import { Parser } from "../Parser.js";
-import { namedSum, simpleSum, simpleTokens, sumResults } from "../DocExamples.js";
+import { namedSum, simpleSum, simpleTokens, sumResults } from "../examples/DocExamples.js";
 import { dlog } from "berry-pretty";
 import { matchingLexer } from "../MatchingLexer.js";
 

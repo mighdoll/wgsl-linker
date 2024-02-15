@@ -1,7 +1,6 @@
-import { dlog } from "berry-pretty";
-import { kind, or, repeat, seq, text } from "./ParserCombinator.js";
-import { matchOneOf, tokenMatcher } from "./TokenMatcher.js";
-import { tokens } from "./Parser.js";
+import { tokens } from "../Parser.js";
+import { kind, or, repeat, seq } from "../ParserCombinator.js";
+import { matchOneOf, tokenMatcher } from "../TokenMatcher.js";
 
 export const simpleTokens = tokenMatcher({
   number: /\d+/,

@@ -1,7 +1,7 @@
 import { mulDiv, num, plusMinus } from "./CalculatorExample.js";
-import { Parser, setTraceName } from "./Parser.js";
-import { fn, opt, or, repeat, seq } from "./ParserCombinator.js";
-import { tracing } from "./ParserTracing.js";
+import { Parser, setTraceName } from "../Parser.js";
+import { fn, opt, or, repeat, seq } from "../ParserCombinator.js";
+import { tracing } from "../ParserTracing.js";
 
 let expr: Parser<any> = null as any; // help TS with forward reference
 
