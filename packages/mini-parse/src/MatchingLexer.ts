@@ -132,7 +132,7 @@ export function matchingLexer(
     withIgnore,
     eof,
     skipIgnored,
-    src,
+    src
   };
 }
 

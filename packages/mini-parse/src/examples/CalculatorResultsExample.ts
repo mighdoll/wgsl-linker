@@ -1,7 +1,7 @@
-import { mulDiv, num, plusMinus } from "./CalculatorExample.js";
 import { Parser, setTraceName } from "../Parser.js";
 import { fn, opt, or, repeat, seq } from "../ParserCombinator.js";
 import { tracing } from "../ParserTracing.js";
+import { mulDiv, num, plusMinus } from "./CalculatorExample.js";
 
 let expr: Parser<any> = null as any; // help TS with forward reference
 
@@ -56,7 +56,7 @@ export const sum = seq(
 });
 /* */ expr     = sum; // prettier-ignore
 
-export const statement2 = (expr) as Parser<number>;
+export const statement2 = expr as Parser<number>;
 
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
@@ -64,7 +64,7 @@ if (tracing) {
     power,
     product,
     sum,
-    expr,
+    expr
   };
 
   Object.entries(names).forEach(([name, parser]) => {

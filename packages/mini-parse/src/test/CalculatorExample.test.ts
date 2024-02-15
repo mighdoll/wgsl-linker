@@ -1,16 +1,20 @@
 import { expect, test } from "vitest";
 import { calcTokens, statement } from "../examples/CalculatorExample.js";
-import { testParse } from "./TestParse.js";
 import {
   power,
   product,
   statement2,
-  sum,
+  sum
 } from "../examples/CalculatorResultsExample.js";
-import { Parser } from "../Parser.js";
-import { namedSum, simpleSum, simpleTokens, sumResults } from "../examples/DocExamples.js";
-import { dlog } from "berry-pretty";
+import {
+  namedSum,
+  simpleSum,
+  simpleTokens,
+  sumResults
+} from "../examples/DocExamples.js";
 import { matchingLexer } from "../MatchingLexer.js";
+import { Parser } from "../Parser.js";
+import { testParse } from "./TestParse.js";
 
 test("parse 3 + 4", () => {
   const src = "3 + 4";

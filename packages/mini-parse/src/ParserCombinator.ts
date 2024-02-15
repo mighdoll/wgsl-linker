@@ -7,7 +7,7 @@ import {
   ParserContext,
   ParserResult,
   runExtended,
-  simpleParser,
+  simpleParser
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
 import { mergeNamed } from "./ParserUtil.js";
@@ -98,7 +98,7 @@ export function or<
   C = string,
   D = string,
   E = string,
-  F = string,
+  F = string
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -114,7 +114,7 @@ export function or<
   D = string,
   E = string,
   F = string,
-  G = string,
+  G = string
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -132,7 +132,7 @@ export function or<
   E = string,
   F = string,
   G = string,
-  H = string,
+  H = string
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,
@@ -187,7 +187,7 @@ export function seq<
   C = string,
   D = string,
   E = string,
-  F = string,
+  F = string
 >(
   a: CombinatorArg<A>,
   b: CombinatorArg<B>,

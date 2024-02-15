@@ -1,10 +1,10 @@
 import { expect } from "vitest";
 import { AbstractElem } from "../../../linker/src/AbstractElems.js";
-import { matchingLexer } from "../MatchingLexer.js";
 import { mainTokens } from "../../../linker/src/MatchWgslD.js";
+import { logCatch } from "../../../linker/src/test/LogCatcher.js";
+import { matchingLexer } from "../MatchingLexer.js";
 import { OptParserResult, Parser } from "../Parser.js";
 import { _withBaseLogger } from "../ParserTracing.js";
-import { logCatch } from "../../../linker/src/test/LogCatcher.js";
 import { TokenMatcher } from "../TokenMatcher.js";
 
 interface TestParseResult<T> {
@@ -17,7 +17,7 @@ interface TestParseResult<T> {
 export function testParse<T>(
   p: Parser<T>,
   src: string,
-  tokenMatcher:TokenMatcher = mainTokens
+  tokenMatcher: TokenMatcher = mainTokens
 ): TestParseResult<T> {
   const lexer = matchingLexer(src, tokenMatcher);
   const app = {
