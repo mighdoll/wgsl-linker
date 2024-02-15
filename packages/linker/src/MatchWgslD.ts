@@ -1,4 +1,4 @@
-import { matchOneOf, tokenMatcher } from "../../mini-parse/src/TokenMatcher.js";
+import { matchOneOf, tokenMatcher } from "mini-parse";
 
 /** token matchers for wgsl with #directives */
 
