@@ -45,7 +45,7 @@ export const eolf: Parser<any> = makeEolf(
   argsTokens.ws
 ).disablePreParse();
 
-/** ( a1, b1* ) with optinal comments, spans lines */
+/** ( a1, b1* ) with optinoal comments, spans lines */
 export const wordNumArgs: Parser<string[]> = seq(
   "(",
   withSep(",", wordNum),
