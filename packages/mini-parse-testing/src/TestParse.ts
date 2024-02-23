@@ -1,8 +1,8 @@
 import { expect } from "vitest";
-import { matchingLexer } from "../MatchingLexer.js";
-import { OptParserResult, Parser } from "../Parser.js";
-import { _withBaseLogger } from "../ParserTracing.js";
-import { TokenMatcher, matchOneOf, tokenMatcher } from "../TokenMatcher.js";
+import { matchingLexer } from "mini-parse";
+import { OptParserResult, Parser } from "mini-parse";
+import { _withBaseLogger } from "mini-parse";
+import { TokenMatcher, matchOneOf, tokenMatcher } from "mini-parse";
 import { logCatch } from "./LogCatcher.js";
 
 const symbolSet =

@@ -15,8 +15,8 @@ import {
   text,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
-import { logCatch } from "./LogCatcher.js";
-import { testParse, testTokens } from "./TestParse.js";
+import { logCatch } from "../../../mini-parse-testing/src/LogCatcher.js";
+import { testParse, testTokens } from "../../../mini-parse-testing/src/TestParse.js";
 
 const m = testTokens;
 

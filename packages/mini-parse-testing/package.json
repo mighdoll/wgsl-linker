@@ -1,0 +1,46 @@
+{
+  "name": "mini-parse-testing",
+  "version": "0.2.0",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest",
+    "organize": "organize-imports-cli tsconfig.json",
+    "format": "prettier-eslint \"src/**/*.ts\" --write",
+    "lint": "eslint src"
+  },
+  "type": "module",
+  "repository": "github:mighdoll/wgsl-linker",
+  "dependencies": {
+    "mini-parse": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitest/ui": "^1.1.1",
+    "berry-pretty": "^0.0.4",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "organize-imports-cli": "^0.10.0",
+    "prettier-eslint-cli": "^8.0.1",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "terser": "^5.27.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vite-plugin-dts": "^3.6.4",
+    "vite-tsconfig-paths": "^4.2.1",
+    "vitest": "^1.2.2"
+  }
+}
