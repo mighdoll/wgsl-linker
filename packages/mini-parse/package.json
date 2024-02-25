@@ -18,11 +18,11 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
-      "types": "./dist/mini-parse/src/index.d.ts"
+      "types": "./dist/index.d.ts"
     },
     "./test-util": {
       "import": "./dist/testUtil.js",
-      "types": "./dist/mini-parse/src/test-util/testUtil.d.ts"
+      "types": "./dist/test-util/testUtil.d.ts"
     }
   },
   "devDependencies": {
