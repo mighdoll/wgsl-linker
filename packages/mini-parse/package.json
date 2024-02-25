@@ -6,7 +6,7 @@
     "src"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && vite -c test-util.vite.config.ts build",
     "test": "vitest",
     "organize": "organize-imports-cli tsconfig.json",
     "format": "prettier-eslint \"src/**/*.ts\" --write",
@@ -18,7 +18,11 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/mini-parse/src/index.d.ts"
+    },
+    "./test-util": {
+      "import": "./dist/testUtil.js",
+      "types": "./dist/mini-parse/src/test-util/testUtil.d.ts"
     }
   },
   "devDependencies": {
