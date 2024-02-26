@@ -7,5 +7,5 @@
     "skipLibCheck": true,
     "outDir": "/tmp"
   },
-  "files": ["vite.config.ts"]
+  "files": ["vite.config.ts", "vite-base-config.ts"]
 }
