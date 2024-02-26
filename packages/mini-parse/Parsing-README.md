@@ -2,7 +2,7 @@
 
 ## Parser Features
 
-- Small code size makes **MiniParse** suitable for runtime embedding (< 5KB compressed).
+- Small code size makes **MiniParse** suitable for runtime embedding (< 3.5kb compressed).
 - **MiniParse** is a combinator library.
   You write a grammar by combining simple TypeScript
   functions like `or()`, `repeat()`, and `seq()`.
