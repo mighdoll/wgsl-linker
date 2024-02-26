@@ -14,7 +14,7 @@ import {
 } from "../examples/DocExamples.js";
 import { matchingLexer } from "../MatchingLexer.js";
 import { Parser } from "../Parser.js";
-import { testParse } from "../../../mini-parse-testing/src/TestParse.js";
+import { testParse } from "mini-parse/test-util";
 
 test("parse 3 + 4", () => {
   const src = "3 + 4";

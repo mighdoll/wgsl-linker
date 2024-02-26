@@ -16,7 +16,8 @@ export default defineConfig({
     lib: {
       name: "mini-parse-testing",
       formats: ["es"],
-      entry: [resolve(__dirname, "./src/test-util/testUtil.ts")],
+      entry: [resolve(__dirname, "./src/test-util/index.ts")],
+      fileName: "testUtil"
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
