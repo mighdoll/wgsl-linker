@@ -38,7 +38,6 @@
     "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
-    "mini-parse/test-util": "workspace:*",
     "organize-imports-cli": "^0.10.0",
     "prettier-eslint-cli": "^8.0.1",
     "rollup-plugin-visualizer": "^5.12.0",
