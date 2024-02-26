@@ -6,7 +6,11 @@
     "src"
   ],
   "scripts": {
-    "build": "vite build && vite -c test-util.vite.config.ts build",
+    "pr": "printenv",
+    "build": "run-s build:main build:util build:compressed",
+    "build:main": "vite build",
+    "build:util": "vite -c test-util.vite.config.ts build",
+    "build:compressed": "vite -c compressed.vite.config.ts build",
     "test": "vitest",
     "organize": "organize-imports-cli tsconfig.json",
     "format": "prettier-eslint \"src/**/*.ts\" --write",
@@ -18,6 +22,11 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./minified": {
+      "import": "./dist/minified.js",
+      "require": "./dist/minified.cjs",
       "types": "./dist/index.d.ts"
     },
     "./test-util": {
@@ -34,6 +43,7 @@
     "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "npm-run-all": "^4.1.5",
     "organize-imports-cli": "^0.10.0",
     "prettier-eslint-cli": "^8.0.1",
     "rollup-plugin-visualizer": "^5.12.0",
