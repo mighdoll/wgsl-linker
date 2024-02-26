@@ -26,6 +26,9 @@
       "types": "./dist/Replacer.d.ts"
     }
   },
+  "dependencies": {
+    "mini-parse": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^20.11.16",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -35,7 +38,7 @@
     "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
-    "mini-parse": "workspace:*",
+    "mini-parse/test-util": "workspace:*",
     "organize-imports-cli": "^0.10.0",
     "prettier-eslint-cli": "^8.0.1",
     "rollup-plugin-visualizer": "^5.12.0",

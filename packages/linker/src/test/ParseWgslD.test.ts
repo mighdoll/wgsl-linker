@@ -1,15 +1,18 @@
 import {
   Parser,
-  TestParseResult,
   _withBaseLogger,
-  expectNoLogErr,
-  logCatch,
   or,
   preParse,
   repeat,
-  testParse,
   tokens,
 } from "mini-parse";
+import {
+  TestParseResult,
+  expectNoLogErr,
+  logCatch,
+  testParse,
+} from "mini-parse/test-util";
+
 import { expect, test } from "vitest";
 import {
   AbstractElem,

@@ -1,4 +1,5 @@
-import { _withBaseLogger, logCatch } from "mini-parse";
+import { _withBaseLogger } from "mini-parse";
+import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { ModuleRegistry2 } from "../ModuleRegistry2.js";
 import { parseModule2 } from "../ParseModule2.js";
