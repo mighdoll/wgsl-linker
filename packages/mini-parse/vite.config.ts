@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { LibraryOptions, defineConfig } from "vite";
-import { baseViteConfig } from "./vite-base-config.js";
+import { baseViteConfig } from "./base.vite.config.js";
 
 const config = baseViteConfig();
 config.test = { setupFiles: "./src/test/TestSetup.ts" };
