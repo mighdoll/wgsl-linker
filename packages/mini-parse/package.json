@@ -7,10 +7,10 @@
   ],
   "scripts": {
     "pr": "printenv",
-    "build": "run-s build:main build:util build:compressed build:brotli",
+    "build": "run-s build:main build:util build:minified build:brotli",
     "build:main": "vite build",
     "build:util": "vite -c test-util.vite.config.ts build",
-    "build:compressed": "vite -c compressed.vite.config.ts build",
+    "build:minified": "vite -c minified.vite.config.ts build",
     "build:brotli": "brotli dist/minified.cjs && ls -l dist/minified.cjs.br",
     "test": "vitest",
     "organize": "organize-imports-cli tsconfig.json",
