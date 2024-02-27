@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vite";
-import { baseViteConfig } from "./vite-base-config.js";
+import { baseViteConfig } from "./base.vite.config.js";
 // import { visualizer } from "rollup-plugin-visualizer";
 
 const config = baseViteConfig();
