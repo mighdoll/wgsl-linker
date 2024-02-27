@@ -27,6 +27,9 @@ importers:
       berry-pretty:
         specifier: ^0.0.4
         version: 0.0.4
+      brotli:
+        specifier: ^1.3.3
+        version: 1.3.3
       esbuild:
         specifier: ^0.20.0
         version: 0.20.0
@@ -36,6 +39,9 @@ importers:
       eslint-config-prettier:
         specifier: ^9.1.0
         version: 9.1.0(eslint@8.56.0)
+      npm-run-all:
+        specifier: ^4.1.5
+        version: 4.1.5
       organize-imports-cli:
         specifier: ^0.10.0
         version: 0.10.0

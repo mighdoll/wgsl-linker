@@ -6,7 +6,10 @@
     "src"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "run-s build:main build:minified build:brotli",
+    "build:main": "vite build",
+    "build:minified": "vite build -c minified.vite.config.js",
+    "build:brotli": "brotli dist/minified.cjs && ls -l dist/minified.cjs.br",
     "test": "vitest",
     "organize": "organize-imports-cli tsconfig.json",
     "format": "prettier-eslint \"src/**/*.ts\" --write",
@@ -20,10 +23,10 @@
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
-    "./replace-template": {
-      "import": "./dist/Replacer.js",
-      "require": "./dist/Replacer.cjs",
-      "types": "./dist/Replacer.d.ts"
+    "./minified": {
+      "import": "./dist/minified.js",
+      "require": "./dist/minified.cjs",
+      "types": "./dist/index.d.ts"
     }
   },
   "dependencies": {
@@ -35,9 +38,11 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vitest/ui": "^1.1.1",
     "berry-pretty": "^0.0.4",
+    "brotli": "^1.3.3",
     "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "npm-run-all": "^4.1.5",
     "organize-imports-cli": "^0.10.0",
     "prettier-eslint-cli": "^8.0.1",
     "rollup-plugin-visualizer": "^5.12.0",
