@@ -270,6 +270,7 @@ export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
   return seq(repeat(anyNot(p)), p).traceName(`anyThrough ${p.debugName}`);
 }
 
+/** match zero or more instances of a parser */
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
 export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {

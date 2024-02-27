@@ -2,8 +2,10 @@ import { matchOneOf, tokenMatcher } from "mini-parse";
 
 /** token matchers for wgsl with #directives */
 
-const eol = /\n/;
-const directive = /#[a-zA-Z_]\w*/;
+export const eol = /\n/;
+export const directive = /#[a-zA-Z_]\w*/;
+export const notDirective = /[^#\n]+/;
+
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
@@ -17,7 +19,7 @@ export const mainTokens = tokenMatcher(
     word: /[a-zA-Z_]\w*/, // LATER consider making this 'ident' per wgsl spec (incl. non-ascii)   word,
     digits: /(?:0x)?[\d.]+[iuf]?/, // LATER parse more wgsl number variants
     symbol,
-    ws: /\s+/
+    ws: /\s+/,
   },
   "main"
 );
@@ -25,7 +27,7 @@ export const mainTokens = tokenMatcher(
 export const moduleTokens = tokenMatcher(
   {
     ws: /\s+/,
-    moduleName: /[a-zA-Z_][\w./-]*/
+    moduleName: /[a-zA-Z_][\w./-]*/,
   },
   "moduleName"
 );
@@ -35,8 +37,8 @@ export const lineCommentTokens = tokenMatcher(
   {
     directive,
     ws: /[ \t]+/, // note ws must be before notDirective
-    notDirective: /[^#\n]+/,
-    eol
+    notDirective,
+    eol,
   },
   "lineComment"
 );
@@ -46,9 +48,9 @@ export const argsTokens = tokenMatcher(
   {
     directive,
     arg: /[\w._-]+/,
-    symbol, 
+    symbol,
     ws: /[ \t]+/, // don't include \n, so we can find eol separately
-    eol
+    eol,
   },
   "argsTokens"
 );
