@@ -48,13 +48,13 @@ test("parse #if !foo #else #endif", () => {
   expect(result).not.contains("fn f()");
 });
 
-test.skip("parse nested #if", () => {
+test("parse nested #if", () => {
   const src = `
     #if foo
 
     #if bar
       fn f() { }
-    #endif 
+    #endif
 
     #if zap
       fn zap() { }
@@ -63,11 +63,8 @@ test.skip("parse nested #if", () => {
       fn g() { }
     #endif 
     `;
-  expectNoLogErr(() => {
-    const result = processConditionals(src, { foo: true, zap: true });
-    console.log(result);
-    expect(result).contains("fn zap()");
-    expect(result).contains("fn g()");
-    expect(result).not.contains("fn f()");
-  });
+  const result = processConditionals(src, { foo: true, zap: true });
+  expect(result).contains("fn zap()");
+  expect(result).contains("fn g()");
+  expect(result).not.contains("fn f()");
 });
