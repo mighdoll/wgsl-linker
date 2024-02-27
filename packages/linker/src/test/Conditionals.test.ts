@@ -68,3 +68,14 @@ test("parse nested #if", () => {
   expect(result).contains("fn g()");
   expect(result).not.contains("fn f()");
 });
+
+test("parse #if #endif with extra space", () => {
+  const src = `
+    #if foo 
+    fn f() { }
+    #endif
+    `;
+
+  const result = processConditionals(src, {});
+  expect(result).not.contains("fn f() { }");
+});

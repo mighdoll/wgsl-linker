@@ -26,7 +26,7 @@ export const conditionalsTokens = tokenMatcher(
   {
     directive,
     eol,
-    ws: /\s+/,
+    ws: /[ \t]+/,
     symbol: matchOneOf("// !"),
     word: /[^\s\n]+/,
   },
