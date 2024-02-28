@@ -1,16 +1,11 @@
 import {
-  ExtendedResult,
   Parser,
-  any,
   anyThrough,
   kind,
-  not,
   opt,
   or,
   repeat,
-  repeatWhile,
   req,
-  resultLog,
   seq,
   setTraceName,
   tokens,
@@ -30,7 +25,6 @@ import {
   moduleTokens,
 } from "./MatchWgslD.js";
 import { eolf, makeElem } from "./ParseSupport.js";
-import { ParseState } from "./ParseWgslD.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
 
@@ -103,74 +97,9 @@ export const exportDirective = seq(
   r.app.state.push(e);
 });
 
-// prettier-ignore
-const ifDirective: Parser<any> = seq(
-  "#if",
-  seq(
-    opt("!").named("invert"), 
-    req(argsWord.named("name")), 
-    eolf
-  ).toParser((r) => {
-      // check if #if true or false
-      const { params } = r.app.context;
-      const ifArg = r.named["name"]?.[0] as string;
-      const invert = r.named["invert"]?.[0] === "!";
-      const arg = !!params[ifArg];
-      const truthy = invert ? !arg : arg;
-      // resultErr(r, "#if", truthy);
-      pushIfState(r, truthy);
-
-      return ifBody(r);
-    })
-);
-
-const elseDirective = seq("#else", eolf).toParser((r) => {
-  const oldTruth = popIfState(r);
-  if (oldTruth === undefined) resultLog(r, "unmatched #else");
-  pushIfState(r, !oldTruth);
-  return ifBody(r);
-});
-
-const notIfDirective = seq(not("#if"), not("#else"), not("#endif"), any());
-
-const endifDirective = seq("#endif", eolf).map((r) => {
-  const oldTruth = popIfState(r);
-  if (oldTruth === undefined) resultLog(r, "unmatched #endif");
-});
-
-/** consume everything until we get to #else or #endif */
-const skipIfBody = repeatWhile(notIfDirective, skippingIfBody);
-
 const moduleDirective = oneArgDirective("module");
 
 const templateDirective = oneArgDirective("template");
-
-function ifBody(
-  r: ExtendedResult<unknown, ParseState>
-): Parser<unknown> | undefined {
-  if (skippingIfBody(r)) return skipIfBody;
-}
-
-function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
-  return !r.app.context.ifStack.every((truthy) => truthy);
-}
-
-function pushIfState<T>(
-  r: ExtendedResult<T, ParseState>,
-  truthy: boolean
-): void {
-  const origContext = r.app.context;
-  const ifStack = [...origContext.ifStack, truthy]; // push truthy onto ifStack
-  r.app.context = { ...origContext, ifStack }; // revise app context with new ifStack
-}
-
-function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
-  const origContext = r.app.context;
-  const ifStack = [...origContext.ifStack]; // pop element
-  const result = ifStack.pop();
-  r.app.context = { ...origContext, ifStack }; // revise app context with new ifStack
-  return result;
-}
 
 function oneArgDirective<T extends NamedElem>(
   elemKind: T["kind"]
@@ -191,9 +120,6 @@ export const directive = tokens(
     exportDirective,
     importDirective,
     importMergeDirective,
-    ifDirective,
-    elseDirective,
-    endifDirective,
     moduleDirective,
     templateDirective
   )
@@ -219,14 +145,9 @@ if (tracing) {
     importMergeDirective,
     exportDirective,
     lineCommentOptDirective,
-    ifDirective,
-    elseDirective,
-    notIfDirective,
-    endifDirective,
     moduleDirective,
     templateDirective,
     directive,
-    skipIfBody,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
