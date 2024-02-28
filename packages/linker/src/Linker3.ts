@@ -31,7 +31,7 @@ export function linkWgsl3(
   registry: ModuleRegistry2,
   extParams: Record<string, any> = {}
 ): string {
-  const srcModule = parseModule2(src);
+  const srcModule = parseModule2(src, extParams);
   const srcElems = [srcModule.fns, srcModule.structs, srcModule.vars].flat();
   const decls = new Set(srcElems.map((e) => e.name));
 

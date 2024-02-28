@@ -9,6 +9,7 @@ import {
   TemplateElem,
   VarElem
 } from "./AbstractElems.js";
+import { processConditionals } from "./Conditionals.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { srcLog } from "mini-parse";
 
@@ -34,10 +35,13 @@ let unnamedModuleDex = 0;
 
 export function parseModule2(
   src: string,
-  defaultModuleName?: string
+  params: Record<string, any> = {},
+  defaultModuleName?: string,
 ): TextModule2 {
-  const parsed = parseWgslD(src);
-  const exports = findExports(src, parsed);
+  const preppedSrc = processConditionals(src, params);
+  console.log("preppedSrc:", `'${preppedSrc}'`);
+  const parsed = parseWgslD(preppedSrc);
+  const exports = findExports(preppedSrc, parsed);
   const fns = filterElems<FnElem>(parsed, "fn");
   const imports = parsed.filter(
     (e) => e.kind === "import" || e.kind === "importMerge"
@@ -45,9 +49,9 @@ export function parseModule2(
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];
-  matchMergeImports(src, parsed);
+  matchMergeImports(preppedSrc, parsed);
   const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
-  matchMergeImports(src, parsed);
+  matchMergeImports(preppedSrc, parsed);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
   const kind = "text";

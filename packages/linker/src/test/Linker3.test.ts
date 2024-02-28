@@ -179,8 +179,8 @@ test("#import foo from zap (multiple modules)", () => {
   `;
 
   const registry = new ModuleRegistry2();
-  registry.registerOneModule(module1, "module1");
-  registry.registerOneModule(module2, "module2");
+  registry.registerOneModule(module1, {}, "module1");
+  registry.registerOneModule(module2, {},  "module2");
   const linked = linkWgsl3(src, registry);
   expect(linked).contains("/* module2 */");
 });

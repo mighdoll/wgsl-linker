@@ -58,17 +58,21 @@ export class ModuleRegistry2 {
   private templates = new Map<string, ApplyTemplateFn>();
 
   constructor(...src: string[]) {
-    this.registerModules(...src);
+    this.registerModules({}, ...src);
   }
 
   /** register modules' exports */
-  registerModules(...sources: string[]): void {
-    sources.forEach((src) => this.registerOneModule(src));
+  registerModules(params: Record<string, any>, ...sources: string[]): void {
+    sources.forEach((src) => this.registerOneModule(src, params));
   }
 
   /** register one module's exports  */
-  registerOneModule(src: string, moduleName?: string): void {
-    const m = parseModule2(src, moduleName);
+  registerOneModule(
+    src: string,
+    params: Record<string, any>,
+    moduleName?: string
+  ): void {
+    const m = parseModule2(src, params, moduleName);
     this.addTextModule(m);
   }
 
@@ -82,17 +86,17 @@ export class ModuleRegistry2 {
     const exp: GeneratorExport = {
       name: exportName,
       args: params ?? [],
-      generate: fn
+      generate: fn,
     };
     const module: GeneratorModule = {
       kind: "generator",
       name: moduleName ?? `funModule${unnamedCodeDex++}`,
-      exports: [exp]
+      exports: [exp],
     };
     const moduleExport: GeneratorModuleExport2 = {
       module,
       export: exp,
-      kind: "function"
+      kind: "function",
     };
     this.addModuleExport(moduleExport);
   }
@@ -133,7 +137,7 @@ export class ModuleRegistry2 {
       const moduleExport: TextModuleExport2 = {
         module,
         export: e,
-        kind: "text"
+        kind: "text",
       };
       this.addModuleExport(moduleExport);
     });
