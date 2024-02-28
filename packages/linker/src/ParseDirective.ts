@@ -116,12 +116,15 @@ function oneArgDirective<T extends NamedElem>(
 
 export const directive = tokens(
   argsTokens,
-  or(
-    exportDirective,
-    importDirective,
-    importMergeDirective,
-    moduleDirective,
-    templateDirective
+  seq(
+    repeat("\n"),
+    or(
+      exportDirective,
+      importDirective,
+      importMergeDirective,
+      moduleDirective,
+      templateDirective
+    )
   )
 );
 

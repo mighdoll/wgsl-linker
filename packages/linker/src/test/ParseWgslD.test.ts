@@ -260,7 +260,7 @@ test("parse #export(A, B) importing bar(A)", () => {
     #export(A, B) importing bar(A)
     fn foo(a:A, b:B) { bar(a); }
   `;
-  const parsed = parseWgslD(src, { foo: true });
+  const parsed = parseWgslD(src, {});
   expect(parsed[0]).toMatchSnapshot();
 });
 
