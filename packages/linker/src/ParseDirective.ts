@@ -128,13 +128,15 @@ export const directive = tokens(
   )
 );
 
+const skipToEol = tokens(lineCommentTokens, anyThrough(eolf));
+
 /** parse a line comment possibly containg a #directive
  *    // <#import|#export|any>
  * if a directive is found it is handled internally (e.g.
  * by pushing an AbstractElem to the app context) */
-export const lineCommentOptDirective = tokens(
-  mainTokens,
-  seq("//", tokens(lineCommentTokens, or(directive, anyThrough(eolf))))
+export const lineCommentOptDirective = seq(
+  tokens(mainTokens, "//"),
+  or(directive, skipToEol)
 );
 
 // enableTracing();
