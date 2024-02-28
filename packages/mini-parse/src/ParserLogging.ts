@@ -2,17 +2,26 @@ import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
-export function srcLog(src: string, pos: number, ...msgs: any[]): void {
+export function srcLog(
+  src: string,
+  pos: number | [number, number],
+  ...msgs: any[]
+): void {
   logInternal(logger, src, pos, ...msgs);
 }
 
 /** log a message along with src line, but only if tracing is active in the current parser */
-export function srcTrace(src: string, pos: number, ...msgs: any[]): void {
+export function srcTrace(
+  src: string,
+  pos: number | [number, number],
+  ...msgs: any[]
+): void {
   logInternal(parserLog, src, pos, ...msgs);
 }
 
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
-  srcLog(result.src, result.start, ...msgs);
+  const { src, start, end } = result;
+  srcLog(src, [start, end], ...msgs);
 }
 
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
@@ -22,14 +31,23 @@ export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
 function logInternal(
   log: typeof console.log,
   src: string,
-  pos: number,
+  pos: number | [number, number],
   ...msgs: any[]
 ): void {
   log(...msgs);
-  const { line, lineNum, linePos } = srcLine(src, pos);
+  const { line, lineNum, linePos, linePos2 } = srcLine(src, pos);
   log(line, `  Ln ${lineNum}`);
-  const caret = " ".repeat(linePos) + "^";
+  const caret = carets(linePos, linePos2);
   log(caret);
+}
+
+function carets(linePos: number, linePos2?: number): string {
+  const firstCaret = " ".repeat(linePos) + "^";
+  let secondCaret = "";
+  if (linePos2 && linePos2 > linePos) {
+    secondCaret = " ".repeat(linePos2 - linePos - 1) + "^";
+  }
+  return firstCaret + secondCaret;
 }
 
 // map from src strings to line start positions
@@ -42,12 +60,25 @@ interface SrcLine {
   /** requested position relative to line start */
   linePos: number;
 
+  /** requested position2 relative to line start */
+  linePos2?: number;
+
   /** line number in the src (first line is #1) */
   lineNum: number;
 }
 
 /** return the line in the src containing a given character postion */
-export function srcLine(src: string, pos: number): SrcLine {
+export function srcLine(
+  src: string,
+  position: number | [number, number]
+): SrcLine {
+  let pos: number;
+  let pos2: number | undefined;
+  if (typeof position === "number") {
+    pos = position;
+  } else {
+    [pos, pos2] = position;
+  }
   const starts = getStarts(src);
 
   let start = 0;
@@ -68,13 +99,18 @@ export function srcLine(src: string, pos: number): SrcLine {
     }
   }
 
+  let linePos2: number | undefined;
+  if (pos2 !== undefined && pos2 >= starts[start] && pos2 < starts[end]) {
+    linePos2 = pos2 - starts[start];
+  }
+
   // get line with possible trailing newline
   const lineNl = src.slice(starts[start], starts[start + 1] || src.length);
 
   // return line without trailing newline
   const line = lineNl.slice(-1) === "\n" ? lineNl.slice(0, -1) : lineNl;
 
-  return { line, linePos: pos - starts[start], lineNum: start + 1 };
+  return { line, linePos: pos - starts[start], linePos2, lineNum: start + 1 };
 }
 
 /** return an array of the character positions of the start of each line in the src.

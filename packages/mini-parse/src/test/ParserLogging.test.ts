@@ -39,7 +39,7 @@ test("srcLog", () => {
   `);
 });
 
-test("srcLine on longer example", () => {
+test("srcLog on longer example", () => {
   const src = `
     #export(C, D) importing bar(D)
     fn foo(c:C, d:D) { support(d); } 
@@ -54,5 +54,19 @@ test("srcLine on longer example", () => {
     "ugh:
         fn support(d:D) { bar(d); }   Ln 5
                           ^"
+  `);
+});
+
+test("srcLog with two carets", () => {
+  const src = `a\n12345\nb`;
+
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    srcLog(src, [2, 7], "found:");
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "found:
+    12345   Ln 2
+    ^    ^"
   `);
 });
