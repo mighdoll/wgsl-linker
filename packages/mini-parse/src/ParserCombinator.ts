@@ -354,13 +354,14 @@ export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
 export function tokens<T>(
   matcher: TokenMatcher,
-  mainParser: Parser<T>
-): Parser<T> {
+  arg: CombinatorArg<T>
+): Parser<T | string> {
+  const p = parserArg(arg);
   return parser(
     `tokens ${matcher._traceName}`,
-    (state: ParserContext): OptParserResult<T> => {
+    (state: ParserContext): OptParserResult<T | string> => {
       return state.lexer.withMatcher(matcher, () => {
-        return mainParser._run(state);
+        return p._run(state);
       });
     }
   );
