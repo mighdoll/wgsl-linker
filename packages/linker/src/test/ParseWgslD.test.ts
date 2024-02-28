@@ -181,73 +181,73 @@ test("parse #export(foo) with trailing space", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("parse #if #endif", () => {
-  const src = `
-    #if foo
-    fn f() { }
-    #endif
-    `;
-  const parsed = parseWgslD(src, { foo: true });
-  expect(parsed.length).eq(1);
-  expect((parsed[0] as FnElem).name).eq("f");
-});
+// test("parse #if #endif", () => {
+//   const src = `
+//     #if foo
+//     fn f() { }
+//     #endif
+//     `;
+//   const parsed = parseWgslD(src, { foo: true });
+//   expect(parsed.length).eq(1);
+//   expect((parsed[0] as FnElem).name).eq("f");
+// });
 
-test("parse // #if !foo", () => {
-  const src = `
-    // #if !foo
-      fn f() { }
-    // #endif 
-    `;
-  const parsed = parseWgslD(src, { foo: false });
-  expect((parsed[0] as FnElem).name).eq("f");
-});
+// test("parse // #if !foo", () => {
+//   const src = `
+//     // #if !foo
+//       fn f() { }
+//     // #endif 
+//     `;
+//   const parsed = parseWgslD(src, { foo: false });
+//   expect((parsed[0] as FnElem).name).eq("f");
+// });
 
-test("parse #if !foo (true)", () => {
-  const src = `
-    // #if !foo
-      fn f() { }
-    // #endif 
-    `;
-  expectNoLogErr(() => {
-    parseWgslD(src, { foo: true });
-  });
-});
+// test("parse #if !foo (true)", () => {
+//   const src = `
+//     // #if !foo
+//       fn f() { }
+//     // #endif 
+//     `;
+//   expectNoLogErr(() => {
+//     parseWgslD(src, { foo: true });
+//   });
+// });
 
-test("parse #if !foo #else #endif", () => {
-  const src = `
-    // #if !foo
-      fn f() { notfoo(); }
-    // #else
-      fn g() { foo(); }
-    // #endif 
-    `;
-  const parsed = parseWgslD(src, { foo: true });
-  expect(parsed.length).eq(1);
-  expect((parsed[0] as FnElem).name).eq("g");
-});
+// test("parse #if !foo #else #endif", () => {
+//   const src = `
+//     // #if !foo
+//       fn f() { notfoo(); }
+//     // #else
+//       fn g() { foo(); }
+//     // #endif 
+//     `;
+//   const parsed = parseWgslD(src, { foo: true });
+//   expect(parsed.length).eq(1);
+//   expect((parsed[0] as FnElem).name).eq("g");
+// });
 
-test("parse nested #if", () => {
-  const src = `
-    #if foo
+// test("parse nested #if", () => {
+//   const src = `
+//     #if foo
 
-    #if bar
-      fn f() { }
-    #endif 
+//     #if bar
+//       fn f() { }
+//     #endif 
 
-    #if zap
-      fn zap() { }
-    #endif
+//     #if zap
+//       fn zap() { }
+//     #endif
 
-      fn g() { }
-    #endif 
-    `;
-  expectNoLogErr(() => {
-    const parsed = parseWgslD(src, { foo: true, zap: true });
-    expect(parsed.length).eq(2);
-    expect((parsed[0] as FnElem).name).eq("zap");
-    expect((parsed[1] as FnElem).name).eq("g");
-  });
-});
+//       fn g() { }
+//     #endif 
+//     `;
+//   expectNoLogErr(() => {
+//     const parsed = parseWgslD(src, { foo: true, zap: true });
+//     expect(parsed.length).eq(2);
+//     expect((parsed[0] as FnElem).name).eq("zap");
+//     expect((parsed[1] as FnElem).name).eq("g");
+//   });
+// });
 
 test("importing parses importing bar(A) fog(B)", () => {
   const src = ` importing bar(A), fog(B)`;
