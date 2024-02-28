@@ -42,12 +42,15 @@ const ifDirective: Parser<any> = seq(
     req(kind(conditionalsTokens.word).named("name")),
     eolf
   ).map((r) => {
-    // check if #if true or false
-    const { params } = r.app.state;
+    // extract args
     const ifArg = r.named["name"]?.[0] as string;
     const invert = r.named["invert"]?.[0] === "!";
+
+    // lookup whether #if arg is truthy or not in paramsa, and invert for ! prefix
+    const { params } = r.app.state;
     const arg = !!params[ifArg];
     const truthy = invert ? !arg : arg;
+
     pushIfState(r, truthy);
   })
 );
