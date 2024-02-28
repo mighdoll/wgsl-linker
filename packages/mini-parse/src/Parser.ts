@@ -269,6 +269,7 @@ function runParser<T>(
       if (result === null || result === undefined) {
         // parser failed
         tracing && !traceSuccessOnly && parserLog(`x ${p.tracingName}`);
+        // parserLog("reset position to:", origPosition)
         lexer.position(origPosition);
         context.app.context = origAppContext;
         return null;
@@ -391,8 +392,9 @@ export function runExtended<T>(
   ctx: ParserContext,
   p: Parser<T>
 ): ExtendedResult<T> | null {
+  // ctxLog(ctx, "runExtended", p.debugName);
   const origStart = ctx.lexer.position();
-  const start = ctx.lexer.skipIgnored();
+  // const start = ctx.lexer.skipIgnored(); // This is unsafe - the skip set could be different for an inner parser
 
   const origResults = p._run(ctx);
   if (origResults === null) {
@@ -401,5 +403,5 @@ export function runExtended<T>(
   }
   const end = ctx.lexer.position();
   const src = ctx.lexer.src;
-  return { ...origResults, start, end, app: ctx.app, src, ctx };
+  return { ...origResults, start:origStart, end, app: ctx.app, src, ctx };
 }
