@@ -86,5 +86,5 @@ test("parse last line", () => {
     #x
     y`;
   const prepped = processConditionals(src, {});
-  expect(prepped).contains(src);
+  expect(prepped).eq(src);
 });
