@@ -21,7 +21,7 @@ export function srcTrace(
 
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
   const { src, start, end } = result;
-  srcLog(src, [start, end], ...msgs);
+  srcLog(src, [start, end - 1], ...msgs);
 }
 
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
