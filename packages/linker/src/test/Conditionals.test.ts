@@ -31,7 +31,8 @@ test("parse #if !foo (true)", () => {
     `;
   expectNoLogErr(() => {
     const result = processConditionals(src, { foo: true });
-    expect(result).eq("\n");
+    expect(result).not.contains("fn");
+    expect(result).not.contains("//");
   });
 });
 
@@ -78,4 +79,12 @@ test("parse #if #endif with extra space", () => {
 
   const result = processConditionals(src, {});
   expect(result).not.contains("fn f() { }");
+});
+
+test("parse last line", () => {
+  const src = `
+    #x
+    y`;
+  const prepped = processConditionals(src, {});
+  expect(prepped).contains(src);
 });

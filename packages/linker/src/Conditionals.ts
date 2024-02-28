@@ -17,6 +17,7 @@ import {
   seq,
   setTraceName,
   tokenMatcher,
+  tokenSkipSet,
   tracing,
 } from "mini-parse";
 import { directive, eol } from "./MatchWgslD.js";
@@ -71,13 +72,19 @@ const directiveLine = seq(
   or(ifDirective, elseDirective, endifDirective)
 );
 
-const lastLine = seq(any(), repeat(any()), eof());
+// special case for last line which might not have a newline
+const simpleLine = anyThrough("\n");
+const lastLine = seq(any(), repeat(any()), eolf);
 
-const line = or(anyThrough("\n"), lastLine).map((r) => {
+const regularLine = or(simpleLine, lastLine).map((r) => {
   if (!skippingIfBody(r)) {
+    // resultLog(r, "regularLine", r.start, r.end);
     r.app.state.lines.push(r.src.slice(r.start, r.end));
   }
 });
+
+// don't skip whitespace for regular lines - we want to copy them exactly.
+const line = tokenSkipSet(null, regularLine);
 
 const srcLines = seq(repeat(or(directiveLine, line)), eof());
 
@@ -118,7 +125,7 @@ export function processConditionals(
     app: { context: { ifStack: [] }, state: { lines, params } },
     maxParseCount: 1000,
   });
-  return lines.join("\n");
+  return lines.join("");
 }
 
 /** debug for recognizer */
@@ -128,6 +135,7 @@ if (tracing) {
     elseDirective,
     endifDirective,
     directiveLine,
+    simpleLine,
     lastLine,
     line,
   };
