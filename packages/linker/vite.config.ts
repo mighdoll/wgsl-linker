@@ -5,6 +5,5 @@ import { baseViteConfig } from "./base.vite.config.js";
 
 const config = baseViteConfig();
 config.test = { setupFiles: "./src/test/TestSetup.ts" };
-config.build.emptyOutDir = false;
 
 export default defineConfig(config);
