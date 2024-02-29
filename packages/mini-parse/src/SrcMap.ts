@@ -6,7 +6,7 @@ export interface SrcMapEntry {
 }
 
 /** TODO many src strings mapping to one dest string.. */
-export class SourceMap {
+export class SrcMap {
   entries: SrcMapEntry[] = [];
   dest = ""; 
 

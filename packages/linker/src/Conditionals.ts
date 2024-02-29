@@ -22,7 +22,7 @@ import {
 } from "mini-parse";
 import { directive, eol } from "./MatchWgslD.js";
 import { ParseState } from "./ParseWgslD.js";
-import { SourceMap, SrcMapEntry } from "mini-parse";
+import { SrcMap, SrcMapEntry } from "mini-parse";
 
 export const conditionalsTokens = tokenMatcher(
   {
@@ -130,7 +130,7 @@ function pushLine(r: ExtendedResult<any>): void {
 
 export interface PreppedSrc {
   text: string;
-  sourceMap: SourceMap;
+  sourceMap: SrcMap;
 }
 
 /** preprocess a src string to handle #if #else #endif, etc. */
@@ -149,7 +149,7 @@ export function processConditionals(
     maxParseCount: 1000,
   });
   const text = lines.join("");
-  const sourceMap = new SourceMap();
+  const sourceMap = new SrcMap();
   sourceMap.addEntries(src, text, srcMapEntries);
   return { text, sourceMap };
 }

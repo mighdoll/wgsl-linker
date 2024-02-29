@@ -1,6 +1,6 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
-import { SourceMap } from "./SrcMap.js";
+import { SrcMap } from "./SrcMap.js";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
 export function srcLog(
@@ -30,7 +30,7 @@ export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
 }
 
 export function srcLog2(
-  sourceMap: SourceMap,
+  sourceMap: SrcMap,
   pos: number | [number, number],
   ...msgs: any[]
 ): void {
@@ -39,7 +39,7 @@ export function srcLog2(
 
 function logInternal2(
   log: typeof console.log,
-  srcMap: SourceMap,
+  srcMap: SrcMap,
   pos: number | [number, number],
   ...msgs: any[]
 ): void {

@@ -11,7 +11,7 @@ import {
 } from "./AbstractElems.js";
 import { processConditionals } from "./Conditionals.js";
 import { parseWgslD } from "./ParseWgslD.js";
-import { srcLog, SourceMap } from "mini-parse";
+import { srcLog, SrcMap } from "mini-parse";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -25,7 +25,7 @@ export interface TextModule {
   name: string;
   src: string;
   preppedSrc: string;
-  sourceMap: SourceMap;
+  sourceMap: SrcMap;
 }
 
 /** an export elem annotated with the fn/struct to which it refers */
