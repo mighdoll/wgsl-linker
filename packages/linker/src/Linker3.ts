@@ -40,10 +40,6 @@ export function linkWgsl3(
 
   // mix the merge refs into the import/export refs
   const { rootMergeRefs, loadRefs } = prepMergeRefs(refs, srcModule);
-  // dlog({
-  //   rootMergeRefs: rootMergeRefs.map(refName),
-  //   loadRefs: loadRefs.map(r => [r.kind, r.expMod.name, refName(r)]),
-  // });
 
   // extract export texts, rewriting via rename map and exp/imp args
   const rewriting: Rewriting = { renames, extParams, registry };
@@ -64,6 +60,7 @@ export function linkWgsl3(
     ...srcModule.imports,
     ...templateElem,
   ]);
+  
 
   const templatedSrc = applyTemplate(slicedSrc, srcModule, extParams, registry);
 
