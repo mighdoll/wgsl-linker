@@ -1,4 +1,4 @@
-import { parseModule2, TextExport2, TextModule2 } from "./ParseModule.js";
+import { parseModule, TextExport as TextExport, TextModule as TextModule } from "./ParseModule.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -22,11 +22,11 @@ export type ApplyTemplateFn = (
 ) => string;
 
 /** a single export from a module */
-export type ModuleExport2 = TextModuleExport2 | GeneratorModuleExport2;
+export type ModuleExport = TextModuleExport | GeneratorModuleExport;
 
-export interface TextModuleExport2 {
-  module: TextModule2;
-  export: TextExport2;
+export interface TextModuleExport {
+  module: TextModule;
+  export: TextExport;
   kind: "text";
 }
 
@@ -36,7 +36,7 @@ export interface GeneratorModule {
   exports: GeneratorExport[];
 }
 
-export interface GeneratorModuleExport2 {
+export interface GeneratorModuleExport {
   module: GeneratorModule;
   export: GeneratorExport;
   kind: "function";
@@ -52,9 +52,9 @@ let unnamedCodeDex = 0;
  * The ModuleRegistry provides everything required for linkWgsl to process
  * #import statements and generate a complete wgsl shader.
  */
-export class ModuleRegistry2 {
+export class ModuleRegistry {
   // map from export names to a map of module names to exports
-  private exports = new Map<string, ModuleExport2[]>();
+  private exports = new Map<string, ModuleExport[]>();
   private templates = new Map<string, ApplyTemplateFn>();
 
   constructor(...src: string[]) {
@@ -72,7 +72,7 @@ export class ModuleRegistry2 {
     params: Record<string, any>,
     moduleName?: string
   ): void {
-    const m = parseModule2(src, params, moduleName);
+    const m = parseModule(src, params, moduleName);
     this.addTextModule(m);
   }
 
@@ -93,7 +93,7 @@ export class ModuleRegistry2 {
       name: moduleName ?? `funModule${unnamedCodeDex++}`,
       exports: [exp],
     };
-    const moduleExport: GeneratorModuleExport2 = {
+    const moduleExport: GeneratorModuleExport = {
       module,
       export: exp,
       kind: "function",
@@ -115,7 +115,7 @@ export class ModuleRegistry2 {
   getModuleExport(
     exportName: string,
     moduleName?: string
-  ): ModuleExport2 | undefined {
+  ): ModuleExport | undefined {
     const exports = this.exports.get(exportName);
     if (!exports) {
       return undefined;
@@ -132,9 +132,9 @@ export class ModuleRegistry2 {
     }
   }
 
-  private addTextModule(module: TextModule2): void {
+  private addTextModule(module: TextModule): void {
     module.exports.forEach((e) => {
-      const moduleExport: TextModuleExport2 = {
+      const moduleExport: TextModuleExport = {
         module,
         export: e,
         kind: "text",
@@ -143,7 +143,7 @@ export class ModuleRegistry2 {
     });
   }
 
-  private addModuleExport(moduleExport: ModuleExport2): void {
+  private addModuleExport(moduleExport: ModuleExport): void {
     const expName = exportName(moduleExport);
     const existing = this.exports.get(expName);
     if (existing) {
@@ -154,7 +154,7 @@ export class ModuleRegistry2 {
   }
 }
 
-function exportName(moduleExport: ModuleExport2): string {
+function exportName(moduleExport: ModuleExport): string {
   if (moduleExport.kind === "text") {
     return moduleExport.export.ref.name;
   } else {

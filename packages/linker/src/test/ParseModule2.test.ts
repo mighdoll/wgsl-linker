@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { parseModule2 } from "../ParseModule.js";
+import { parseModule } from "../ParseModule.js";
 
 test("simple fn export", () => {
   const src = `
@@ -8,7 +8,7 @@ test("simple fn export", () => {
       return 1;
     }
   `;
-  const module = parseModule2(src, {}, "my.module");
+  const module = parseModule(src, {}, "my.module");
   expect(module.exports.length).toBe(1);
   expect(module).toMatchSnapshot();
 });
@@ -18,7 +18,7 @@ test("simple fn import", () => {
     // #import foo
     fn bar() { foo(); }
   `;
-  const module = parseModule2(src, {}, "my.module");
+  const module = parseModule(src, {}, "my.module");
   expect(module.imports.length).toBe(1);
   expect(module.imports[0].name).toBe("foo");
   expect(module).toMatchSnapshot();
@@ -32,7 +32,7 @@ test("match #importMerge", () => {
       sum: f32
     }
   `;
-  const module = parseModule2(src, {}, "my.module");
+  const module = parseModule(src, {}, "my.module");
   const merges = module.structs[0].importMerges!;
   expect(merges[0].name).eq("Foo");
   expect(merges[1].name).eq("Bar");
@@ -45,7 +45,7 @@ test("read simple struct export", () => {
       sum: f32
     }
   `;
-  const module = parseModule2(exportPrefix + "\n" + src);
+  const module = parseModule(exportPrefix + "\n" + src);
   expect(module.exports.length).toBe(1);
   const firstExport = module.exports[0];
   expect(firstExport.ref.name).toBe("Elem");
@@ -57,6 +57,6 @@ test("read #module", () => {
     // #export
     fn foo() {}
   `;
-  const textModule = parseModule2(src);
+  const textModule = parseModule(src);
   expect(textModule.name).toBe("my.module.com");
 });

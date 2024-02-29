@@ -1,8 +1,8 @@
 import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
-import { ModuleRegistry2 } from "../ModuleRegistry.js";
-import { parseModule2 } from "../ParseModule.js";
+import { ModuleRegistry } from "../ModuleRegistry.js";
+import { parseModule } from "../ParseModule.js";
 import {
   ExportRef,
   FoundRef,
@@ -384,8 +384,8 @@ function traverseWithLog(
 }
 
 function traverseTest(src: string, ...modules: string[]): FoundRef[] {
-  const registry = new ModuleRegistry2(...modules);
-  const srcModule = parseModule2(src);
+  const registry = new ModuleRegistry(...modules);
+  const srcModule = parseModule(src);
   const refs: FoundRef[] = [];
   traverseRefs(srcModule, registry, (ref) => {
     refs.push(ref);

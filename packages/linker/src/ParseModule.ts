@@ -15,10 +15,10 @@ import { srcLog } from "mini-parse";
 import { SourceMap } from "./SrcMap.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
-export interface TextModule2 {
+export interface TextModule {
   kind: "text";
   template?: TemplateElem;
-  exports: TextExport2[];
+  exports: TextExport[];
   fns: FnElem[];
   vars: VarElem[];
   structs: StructElem[];
@@ -30,17 +30,17 @@ export interface TextModule2 {
 }
 
 /** an export elem annotated with the fn/struct to which it refers */
-export interface TextExport2 extends ExportElem {
+export interface TextExport extends ExportElem {
   ref: FnElem | StructElem;
 }
 
 let unnamedModuleDex = 0;
 
-export function parseModule2(
+export function parseModule(
   src: string,
   params: Record<string, any> = {},
   defaultModuleName?: string
-): TextModule2 {
+): TextModule {
   const { text: preppedSrc, sourceMap } = processConditionals(src, params);
   const parsed = parseWgslD(preppedSrc);
   const exports = findExports(preppedSrc, parsed);
@@ -70,8 +70,8 @@ export function filterElems<T extends AbstractElem>(
   return parsed.filter((e) => e.kind === kind) as T[];
 }
 
-function findExports(src: string, parsed: AbstractElem[]): TextExport2[] {
-  const results: TextExport2[] = [];
+function findExports(src: string, parsed: AbstractElem[]): TextExport[] {
+  const results: TextExport[] = [];
   const exports = findKind<ExportElem>(parsed, "export");
 
   exports.forEach(([elem, i]) => {

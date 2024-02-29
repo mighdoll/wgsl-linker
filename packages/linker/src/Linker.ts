@@ -1,7 +1,7 @@
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
-import { ModuleRegistry2 } from "./ModuleRegistry.js";
-import { parseModule2, TextModule2 } from "./ParseModule.js";
+import { ModuleRegistry } from "./ModuleRegistry.js";
+import { parseModule, TextModule } from "./ParseModule.js";
 import { dlog } from "berry-pretty";
 import {
   ExportRef,
@@ -24,15 +24,15 @@ import {
 interface Rewriting {
   renames: RenameMap;
   extParams: Record<string, string>;
-  registry: ModuleRegistry2;
+  registry: ModuleRegistry;
 }
 
-export function linkWgsl3(
+export function linkWgsl(
   src: string,
-  registry: ModuleRegistry2,
+  registry: ModuleRegistry,
   extParams: Record<string, any> = {}
 ): string {
-  const srcModule = parseModule2(src, extParams);
+  const srcModule = parseModule(src, extParams);
   const { fns, structs, vars, template, preppedSrc } = srcModule;
   const srcElems = [fns, structs, vars].flat();
   const decls = new Set(srcElems.map((e) => e.name));
@@ -69,8 +69,8 @@ export function linkWgsl3(
 
 /** find references to structs and fns we might import */
 function findReferences(
-  srcModule: TextModule2,
-  registry: ModuleRegistry2
+  srcModule: TextModule,
+  registry: ModuleRegistry
 ): FoundRef[] {
   const visited = new Set<string>();
   const found: FoundRef[] = [];
@@ -164,7 +164,7 @@ interface MergeAndNonMerge {
  */
 function prepMergeRefs(
   refs: FoundRef[],
-  rootModule: TextModule2
+  rootModule: TextModule
 ): MergeAndNonMerge {
   const { localRefs, mergeRefs, nonMergeRefs } = partitionRefTypes(refs);
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
@@ -241,7 +241,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
 /** create a synthetic ExportRef so we can treat importMerge on root structs
  * the same as importMerge on exported structs */
 function syntheticRootExp(
-  rootModule: TextModule2,
+  rootModule: TextModule,
   fromRef: TextRef
 ): ExportRef {
   const exp: ExportRef = {
@@ -367,7 +367,7 @@ function rmElems(src: string, elems: AbstractElem[]): string {
  */
 function loadElemText(
   elem: AbstractElem,
-  mod: TextModule2,
+  mod: TextModule,
   replaces: [string, string][],
   rewriting: Rewriting
 ): string {
@@ -379,7 +379,7 @@ function loadElemText(
  * @param replaces - renaming from exp/imp params and as name
  */
 function loadModuleSlice(
-  mod: TextModule2,
+  mod: TextModule,
   start: number,
   end: number,
   replaces: [string, string][],
@@ -397,9 +397,9 @@ function loadModuleSlice(
 
 function applyTemplate(
   src: string,
-  mod: TextModule2,
+  mod: TextModule,
   params: Record<string, any>,
-  registry: ModuleRegistry2
+  registry: ModuleRegistry
 ): string {
   const template = registry.getTemplate(mod.template?.name);
   return template ? template(src, params) : src;
