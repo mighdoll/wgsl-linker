@@ -7,11 +7,12 @@ import {
   ModuleElem,
   StructElem,
   TemplateElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
 import { processConditionals } from "./Conditionals.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { srcLog } from "mini-parse";
+import { SourceMap } from "./SrcMap.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule2 {
@@ -24,6 +25,8 @@ export interface TextModule2 {
   imports: (ImportElem | ImportMergeElem)[];
   name: string;
   src: string;
+  preppedSrc: string;
+  sourceMap: SourceMap;
 }
 
 /** an export elem annotated with the fn/struct to which it refers */
@@ -36,10 +39,9 @@ let unnamedModuleDex = 0;
 export function parseModule2(
   src: string,
   params: Record<string, any> = {},
-  defaultModuleName?: string,
+  defaultModuleName?: string
 ): TextModule2 {
-  const {text:preppedSrc, sourceMap} = processConditionals(src, params);
-  console.log("preppedSrc:", `'${preppedSrc}'`);
+  const { text: preppedSrc, sourceMap } = processConditionals(src, params);
   const parsed = parseWgslD(preppedSrc);
   const exports = findExports(preppedSrc, parsed);
   const fns = filterElems<FnElem>(parsed, "fn");
@@ -55,7 +57,10 @@ export function parseModule2(
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
   const kind = "text";
-  return { kind, name, exports, fns, structs, vars, imports, src, template };
+  return {
+    ...{ kind, src, sourceMap, preppedSrc, name },
+    ...{ exports, fns, structs, vars, imports, template },
+  };
 }
 
 export function filterElems<T extends AbstractElem>(

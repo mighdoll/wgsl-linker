@@ -44,6 +44,52 @@ exports[`simple fn export 1`] = `
   "imports": [],
   "kind": "text",
   "name": "my.module",
+  "preppedSrc": "
+    // #export
+    fn one() -> i32 {
+      return 1;
+    }
+  ",
+  "sourceMap": SourceMap {
+    "entries": [
+      {
+        "destEnd": 1,
+        "destStart": 0,
+        "srcEnd": 1,
+        "srcStart": 0,
+      },
+      {
+        "destEnd": 16,
+        "destStart": 1,
+        "srcEnd": 16,
+        "srcStart": 1,
+      },
+      {
+        "destEnd": 38,
+        "destStart": 16,
+        "srcEnd": 38,
+        "srcStart": 16,
+      },
+      {
+        "destEnd": 54,
+        "destStart": 38,
+        "srcEnd": 54,
+        "srcStart": 38,
+      },
+      {
+        "destEnd": 60,
+        "destStart": 54,
+        "srcEnd": 60,
+        "srcStart": 54,
+      },
+      {
+        "destEnd": 62,
+        "destStart": 60,
+        "srcEnd": 62,
+        "srcStart": 60,
+      },
+    ],
+  },
   "src": "
     // #export
     fn one() -> i32 {
@@ -86,6 +132,38 @@ exports[`simple fn import 1`] = `
   ],
   "kind": "text",
   "name": "my.module",
+  "preppedSrc": "
+    // #import foo
+    fn bar() { foo(); }
+  ",
+  "sourceMap": SourceMap {
+    "entries": [
+      {
+        "destEnd": 1,
+        "destStart": 0,
+        "srcEnd": 1,
+        "srcStart": 0,
+      },
+      {
+        "destEnd": 20,
+        "destStart": 1,
+        "srcEnd": 20,
+        "srcStart": 1,
+      },
+      {
+        "destEnd": 44,
+        "destStart": 20,
+        "srcEnd": 44,
+        "srcStart": 20,
+      },
+      {
+        "destEnd": 46,
+        "destStart": 44,
+        "srcEnd": 46,
+        "srcStart": 44,
+      },
+    ],
+  },
   "src": "
     // #import foo
     fn bar() { foo(); }

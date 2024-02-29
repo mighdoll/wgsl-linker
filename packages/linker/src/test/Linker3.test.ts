@@ -180,7 +180,7 @@ test("#import foo from zap (multiple modules)", () => {
 
   const registry = new ModuleRegistry2();
   registry.registerOneModule(module1, {}, "module1");
-  registry.registerOneModule(module2, {},  "module2");
+  registry.registerOneModule(module2, {}, "module2");
   const linked = linkWgsl3(src, registry);
   expect(linked).contains("/* module2 */");
 });
@@ -580,8 +580,7 @@ test("'import as' a struct", () => {
   expect(linked).contains("struct AA {");
 });
 
-// TODO needs src map to apply edits correctly
-test.skip("import a struct with imp/exp params", () => {
+test("import a struct with imp/exp params", () => {
   const src = `
     #import AStruct(i32)
 
@@ -599,7 +598,6 @@ test.skip("import a struct with imp/exp params", () => {
 
   const registry = new ModuleRegistry2(module1);
   const linked = linkWgsl3(src, registry);
-  console.log(linked);
   expect(linked).contains("struct AStruct { x: i32 }");
 });
 

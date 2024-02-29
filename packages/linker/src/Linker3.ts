@@ -2,6 +2,7 @@ import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
 import { ModuleRegistry2 } from "./ModuleRegistry2.js";
 import { parseModule2, TextModule2 } from "./ParseModule2.js";
+import { dlog } from "berry-pretty";
 import {
   ExportRef,
   FoundRef,
@@ -32,7 +33,8 @@ export function linkWgsl3(
   extParams: Record<string, any> = {}
 ): string {
   const srcModule = parseModule2(src, extParams);
-  const srcElems = [srcModule.fns, srcModule.structs, srcModule.vars].flat();
+  const { fns, structs, vars, template, preppedSrc } = srcModule;
+  const srcElems = [fns, structs, vars].flat();
   const decls = new Set(srcElems.map((e) => e.name));
 
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
@@ -53,14 +55,12 @@ export function linkWgsl3(
       . #import and #module statements (to not cause errors in wgsl parsing if they're not commented out)
       . original structs for which we've created new merged structs
   */
-  const { template } = srcModule;
   const templateElem = template ? [template] : [];
-  const slicedSrc = rmElems(src, [
+  const slicedSrc = rmElems(preppedSrc, [
     ...origElems,
     ...srcModule.imports,
     ...templateElem,
   ]);
-  
 
   const templatedSrc = applyTemplate(slicedSrc, srcModule, extParams, registry);
 
@@ -350,7 +350,7 @@ function mergeRootStructs(refs: ExportRef[], rewriting: Rewriting): MergedText {
   };
 }
 
-/** rewrite src with elements removed */
+/** rewrite prepped src with elements removed */
 function rmElems(src: string, elems: AbstractElem[]): string {
   const startEnds = [...elems]
     .sort((a, b) => a.start - b.start)
@@ -386,7 +386,7 @@ function loadModuleSlice(
   rewriting: Rewriting
 ): string {
   const { extParams, registry } = rewriting;
-  const slice = mod.src.slice(start, end);
+  const slice = mod.preppedSrc.slice(start, end);
   const params = { ...Object.fromEntries(replaces), ...extParams };
   const templated = applyTemplate(slice, mod, params, registry);
   const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
