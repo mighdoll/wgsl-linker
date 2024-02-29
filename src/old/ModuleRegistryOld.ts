@@ -1,9 +1,9 @@
 import {
   CodeGenFn,
   GeneratorExport,
-  GeneratorModule,
-  TextExport,
-  TextModule
+  GeneratorModuleOld,
+  TextExportOld,
+  TextModuleOld
 } from "./LinkerOld.js";
 import { parseModule } from "./ParseModuleOld.js";
 
@@ -21,12 +21,12 @@ export type ApplyTemplateOld = (
 type ModuleExportOld = TextModuleExportOld | GeneratorModuleExportOld;
 
 export interface TextModuleExportOld {
-  module: TextModule;
-  export: TextExport;
+  module: TextModuleOld;
+  export: TextExportOld;
   kind: "text";
 }
 export interface GeneratorModuleExportOld {
-  module: GeneratorModule;
+  module: GeneratorModuleOld;
   export: GeneratorExport;
   kind: "function";
 }
@@ -112,7 +112,7 @@ export class ModuleRegistryOld {
     }
   }
 
-  private addTextModule(module: TextModule): void {
+  private addTextModule(module: TextModuleOld): void {
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExportOld = {
         module,

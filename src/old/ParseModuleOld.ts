@@ -1,4 +1,4 @@
-import { TextExport, TextModule } from "./LinkerOld.js";
+import { TextExportOld, TextModuleOld } from "./LinkerOld.js";
 import {
   endExportRegex,
   endInsertRegex,
@@ -14,10 +14,10 @@ let unnamedModuleDex = 0;
 export function parseModule(
   src: string,
   defaultModuleName?: string
-): TextModule {
+): TextModuleOld {
   let template: string | undefined;
-  const exports: TextExport[] = [];
-  let currentExport: Partial<TextExport> | undefined;
+  const exports: TextExportOld[] = [];
+  let currentExport: Partial<TextExportOld> | undefined;
   let insertLines: string[] = [];
   let moduleName: string | undefined;
   let rootLines: string[] | undefined;
@@ -65,7 +65,7 @@ export function parseModule(
       }
       currentExport.src = insertLines.join("\n");
       currentExport.rootSrc = rootLines && rootLines.join("\n");
-      exports.push(currentExport as TextExport);
+      exports.push(currentExport as TextExportOld);
 
       currentExport = undefined;
       rootLines = undefined;
