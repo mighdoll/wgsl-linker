@@ -12,9 +12,9 @@ interface Patched {
   suffix: string;
 }
 
-export const replacerTemplate = {
+export const replacerTemplateOld = {
   name: "replacer",
-  applyTemplate,
+  applyTemplate: applyTemplate,
 };
 
 /**
@@ -23,10 +23,7 @@ export const replacerTemplate = {
  * line-of-text // #replace find=replaceKey find2=replaceKey2
  *  - replaces "find" and "find2" in line of text with values from the dictionary
  */
-export function applyTemplate(
-  wgsl: string,
-  dict: { [key: string]: any }
-): string {
+function applyTemplate(wgsl: string, dict: { [key: string]: any }): string {
   const edit = wgsl.split("\n").flatMap((line, i) => {
     const replaceFound = parseReplaceDirective(line);
     if (replaceFound) {
@@ -90,9 +87,7 @@ interface ReplaceDirective {
 }
 
 /** find the #replace directive in a line if it exists */
-export function parseReplaceDirective(
-  line: string
-): ReplaceDirective | undefined {
+function parseReplaceDirective(line: string): ReplaceDirective | undefined {
   const match = line.match(replaceRegex);
   const replaces = match?.groups?.replaces;
 
@@ -119,7 +114,7 @@ export function parseReplaceDirective(
 }
 
 /** run an carrying function over every element in an array */
-export function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
+function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
   const result: U[] = [];
 
   let current = zero;

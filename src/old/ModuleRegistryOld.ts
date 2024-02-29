@@ -1,6 +1,6 @@
 import {
-  CodeGenFn,
-  GeneratorExport,
+  CodeGenFnOld,
+  GeneratorExportOld,
   GeneratorModuleOld,
   TextExportOld,
   TextModuleOld
@@ -27,7 +27,7 @@ export interface TextModuleExportOld {
 }
 export interface GeneratorModuleExportOld {
   module: GeneratorModuleOld;
-  export: GeneratorExport;
+  export: GeneratorExportOld;
   kind: "function";
 }
 
@@ -64,7 +64,7 @@ export class ModuleRegistryOld {
   /** register a function that generates code on demand */
   registerGenerator(
     exportName: string,
-    fn: CodeGenFn,
+    fn: CodeGenFnOld,
     params?: string[],
     moduleName?: string
   ): void {
