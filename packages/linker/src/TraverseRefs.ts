@@ -15,8 +15,8 @@ import {
   GeneratorModule,
   ModuleExport2,
   ModuleRegistry2,
-} from "./ModuleRegistry2.js";
-import { TextExport2, TextModule2 } from "./ParseModule2.js";
+} from "./ModuleRegistry.js";
+import { TextExport2, TextModule2 } from "./ParseModule.js";
 import { srcLog } from "mini-parse";
 import { groupBy } from "./Util.js";
 

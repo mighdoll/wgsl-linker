@@ -5,7 +5,7 @@ import {
 } from "./Declarations.js";
 import { linkWgsl3 } from "../../packages/linker/src/Linker3.js";
 import { ModuleRegistry, TextModuleExport } from "./ModuleRegistryOld.js";
-import { ModuleRegistry2 } from "../../packages/linker/src/ModuleRegistry2.js";
+import { ModuleRegistry2 } from "../../packages/linker/src/ModuleRegistry.js";
 import { parseModule } from "./ParseModuleOld.js";
 import { importRegex, replaceTokens } from "./Parsing.js";
 import { stripIfDirectives } from "./Preprocess.js";

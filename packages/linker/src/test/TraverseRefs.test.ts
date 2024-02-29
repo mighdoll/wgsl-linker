@@ -1,8 +1,8 @@
 import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
-import { ModuleRegistry2 } from "../ModuleRegistry2.js";
-import { parseModule2 } from "../ParseModule2.js";
+import { ModuleRegistry2 } from "../ModuleRegistry.js";
+import { parseModule2 } from "../ParseModule.js";
 import {
   ExportRef,
   FoundRef,

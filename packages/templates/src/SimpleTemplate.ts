@@ -1,4 +1,4 @@
-import { Template } from "../../linker/src/ModuleRegistry2.js";
+import { Template } from "../../linker/src/ModuleRegistry.js";
 import { replaceTokens3 } from "../../linker/src/Util.js";
 
 export const simpleTemplate: Template = {

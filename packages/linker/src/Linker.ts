@@ -1,7 +1,7 @@
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
-import { ModuleRegistry2 } from "./ModuleRegistry2.js";
-import { parseModule2, TextModule2 } from "./ParseModule2.js";
+import { ModuleRegistry2 } from "./ModuleRegistry.js";
+import { parseModule2, TextModule2 } from "./ParseModule.js";
 import { dlog } from "berry-pretty";
 import {
   ExportRef,

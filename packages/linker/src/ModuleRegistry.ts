@@ -1,4 +1,4 @@
-import { parseModule2, TextExport2, TextModule2 } from "./ParseModule2.js";
+import { parseModule2, TextExport2, TextModule2 } from "./ParseModule.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {

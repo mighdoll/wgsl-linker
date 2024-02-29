@@ -28,7 +28,7 @@ import {
   importing,
   lineCommentOptDirective,
 } from "../ParseDirective.js";
-import { filterElems } from "../ParseModule2.js";
+import { filterElems } from "../ParseModule.js";
 import {
   blockComment,
   comment,
