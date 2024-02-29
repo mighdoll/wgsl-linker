@@ -1,6 +1,8 @@
+import { _withBaseLogger, srcLog2 } from "mini-parse";
+import { expectNoLogErr, logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { processConditionals } from "../Conditionals.js";
-import { expectNoLogErr } from "mini-parse/test-util";
+import { dlog } from "berry-pretty";
 
 test("parse #if #endif", () => {
   const src = `
@@ -109,4 +111,25 @@ test("parse last line", () => {
     y`;
   const { text } = processConditionals(src, {});
   expect(text).eq(src);
+});
+
+test.only("srcLog with srcMap", () => {
+  const src = `
+  #if !foo
+  1234
+  #endif`;
+  const { text, sourceMap } = processConditionals(src, {});
+
+  dlog({text})
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    srcLog2(sourceMap, [3, 6], "found:");
+  });
+  console.log(logged());
+
+  expect(logged()).toMatchInlineSnapshot(`
+    "found:
+      1234   Ln 2
+      ^  ^"
+  `);
 });

@@ -1,5 +1,6 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
+import { SourceMap } from "./SrcMap.js";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
 export function srcLog(
@@ -26,6 +27,31 @@ export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
 
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
   srcLog(ctx.lexer.src, ctx.lexer.position(), ...msgs);
+}
+
+export function srcLog2(
+  sourceMap: SourceMap,
+  pos: number | [number, number],
+  ...msgs: any[]
+): void {
+  logInternal2(logger, sourceMap, pos, ...msgs);
+}
+
+function logInternal2(
+  log: typeof console.log,
+  srcMap: SourceMap,
+  pos: number | [number, number],
+  ...msgs: any[]
+): void {
+  const {dest} = srcMap; 
+
+  // TODO log src text, using mapping of dest positions
+
+  log(...msgs);
+  const { line, lineNum, linePos, linePos2 } = srcLine(dest, pos);
+  log(line, `  Ln ${lineNum}`);
+  const caret = carets(linePos, linePos2);
+  log(caret);
 }
 
 function logInternal(
