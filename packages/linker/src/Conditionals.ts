@@ -22,7 +22,7 @@ import {
 } from "mini-parse";
 import { directive, eol } from "./MatchWgslD.js";
 import { ParseState } from "./ParseWgslD.js";
-import { SourceMap, SrcMapEntry } from "./SrcMap.js";
+import { SourceMap, SrcMapEntry } from "mini-parse";
 
 export const conditionalsTokens = tokenMatcher(
   {
