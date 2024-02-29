@@ -11,7 +11,7 @@ import {
 let unnamedModuleDex = 0;
 
 /** parse module text to find the #export, #template, and #module declaraions */
-export function parseModule(
+export function parseModuleOld(
   src: string,
   defaultModuleName?: string
 ): TextModuleOld {

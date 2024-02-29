@@ -4,7 +4,7 @@ import {
   resolveNameConflicts
 } from "./Declarations.js";
 import { ModuleRegistryOld, TextModuleExportOld } from "./ModuleRegistryOld.js";
-import { parseModule } from "./ParseModuleOld.js";
+import { parseModuleOld } from "./ParseModuleOld.js";
 import { importRegex, replaceTokens } from "./Parsing.js";
 import { stripIfDirectives } from "./Preprocess.js";
 
@@ -95,7 +95,7 @@ function applyLinkedTemplate(
   registry: ModuleRegistryOld,
   extParams: Record<string, any>
 ): string {
-  const textModule = parseModule(src);
+  const textModule = parseModuleOld(src);
   if (textModule.template) {
     const templateFn = registry.getTemplate(textModule.template);
 

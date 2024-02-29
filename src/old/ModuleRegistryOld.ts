@@ -5,7 +5,7 @@ import {
   TextExportOld,
   TextModuleOld
 } from "./LinkerOld.js";
-import { parseModule } from "./ParseModuleOld.js";
+import { parseModuleOld } from "./ParseModuleOld.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface TemplateOld {
@@ -57,7 +57,7 @@ export class ModuleRegistryOld {
 
   /** register one module's exports  */
   registerOneModule(src: string, moduleName?: string): void {
-    const m = parseModule(src, moduleName);
+    const m = parseModuleOld(src, moduleName);
     this.addTextModule(m);
   }
 
