@@ -14,7 +14,7 @@ interface Patched {
 
 export const replacerTemplate = {
   name: "replacer",
-  applyTemplate
+  applyTemplate,
 };
 
 /**
@@ -47,7 +47,7 @@ export function applyTemplate(
     // scan through the patches, applying each patch and accumulating the patchedPrefx
     const patched = scan(replaces, patchOne, {
       patchedPrefix: "",
-      suffix: line
+      suffix: line,
     });
 
     // result is the patched prefixes plus any remaining suffix
@@ -111,7 +111,7 @@ export function parseReplaceDirective(
     const bareLine = start + end;
     return {
       replaceKeys: entries as [string, string][],
-      bareLine
+      bareLine,
     };
   } else {
     return undefined;
@@ -120,7 +120,7 @@ export function parseReplaceDirective(
 
 /** run an carrying function over every element in an array */
 export function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
-  const result = [];
+  const result: U[] = [];
 
   let current = zero;
   for (let i = 0; i < array.length; i++) {

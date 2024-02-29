@@ -1,4 +1,4 @@
-import { TextExport, TextModule } from "./Linker.js";
+import { TextExport, TextModule } from "./LinkerOld.js";
 import {
   endExportRegex,
   endInsertRegex,
