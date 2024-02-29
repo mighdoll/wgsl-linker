@@ -8,24 +8,24 @@ import {
 import { parseModule } from "./ParseModuleOld.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
-export interface Template {
+export interface TemplateOld {
   name: string;
-  applyTemplate: ApplyTemplate;
+  applyTemplate: ApplyTemplateOld;
 }
-export type ApplyTemplate = (
+export type ApplyTemplateOld = (
   src: string,
   params: Record<string, string>
 ) => string;
 
 /** a single export from a module */
-type ModuleExport = TextModuleExport | GeneratorModuleExport;
+type ModuleExportOld = TextModuleExportOld | GeneratorModuleExportOld;
 
-export interface TextModuleExport {
+export interface TextModuleExportOld {
   module: TextModule;
   export: TextExport;
   kind: "text";
 }
-export interface GeneratorModuleExport {
+export interface GeneratorModuleExportOld {
   module: GeneratorModule;
   export: GeneratorExport;
   kind: "function";
@@ -41,10 +41,10 @@ let unnamedCodeDex = 0;
  * The ModuleRegistry provides everything required for linkWgsl to process
  * #import statements and generate a complete wgsl shader.
  */
-export class ModuleRegistry {
+export class ModuleRegistryOld {
   // map from export names to a map of module names to exports
-  private exports = new Map<string, ModuleExport[]>();
-  private templates = new Map<string, ApplyTemplate>();
+  private exports = new Map<string, ModuleExportOld[]>();
+  private templates = new Map<string, ApplyTemplateOld>();
 
   constructor(...src: string[]) {
     this.registerModules(...src);
@@ -73,7 +73,7 @@ export class ModuleRegistry {
       name: moduleName ?? `funModule${unnamedCodeDex++}`,
       exports: [exp]
     };
-    const moduleExport: GeneratorModuleExport = {
+    const moduleExport: GeneratorModuleExportOld = {
       module,
       export: exp,
       kind: "function"
@@ -82,12 +82,12 @@ export class ModuleRegistry {
   }
 
   /** register a template processor  */
-  registerTemplate(...templates: Template[]): void {
+  registerTemplate(...templates: TemplateOld[]): void {
     templates.forEach((t) => this.templates.set(t.name, t.applyTemplate));
   }
 
   /** fetch a template processor */
-  getTemplate(name: string): ApplyTemplate | undefined {
+  getTemplate(name: string): ApplyTemplateOld | undefined {
     return this.templates.get(name);
   }
 
@@ -95,7 +95,7 @@ export class ModuleRegistry {
   getModuleExport(
     exportName: string,
     moduleName?: string
-  ): ModuleExport | undefined {
+  ): ModuleExportOld | undefined {
     const exports = this.exports.get(exportName);
     if (!exports) {
       return undefined;
@@ -114,7 +114,7 @@ export class ModuleRegistry {
 
   private addTextModule(module: TextModule): void {
     module.exports.forEach((e) => {
-      const moduleExport: TextModuleExport = {
+      const moduleExport: TextModuleExportOld = {
         module,
         export: e,
         kind: "text"
@@ -123,7 +123,7 @@ export class ModuleRegistry {
     });
   }
 
-  private addModuleExport(moduleExport: ModuleExport): void {
+  private addModuleExport(moduleExport: ModuleExportOld): void {
     const exportName = moduleExport.export.name;
     const existing = this.exports.get(exportName);
     if (existing) {

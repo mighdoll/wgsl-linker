@@ -3,9 +3,7 @@ import {
   globalDeclarations,
   resolveNameConflicts
 } from "./Declarations.js";
-import { linkWgsl3 } from "../../packages/linker/src/Linker3.js";
-import { ModuleRegistry, TextModuleExport } from "./ModuleRegistryOld.js";
-import { ModuleRegistry2 } from "../../packages/linker/src/ModuleRegistry.js";
+import { ModuleRegistryOld, TextModuleExportOld } from "./ModuleRegistryOld.js";
 import { parseModule } from "./ParseModuleOld.js";
 import { importRegex, replaceTokens } from "./Parsing.js";
 import { stripIfDirectives } from "./Preprocess.js";
@@ -84,7 +82,7 @@ export interface GeneratorExport extends ExportBase {
 /** parse source text for #import directives, return wgsl with all imports injected */
 export function linkWgsl(
   src: string,
-  registry: ModuleRegistry,
+  registry: ModuleRegistryOld,
   params: Record<string, any> = {}
 ): string {
   return insertImportsRecursive(src, registry, new Set(), 0, params);
@@ -94,7 +92,7 @@ export function linkWgsl(
  * the source text, and return the result. Otherwise return the source text unchanged. */
 function applyLinkedTemplate(
   src: string,
-  registry: ModuleRegistry,
+  registry: ModuleRegistryOld,
   extParams: Record<string, any>
 ): string {
   const textModule = parseModule(src);
@@ -111,7 +109,7 @@ function applyLinkedTemplate(
 /** Find #import directives in src text and insert the module export text */
 function insertImportsRecursive(
   src: string,
-  registry: ModuleRegistry,
+  registry: ModuleRegistryOld,
   imported: Set<string>,
   conflictCount: number,
   extParams: Record<string, any>
@@ -178,7 +176,7 @@ interface ImportModuleArgs {
   importName: string;
   asRename?: string;
   moduleName?: string;
-  registry: ModuleRegistry;
+  registry: ModuleRegistryOld;
   params: string[];
   imported: Set<string>;
   extParams: Record<string, any>;
@@ -241,10 +239,10 @@ function importModule(args: ImportModuleArgs): string[] {
 
 /** run a template, returning insert text src and root text src  */
 function templateText(
-  moduleExport: TextModuleExport,
+  moduleExport: TextModuleExportOld,
   importParams: Record<string, string>,
   extParams: Record<string, string>,
-  registry: ModuleRegistry
+  registry: ModuleRegistryOld
 ): string[] {
   const template = moduleExport.module.template;
   const { src, rootSrc = "" } = moduleExport.export;
@@ -298,7 +296,7 @@ function applyTemplate(
   text: string,
   templateParams: Record<string, string>,
   template: string | undefined,
-  registry: ModuleRegistry
+  registry: ModuleRegistryOld
 ): string {
   if (text && template) {
     const applyTemplate = registry.getTemplate(template);
