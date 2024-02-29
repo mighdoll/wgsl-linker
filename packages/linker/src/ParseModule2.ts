@@ -38,7 +38,7 @@ export function parseModule2(
   params: Record<string, any> = {},
   defaultModuleName?: string,
 ): TextModule2 {
-  const preppedSrc = processConditionals(src, params);
+  const {text:preppedSrc, sourceMap} = processConditionals(src, params);
   console.log("preppedSrc:", `'${preppedSrc}'`);
   const parsed = parseWgslD(preppedSrc);
   const exports = findExports(preppedSrc, parsed);

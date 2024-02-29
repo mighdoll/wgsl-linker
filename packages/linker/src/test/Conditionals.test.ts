@@ -9,8 +9,30 @@ test("parse #if #endif", () => {
     #endif
     `;
 
-  const result = processConditionals(src, { foo: true });
-  expect(result).contains("fn f() { }");
+  const { text, sourceMap } = processConditionals(src, { foo: true });
+  expect(text).contains("fn f() { }");
+  expect(sourceMap.entries).toMatchInlineSnapshot(`
+    [
+      {
+        "destEnd": 1,
+        "destStart": 0,
+        "srcEnd": 1,
+        "srcStart": 0,
+      },
+      {
+        "destEnd": 16,
+        "destStart": 1,
+        "srcEnd": 28,
+        "srcStart": 13,
+      },
+      {
+        "destEnd": 20,
+        "destStart": 16,
+        "srcEnd": 43,
+        "srcStart": 39,
+      },
+    ]
+  `);
 });
 
 test("parse // #if !foo", () => {
@@ -19,8 +41,8 @@ test("parse // #if !foo", () => {
       fn f() { }
     // #endif 
     `;
-  const result = processConditionals(src, { foo: false });
-  expect(result).contains("fn f() { }");
+  const { text } = processConditionals(src, { foo: false });
+  expect(text).contains("fn f() { }");
 });
 
 test("parse #if !foo (true)", () => {
@@ -30,9 +52,9 @@ test("parse #if !foo (true)", () => {
     // #endif 
     `;
   expectNoLogErr(() => {
-    const result = processConditionals(src, { foo: true });
-    expect(result).not.contains("fn");
-    expect(result).not.contains("//");
+    const { text } = processConditionals(src, { foo: true });
+    expect(text).not.contains("fn");
+    expect(text).not.contains("//");
   });
 });
 
@@ -44,9 +66,9 @@ test("parse #if !foo #else #endif", () => {
       fn g() { foo(); }
     // #endif 
     `;
-  const result = processConditionals(src, { foo: true });
-  expect(result).contains("fn g()");
-  expect(result).not.contains("fn f()");
+  const { text } = processConditionals(src, { foo: true });
+  expect(text).contains("fn g()");
+  expect(text).not.contains("fn f()");
 });
 
 test("parse nested #if", () => {
@@ -64,10 +86,10 @@ test("parse nested #if", () => {
       fn g() { }
     #endif 
     `;
-  const result = processConditionals(src, { foo: true, zap: true });
-  expect(result).contains("fn zap()");
-  expect(result).contains("fn g()");
-  expect(result).not.contains("fn f()");
+  const { text } = processConditionals(src, { foo: true, zap: true });
+  expect(text).contains("fn zap()");
+  expect(text).contains("fn g()");
+  expect(text).not.contains("fn f()");
 });
 
 test("parse #if #endif with extra space", () => {
@@ -77,14 +99,14 @@ test("parse #if #endif with extra space", () => {
     #endif
     `;
 
-  const result = processConditionals(src, {});
-  expect(result).not.contains("fn f() { }");
+  const { text } = processConditionals(src, {});
+  expect(text).not.contains("fn f() { }");
 });
 
 test("parse last line", () => {
   const src = `
     #x
     y`;
-  const prepped = processConditionals(src, {});
-  expect(prepped).eq(src);
+  const { text } = processConditionals(src, {});
+  expect(text).eq(src);
 });

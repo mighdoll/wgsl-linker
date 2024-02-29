@@ -22,6 +22,7 @@ import {
 } from "mini-parse";
 import { directive, eol } from "./MatchWgslD.js";
 import { ParseState } from "./ParseWgslD.js";
+import { SourceMap, SrcMapEntry } from "./SrcMap.js";
 
 export const conditionalsTokens = tokenMatcher(
   {
@@ -79,7 +80,7 @@ const lastLine = seq(any(), repeat(any()), eolf);
 const regularLine = or(simpleLine, lastLine).map((r) => {
   if (!skippingIfBody(r)) {
     // resultLog(r, "regularLine", r.start, r.end);
-    r.app.state.lines.push(r.src.slice(r.start, r.end));
+    pushLine(r);
   }
 });
 
@@ -114,18 +115,43 @@ function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
   return result;
 }
 
+function pushLine(r: ExtendedResult<any>): void {
+  const line = r.src.slice(r.start, r.end);
+  const { state } = r.app;
+  state.srcMapEntries.push({
+    srcStart: r.start,
+    srcEnd: r.end,
+    destStart: state.destLength,
+    destEnd: state.destLength + line.length,
+  });
+  state.destLength += line.length;
+  state.lines.push(line);
+}
+
+export interface PreppedSrc {
+  text: string;
+  sourceMap: SourceMap;
+}
+
 /** preprocess a src string to handle #if #else #endif, etc. */
 export function processConditionals(
   src: string,
   params: Record<string, any>
-): string {
+): PreppedSrc {
   const lines: string[] = [];
+  const srcMapEntries: SrcMapEntry[] = [];
   srcLines.parse({
     lexer: matchingLexer(src, conditionalsTokens),
-    app: { context: { ifStack: [] }, state: { lines, params } },
+    app: {
+      context: { ifStack: [] },
+      state: { lines, srcMapEntries, destLength: 0, params },
+    },
     maxParseCount: 1000,
   });
-  return lines.join("");
+  const text = lines.join("");
+  const sourceMap = new SourceMap();
+  sourceMap.addEntries(src, text, srcMapEntries);
+  return { text, sourceMap };
 }
 
 /** debug for recognizer */
