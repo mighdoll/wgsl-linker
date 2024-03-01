@@ -42,7 +42,7 @@ export function parseModule(
 ): TextModule {
   const { text: preppedSrc, srcMap } = processConditionals(src, params);
   const parsed = parseWgslD(preppedSrc, srcMap);
-  const exports = findExports(preppedSrc, parsed);
+  const exports = findExports(parsed, srcMap);
   const fns = filterElems<FnElem>(parsed, "fn");
   const imports = parsed.filter(
     (e) => e.kind === "import" || e.kind === "importMerge"
@@ -50,9 +50,9 @@ export function parseModule(
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];
-  matchMergeImports(preppedSrc, parsed);
+  matchMergeImports(parsed, srcMap);
   const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
-  matchMergeImports(preppedSrc, parsed);
+  matchMergeImports(parsed, srcMap);
 
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
   const kind = "text";
@@ -69,7 +69,7 @@ export function filterElems<T extends AbstractElem>(
   return parsed.filter((e) => e.kind === kind) as T[];
 }
 
-function findExports(src: string, parsed: AbstractElem[]): TextExport[] {
+function findExports(parsed: AbstractElem[], srcMap: SrcMap): TextExport[] {
   const results: TextExport[] = [];
   const exports = findKind<ExportElem>(parsed, "export");
 
@@ -82,7 +82,7 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport[] {
       if (next?.kind === "fn" || next?.kind === "struct") {
         results.push({ ...elem, ref: next });
       } else {
-        srcLog(src, elem.start, `#export what? (#export a fn or struct)`);
+        srcLog(srcMap, elem.start, `#export what? (#export a fn or struct)`);
       }
     }
   });
@@ -90,7 +90,7 @@ function findExports(src: string, parsed: AbstractElem[]): TextExport[] {
 }
 
 /** fill in importMerges field of structs */
-function matchMergeImports(src: string, parsed: AbstractElem[]): void {
+function matchMergeImports(parsed: AbstractElem[], srcMap: SrcMap): void {
   const importMerges = findKind<ImportMergeElem>(parsed, "importMerge");
   importMerges.forEach(([mergeElem, i]) => {
     let next: AbstractElem | undefined;
@@ -101,7 +101,7 @@ function matchMergeImports(src: string, parsed: AbstractElem[]): void {
       next.importMerges = next.importMerges ?? [];
       next.importMerges.push(mergeElem);
     } else {
-      srcLog(src, mergeElem.start, `#importMerge not followed by a struct`);
+      srcLog(srcMap, mergeElem.start, `#importMerge not followed by a struct`);
     }
   });
 }

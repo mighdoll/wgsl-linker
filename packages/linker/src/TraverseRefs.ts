@@ -9,7 +9,7 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
-import { refLog } from "./LinkerLogging.js";
+import { moduleLog, refLog } from "./LinkerLogging.js";
 import {
   GeneratorExport,
   GeneratorModule,
@@ -17,7 +17,6 @@ import {
   ModuleRegistry,
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
-import { srcLog } from "mini-parse";
 import { groupBy } from "./Util.js";
 
 export type FoundRef = TextRef | GeneratorRef;
@@ -194,7 +193,7 @@ function elemRef(
 
   if (foundRef) return [foundRef];
 
-  srcLog(srcRef.expMod.src, elem.start, `reference not found`);
+  moduleLog(srcRef.expMod, elem.start, `reference not found`);
   return [];
 }
 
@@ -211,7 +210,7 @@ function importMergeRefs(
     const foundRef = importRef(srcRef, merge.name, mod, registry);
     if (foundRef) return [foundRef];
 
-    srcLog(srcRef.expMod.src, merge.start, `import merge reference not found`);
+    moduleLog(srcRef.expMod, merge.start, `import merge reference not found`);
     return [];
   });
 }
@@ -270,8 +269,8 @@ function matchImportExportArgs(
   const expArgs = exp.args ?? [];
   if (expArgs.length !== impArgs.length) {
     impMod.kind === "text" &&
-      srcLog(impMod.src, imp.start, "mismatched import and export params");
-    expMod.kind === "text" && srcLog(expMod.src, (exp as ExportElem).start);
+      moduleLog(impMod, imp.start, "mismatched import and export params");
+    expMod.kind === "text" && moduleLog(expMod, (exp as ExportElem).start);
   }
   return expArgs.map((p, i) => [p, impArgs[i]]);
 }
@@ -361,8 +360,7 @@ function importingArgs(
   return expImp.flatMap(([iExp, iImp]) => {
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
     if (!pair) {
-      const src = srcRef.expMod.src;
-      srcLog(src, imp.start, "importing arg doesn't match export");
+      moduleLog(srcRef.expMod, imp.start, "importing arg doesn't match export");
       return [];
     }
     const [, impArg] = pair;
@@ -383,7 +381,7 @@ function matchingExport(
 
   const modExp = registry.getModuleExport(imp.name, imp.from);
   if (!modExp) {
-    srcLog(mod.src, imp.start, "export not found for import");
+    moduleLog(mod, imp.start, "export not found for import");
   }
   return modExp;
 }

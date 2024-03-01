@@ -151,6 +151,7 @@ test("importing args don't match", () => {
     fn bar(x:X) { } `;
 
   const { log } = traverseWithLog(src, module1, module2);
+
   expect(log).toMatchInlineSnapshot(`
     "importing arg doesn't match export
         #export(C, D) importing bar(E)   Ln 2
