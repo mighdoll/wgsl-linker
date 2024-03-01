@@ -10,29 +10,31 @@ export interface SrcMapEntry {
 
 /** TODO many src strings mapping to one dest string.. */
 export class SrcMap {
-  entriesMap = new Map<string, SrcMapEntry[]>();
+  entries: SrcMapEntry[] = [];
   dest: string;
   constructor(dest: string) {
     this.dest = dest;
   }
 
-  addEntries(src: string, newEntries: SrcMapEntry[]): void {
-    const entriesMap = this.entriesMap;
-    const entries = entriesMap.get(src) || [];
-    entriesMap.set(src, entries);
-    entries.push(...newEntries);
+  addEntries(newEntries: SrcMapEntry[]): void {
+    this.entries.push(...newEntries);
   }
 
-  mapPositions(src: string, ...positions: number[]): number[] {
-    dlog({entriesMap: this.entriesMap});
-    const entries = this.entriesMap.get(src);
-    if (!entries) throw new Error(`no SrcMap entries for src: ${src}`);
-    return positions.map((p) => mapPos(p, entries));
+  mapPositions(...positions: number[]): SrcPosition[] {
+    return positions.map((p) => mapPos(p, this.entries));
   }
 }
 
-function mapPos(pos: number, entries: SrcMapEntry[]): number {
+interface SrcPosition {
+  src: string;
+  position: number;
+}
+
+function mapPos(pos: number, entries: SrcMapEntry[]): SrcPosition {
   const entry = entries.find((e) => e.destStart <= pos && e.destEnd >= pos);
   if (!entry) throw new Error(`no SrcMapEntry for pos: ${pos}`);
-  return entry.srcStart + pos - entry.destStart;
+  return {
+    src: entry.src,
+    position: entry.srcStart + pos - entry.destStart,
+  };
 }

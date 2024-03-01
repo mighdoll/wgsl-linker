@@ -118,13 +118,13 @@ function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
 function pushLine(r: ExtendedResult<any>): void {
   const line = r.src.slice(r.start, r.end);
   const { state } = r.app;
-  const entry:SrcMapEntry = {
+  const entry: SrcMapEntry = {
     src: r.src,
     srcStart: r.start,
     srcEnd: r.end,
     destStart: state.destLength,
     destEnd: state.destLength + line.length,
-  }
+  };
   state.srcMapEntries.push(entry);
   state.destLength += line.length;
   state.lines.push(line);
@@ -152,7 +152,7 @@ export function processConditionals(
   });
   const text = lines.join("");
   const sourceMap = new SrcMap(text);
-  sourceMap.addEntries(src, srcMapEntries);
+  sourceMap.addEntries(srcMapEntries);
   return { text, sourceMap };
 }
 

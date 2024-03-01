@@ -31,35 +31,43 @@ export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
 }
 
 export function srcLog2(
-  src: string, 
   sourceMap: SrcMap,
   pos: number | [number, number],
   ...msgs: any[]
 ): void {
-  logInternal2(logger, src, sourceMap, pos, ...msgs);
+  logInternal2(logger, sourceMap, pos, ...msgs);
 }
 
 /**
- * 
- * @param log 
- * @param src - src string 
- * @param srcMap 
+ *
+ * @param log
+ * @param src - src string
+ * @param srcMap
  * @param destPos  - position in the dest string
- * @param msgs 
+ * @param msgs
  */
 function logInternal2(
   log: typeof console.log,
-  src: string,
   srcMap: SrcMap,
   destPos: number | [number, number],
   ...msgs: any[]
 ): void {
-  const srcPos = srcMap.mapPositions(src, ...[destPos].flat()) as [number, number];
-  dlog({ srcPos: srcPos });
+  const srcPos = srcMap.mapPositions(...[destPos].flat());
+  const { src, position } = srcPos[0];
 
   log(...msgs);
-  const { line, lineNum, linePos, linePos2 } = srcLine(src, srcPos);
+  const { line, lineNum, linePos } = srcLine(src, position);
   log(line, `  Ln ${lineNum}`);
+
+  // get caret location for second position if one was specified
+  let linePos2: number | undefined;
+  if (srcPos[1]?.src === src) {
+    const { lineNum: lineNum2, linePos } = srcLine(src, srcPos[1].position);
+    if (lineNum2 === lineNum) {
+      linePos2 = linePos;
+    }
+  }
+
   const caret = carets(linePos, linePos2);
   log(caret);
 }

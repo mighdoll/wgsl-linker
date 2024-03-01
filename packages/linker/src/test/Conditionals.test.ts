@@ -13,28 +13,7 @@ test("parse #if #endif", () => {
 
   const { text, sourceMap } = processConditionals(src, { foo: true });
   expect(text).contains("fn f() { }");
-  expect(sourceMap.entriesMap).toMatchInlineSnapshot(`
-    [
-      {
-        "destEnd": 1,
-        "destStart": 0,
-        "srcEnd": 1,
-        "srcStart": 0,
-      },
-      {
-        "destEnd": 16,
-        "destStart": 1,
-        "srcEnd": 28,
-        "srcStart": 13,
-      },
-      {
-        "destEnd": 20,
-        "destStart": 16,
-        "srcEnd": 43,
-        "srcStart": 39,
-      },
-    ]
-  `);
+  expect(sourceMap.entries).toMatchInlineSnapshot();
 });
 
 test("parse // #if !foo", () => {
@@ -122,7 +101,7 @@ test.only("srcLog with srcMap", () => {
 
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    srcLog2(src, sourceMap, [3, 6], "found:");
+    srcLog2(sourceMap, [3, 6], "found:");
   });
   console.log(logged());
 
