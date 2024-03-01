@@ -14,7 +14,7 @@ import {
   tokenMatcher,
   tracing,
 } from "mini-parse";
-import { Template } from "../../linker/src/ModuleRegistry.js";
+import { Template } from "wgsl-linker";
 import { patchLine } from "./PatchLine.js";
 
 export const replaceTemplate: Template = {

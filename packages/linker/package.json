@@ -6,10 +6,11 @@
     "src"
   ],
   "scripts": {
-    "build": "run-s build:main build:minified build:brotli",
+    "build": "run-s build:main build:templates build:minified build:brotli",
     "build:main": "vite build",
     "build:minified": "vite build -c minified.vite.config.js",
     "build:brotli": "brotli dist/minified.cjs && ls -l dist/minified.cjs.br",
+    "build:templates": "vite build -c templates.vite.config.js",
     "test": "vitest",
     "organize": "organize-imports-cli tsconfig.json",
     "format": "prettier-eslint \"src/**/*.ts\" --write",
@@ -22,6 +23,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/linker/src/index.d.ts"
+    },
+    "./templates": {
+      "import": "./dist/templates.js",
+      "require": "./dist/templates.cjs",
+      "types": "./dist/linker/src/templates/index.d.ts"
     },
     "./minified": {
       "import": "./dist/minified.js",

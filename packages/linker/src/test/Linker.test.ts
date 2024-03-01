@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { linkWgsl } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
-import { replaceTemplate } from "../../../templates/src/Replacer.js";
-import { simpleTemplate } from "../../../templates/src/SimpleTemplate.js";
+import { replaceTemplate } from "../templates/Replacer.js";
+import { simpleTemplate } from "../templates/SimpleTemplate.js";
 
 test("simple #import", () => {
   const myModule = `

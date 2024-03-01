@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { UserConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import dts from "vite-plugin-dts";
