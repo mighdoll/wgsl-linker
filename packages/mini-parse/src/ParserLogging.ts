@@ -53,20 +53,18 @@ function logInternal2(
   ...msgs: any[]
 ): void {
   const srcPos = srcMap.mapPositions(...[destPos].flat());
-  const { src, position } = srcPos[0];
+  const { src } = srcPos[0];
+
+  let positions: [number, number] | number;
+  if (srcPos[1]?.src === src) {
+    positions = srcPos.map((p) => p.position) as [number, number];
+  } else {
+    positions = srcPos[0].position;
+  }
 
   log(...msgs);
-  const { line, lineNum, linePos } = srcLine(src, position);
+  const { line, lineNum, linePos, linePos2 } = srcLine(src, positions);
   log(line, `  Ln ${lineNum}`);
-
-  // get caret location for second position if one was specified
-  let linePos2: number | undefined;
-  if (srcPos[1]?.src === src) {
-    const { lineNum: lineNum2, linePos } = srcLine(src, srcPos[1].position);
-    if (lineNum2 === lineNum) {
-      linePos2 = linePos;
-    }
-  }
 
   const caret = carets(linePos, linePos2);
   log(caret);
