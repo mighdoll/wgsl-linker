@@ -1,5 +1,6 @@
 import { srcTrace } from "./ParserLogging.js";
 import { tracing } from "./ParserTracing.js";
+import { SrcMap } from "./SrcMap.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 export interface Lexer {
@@ -33,7 +34,8 @@ interface MatcherStackElem {
 export function matchingLexer(
   src: string,
   rootMatcher: TokenMatcher,
-  ignore = new Set(["ws"])
+  ignore = new Set(["ws"]),
+  srcMap?: SrcMap
 ): Lexer {
   let matcher = rootMatcher;
   const matcherStack: MatcherStackElem[] = [];
@@ -45,7 +47,7 @@ export function matchingLexer(
     const { token } = toNextToken();
     if (token && tracing) {
       const text = quotedText(token?.text);
-      srcTrace(src, start, `: ${text} (${token?.kind})`);
+      srcTrace(srcMap ?? src, start, `: ${text} (${token?.kind})`);
     }
     return token;
   }
@@ -132,7 +134,7 @@ export function matchingLexer(
     withIgnore,
     eof,
     skipIgnored,
-    src
+    src,
   };
 }
 

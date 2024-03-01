@@ -1,8 +1,7 @@
-import { _withBaseLogger, srcLog2 } from "mini-parse";
+import { _withBaseLogger, srcLog } from "mini-parse";
 import { expectNoLogErr, logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { processConditionals } from "../Conditionals.js";
-import { dlog } from "berry-pretty";
 
 test("parse #if #endif", () => {
   const src = `
@@ -11,9 +10,45 @@ test("parse #if #endif", () => {
     #endif
     `;
 
-  const { text, sourceMap } = processConditionals(src, { foo: true });
+  const { text, srcMap: sourceMap } = processConditionals(src, { foo: true });
   expect(text).contains("fn f() { }");
-  expect(sourceMap.entries).toMatchInlineSnapshot();
+  expect(sourceMap.entries).toMatchInlineSnapshot(`
+    [
+      {
+        "destEnd": 1,
+        "destStart": 0,
+        "src": "
+        #if foo
+        fn f() { }
+        #endif
+        ",
+        "srcEnd": 1,
+        "srcStart": 0,
+      },
+      {
+        "destEnd": 16,
+        "destStart": 1,
+        "src": "
+        #if foo
+        fn f() { }
+        #endif
+        ",
+        "srcEnd": 28,
+        "srcStart": 13,
+      },
+      {
+        "destEnd": 20,
+        "destStart": 16,
+        "src": "
+        #if foo
+        fn f() { }
+        #endif
+        ",
+        "srcEnd": 43,
+        "srcStart": 39,
+      },
+    ]
+  `);
 });
 
 test("parse // #if !foo", () => {
@@ -92,16 +127,16 @@ test("parse last line", () => {
   expect(text).eq(src);
 });
 
-test.only("srcLog with srcMap", () => {
+test("srcLog with srcMap", () => {
   const src = `
   #if !foo
   1234
   #endif`;
-  const { sourceMap } = processConditionals(src, {});
+  const { srcMap: sourceMap } = processConditionals(src, {});
 
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    srcLog2(sourceMap, [3, 6], "found:");
+    srcLog(sourceMap, [3, 6], "found:");
   });
   console.log(logged());
 

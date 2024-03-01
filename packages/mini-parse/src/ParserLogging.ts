@@ -5,7 +5,7 @@ import { dlog } from "berry-pretty";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
 export function srcLog(
-  src: string,
+  src: string | SrcMap,
   pos: number | [number, number],
   ...msgs: any[]
 ): void {
@@ -14,7 +14,7 @@ export function srcLog(
 
 /** log a message along with src line, but only if tracing is active in the current parser */
 export function srcTrace(
-  src: string,
+  src: string | SrcMap,
   pos: number | [number, number],
   ...msgs: any[]
 ): void {
@@ -22,36 +22,53 @@ export function srcTrace(
 }
 
 export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
-  const { src, start, end } = result;
-  srcLog(src, [start, end - 1], ...msgs);
+  const { src, srcMap, start, end } = result;
+  srcLog(srcMap ?? src, [start, end - 1], ...msgs);
 }
 
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
-  srcLog(ctx.lexer.src, ctx.lexer.position(), ...msgs);
-}
-
-export function srcLog2(
-  sourceMap: SrcMap,
-  pos: number | [number, number],
-  ...msgs: any[]
-): void {
-  logInternal2(logger, sourceMap, pos, ...msgs);
+  const src = ctx.srcMap ?? ctx.lexer.src;
+  srcLog(src, ctx.lexer.position(), ...msgs);
 }
 
 /**
- *
- * @param log
- * @param src - src string
- * @param srcMap
- * @param destPos  - position in the dest string
- * @param msgs
+ * @param destPos  - position in the dest (e.g. preprocessed) text
  */
-function logInternal2(
-  log: typeof console.log,
-  srcMap: SrcMap,
+export function srcMapLog(
+  sourceMap: SrcMap,
   destPos: number | [number, number],
   ...msgs: any[]
 ): void {
+  logInternal(logger, sourceMap, destPos, ...msgs);
+}
+
+/**
+ * @param destPos  - position in the dest (e.g. preprocessed) text
+ */
+function logInternal(
+  log: typeof console.log,
+  srcOrSrcMap: string | SrcMap,
+  destPos: number | [number, number],
+  ...msgs: any[]
+): void {
+  if (typeof srcOrSrcMap === "string") {
+    logInternalSrc(log, srcOrSrcMap, destPos, ...msgs);
+    return;
+  }
+  const { src, positions } = mapSrcPositions(srcOrSrcMap, destPos);
+
+  logInternalSrc(log, src, positions, ...msgs);
+}
+
+interface SrcPositions {
+  positions: number | [number, number];
+  src: string;
+}
+
+function mapSrcPositions(
+  srcMap: SrcMap,
+  destPos: number | [number, number]
+): SrcPositions {
   const srcPos = srcMap.mapPositions(...[destPos].flat());
   const { src } = srcPos[0];
 
@@ -62,15 +79,10 @@ function logInternal2(
     positions = srcPos[0].position;
   }
 
-  log(...msgs);
-  const { line, lineNum, linePos, linePos2 } = srcLine(src, positions);
-  log(line, `  Ln ${lineNum}`);
-
-  const caret = carets(linePos, linePos2);
-  log(caret);
+  return { src, positions };
 }
 
-function logInternal(
+function logInternalSrc(
   log: typeof console.log,
   src: string,
   pos: number | [number, number],

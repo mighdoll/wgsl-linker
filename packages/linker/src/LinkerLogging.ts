@@ -3,7 +3,8 @@ import { FoundRef } from "./TraverseRefs.js";
 
 export function refLog(ref: FoundRef, ...msgs: any[]): void {
   if (ref.kind !== "gen") {
-    srcLog(ref.expMod.src, ref.elem.start, ...msgs);
+    const {src, srcMap: sourceMap} = ref.expMod;
+    srcLog(sourceMap ?? src, ref.elem.start, ...msgs);
   } else {
     logger(ref.name, ...msgs);
   }

@@ -25,7 +25,7 @@ export interface TextModule {
   name: string;
   src: string;
   preppedSrc: string;
-  sourceMap: SrcMap;
+  srcMap: SrcMap;
 }
 
 /** an export elem annotated with the fn/struct to which it refers */
@@ -40,8 +40,8 @@ export function parseModule(
   params: Record<string, any> = {},
   defaultModuleName?: string
 ): TextModule {
-  const { text: preppedSrc, sourceMap } = processConditionals(src, params);
-  const parsed = parseWgslD(preppedSrc);
+  const { text: preppedSrc, srcMap } = processConditionals(src, params);
+  const parsed = parseWgslD(preppedSrc, srcMap);
   const exports = findExports(preppedSrc, parsed);
   const fns = filterElems<FnElem>(parsed, "fn");
   const imports = parsed.filter(
@@ -57,7 +57,7 @@ export function parseModule(
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
   const kind = "text";
   return {
-    ...{ kind, src, sourceMap, preppedSrc, name },
+    ...{ kind, src, srcMap, preppedSrc, name },
     ...{ exports, fns, structs, vars, imports, template },
   };
 }

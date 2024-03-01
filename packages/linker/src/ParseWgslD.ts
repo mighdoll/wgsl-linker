@@ -2,6 +2,7 @@ import {
   Parser,
   ParserContext,
   ParserInit,
+  SrcMap,
   anyNot,
   anyThrough,
   eof,
@@ -198,6 +199,7 @@ export const traceRoot = root.trace();
 
 export function parseWgslD(
   src: string,
+  srcMap?: SrcMap,
   params: Record<string, any> = {},
   grammar = root
 ): AbstractElem[] {
@@ -211,6 +213,7 @@ export function parseWgslD(
   const init: ParserInit = {
     lexer,
     app,
+    srcMap,
     maxParseCount: 50000,
   };
 

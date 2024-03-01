@@ -9,6 +9,7 @@ import {
   withTraceLogging,
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
+import { SrcMap } from "./SrcMap.js";
 
 export interface AppState<A> {
   /**
@@ -31,6 +32,9 @@ export interface ParserInit<A = any> {
 
   /** set this to avoid infinite looping by failing after more than this many parsing steps */
   maxParseCount?: number;
+
+  /** if this text was preprocessed */
+  srcMap?:SrcMap;
 }
 
 /* Information passed to the parsers during parsing */
@@ -51,6 +55,8 @@ export interface ParserContext<A = any> {
 
   /** positions where the preparse has failed to match, so no need to retry */
   _preCacheFails: Map<Parser<unknown>, Set<number>>;
+
+  srcMap?: SrcMap;
 }
 
 /** Result from a parser */
@@ -64,6 +70,7 @@ export interface ParserResult<T> {
 
 export interface ExtendedResult<T, A = any> extends ParserResult<T> {
   src: string;
+  srcMap?: SrcMap;
   start: number;
   end: number;
   app: AppState<A>;
@@ -168,10 +175,16 @@ export class Parser<T> {
   /** start parsing */
   parse(init: ParserInit): OptParserResult<T> {
     try {
-      const { lexer, maxParseCount, app = { context: {}, state: [] } } = init;
+      const {
+        lexer,
+        maxParseCount,
+        srcMap,
+        app = { context: {}, state: [] },
+      } = init;
       return this._run({
         lexer,
         app,
+        srcMap,
         _preParse: [],
         _parseCount: 0,
         _preCacheFails: new Map(),
@@ -405,8 +418,9 @@ export function runExtended<T>(
   // we've succeeded, so refine the start position to skip past ws
   // (we don't consume ws earlier, in case an inner parser wants to use different ws skipping)
   ctx.lexer.position(origStart);
-  const start = ctx.lexer.skipIgnored(); 
+  const start = ctx.lexer.skipIgnored();
   ctx.lexer.position(end);
+  const { app, srcMap } = ctx;
 
-  return { ...origResults, start, end, app: ctx.app, src, ctx };
+  return { ...origResults, start, end, app, src, srcMap, ctx };
 }

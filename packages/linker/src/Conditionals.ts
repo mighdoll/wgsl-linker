@@ -132,7 +132,7 @@ function pushLine(r: ExtendedResult<any>): void {
 
 export interface PreppedSrc {
   text: string;
-  sourceMap: SrcMap;
+  srcMap: SrcMap;
 }
 
 /** preprocess a src string to handle #if #else #endif, etc. */
@@ -151,9 +151,9 @@ export function processConditionals(
     maxParseCount: 1000,
   });
   const text = lines.join("");
-  const sourceMap = new SrcMap(text);
-  sourceMap.addEntries(srcMapEntries);
-  return { text, sourceMap };
+  const srcMap = new SrcMap(text);
+  srcMap.addEntries(srcMapEntries);
+  return { text, srcMap };
 }
 
 /** debug for recognizer */
