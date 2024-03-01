@@ -1,9 +1,11 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
 import { SrcMap } from "./SrcMap.js";
-import { dlog } from "berry-pretty";
 
-/** log an message along with the source line and a caret indicating the error position in the line */
+/** log an message along with the source line and a caret indicating the error position in the line
+ * @param pos is the position the source string, or if src is a SrcMap, then
+ *  pos is the position in the dest (e.g. preprocessed) text
+ */
 export function srcLog(
   src: string | SrcMap,
   pos: number | [number, number],
@@ -29,17 +31,6 @@ export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
 export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
   const src = ctx.srcMap ?? ctx.lexer.src;
   srcLog(src, ctx.lexer.position(), ...msgs);
-}
-
-/**
- * @param destPos  - position in the dest (e.g. preprocessed) text
- */
-export function srcMapLog(
-  sourceMap: SrcMap,
-  destPos: number | [number, number],
-  ...msgs: any[]
-): void {
-  logInternal(logger, sourceMap, destPos, ...msgs);
 }
 
 /**
