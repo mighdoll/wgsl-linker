@@ -13,7 +13,7 @@ const tokenRegex = /\b(\w+)\b/gi;
 /** replace strings in a text according to a relacement map
  * replaced strings must be 'tokens', surrounded by spaces or punctuation
  */
-export function replaceTokens3(
+export function replaceWords(
   text: string,
   replace: Record<string, string>
 ): string {
@@ -28,6 +28,7 @@ export function grouped<T>(a: T[], size: number, stride = size): T[][] {
   }
   return groups;
 }
+
 /** group an array into subarrays by a key function */
 export function groupBy<T, K>(a: T[], key: (t: T) => K): Map<K, T[]> {
   const groups = new Map<K, T[]>();

@@ -18,7 +18,7 @@ import {
   grouped,
   multiKeySet,
   partition,
-  replaceTokens3,
+  replaceWords,
 } from "./Util.js";
 
 interface Rewriting {
@@ -392,7 +392,7 @@ function loadModuleSlice(
   const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
 
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
-  return replaceTokens3(templated, rewrite);
+  return replaceWords(templated, rewrite);
 }
 
 function applyTemplate(
