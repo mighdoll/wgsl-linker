@@ -2,7 +2,7 @@
 
 ## Parser Features
 
-- Small code size makes **MiniParse** suitable for runtime embedding (< 3.5kb compressed).
+- Small code size makes **MiniParse** suitable for runtime embedding (< 4kb compressed).
 - **MiniParse** is a combinator library.
   You write a grammar by combining simple TypeScript
   functions like `or()`, `repeat()`, and `seq()`.
@@ -23,6 +23,7 @@
 - Stack parsers to parse things that can appear almost anywhere in your grammar.
   Handy for things like nested comments, semantic comments (jsdoc), or annotations.
 - Named accumulators make it easy to collect parsing results from deeply nested sub parsers.
+- Mapped src logging can optionally reference to preprocessed src.
 
 ## Parsing
 
