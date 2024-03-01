@@ -1,6 +1,7 @@
 import { ExtendedResult, ParserContext } from "./Parser.js";
 import { logger, parserLog } from "./ParserTracing.js";
 import { SrcMap } from "./SrcMap.js";
+import { dlog } from "berry-pretty";
 
 /** log an message along with the source line and a caret indicating the error position in the line */
 export function srcLog(
@@ -30,25 +31,34 @@ export function ctxLog(ctx: ParserContext, ...msgs: any[]): void {
 }
 
 export function srcLog2(
+  src: string, 
   sourceMap: SrcMap,
   pos: number | [number, number],
   ...msgs: any[]
 ): void {
-  logInternal2(logger, sourceMap, pos, ...msgs);
+  logInternal2(logger, src, sourceMap, pos, ...msgs);
 }
 
+/**
+ * 
+ * @param log 
+ * @param src - src string 
+ * @param srcMap 
+ * @param destPos  - position in the dest string
+ * @param msgs 
+ */
 function logInternal2(
   log: typeof console.log,
+  src: string,
   srcMap: SrcMap,
-  pos: number | [number, number],
+  destPos: number | [number, number],
   ...msgs: any[]
 ): void {
-  const {dest} = srcMap; 
-
-  // TODO log src text, using mapping of dest positions
+  const srcPos = srcMap.mapPositions(src, ...[destPos].flat()) as [number, number];
+  dlog({ srcPos: srcPos });
 
   log(...msgs);
-  const { line, lineNum, linePos, linePos2 } = srcLine(dest, pos);
+  const { line, lineNum, linePos, linePos2 } = srcLine(src, srcPos);
   log(line, `  Ln ${lineNum}`);
   const caret = carets(linePos, linePos2);
   log(caret);

@@ -118,12 +118,14 @@ function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
 function pushLine(r: ExtendedResult<any>): void {
   const line = r.src.slice(r.start, r.end);
   const { state } = r.app;
-  state.srcMapEntries.push({
+  const entry:SrcMapEntry = {
+    src: r.src,
     srcStart: r.start,
     srcEnd: r.end,
     destStart: state.destLength,
     destEnd: state.destLength + line.length,
-  });
+  }
+  state.srcMapEntries.push(entry);
   state.destLength += line.length;
   state.lines.push(line);
 }
@@ -149,8 +151,8 @@ export function processConditionals(
     maxParseCount: 1000,
   });
   const text = lines.join("");
-  const sourceMap = new SrcMap();
-  sourceMap.addEntries(src, text, srcMapEntries);
+  const sourceMap = new SrcMap(text);
+  sourceMap.addEntries(src, srcMapEntries);
   return { text, sourceMap };
 }
 

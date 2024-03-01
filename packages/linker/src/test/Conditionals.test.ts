@@ -13,7 +13,7 @@ test("parse #if #endif", () => {
 
   const { text, sourceMap } = processConditionals(src, { foo: true });
   expect(text).contains("fn f() { }");
-  expect(sourceMap.entries).toMatchInlineSnapshot(`
+  expect(sourceMap.entriesMap).toMatchInlineSnapshot(`
     [
       {
         "destEnd": 1,
@@ -118,18 +118,17 @@ test.only("srcLog with srcMap", () => {
   #if !foo
   1234
   #endif`;
-  const { text, sourceMap } = processConditionals(src, {});
+  const { sourceMap } = processConditionals(src, {});
 
-  dlog({text})
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    srcLog2(sourceMap, [3, 6], "found:");
+    srcLog2(src, sourceMap, [3, 6], "found:");
   });
   console.log(logged());
 
   expect(logged()).toMatchInlineSnapshot(`
     "found:
-      1234   Ln 2
+      1234   Ln 3
       ^  ^"
   `);
 });
