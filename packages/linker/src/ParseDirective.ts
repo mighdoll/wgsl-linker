@@ -26,7 +26,7 @@ import {
 } from "./MatchWgslD.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 
-/* parse #directive enhancements to wgsl: #import, #export, #if, #else, etc. */
+/* parse #directive enhancements to wgsl: #import, #export, etc. */
 
 const argsWord = kind(argsTokens.arg);
 
