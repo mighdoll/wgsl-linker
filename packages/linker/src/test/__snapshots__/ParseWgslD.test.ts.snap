@@ -226,12 +226,14 @@ exports[`parse top level override and const 1`] = `
     "kind": "var",
     "name": "x",
     "start": 5,
+    "typeRefs": [],
   },
   {
     "end": 38,
     "kind": "var",
     "name": "y",
     "start": 26,
+    "typeRefs": [],
   },
   {
     "calls": [],
@@ -269,22 +271,6 @@ exports[`parse top level var 1`] = `
     "typeRefs": [],
   },
 ]
-`;
-
-exports[`skipBlockComment parses /* comment */ 1`] = `
-{
-  "named": {},
-  "value": [
-    "/*",
-    [
-      {
-        "kind": "word",
-        "text": "comment",
-      },
-    ],
-    "*/",
-  ],
-}
 `;
 
 exports[`wordNumArgs parses (a, b, 1) 1`] = `
