@@ -1,9 +1,9 @@
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
+import { srcLog } from "./ParserLogging.js";
 import {
   TraceContext,
   TraceOptions,
-  logger,
   parserLog,
   tracing,
   withTraceLogging,
@@ -34,7 +34,7 @@ export interface ParserInit<A = any> {
   maxParseCount?: number;
 
   /** if this text was preprocessed */
-  srcMap?:SrcMap;
+  srcMap?: SrcMap;
 }
 
 /* Information passed to the parsers during parsing */
