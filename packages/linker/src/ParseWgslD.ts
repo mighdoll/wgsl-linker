@@ -5,6 +5,7 @@ import {
   SrcMap,
   anyNot,
   anyThrough,
+  enableTracing,
   eof,
   fn,
   kind,
@@ -183,7 +184,8 @@ export const globalVar = seq(
   req(anyThrough(";"))
 ).map((r) => {
   // resultErr(r, "globalVar");
-  const e = makeElem<VarElem>("var", r, ["name", "typeRefs"]);
+  const e = makeElem<VarElem>("var", r, ["name"]);
+  e.typeRefs = r.named.typeRefs?.flat() || [];
   r.app.state.push(e);
 });
 
@@ -198,6 +200,7 @@ const root = preParse(comment, seq(repeat(rootDecl), eof()));
 // for debug tracing
 export const traceRoot = root.trace();
 
+enableTracing();
 export function parseWgslD(
   src: string,
   srcMap?: SrcMap,
