@@ -344,6 +344,17 @@ export function req<T>(
   });
 }
 
+/** always succeeds, does not consume any tokens */
+export function yes(): Parser<true> {
+  return simpleParser("yes", () => true);
+}
+
+/** always fails, does not consume any tokens */
+export function no(): Parser<null> {
+  return simpleParser("no", () => null);
+}
+
+
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
   const elem = Symbol("elem");
