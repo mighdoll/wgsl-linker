@@ -164,7 +164,8 @@ const block: Parser<any> = seq(
 export const fnDecl = seq(
   optAttributes,
   "fn",
-  req(word.named("name")),
+  req(word.named("name")),  
+  // TODO some built in functions can have a template here, e.g. bitcast
   req(fnParamList),
   opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
   req(block)
@@ -183,7 +184,6 @@ export const globalVar = seq(
   opt(seq(":", req(typeSpecifier.named("typeRefs")))),
   req(anyThrough(";"))
 ).map((r) => {
-  // resultErr(r, "globalVar");
   const e = makeElem<VarElem>("var", r, ["name"]);
   e.typeRefs = r.named.typeRefs?.flat() || [];
   r.app.state.push(e);
