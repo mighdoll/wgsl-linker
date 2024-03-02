@@ -354,11 +354,25 @@ export function no(): Parser<null> {
   return simpleParser("no", () => null);
 }
 
+export interface WithSepOptions {
+  /** if true, allow an optional trailing separator (default true) */
+  trailing?: boolean;
+  /** if true, require at least one element (default false) */
+  requireOne?: boolean;
+}
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
-export function withSep<T>(sep: CombinatorArg<any>, p: Parser<T>): Parser<T[]> {
-  const elem = Symbol("elem");
-  return opt(seq(p.named(elem), repeat(seq(sep, p.named(elem)))))
+export function withSep<T>(
+  sep: CombinatorArg<any>,
+  p: Parser<T>,
+  opts: WithSepOptions = {}
+): Parser<T[]> {
+  const elem = Symbol();
+  const { trailing = true, requireOne = false } = opts;
+  const first = requireOne ? p : opt(p);
+  const last = trailing ? opt(sep) : yes();
+
+  return seq(first.named(elem), repeat(seq(sep, p.named(elem))), last)
     .map((r) => r.named[elem] as T[])
     .traceName("withSep");
 }
