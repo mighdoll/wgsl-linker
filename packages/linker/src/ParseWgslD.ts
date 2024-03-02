@@ -131,11 +131,12 @@ export const fnCall = seq(
 
 // prettier-ignore
 const fnParam = seq(
-  word, 
+  optAttributes,
+  word,
   opt(seq(":", req(typeSpecifier.named("typeRefs"))))
 );
 
-const fnParamList = seq(lParen, optAttributes, withSep(",", fnParam), rParen);
+const fnParamList = seq(lParen, withSep(",", fnParam), rParen);
 
 // prettier-ignore
 const variableDecl = seq(
