@@ -407,7 +407,7 @@ function importName(asNamed: AsNamed): string {
 const stdTypes = (
   "array bool f16 f32 i32 " +
   "mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4 " +
-  "u32 vec2 v3c3 vec4"
+  "u32 vec2 vec3 vec4"
 ).split(" ");
 
 /** return true if the name is for a built in type (not a user struct) */
