@@ -254,7 +254,8 @@ function runParser<T>(
   // check for infinite looping
   context._parseCount = _parseCount + 1;
   if (maxParseCount && _parseCount > maxParseCount) {
-    logger("infinite loop? ", p.debugName);
+    srcLog(lexer.src, lexer.position(), "infinite loop? ", p.debugName);
+    console.log(lexer.src);
     return null;
   }
 
