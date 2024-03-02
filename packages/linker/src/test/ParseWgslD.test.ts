@@ -196,7 +196,7 @@ test("parse #export(foo) with trailing space", () => {
 //   const src = `
 //     // #if !foo
 //       fn f() { }
-//     // #endif 
+//     // #endif
 //     `;
 //   const parsed = parseWgslD(src, { foo: false });
 //   expect((parsed[0] as FnElem).name).eq("f");
@@ -206,7 +206,7 @@ test("parse #export(foo) with trailing space", () => {
 //   const src = `
 //     // #if !foo
 //       fn f() { }
-//     // #endif 
+//     // #endif
 //     `;
 //   expectNoLogErr(() => {
 //     parseWgslD(src, { foo: true });
@@ -219,7 +219,7 @@ test("parse #export(foo) with trailing space", () => {
 //       fn f() { notfoo(); }
 //     // #else
 //       fn g() { foo(); }
-//     // #endif 
+//     // #endif
 //     `;
 //   const parsed = parseWgslD(src, { foo: true });
 //   expect(parsed.length).eq(1);
@@ -232,14 +232,14 @@ test("parse #export(foo) with trailing space", () => {
 
 //     #if bar
 //       fn f() { }
-//     #endif 
+//     #endif
 
 //     #if zap
 //       fn zap() { }
 //     #endif
 
 //       fn g() { }
-//     #endif 
+//     #endif
 //     `;
 //   expectNoLogErr(() => {
 //     const parsed = parseWgslD(src, { foo: true, zap: true });
@@ -566,4 +566,21 @@ test("parse line comment with #replace", () => {
   const workgroupThreads= 4;                          // #replace 4=workgroupThreads
   `;
   expectNoLogErr(() => parseWgslD(src));
+});
+
+test("parse fn with attributes and suffix comma", () => {
+  const src = `
+  @compute
+  @workgroup_size(workgroupThreads, 1, 1) 
+  fn main(
+      @builtin(global_invocation_id) grid: vec3<u32>,
+      @builtin(local_invocation_index) localIndex: u32,  
+  ) { }
+  `;
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    const first = parsed[0] as FnElem;
+    expect(first.kind).eq("fn");
+    expect(first.name).eq("main");
+  });
 });
