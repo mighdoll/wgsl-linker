@@ -156,7 +156,8 @@ function elemRefs(
   let fnRefs: FoundRef[] = [];
   let mergeRefs: FoundRef[] = [];
   if (elem.kind === "fn") {
-    fnRefs = elemChildrenRefs(srcRef, elem.calls, mod, registry);
+    const userCalls = elem.calls.filter((call) => !stdFn(call.name));
+    fnRefs = elemChildrenRefs(srcRef, userCalls, mod, registry);
   } else if (elem.kind === "struct") {
     mergeRefs = importMergeRefs(srcRef, elem, mod, registry);
   }
@@ -403,12 +404,33 @@ interface AsNamed {
 function importName(asNamed: AsNamed): string {
   return asNamed.as || asNamed.name;
 }
+const stdFns = `bitcast all any select arrayLength 
+  abs acos acosh asin asinh atan atanh atan2 ceil clamp cos cosh 
+  countLeadingZeros countOneBits countTrailingZeros cross 
+  degrees determinant distance dot dot4UI8Packed dot4I8Packed 
+  exp exp2 extractBits faceForward firstLeadingBit firstTrailingBit 
+  floor fma fract frexp inserBits inverseSqrt ldexp length log log2
+  max min mix modf normalize pow quantizeToF16 radians reflect refract
+  reverseBits round saturate sin sinh smoothstep sqrt step tan tanh
+  transpose trunc
+  dpdx dpdxCoarse dpdxFine dpdy dpdyCoarse dpdyFine fwidth 
+  fwdithCoarse fwidthFine
+  textureDimensions textureGather textureGatherCompare textureLoad
+  textureNumLayers textureNumLevels textureNumSamples
+  textureSample textureSampleBias textureSampleCompare textureSampleCompareLevel
+  textureSampleGrad textureSampleLevel textureSampleBaseClampToEdge
+  textureStore
+  pack4x8snorm pack4x8unorm pack4xI8 pack4xU8 pack4xI8Clamp pack4xU8Clamp
+  pack2x16snorm pack2x16unorm pack2x16float
+  unpack4x8snorm unpack4x8unorm unpack4xI8 unpack4xU8 
+  unpack2x16snorm unpack2x16unorm unpack2x16float
+  storageBarrier textureBarrier workgroupBarrier workgroupUniformLoad`.split(
+  /\s+/
+);
 
-const stdTypes = (
-  "array bool f16 f32 i32 " +
-  "mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4 " +
-  "u32 vec2 vec3 vec4"
-).split(" ");
+const stdTypes = `array bool f16 f32 i32 
+  mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4
+  u32 vec2 vec3 vec4`.split(/\s+/);
 
 /** return true if the name is for a built in type (not a user struct) */
 function stdType(name: string): boolean {
@@ -417,4 +439,9 @@ function stdType(name: string): boolean {
 
 export function refName(ref: FoundRef): string {
   return ref.kind === "gen" ? ref.name : ref.elem.name;
+}
+
+/** return true if the name is for a built in fn (not a user function) */
+function stdFn(name: string): boolean {
+  return stdFns.includes(name) || stdType(name);
 }
