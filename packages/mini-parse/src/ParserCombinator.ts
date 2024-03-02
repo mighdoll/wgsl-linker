@@ -223,6 +223,7 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
  */
 export function opt(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
+export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean>;
 export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
   const p = parserArg(stage);
   return parser(
