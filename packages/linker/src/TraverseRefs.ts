@@ -185,16 +185,17 @@ function elemRef(
   mod: TextModule,
   registry: ModuleRegistry
 ): FoundRef[] {
-  if (importArgRef(srcRef, elem.name)) return [];
+  const { name } = elem;
+  if (importArgRef(srcRef, name)) return [];
 
   const foundRef =
-    importRef(srcRef, elem.name, mod, registry) ??
-    importingRef(srcRef, elem.name, mod, registry) ??
-    localRef(elem.name, mod);
+    importRef(srcRef, name, mod, registry) ??
+    importingRef(srcRef, name, mod, registry) ??
+    localRef(name, mod);
 
   if (foundRef) return [foundRef];
 
-  moduleLog(srcRef.expMod, elem.start, `reference not found`);
+  moduleLog(srcRef.expMod, elem.start, `reference not found: ${name}`);
   return [];
 }
 
