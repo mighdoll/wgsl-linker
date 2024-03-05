@@ -1,4 +1,5 @@
 import { ctxLog, ParserContext } from "mini-parse";
+import { scan } from "../Util.js";
 
 /** for incrementally patching a line with #replace */
 interface Patched {
@@ -44,16 +45,4 @@ export function patchLine(
     ctxLog(ctx, `replace value not found for ${replaceKey}`);
     return `?${replaceKey}?`;
   }
-}
-
-/** run an carrying function over every element in an array */
-export function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
-  const result = [zero];
-
-  let current = zero;
-  for (let i = 0; i < array.length; i++) {
-    current = fn(array[i], current);
-    result.push(current);
-  }
-  return result;
 }

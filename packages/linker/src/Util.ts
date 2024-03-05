@@ -50,3 +50,16 @@ export function partition<T>(a: T[], partFn: (t: T) => boolean): [T[], T[]] {
   }
   return [yesPart, noPart];
 }
+
+
+/** run an carrying function over every element in an array */
+export function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
+  const result = [zero];
+
+  let current = zero;
+  for (let i = 0; i < array.length; i++) {
+    current = fn(array[i], current);
+    result.push(current);
+  }
+  return result;
+}
