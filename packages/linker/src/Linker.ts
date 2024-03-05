@@ -155,10 +155,6 @@ interface MergeAndNonMerge {
   rmRootOrig: AbstractElem[];
 }
 
-// function refsToString(refs: FoundRef[]): string {
-//   return refs.map((r) => refName(r)).join(", ");
-// }
-
 /**
  * Perpare the refs found in the traverse for loading:
  * . sort through found refs, and attach merge refs to normal export refs
@@ -205,15 +201,6 @@ function prepRefsMergeAndLoad(
   ];
 
   const rmRootOrig = rootMergeRefs.map((r) => (r.fromRef as TextRef).elem);
-
-  // dlog({
-  //   localRefs: refsToString(localRefs),
-  //   localRefsToLoad: refsToString(localRefsToLoad),
-  //   mergeRefs: refsToString(mergeRefs),
-  //   expRefs: refsToString(expRefs),
-  //   rootMergeRefs: refsToString(rootMergeRefs),
-  //   loadRefs: refsToString(loadRefs),
-  // });
 
   return { rmRootOrig, loadRefs };
 }
