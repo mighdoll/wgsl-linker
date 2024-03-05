@@ -161,7 +161,7 @@ const block: Parser<any> = seq(
 export const fnDecl = seq(
   optAttributes,
   "fn",
-  req(word.named("name")),  
+  req(word.named("name")),
   // TODO some built in functions can have a template here, e.g. bitcast
   req(fnParamList),
   opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
