@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { replacer } from "../../packages/replacer/src/Replacer.js";
+import { replacer } from "../Replacer.js";
 
 test("parse blank line", () => {
   const src = "";
