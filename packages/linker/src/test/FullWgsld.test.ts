@@ -6,7 +6,7 @@ import { replaceTemplate } from "../templates/Replacer.js";
 import { parseModule } from "../ParseModule.js";
 import { dlog } from "berry-pretty";
 
-test.only("example2", () => {
+test("example", () => {
   const src = `
 // #module stoneberry.ReduceWorkgroup
 
@@ -31,7 +31,7 @@ fn reduceWorkgroup(localId: u32) {
 `;
 //   const r = new ModuleRegistry();
 //   r.registerTemplate(replaceTemplate);
-    const m = new ModuleRegistry(src);
+    // const m = new ModuleRegistry(src);
   // const m = parseModule(src, { workgroupThreads: 256, blockArea: 4 });
   // dlog({
   //   fns: m.fns.map((f) => f.name),
