@@ -97,20 +97,17 @@ export const structMember = seq(
   return e;
 });
 
-// prettier-ignore
 export const structDecl = seq(
   "struct",
   req(word.named("name")),
   req("{"),
   withSep(",", structMember).named("members"),
-  opt(","),
   req("}")
-)
-  .map((r) => {
-    const e = makeElem<StructElem>("struct", r, ["name", "members"]);
-    e.typeRefs = r.named.typeRefs?.flat() || []; 
-    r.app.state.push(e);
-  });
+).map((r) => {
+  const e = makeElem<StructElem>("struct", r, ["name", "members"]);
+  e.typeRefs = r.named.typeRefs?.flat() || [];
+  r.app.state.push(e);
+});
 
 // keywords that can be followed by (), not to be confused with fn calls
 const callishKeyword = simpleParser("keyword", (ctx: ParserContext) => {
