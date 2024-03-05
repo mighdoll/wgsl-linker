@@ -358,6 +358,28 @@ test("#importMerge a struct in the root src", () => {
   expect(linked).toContain(`struct MyStruct {\n  x: u32,\n  y: u32\n}`);
 });
 
+test("#importMerge an empty struct", () => {
+  const src = `
+    #importMerge AStruct 
+    struct MyStruct {
+    }
+
+    fn main() {
+      let a: MyStruct; 
+    }
+  `;
+  const module1 = `
+    #export
+    struct AStruct {
+      y: u32,
+    }
+  `;
+  const registry = new ModuleRegistry(module1);
+  const linked = linkWgsl(src, registry);
+  expect(linked.match(/struct MyStruct {/g)).toHaveLength(1);
+  expect(linked).toContain(`struct MyStruct {\n  y: u32\n}`);
+});
+
 test("#importMerge a struct in a module", () => {
   const src = `
     #import AStruct
