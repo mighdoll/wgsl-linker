@@ -71,7 +71,7 @@ export function replacer(src: string, params: Record<string, any>): string {
   const lexer = matchingLexer(src, replaceTokens);
   const lines: string[] = [];
   const app = { state: lines, context: params };
-  root.parse({ lexer, app, maxParseCount: 1000 });
+  root.parse({ lexer, app });
 
   return lines.join("\n");
 }
