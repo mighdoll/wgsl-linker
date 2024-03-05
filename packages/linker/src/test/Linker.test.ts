@@ -3,6 +3,8 @@ import { linkWgsl } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
+import { logCatch } from "mini-parse/test-util";
+import { _withBaseLogger } from "mini-parse";
 
 test("simple #import", () => {
   const myModule = `
@@ -902,4 +904,22 @@ test("external param applied to template", () => {
   const params = { workgroupThreads: 128 };
   const linked = linkWgsl(src, registry, params);
   expect(linked).includes("step < 128");
+});
+
+test("warn on missing template", () => {
+  const src = `
+    #module test.missing.template
+    // oops
+    #template missing
+
+    fn main() { }
+  `;
+  const registry = new ModuleRegistry();
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => linkWgsl(src, registry));
+  expect(logged()).toMatchInlineSnapshot(`
+    "template 'missing' not found in ModuleRegistry  module: test.missing.template
+        #template missing   Ln 4
+        ^"
+  `);
 });

@@ -1,5 +1,5 @@
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
-import { refLog } from "./LinkerLogging.js";
+import { moduleLog, refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
 import { TextModule, parseModule } from "./ParseModule.js";
 import {
@@ -415,6 +415,15 @@ function applyTemplate(
   params: Record<string, any>,
   registry: ModuleRegistry
 ): string {
-  const template = registry.getTemplate(mod.template?.name);
+  const name = mod.template?.name;
+  if (!name) return src;
+  const template = registry.getTemplate(name);
+  if (!template) {
+    moduleLog(
+      mod,
+      mod.template?.start ?? 0,
+      `template '${name}' not found in ModuleRegistry`
+    );
+  }
   return template ? template(src, params) : src;
 }

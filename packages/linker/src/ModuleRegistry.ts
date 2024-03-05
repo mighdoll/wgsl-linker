@@ -1,4 +1,4 @@
-import { parseModule, TextExport as TextExport, TextModule as TextModule } from "./ParseModule.js";
+import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -107,8 +107,8 @@ export class ModuleRegistry {
   }
 
   /** fetch a template processor */
-  getTemplate(name?: string): ApplyTemplateFn | undefined {
-    return name ? this.templates.get(name) : undefined;
+  getTemplate(name: string): ApplyTemplateFn | undefined {
+    return this.templates.get(name);
   }
 
   /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
