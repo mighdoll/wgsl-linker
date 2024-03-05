@@ -52,7 +52,8 @@ export function partition<T>(a: T[], partFn: (t: T) => boolean): [T[], T[]] {
 }
 
 
-/** run an carrying function over every element in an array */
+/** run an carrying function over every element in an array, 
+ * i.e. an inclusive prefix scan */
 export function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
   const result = [zero];
 
