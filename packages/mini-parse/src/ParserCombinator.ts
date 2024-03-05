@@ -223,14 +223,14 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
  */
 export function opt(stage: string): Parser<string | boolean>;
 export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
-export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean>;
-export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | boolean> {
+export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | undefined>;
+export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | undefined> {
   const p = parserArg(stage);
   return parser(
     "opt",
-    (state: ParserContext): OptParserResult<T | string | boolean> => {
+    (state: ParserContext): OptParserResult<T | string | undefined> => {
       const result = p._run(state);
-      return result || { value: false, named: {} };
+      return result || { value: undefined, named: {} };
     }
   );
 }

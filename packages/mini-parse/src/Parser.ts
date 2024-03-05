@@ -290,7 +290,7 @@ function runParser<T>(
       } else {
         // parser succeded
         tracing && parserLog(`✓ ${p.tracingName}`);
-        if (p.namedResult) {
+        if (p.namedResult && result.value !== undefined) {
           // merge named result (if user set a name for this stage's result)
           return {
             value: result.value,
