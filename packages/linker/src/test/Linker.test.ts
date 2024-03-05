@@ -770,7 +770,6 @@ test.skip("#import twice with different params", () => {
 
   const registry = new ModuleRegistry(module0);
   const linked = linkWgsl(src, registry);
-  console.log(linked);
   expect(linked).includes("fn bar() { /** B **/ }");
   expect(linked).includes("fn foo() { /** A **/ }");
 });
