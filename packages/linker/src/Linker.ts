@@ -16,6 +16,7 @@ import {
 import {
   groupBy,
   grouped,
+  mapForward,
   multiKeySet,
   partition,
   replaceWords,
@@ -396,8 +397,12 @@ function loadModuleSlice(
 ): string {
   const { extParams, registry } = rewriting;
   const slice = mod.preppedSrc.slice(start, end);
-  const params = { ...Object.fromEntries(replaces), ...extParams };
+  const impExpParams = Object.fromEntries(replaces);
+
+  const importWithExt = mapForward(impExpParams, extParams);
+  const params = { ...extParams, ...importWithExt };
   const templated = applyTemplate(slice, mod, params, registry);
+  mapForward(extParams, params);
   const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
 
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);

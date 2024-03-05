@@ -64,3 +64,18 @@ export function scan<T, U>(array: T[], fn: (a: T, b: U) => U, zero: U): U[] {
   }
   return result;
 }
+
+/** return a new record by replacing values in 'a' with 'b' as a map.
+ * values in 'a' that are not in 'b' are unchanged.
+ * e.g. {a: "b", x: 9}, {b: 1} yields {a: 1, x: 9}
+ */
+export function mapForward(
+  a: Record<string, string>,
+  b: Record<string, any>
+): Record<string, any> {
+  const combined = Object.entries(a).map(([key, value]) => {
+    const mappedValue = value in b ? b[value] : value;
+    return [key, mappedValue];
+  });
+  return Object.fromEntries(combined);
+}

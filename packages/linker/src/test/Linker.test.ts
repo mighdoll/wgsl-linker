@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { linkWgsl } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
+import { simpleTemplate } from "../templates/SimpleTemplate.js";
 
 test("simple #import", () => {
   const myModule = `
@@ -662,7 +663,7 @@ test("import with simple template", () => {
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry(myModule);
-  registry.registerTemplate(replaceTemplate);
+  registry.registerTemplate(simpleTemplate);
   const linked = linkWgsl(src, registry, { WORKGROUP_SIZE: "128" });
   expect(linked).includes("step < 128");
 });
@@ -879,7 +880,7 @@ test("#import conficted code gen fn", () => {
 //   expect(linked).contains("fn log(logVar: i32) {}");
 // });
 
-test.only("external param applied to template", () => {
+test("external param applied to template", () => {
   const module1 = `
     #template replace
 
@@ -900,6 +901,5 @@ test.only("external param applied to template", () => {
   registry.registerTemplate(replaceTemplate);
   const params = { workgroupThreads: 128 };
   const linked = linkWgsl(src, registry, params);
-  console.log(linked);
   expect(linked).includes("step < 128");
 });
