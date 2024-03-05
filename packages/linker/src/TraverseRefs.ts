@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   CallElem,
   ExportElem,
@@ -85,9 +86,9 @@ export interface ExportRef extends ExportRefBase {
  * a function with each struct/fn reference found.
  *
  * Note that the reference graph may have multiple reference to the same src element.
- * Return false to avoid recursing into the node.
+ * Return false in the provided filter fn to avoid recursing into the node.
  * Currently the linker will recurse through the the same node multiple times
- * to handle varied import parameters.  (LATER could be optimized)
+ * to handle varied import parameters. 
  */
 export function traverseRefs(
   srcModule: TextModule,
@@ -138,7 +139,7 @@ function recursiveRefs(
   });
 }
 
-function textRefs(refs: FoundRef[]): TextRef[] {
+export function textRefs(refs: FoundRef[]): TextRef[] {
   return refs.filter(textRef);
 }
 
@@ -286,11 +287,13 @@ function importingRef(
   registry: ModuleRegistry
 ): ExportRef | GeneratorRef | undefined {
   let fromImport: ImportElem | undefined;
+
   // find a matching 'importing' phrase in an #export
   const textExport = impMod.exports.find((exp) => {
     fromImport = exp.importing?.find((i) => i.name === name);
     return !!fromImport;
   });
+
   // find the export for the importing
   const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp) return;
