@@ -1,16 +1,16 @@
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
-import { parseModule, TextModule } from "./ParseModule.js";
-import { dlog } from "berry-pretty";
+import { TextModule, parseModule } from "./ParseModule.js";
 import {
   ExportRef,
   FoundRef,
   GeneratorRef,
   LocalRef,
   PartialRef,
-  refName,
   TextRef,
+  refName,
+  textRefs,
   traverseRefs,
 } from "./TraverseRefs.js";
 import {
@@ -41,33 +41,30 @@ export function linkWgsl(
   const renames = uniquify(refs, decls); // construct rename map to make struct and fn names unique at the top level
 
   // mix the merge refs into the import/export refs
-  const { rootMergeRefs, loadRefs } = prepMergeRefs(refs, srcModule);
+  const { loadRefs, rmRootOrig } = prepRefsMergeAndLoad(refs, srcModule);
 
   // extract export texts, rewriting via rename map and exp/imp args
   const rewriting: Rewriting = { renames, extParams, registry };
   const importedText = extractTexts(loadRefs, rewriting);
 
-  // construct merge texts for #importMerge
-  const root = mergeRootStructs(rootMergeRefs, rewriting);
-  const { mergedText, origElems } = root;
-
-  /* edit src to remove: 
+  /* edit orig src to remove: 
       . #import and #module statements (to not cause errors in wgsl parsing if they're not commented out)
-      . original structs for which we've created new merged structs
+      . structs for which we've created new merged structs (we'll append the merged versions at the end)
   */
   const templateElem = template ? [template] : [];
   const slicedSrc = rmElems(preppedSrc, [
-    ...origElems,
+    ...rmRootOrig,
     ...srcModule.imports,
     ...templateElem,
   ]);
 
   const templatedSrc = applyTemplate(slicedSrc, srcModule, extParams, registry);
 
-  return [templatedSrc, mergedText, importedText].join("\n\n");
+  return [templatedSrc, importedText].join("\n\n");
 }
 
-/** find references to structs and fns we might import */
+/** find references to structs and fns we might import
+ * (note that local functions are not listed unless they */
 function findReferences(
   srcModule: TextModule,
   registry: ModuleRegistry
@@ -154,26 +151,44 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
 }
 
 interface MergeAndNonMerge {
-  rootMergeRefs: ExportRef[];
   loadRefs: FoundRef[];
+  rmRootOrig: AbstractElem[];
 }
 
-/** sort through found refs, and attach merge refs to normal export refs
- * so that the export can be rewritten with the merged struct members
- * return the set of export refs and the merge refs for later processing
+// function refsToString(refs: FoundRef[]): string {
+//   return refs.map((r) => refName(r)).join(", ");
+// }
+
+/**
+ * Perpare the refs found in the traverse for loading:
+ * . sort through found refs, and attach merge refs to normal export refs
+ *   so that the export can be rewritten with the merged struct members
+ * . filter out any local refs to the root src
+ *   (they don't need to be loaded, they're already in the src)
+ *
+ * @return the set of refs that will be loaded, and the original
+ *  root elements that will be excised from the source
  */
-function prepMergeRefs(
+function prepRefsMergeAndLoad(
   refs: FoundRef[],
   rootModule: TextModule
 ): MergeAndNonMerge {
-  const { localRefs, mergeRefs, nonMergeRefs } = partitionRefTypes(refs);
+  const { localRefs, generatorRefs, mergeRefs, nonMergeRefs } =
+    partitionRefTypes(refs);
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
-  const loadRefs = [...localRefs, ...expRefs];
+
+  // rm refs to local text in root module from the local refs found in the traverse
+  const localTextRefs = textRefs(localRefs);
+  const rootNames = localTextRefs.map((r) => r.elem.name);
+  const localRefsToLoad = localRefs.filter(
+    (r) => !rootNames.includes(r.elem.name) || r.expMod !== rootModule
+  );
 
   // create refs for the root module in the same form as module refs
   const rawRootMerges = mergeRefs.filter(
     (r) => r.fromRef.expMod === rootModule
   );
+
   const byElem = groupBy(rawRootMerges, (r) => refName(r));
   const rootMergeRefs = [...byElem.entries()].flatMap(([, merges]) => {
     const fromRef = merges[0].fromRef as TextRef;
@@ -182,7 +197,25 @@ function prepMergeRefs(
     return combined;
   });
 
-  return { rootMergeRefs, loadRefs };
+  const loadRefs = [
+    ...localRefsToLoad,
+    ...generatorRefs,
+    ...expRefs,
+    ...rootMergeRefs,
+  ];
+
+  const rmRootOrig = rootMergeRefs.map((r) => (r.fromRef as TextRef).elem);
+
+  // dlog({
+  //   localRefs: refsToString(localRefs),
+  //   localRefsToLoad: refsToString(localRefsToLoad),
+  //   mergeRefs: refsToString(mergeRefs),
+  //   expRefs: refsToString(expRefs),
+  //   rootMergeRefs: refsToString(rootMergeRefs),
+  //   loadRefs: refsToString(loadRefs),
+  // });
+
+  return { rmRootOrig, loadRefs };
 }
 
 /** combine export refs with any merge refs for the same element */
@@ -219,31 +252,32 @@ function combineMergeRefs(
 
 interface RefTypes {
   mergeRefs: ExportRef[];
+  generatorRefs: GeneratorRef[];
   nonMergeRefs: ExportRef[];
   localRefs: LocalRef[];
 }
 
+/** separate refs into local, gen, merge, and non-merge refs */
 function partitionRefTypes(refs: FoundRef[]): RefTypes {
-  const [exp, local] = partition(refs, (r) => r.kind === "exp");
-  const exportRefs = exp as ExportRef[];
+  const exp = refs.filter((r) => r.kind === "exp") as ExportRef[];
+  const local = refs.filter((r) => r.kind === "local") as LocalRef[];
+  const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
-    exportRefs,
+    exp,
     (r) => r.fromImport.kind === "importMerge"
   );
 
   return {
-    mergeRefs: merge as ExportRef[],
-    nonMergeRefs: nonMerge as ExportRef[],
-    localRefs: local as LocalRef[],
+    generatorRefs: gen,
+    mergeRefs: merge,
+    nonMergeRefs: nonMerge,
+    localRefs: local,
   };
 }
 
 /** create a synthetic ExportRef so we can treat importMerge on root structs
  * the same as importMerge on exported structs */
-function syntheticRootExp(
-  rootModule: TextModule,
-  fromRef: TextRef
-): ExportRef {
+function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
   const exp: ExportRef = {
     kind: "exp",
     elem: fromRef.elem as StructElem | FnElem,
@@ -258,6 +292,7 @@ function syntheticRootExp(
   return exp;
 }
 
+/** load exported text for an import */
 function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
@@ -295,6 +330,7 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
   return name;
 }
 
+/** load a struct text, mixing in any elements from #importMerge */
 function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
   if (!r.mergeRefs || !r.mergeRefs.length)
@@ -302,9 +338,10 @@ function loadStruct(r: ExportRef, rewriting: Rewriting): string {
 
   const structElem = r.elem as StructElem;
 
-  const rootMembers = structElem.members?.map((m) =>
-    loadElemText(m, r.expMod, r.expImpArgs, rewriting)
-  );
+  const rootMembers =
+    structElem.members?.map((m) => {
+      return loadElemText(m, r.expMod, r.expImpArgs, rewriting);
+    }) ?? [];
 
   const newMembers = r.mergeRefs?.flatMap((merge) => {
     const mergeStruct = merge.elem as StructElem;
@@ -333,21 +370,6 @@ function refExpImp(
     }
     return [exp, imp];
   });
-}
-
-interface MergedText {
-  mergedText: string;
-  origElems: AbstractElem[];
-}
-
-/** re-write root level importMerge structs with members inserted from imported struct */
-function mergeRootStructs(refs: ExportRef[], rewriting: Rewriting): MergedText {
-  const texts = refs.map((r) => loadStruct(r, rewriting));
-  const origElems = refs.map((r) => (r.fromRef as TextRef).elem);
-  return {
-    mergedText: texts.join("\n\n"),
-    origElems,
-  };
 }
 
 /** rewrite prepped src with elements removed */
