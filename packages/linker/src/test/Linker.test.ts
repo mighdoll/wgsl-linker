@@ -2,7 +2,6 @@ import { expect, test } from "vitest";
 import { linkWgsl } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
-import { simpleTemplate } from "../templates/SimpleTemplate.js";
 
 test("simple #import", () => {
   const myModule = `
@@ -663,7 +662,7 @@ test("import with simple template", () => {
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry(myModule);
-  registry.registerTemplate(simpleTemplate);
+  registry.registerTemplate(replaceTemplate);
   const linked = linkWgsl(src, registry, { WORKGROUP_SIZE: "128" });
   expect(linked).includes("step < 128");
 });
@@ -880,38 +879,27 @@ test("#import conficted code gen fn", () => {
 //   expect(linked).contains("fn log(logVar: i32) {}");
 // });
 
-// test("external param applied to template", () => {
-//   const module1 = `
-//     #template replacer
-//     #export(threads)
-//     fn foo() {
-//       for (var step = 0; step < 4; step++) { //#replace 4=threads
-//       }
-//     }
-//   `;
-//   const src = `
-//     #import foo(workgroupThreads)
-//     foo();
-//   `;
-//   const registry = new ModuleRegistry(module1);
-//   registry.registerTemplate(replacerTemplate);
-//   const params = { workgroupThreads: 128 };
-//   const linked = linkWgsl(src, registry, params);
-//   expect(linked).includes("step < 128");
-// });
+test.only("external param applied to template", () => {
+  const module1 = `
+    #template replace
 
-// test("#endExport", () => {
-//   const module1 = `
-//     struct Foo {
-//     //  #export field
-//       sum: u32;
-//     // #endExport
-//     }`;
-//   const src = `
-//     struct MyStruct {
-//       // #import field
-//     }`;
-//   const registry = new ModuleRegistry(module1);
-//   const linked = linkWgsl(src, registry);
-//   expect(linked).toMatchSnapshot();
-// });
+    #export(threads)
+    fn foo() {
+      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      }
+    }
+  `;
+  const src = `
+    #import foo(workgroupThreads)
+
+    fn main() {
+      foo();
+    }
+  `;
+  const registry = new ModuleRegistry(module1);
+  registry.registerTemplate(replaceTemplate);
+  const params = { workgroupThreads: 128 };
+  const linked = linkWgsl(src, registry, params);
+  console.log(linked);
+  expect(linked).includes("step < 128");
+});
