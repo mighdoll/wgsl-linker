@@ -138,11 +138,43 @@ test("srcLog with srcMap", () => {
   _withBaseLogger(log, () => {
     srcLog(sourceMap, [3, 6], "found:");
   });
-  console.log(logged());
 
   expect(logged()).toMatchInlineSnapshot(`
     "found:
       1234   Ln 3
       ^  ^"
+  `);
+});
+
+test("unterminated #if", () => {
+  const src = `
+  #if foo
+    // bar
+  `;
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    processConditionals(src, {});
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "unmatched #if/#else
+      #if foo   Ln 2
+      ^"
+  `);
+});
+
+test("unterminated #else", () => {
+  const src = `
+  #if foo
+  #else
+    // bar
+  `;
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    processConditionals(src, {});
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "unmatched #if/#else
+      #else   Ln 3
+      ^"
   `);
 });

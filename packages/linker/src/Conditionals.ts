@@ -16,6 +16,7 @@ import {
   resultLog,
   seq,
   setTraceName,
+  srcLog,
   tokenMatcher,
   tokenSkipSet,
   tracing,
@@ -23,6 +24,7 @@ import {
 import { directive, eol } from "./MatchWgslD.js";
 import { ParseState } from "./ParseWgslD.js";
 import { SrcMap, SrcMapEntry } from "mini-parse";
+import { dlog } from "berry-pretty";
 
 export const conditionalsTokens = tokenMatcher(
   {
@@ -43,19 +45,19 @@ const ifDirective: Parser<any> = seq(
     opt("!").named("invert"),
     req(kind(conditionalsTokens.word).named("name")),
     eolf
-  ).map((r) => {
-    // extract args
-    const ifArg = r.named["name"]?.[0] as string;
-    const invert = r.named["invert"]?.[0] === "!";
+  )
+).map((r) => {
+  // extract args
+  const ifArg = r.named["name"]?.[0] as string;
+  const invert = r.named["invert"]?.[0] === "!";
 
-    // lookup whether #if arg is truthy or not in paramsa, and invert for ! prefix
-    const { params } = r.app.state;
-    const arg = !!params[ifArg];
-    const truthy = invert ? !arg : arg;
+  // lookup whether #if arg is truthy or not in paramsa, and invert for ! prefix
+  const { params } = r.app.state;
+  const arg = !!params[ifArg];
+  const truthy = invert ? !arg : arg;
 
-    pushIfState(r, truthy);
-  })
-);
+  pushIfState(r, truthy);
+});
 
 const elseDirective = seq("#else", eolf).map((r) => {
   const oldTruth = popIfState(r);
@@ -90,29 +92,21 @@ const line = tokenSkipSet(null, regularLine);
 const srcLines = seq(repeat(or(directiveLine, line)), eof());
 
 function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
-  return !r.app.context.ifStack.every((truthy) => truthy);
+  const ifStack = r.app.state.ifStack as IfStackElem[];
+  return !ifStack.every(({ truthy }) => truthy);
 }
 
 function pushIfState<T>(
   r: ExtendedResult<T, ParseState>,
   truthy: boolean
 ): void {
-  const origContext = r.app.context;
-  const ifStack = [...origContext.ifStack, truthy]; // push truthy onto ifStack
-  r.app.context = { ...origContext, ifStack }; // revise app context with new ifStack
+  r.app.state.ifStack.push({ truthy, pos: r });
 }
 
 function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
-  const origContext = r.app.context;
-
-  // pop element from stack
-  const ifStack = [...origContext.ifStack];
+  const ifStack = r.app.state.ifStack as IfStackElem[];
   const result = ifStack.pop();
-
-  // revise app context with new ifStack
-  r.app.context = { ...origContext, ifStack };
-
-  return result;
+  return result?.truthy;
 }
 
 function pushLine(r: ExtendedResult<any>): void {
@@ -135,6 +129,11 @@ export interface PreppedSrc {
   srcMap: SrcMap;
 }
 
+interface IfStackElem {
+  truthy: boolean;
+  pos: { start: number; end: number };
+}
+
 /** preprocess a src string to handle #if #else #endif, etc. */
 export function processConditionals(
   src: string,
@@ -142,14 +141,20 @@ export function processConditionals(
 ): PreppedSrc {
   const lines: string[] = [];
   const srcMapEntries: SrcMapEntry[] = [];
+  const ifStack: IfStackElem[] = [];
   srcLines.parse({
     lexer: matchingLexer(src, conditionalsTokens),
     app: {
-      context: { ifStack: [] },
-      state: { lines, srcMapEntries, destLength: 0, params },
+      context: {},
+      state: { ifStack, lines, srcMapEntries, destLength: 0, params },
     },
     maxParseCount: 1000,
   });
+  if (ifStack.length > 0) {
+    const { pos } = ifStack.slice(-1)[0];
+    srcLog(src, [pos.start, pos.end], "unmatched #if/#else");
+  }
+
   const text = lines.join("");
   const srcMap = new SrcMap(text);
   srcMap.addEntries(srcMapEntries);
