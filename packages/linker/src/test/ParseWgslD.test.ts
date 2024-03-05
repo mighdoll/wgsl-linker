@@ -23,6 +23,7 @@ import {
   TemplateElem,
   VarElem,
 } from "../AbstractElems.js";
+import { argsTokens, mainTokens } from "../MatchWgslD.js";
 import {
   directive,
   importing,
@@ -42,7 +43,6 @@ import {
   structDecl,
   typeSpecifier,
 } from "../ParseWgslD.js";
-import { argsTokens, mainTokens } from "../MatchWgslD.js";
 
 function testAppParse<T>(
   parser: Parser<T>,
