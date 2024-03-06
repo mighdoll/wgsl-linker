@@ -221,11 +221,11 @@ export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
  * If the parser fails, return false and don't advance the input. Returning false
  * indicates a successful parse, so combinators like seq() will succeed.
  */
-export function opt(stage: string): Parser<string | boolean>;
-export function opt<T>(stage: Parser<T>): Parser<T | boolean>;
-export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | undefined>;
-export function opt<T>(stage: CombinatorArg<T>): Parser<T | string | undefined> {
-  const p = parserArg(stage);
+export function opt(arg: string): Parser<string | boolean>;
+export function opt<T>(p: Parser<T>): Parser<T | boolean>;
+export function opt<T>(arg: CombinatorArg<T>): Parser<T | string | undefined>;
+export function opt<T>(arg: CombinatorArg<T>): Parser<T | string | undefined> {
+  const p = parserArg(arg);
   return parser(
     "opt",
     (state: ParserContext): OptParserResult<T | string | undefined> => {
