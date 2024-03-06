@@ -1,7 +1,6 @@
 import {
   Parser,
   anyNot,
-  enableTracing,
   eof,
   kind,
   makeEolf,
