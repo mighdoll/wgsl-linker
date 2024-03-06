@@ -16,6 +16,13 @@ export interface GeneratorExport {
   generate: CodeGenFn;
 }
 
+export interface RegisterGenerator {
+  name: string;
+  moduleName: string;
+  generate: CodeGenFn;
+  args?: string[];
+}
+
 export type ApplyTemplateFn = (
   src: string,
   params: Record<string, any> // combination of external params and imp/exp params
@@ -74,6 +81,27 @@ export class ModuleRegistry {
   ): void {
     const m = parseModule(src, params, moduleName);
     this.addTextModule(m);
+  }
+
+  /** register a function that generates code on demand */
+  registerGenerator2(reg:RegisterGenerator):void {
+    const exp: GeneratorExport = {
+      name: reg.name,
+      args: reg.args ?? [],
+      generate: reg.generate,
+    };
+    const module: GeneratorModule = {
+      kind: "generator",
+      name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
+      exports: [exp],
+    };
+    const moduleExport: GeneratorModuleExport = {
+      module,
+      export: exp,
+      kind: "function",
+    };
+    this.addModuleExport(moduleExport);
+
   }
 
   /** register a function that generates code on demand */
