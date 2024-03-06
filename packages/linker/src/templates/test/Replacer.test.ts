@@ -1,5 +1,7 @@
 import { expect, test } from "vitest";
 import { replacer } from "../Replacer.js";
+import { dlog } from "berry-pretty";
+import { expectNoLogErr } from "mini-parse/test-util";
 
 test("parse blank line", () => {
   const src = "";
@@ -29,4 +31,12 @@ test("parse line w/ quoted replace", () => {
   const src = 'const b; // #replace "const b"=decl';
   const result = replacer(src, { decl: "var a" });
   expect(result).includes("var a;");
+});
+
+test("multiline blank", () => {
+  const src = ` 
+  `;
+  expectNoLogErr(() => {
+    replacer(src, {});
+  });
 });

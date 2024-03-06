@@ -1,6 +1,7 @@
 import {
   Parser,
   anyNot,
+  enableTracing,
   eof,
   kind,
   makeEolf,
@@ -11,7 +12,9 @@ import {
   repeat,
   seq,
   setTraceName,
+  srcLog,
   tokenMatcher,
+  tokenSkipSet,
   tracing,
 } from "mini-parse";
 import { Template } from "wgsl-linker";
@@ -36,6 +39,8 @@ export const replaceTokens = tokenMatcher(
   "replace"
 );
 
+const eolf = makeEolf(replaceTokens, replaceTokens.ws);
+
 const replaceValue = or(
   kind(replaceTokens.word),
   kind(replaceTokens.quote).map((r) => r.value.slice(1, -1))
@@ -53,17 +58,33 @@ const replaceClause = seq(
   repeat(nameValue), 
 )
 
-const eolf = makeEolf(replaceTokens, replaceTokens.ws);
+const notReplace = anyNot(or(replaceClause, "\n"));
 
-const lineStart = seq(anyNot(replaceClause), repeat(anyNot(replaceClause))).map(
-  (r) => r.src.slice(r.start, r.end)
+const lineStart = seq(notReplace, repeat(notReplace)).map((r) =>
+  r.src.slice(r.start, r.end)
 );
 
-const line = seq(lineStart.named("line"), opt(replaceClause), eolf).map((r) => {
+const lineWithOptReplace = seq(
+  lineStart.named("line"),
+  opt(replaceClause),
+  eolf
+).map((r) => {
   const line = r.named.line[0];
   const patched = patchLine(r.ctx, line, r.named.nameValue ?? []);
   r.app.state.push(patched);
 });
+
+const ws = kind(replaceTokens.ws);
+
+// prettier-ignore
+const blankLine = tokenSkipSet(null, 
+  or(
+    seq(ws, eolf),  // match eof only if there is ws, lest we loop on eof
+    seq(opt(ws), "\n")
+  )
+);
+
+const line = or(blankLine, lineWithOptReplace);
 
 const root = seq(repeat(line), eof());
 
@@ -74,18 +95,23 @@ export function replacer(src: string, params: Record<string, any>): string {
   root.parse({ lexer, app }) ||
     srcLog(src, lexer.position(), "Replacer: parse failed");
   // const r = root.parse({ lexer, app });
+  // if (!r) {
+  //   throw new Error("Replacer: parse failed");
+  // }
 
   return lines.join("\n");
 }
 
-// enableTracing();
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
+    blankLine,
     replaceValue,
     nameValue,
     replaceClause,
-    lineStart,
+    notReplace,
+    lineWithOptReplace,
     line,
+    lineStart, // TODO tracing label doesn't work
     root,
   };
 
