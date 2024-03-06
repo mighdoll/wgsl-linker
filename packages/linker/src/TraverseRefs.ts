@@ -432,9 +432,19 @@ const stdFns = `bitcast all any select arrayLength
   /\s+/
 );
 
-const stdTypes = `array bool f16 f32 i32 
+const stdTypes = `array atomic bool f16 f32 i32 
   mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 matrx3 mat4x4
-  u32 vec2 vec3 vec4`.split(/\s+/);
+  u32 vec2 vec3 vec4 ptr
+  texture_1d texture_2d texture_2d_array texture_3d 
+  texture_cube texture_cube_array
+  texture_multisampled texture_depth_multisampled_2d
+  texture_external
+  texture_storage_1d texture_storage_2d texture_storage_2d_array
+  texture_storage_3d
+  texture_depth_2d texture_depth_2d_array texture_depth_cube
+  texture_depth_cube_array
+  sampler sampler_comparison
+  `.split(/\s+/);
 
 /** return true if the name is for a built in type (not a user struct) */
 function stdType(name: string): boolean {
