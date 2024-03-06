@@ -424,11 +424,14 @@ const stdFns = `bitcast all any select arrayLength
   textureSample textureSampleBias textureSampleCompare textureSampleCompareLevel
   textureSampleGrad textureSampleLevel textureSampleBaseClampToEdge
   textureStore
+  atomicLoad atomicStore atomicAdd atomicSub atomicMax atomicMin
+  atomicOr atomicXor atomicExchange atomicCompareExchangeWeak
   pack4x8snorm pack4x8unorm pack4xI8 pack4xU8 pack4xI8Clamp pack4xU8Clamp
   pack2x16snorm pack2x16unorm pack2x16float
   unpack4x8snorm unpack4x8unorm unpack4xI8 unpack4xU8 
   unpack2x16snorm unpack2x16unorm unpack2x16float
-  storageBarrier textureBarrier workgroupBarrier workgroupUniformLoad`.split(
+  storageBarrier textureBarrier workgroupBarrier workgroupUniformLoad
+  `.split(
   /\s+/
 );
 
