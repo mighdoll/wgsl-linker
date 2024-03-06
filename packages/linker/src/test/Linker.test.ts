@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { linkWgsl } from "../Linker.js";
-import { ModuleRegistry } from "../ModuleRegistry.js";
+import { ModuleRegistry, RegisterGenerator } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
 import { logCatch } from "mini-parse/test-util";
@@ -905,6 +905,34 @@ test("external param applied to template", () => {
   const linked = linkWgsl(src, registry, params);
   expect(linked).includes("step < 128");
 });
+
+test("external param applied to generator", () => {
+  const src = `
+    #import foo(workgroupThreads)
+
+    fn main() {
+      foo();
+    }
+  `;
+  function generate(_name:string, params: Record<string, string>): string {
+    return `fn foo() { for (var step = 0; step < ${params.threads}; step++) { } }`;
+  }
+  const gen: RegisterGenerator = {
+    name:"foo",
+    args:["threads"],
+    generate,
+    moduleName: "test.module"
+  }
+  
+  const registry = new ModuleRegistry();
+  registry.registerTemplate(replaceTemplate);
+  registry.registerGenerator2(gen);
+  const params = { workgroupThreads: 128 };
+  const linked = linkWgsl(src, registry, params);
+  console.log("linked", linked);
+  expect(linked).includes("step < 128");
+});
+
 
 test("warn on missing template", () => {
   const src = `
