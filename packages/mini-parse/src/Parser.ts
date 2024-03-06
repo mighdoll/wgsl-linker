@@ -255,7 +255,6 @@ function runParser<T>(
   context._parseCount = _parseCount + 1;
   if (maxParseCount && _parseCount > maxParseCount) {
     srcLog(lexer.src, lexer.position(), "infinite loop? ", p.debugName);
-    console.log(lexer.src);
     return null;
   }
 
@@ -333,7 +332,7 @@ type ParserMapFn<T, U> = (results: ExtendedResult<T>) => U | null;
 
 /** return a parser that maps the current results */
 function map<T, U>(p: Parser<T>, fn: ParserMapFn<T, U>): Parser<U> {
-  return parser("map", (ctx: ParserContext): OptParserResult<U> => {
+  return parser(`map`, (ctx: ParserContext): OptParserResult<U> => {
     const extended = runExtended(ctx, p);
     if (!extended) return null;
 
