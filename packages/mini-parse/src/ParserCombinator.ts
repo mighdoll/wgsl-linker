@@ -274,10 +274,9 @@ export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
 /** match zero or more instances of a parser */
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
-export function repeat<T>(stage: CombinatorArg<T>): Parser<(T | string)[]> {
+export function repeat<T>(stage: CombinatorArg<T>): Parser<T[] | string[]> {
   return parser("repeat", repeatWhileFilter(stage));
 }
-
 type ResultFilterFn<T> = (
   result: ExtendedResult<T | string>
 ) => boolean | undefined;
@@ -292,9 +291,9 @@ export function repeatWhile<T>(
 function repeatWhileFilter<T>(
   arg: CombinatorArg<T>,
   filterFn: ResultFilterFn<T> = () => true
-): (ctx: ParserContext) => OptParserResult<(T | string)[]> {
+): (ctx: ParserContext) => OptParserResult<T[] | string[]> {
   const p = parserArg(arg);
-  return (ctx: ParserContext): OptParserResult<(T | string)[]> => {
+  return (ctx: ParserContext): OptParserResult<T[] | string[]> => {
     const values: (T | string)[] = [];
     let results = {};
     for (;;) {
@@ -306,7 +305,7 @@ function repeatWhileFilter<T>(
         results = mergeNamed(results, result.named);
       } else {
         // always return succcess
-        return { value: values, named: results };
+        return { value: values as T[] | string[], named: results };
       }
     }
   };
