@@ -34,7 +34,7 @@ So you can continue to use static wgsl tools like code formatters and wgsl-analy
 by simply prefixing the directives with `// `.
 
 ### Other Features
-- The library is small, currently about 8kb (compressed). 
+- The library is small, currently about 9kb (compressed). 
 Call `linkWgsl()` at runtime to handle dynamic situations, 
 and without needing to add any new steps into your build process.
 
