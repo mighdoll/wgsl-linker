@@ -8,7 +8,6 @@ export interface SrcMapEntry {
   destEnd: number;
 }
 
-/** TODO many src strings mapping to one dest string.. */
 export class SrcMap {
   entries: SrcMapEntry[] = [];
   dest: string;
