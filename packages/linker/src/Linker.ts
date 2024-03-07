@@ -297,11 +297,11 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
           refLog(r, "missing generator", r.name);
           return "//?";
         }
+        const { extParams, renames } = rewriting;
 
-        const fnName = generatedFnName(r, rewriting.renames);
-        const expImpEntries = refExpImp(r, rewriting.extParams);
-        const expImp = Object.fromEntries(expImpEntries);
-        const params = { ...expImp, ...rewriting.extParams };
+        const fnName = generatedFnName(r, renames);
+        const expImpEntries = refExpImp(r, extParams);
+        const params = expImpToParams(expImpEntries, extParams);
 
         const text = genExp?.generate(fnName, params);
         return text;
@@ -397,16 +397,19 @@ function loadModuleSlice(
 ): string {
   const { extParams, registry } = rewriting;
   const slice = mod.preppedSrc.slice(start, end);
-  const impExpParams = Object.fromEntries(replaces);
 
-  const importWithExt = mapForward(impExpParams, extParams);
-  const params = { ...extParams, ...importWithExt };
+  const params = expImpToParams(replaces, extParams);
   const templated = applyTemplate(slice, mod, params, registry);
-  mapForward(extParams, params);
   const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
 
   const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
   return replaceWords(templated, rewrite);
+}
+
+function expImpToParams(expImpEntries:[string,string][], extParams: Record<string, string>): Record<string, string> {
+  const expImp = Object.fromEntries(expImpEntries);
+  const expImpExt = mapForward(expImp, extParams);
+  return { ...extParams, ...expImpExt };
 }
 
 function applyTemplate(

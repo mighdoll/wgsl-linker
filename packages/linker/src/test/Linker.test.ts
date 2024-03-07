@@ -914,16 +914,19 @@ test("external param applied to generator", () => {
       foo();
     }
   `;
-  function generate(_name:string, params: Record<string, string>): string {
-    return `fn foo() { for (var step = 0; step < ${params.threads}; step++) { } }`;
+
+  /** expects a parameter named threads */
+  function generate(name: string, params: Record<string, string>): string {
+    return `fn ${name}() { for (var step = 0; step < ${params.threads}; step++) { } }`;
   }
+
   const gen: RegisterGenerator = {
-    name:"foo",
-    args:["threads"],
+    name: "foo",
+    args: ["threads"],
     generate,
-    moduleName: "test.module"
-  }
-  
+    moduleName: "test.module",
+  };
+
   const registry = new ModuleRegistry();
   registry.registerTemplate(replaceTemplate);
   registry.registerGenerator2(gen);
@@ -932,7 +935,6 @@ test("external param applied to generator", () => {
   console.log("linked", linked);
   expect(linked).includes("step < 128");
 });
-
 
 test("warn on missing template", () => {
   const src = `

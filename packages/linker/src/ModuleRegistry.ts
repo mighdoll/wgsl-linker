@@ -101,7 +101,6 @@ export class ModuleRegistry {
       kind: "function",
     };
     this.addModuleExport(moduleExport);
-
   }
 
   /** register a function that generates code on demand */
