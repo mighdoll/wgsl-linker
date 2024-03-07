@@ -1,16 +1,10 @@
-import { _withBaseLogger, or, preParse, repeat } from "mini-parse";
+import { _withBaseLogger, or, repeat } from "mini-parse";
 import { expectNoLogErr, logCatch } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
 import { FnElem, StructElem, VarElem } from "../AbstractElems.js";
-import { lineCommentOptDirective } from "../ParseDirective.js";
 import { filterElems } from "../ParseModule.js";
-import {
-  blockComment,
-  comment,
-  unknown,
-  wordNumArgs,
-} from "../ParseSupport.js";
+import { unknown, wordNumArgs } from "../ParseSupport.js";
 import {
   fnDecl,
   globalVar,
@@ -23,18 +17,6 @@ import { testAppParse } from "./TestUtil.js";
 test("parse empty string", () => {
   const parsed = parseWgslD("");
   expect(parsed).toMatchSnapshot();
-});
-
-test("lineComment parse // foo bar", () => {
-  const src = "// foo bar";
-  const { position } = testAppParse(lineCommentOptDirective, src);
-  expect(position).eq(src.length);
-});
-
-test("lineComment parse // foo bar \\n", () => {
-  const src = "// foo bar\n";
-  const { position } = testAppParse(lineCommentOptDirective, src);
-  expect(position).eq(src.length);
 });
 
 test("parse fn foo() { }", () => {
@@ -100,14 +82,6 @@ test("parse struct", () => {
   `);
 });
 
-test("parse fn with line comment", () => {
-  const src = `
-    fn binaryOp() { // binOpImpl
-    }`;
-  const parsed = parseWgslD(src);
-  expect(parsed).toMatchSnapshot();
-});
-
 test("parse @attribute before fn", () => {
   const src = `
     @compute 
@@ -120,20 +94,6 @@ test("parse @attribute before fn", () => {
 test("wordNumArgs parses (a, b, 1)", () => {
   const src = `(a, b, 1)`;
   const { parsed } = testAppParse(wordNumArgs, src);
-  expect(parsed?.value).toMatchSnapshot();
-});
-
-test("wordNumArgs parses (a, b, 1) with line comments everywhere", () => {
-  const src = `(
-    // aah
-    a, 
-    // boh
-    b, 
-    // oneness
-    1
-    // satsified
-    )`;
-  const { parsed } = testAppParse(preParse(comment, wordNumArgs), src);
   expect(parsed?.value).toMatchSnapshot();
 });
 
@@ -211,21 +171,6 @@ test("parse alias", () => {
   expectNoLogErr(() => {
     const parsed = parseWgslD(src);
     expect(parsed).toMatchSnapshot();
-  });
-});
-
-test("blockComment parses /* comment */", () => {
-  const src = "/* comment */";
-  expectNoLogErr(() => {
-    const { parsed } = testAppParse(blockComment, src);
-    expect(parsed).toMatchSnapshot();
-  });
-});
-
-test("skipBlockComment parses nested comment", () => {
-  const src = "/** comment1 /* comment2 */ */";
-  expectNoLogErr(() => {
-    testAppParse(blockComment, src);
   });
 });
 
@@ -324,27 +269,13 @@ test("parse for(;;) {} not as a fn call", () => {
   expect(fnElem.calls.length).eq(0);
 });
 
-test("eolf followed by comment", () => {
+test("eolf followed by blank line", () => {
   const src = `
     // #if typecheck
     // #endif
 
     // #export
     fn foo() { }
-  `;
-  expectNoLogErr(() => parseWgslD(src));
-});
-
-test("parse empty line comment", () => {
-  const src = `
-  var workgroupThreads= 4;                          // 
-  `;
-  expectNoLogErr(() => parseWgslD(src));
-});
-
-test("parse line comment with #replace", () => {
-  const src = ` 
-  const workgroupThreads= 4;                          // #replace 4=workgroupThreads
   `;
   expectNoLogErr(() => parseWgslD(src));
 });
