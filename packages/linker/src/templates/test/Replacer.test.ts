@@ -40,3 +40,12 @@ test("multiline blank", () => {
     replacer(src, {});
   });
 });
+
+test.only("internal spacing preserved", () => {
+  const src = ` 
+  ;`;
+  const result = replacer(src, {});
+  dlog({ src, result });
+  expect(result).eq(src);
+
+})
