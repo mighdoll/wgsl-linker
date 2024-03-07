@@ -376,7 +376,7 @@ export function tokenSkipSet<T>(
 ): Parser<T> {
   const ignoreSet = ignore ?? emptySet;
   return parser(
-    "tokenIgnore",
+    `tokenIgnore ${[...ignoreSet.values()]}`,
     (ctx: ParserContext): OptParserResult<T> =>
       ctx.lexer.withIgnore(ignoreSet, () => mainParser._run(ctx))
   );
