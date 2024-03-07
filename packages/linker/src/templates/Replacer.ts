@@ -10,8 +10,7 @@ import {
   seq,
   setTraceName,
   tokenMatcher,
-  tokenSkipSet,
-  tracing,
+  tracing
 } from "mini-parse";
 import { Template } from "wgsl-linker";
 import { patchLine } from "./PatchLine.js";
@@ -46,14 +45,9 @@ const nameValue = seq(replaceValue, "=", replaceValue)
   .map((r) => [r.value[0], r.value[2]])
   .named("nameValue");
 
-const skipWS = new Set([replaceTokens.ws]);
+const replaceClause = seq("//", "#replace", nameValue, repeat(nameValue));
 
-const replaceClause = tokenSkipSet(
-  skipWS,
-  seq("//", "#replace", nameValue, repeat(nameValue))
-);
-
-const notReplace = anyNot(or(replaceClause, "\n"));
+const notReplace = anyNot(replaceClause);
 
 const lineStart = seq(notReplace, repeat(notReplace)).map((r) =>
   r.src.slice(r.start, r.end)
