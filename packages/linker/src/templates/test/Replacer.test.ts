@@ -53,12 +53,10 @@ test("parse line w/ single replacement and following blank line", () => {
 
   ;
   `;
-  const expected= `var a = 128;
+  const expected = `var a = 128;
 
   ;
   `;
   const result = replacer(src, { workSize: 128 });
-  dlog({result});
-  dlog({expected});
-  expect(result).eq(expected)
+  expect(result).eq(expected);
 });
