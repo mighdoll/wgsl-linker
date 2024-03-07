@@ -84,7 +84,7 @@ export class ModuleRegistry {
   }
 
   /** register a function that generates code on demand */
-  registerGenerator2(reg:RegisterGenerator):void {
+  registerGenerator(reg:RegisterGenerator):void {
     const exp: GeneratorExport = {
       name: reg.name,
       args: reg.args ?? [],
@@ -93,31 +93,6 @@ export class ModuleRegistry {
     const module: GeneratorModule = {
       kind: "generator",
       name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
-      exports: [exp],
-    };
-    const moduleExport: GeneratorModuleExport = {
-      module,
-      export: exp,
-      kind: "function",
-    };
-    this.addModuleExport(moduleExport);
-  }
-
-  /** register a function that generates code on demand */
-  registerGenerator(
-    exportName: string,
-    fn: CodeGenFn,
-    params?: string[],
-    moduleName?: string
-  ): void {
-    const exp: GeneratorExport = {
-      name: exportName,
-      args: params ?? [],
-      generate: fn,
-    };
-    const module: GeneratorModule = {
-      kind: "generator",
-      name: moduleName ?? `funModule${unnamedCodeDex++}`,
       exports: [exp],
     };
     const moduleExport: GeneratorModuleExport = {
