@@ -49,13 +49,12 @@ const nameValue = seq(replaceValue, "=", replaceValue)
   .map((r) => [r.value[0], r.value[2]])
   .named("nameValue");
 
-// prettier-ignore
-const replaceClause = seq(
-  "//", 
-  "#replace", 
-  nameValue, 
-  repeat(nameValue), 
-)
+const skipWS = new Set([replaceTokens.ws]);
+
+const replaceClause = tokenSkipSet(
+  skipWS,
+  seq("//", "#replace", nameValue, repeat(nameValue))
+);
 
 const notReplace = anyNot(or(replaceClause, "\n"));
 
@@ -75,17 +74,17 @@ const lineWithOptReplace = seq(
 
 const ws = kind(replaceTokens.ws);
 
-// prettier-ignore
-const blankLine = tokenSkipSet(null, 
-  or(
-    seq(ws, eolf),  // match eof only if there is ws, lest we loop on eof
-    seq(opt(ws), "\n")
-  )
-);
+const blankLine = or(
+  seq(ws, eolf), // match eof only if there is ws, lest we loop on eof
+  seq(opt(ws), "\n")
+).map((r) => {
+  const blank = r.src.slice(r.start, r.end);
+  r.app.state.push(blank);
+});
 
 const line = or(blankLine, lineWithOptReplace);
 
-const root = seq(repeat(line), eof());
+const root = tokenSkipSet(null, seq(repeat(line), eof()));
 
 export function replacer(src: string, params: Record<string, any>): string {
   const lexer = matchingLexer(src, replaceTokens);
@@ -98,7 +97,7 @@ export function replacer(src: string, params: Record<string, any>): string {
   //   throw new Error("Replacer: parse failed");
   // }
 
-  return lines.join("\n");
+  return lines.join("");
 }
 
 if (tracing) {
