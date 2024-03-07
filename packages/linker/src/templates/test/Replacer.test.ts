@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { replacer } from "../Replacer.js";
 import { expectNoLogErr } from "mini-parse/test-util";
+import { dlog } from "berry-pretty";
 
 test("parse blank line", () => {
   const src = "";
@@ -16,6 +17,8 @@ test("parse line w/o replacement", () => {
 
 test("parse line w/ single replacement", () => {
   const src = "var a = 4; // #replace 4=workSize";
+  const result = replacer(src, { workSize: 128 });
+  expect(result).includes("var a = 128;");
 });
 
 test("parse line w/ multiple replacement", () => {
@@ -43,4 +46,19 @@ test("internal spacing preserved", () => {
   ;`;
   const result = replacer(src, {});
   expect(result).eq(src);
+});
+
+test("parse line w/ single replacement and following blank line", () => {
+  const src = `var a = 4; // #replace 4=workSize
+
+  ;
+  `;
+  const expected= `var a = 128;
+
+  ;
+  `;
+  const result = replacer(src, { workSize: 128 });
+  dlog({result});
+  dlog({expected});
+  expect(result).eq(expected)
 });
