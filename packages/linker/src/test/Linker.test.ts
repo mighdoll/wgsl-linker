@@ -776,71 +776,64 @@ test.skip("#import twice with different params", () => {
   expect(linked).includes("fn foo() { /** A **/ }");
 });
 
+const fooGenerator: RegisterGenerator = {
+  name: "foo",
+  moduleName: "test.generator",
+  generate: (fnName: string, params: Record<string, string>): string => {
+    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
+  },
+  args: ["name"],
+};
+
 test("#import from code generator", () => {
-  function generate(fnName: string, params: Record<string, string>): string {
-    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
-  }
-
-  const src = `
-    #import foo
-
-    fn main() { foo(); }
-  `;
-  const registry = new ModuleRegistry();
-  registry.registerGenerator("foo", generate);
-  const linked = linkWgsl(src, registry, { name: "bar" });
-  expect(linked).contains("barImpl");
-});
-
-test("#import as from code generator", () => {
-  function generate(fnName: string, params: Record<string, string>): string {
-    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
-  }
-  const src = `
-    #import foo as zip
-
-    fn main() { zip(); }
-  `;
-  const registry = new ModuleRegistry();
-  registry.registerGenerator("foo", generate);
-  const linked = linkWgsl(src, registry, { name: "bar" });
-  expect(linked).contains("fn zip()");
-});
-
-test("#import with arg from code generator", () => {
-  function generate(fnName: string, params: Record<string, string>): string {
-    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
-  }
   const src = `
     #import foo(bar)
 
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry();
-  registry.registerGenerator("foo", generate, ["name"]);
+  registry.registerGenerator2(fooGenerator);
+  const linked = linkWgsl(src, registry);
+  expect(linked).contains("barImpl");
+});
+
+test("#import as from code generator", () => {
+  const src = `
+    #import foo(bar) as zip
+
+    fn main() { zip(); }
+  `;
+  const registry = new ModuleRegistry();
+  registry.registerGenerator2(fooGenerator);
+  const linked = linkWgsl(src, registry);
+  expect(linked).contains("fn zip()");
+});
+
+test("#import with arg from code generator", () => {
+  const src = `
+    #import foo(bar)
+
+    fn main() { foo(); }
+  `;
+  const registry = new ModuleRegistry();
+  registry.registerGenerator2(fooGenerator);
   const linked = linkWgsl(src, registry);
   expect(linked).contains("barImpl");
 });
 
 test("#import with ext.arg from code generator", () => {
-  function generate(fnName: string, params: Record<string, string>): string {
-    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
-  }
   const src = `
     #import foo(ext.zee)
 
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry();
-  registry.registerGenerator("foo", generate, ["name"]);
+  registry.registerGenerator2(fooGenerator);
   const linked = linkWgsl(src, registry, { zee: "zog" });
   expect(linked).contains("zogImpl");
 });
 
 test("#import conficted code gen fn", () => {
-  function generate(fnName: string, params: Record<string, string>): string {
-    return `fn ${fnName}() { /* ${params.name}Impl */ }`;
-  }
   const src = `
     #import bar
     fn foo() { bar(); }
@@ -854,7 +847,7 @@ test("#import conficted code gen fn", () => {
   `;
 
   const registry = new ModuleRegistry(module0);
-  registry.registerGenerator("foo", generate, ["name"]);
+  registry.registerGenerator2(fooGenerator);
   const linked = linkWgsl(src, registry, { zee: "zog" });
   expect(linked).contains("booImpl");
   expect(linked).contains("fn foo0()");
