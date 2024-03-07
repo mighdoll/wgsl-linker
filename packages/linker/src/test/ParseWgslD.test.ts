@@ -1,34 +1,9 @@
-import {
-  Parser,
-  _withBaseLogger,
-  or,
-  preParse,
-  repeat,
-  tokens,
-} from "mini-parse";
-import {
-  TestParseResult,
-  expectNoLogErr,
-  logCatch,
-  testParse,
-} from "mini-parse/test-util";
+import { _withBaseLogger, or, preParse, repeat } from "mini-parse";
+import { expectNoLogErr, logCatch } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
-import {
-  AbstractElem,
-  FnElem,
-  ImportElem,
-  ModuleElem,
-  StructElem,
-  TemplateElem,
-  VarElem,
-} from "../AbstractElems.js";
-import { argsTokens, mainTokens } from "../MatchWgslD.js";
-import {
-  directive,
-  importing,
-  lineCommentOptDirective,
-} from "../ParseDirective.js";
+import { FnElem, StructElem, VarElem } from "../AbstractElems.js";
+import { lineCommentOptDirective } from "../ParseDirective.js";
 import { filterElems } from "../ParseModule.js";
 import {
   blockComment,
@@ -43,36 +18,10 @@ import {
   structDecl,
   typeSpecifier,
 } from "../ParseWgslD.js";
-
-function testAppParse<T>(
-  parser: Parser<T>,
-  src: string
-): TestParseResult<T, AbstractElem> {
-  return testParse(parser, src, mainTokens);
-}
+import { testAppParse } from "./TestUtil.js";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");
-  expect(parsed).toMatchSnapshot();
-});
-
-test("directive parses #export", () => {
-  const { appState } = testAppParse(directive, "#export");
-  expect(appState[0].kind).equals("export");
-});
-
-test("parse #export", () => {
-  const parsed = parseWgslD("#export");
-  expect(parsed[0].kind).equals("export");
-});
-
-test("parse #import foo", () => {
-  const parsed = parseWgslD("#import foo");
-  expect(parsed).toMatchSnapshot();
-});
-
-test("parse #import foo(a,b) as baz from bar", () => {
-  const parsed = parseWgslD("#import foo as baz from bar");
   expect(parsed).toMatchSnapshot();
 });
 
@@ -86,13 +35,6 @@ test("lineComment parse // foo bar \\n", () => {
   const src = "// foo bar\n";
   const { position } = testAppParse(lineCommentOptDirective, src);
   expect(position).eq(src.length);
-});
-
-test("lineComment parse // #export ", () => {
-  const src = "// #export ";
-  const { position, appState: app } = testParse(lineCommentOptDirective, src);
-  expect(position).eq(src.length);
-  expect(app).toMatchSnapshot();
 });
 
 test("parse fn foo() { }", () => {
@@ -164,104 +106,6 @@ test("parse fn with line comment", () => {
     }`;
   const parsed = parseWgslD(src);
   expect(parsed).toMatchSnapshot();
-});
-
-test("lineCommentOptDirective parses #export(foo) with trailing space", () => {
-  const src = `// #export (Elem)    `;
-  const result = testAppParse(lineCommentOptDirective, src);
-  expect(result.appState[0].kind).eq("export");
-});
-
-test("parse #export(foo) with trailing space", () => {
-  const src = `
-    // #export (Elem) 
-  `;
-
-  const parsed = parseWgslD(src);
-  expect(parsed).toMatchSnapshot();
-});
-
-// test("parse #if #endif", () => {
-//   const src = `
-//     #if foo
-//     fn f() { }
-//     #endif
-//     `;
-//   const parsed = parseWgslD(src, { foo: true });
-//   expect(parsed.length).eq(1);
-//   expect((parsed[0] as FnElem).name).eq("f");
-// });
-
-// test("parse // #if !foo", () => {
-//   const src = `
-//     // #if !foo
-//       fn f() { }
-//     // #endif
-//     `;
-//   const parsed = parseWgslD(src, { foo: false });
-//   expect((parsed[0] as FnElem).name).eq("f");
-// });
-
-// test("parse #if !foo (true)", () => {
-//   const src = `
-//     // #if !foo
-//       fn f() { }
-//     // #endif
-//     `;
-//   expectNoLogErr(() => {
-//     parseWgslD(src, { foo: true });
-//   });
-// });
-
-// test("parse #if !foo #else #endif", () => {
-//   const src = `
-//     // #if !foo
-//       fn f() { notfoo(); }
-//     // #else
-//       fn g() { foo(); }
-//     // #endif
-//     `;
-//   const parsed = parseWgslD(src, { foo: true });
-//   expect(parsed.length).eq(1);
-//   expect((parsed[0] as FnElem).name).eq("g");
-// });
-
-// test("parse nested #if", () => {
-//   const src = `
-//     #if foo
-
-//     #if bar
-//       fn f() { }
-//     #endif
-
-//     #if zap
-//       fn zap() { }
-//     #endif
-
-//       fn g() { }
-//     #endif
-//     `;
-//   expectNoLogErr(() => {
-//     const parsed = parseWgslD(src, { foo: true, zap: true });
-//     expect(parsed.length).eq(2);
-//     expect((parsed[0] as FnElem).name).eq("zap");
-//     expect((parsed[1] as FnElem).name).eq("g");
-//   });
-// });
-
-test("importing parses importing bar(A) fog(B)", () => {
-  const src = ` importing bar(A), fog(B)`;
-  const { parsed } = testAppParse(tokens(argsTokens, importing), src);
-  expect(parsed?.named.importing).toMatchSnapshot();
-});
-
-test("parse #export(A, B) importing bar(A)", () => {
-  const src = `
-    #export(A, B) importing bar(A)
-    fn foo(a:A, b:B) { bar(a); }
-  `;
-  const parsed = parseWgslD(src);
-  expect(parsed[0]).toMatchSnapshot();
 });
 
 test("parse @attribute before fn", () => {
@@ -396,19 +240,6 @@ test("unexpected token", () => {
   `);
 });
 
-test("#export w/o closing paren", () => {
-  const src = `#export (A
-    )
-    `;
-  const { log, logged } = logCatch();
-  _withBaseLogger(log, () => parseWgslD(src));
-  expect(logged()).toMatchInlineSnapshot(`
-    "expected text ')''
-    #export (A   Ln 1
-              ^"
-  `);
-});
-
 test("fnDecl parses fn with return type", () => {
   const src = `
     fn foo() -> MyType { }
@@ -481,45 +312,6 @@ test("parse type in <template> in global var", () => {
   expect(typeRefs[1].name).eq("MyStruct");
 });
 
-test("parse #importMerge", () => {
-  const src = `#importMerge Foo(a,b) as Bar from baz`;
-  const appState = parseWgslD(src);
-  expect(appState[0]).toMatchInlineSnapshot(`
-    {
-      "args": [
-        "a",
-        "b",
-      ],
-      "as": "Bar",
-      "end": 37,
-      "from": "baz",
-      "kind": "importMerge",
-      "name": "Foo",
-      "start": 0,
-    }
-  `);
-});
-
-test("parse #module foo.bar.ca", () => {
-  const src = `#module foo.bar.ca`;
-  const appState = parseWgslD(src);
-  expect(appState[0].kind).eq("module");
-  expect((appState[0] as ModuleElem).name).eq("foo.bar.ca");
-});
-
-test("parse import with numeric types", () => {
-  const nums = "1u 2.0F 0x010 -7.0 1e7".split(" ");
-  const src = `#import foo(${nums.join(",")})`;
-  const appState = parseWgslD(src);
-  expect((appState[0] as ImportElem).args).deep.eq(nums);
-});
-
-test("parse template", () => {
-  const src = `#template foo.cz/magic-strings`;
-  const appState = parseWgslD(src);
-  expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
-});
-
 test("parse for(;;) {} not as a fn call", () => {
   const src = `
     fn main() {
@@ -540,17 +332,6 @@ test("eolf followed by comment", () => {
     // #export
     fn foo() { }
   `;
-  expectNoLogErr(() => parseWgslD(src));
-});
-
-test.skip("#if inside struct", () => {
-  const src = `
-  struct Input { 
-  // #if typecheck 
-  // #endif
-  }`;
-
-  // parseWgslD(src);
   expectNoLogErr(() => parseWgslD(src));
 });
 
