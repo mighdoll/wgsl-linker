@@ -932,7 +932,6 @@ test("external param applied to generator", () => {
   registry.registerGenerator2(gen);
   const params = { workgroupThreads: 128 };
   const linked = linkWgsl(src, registry, params);
-  console.log("linked", linked);
   expect(linked).includes("step < 128");
 });
 
