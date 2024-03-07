@@ -1,17 +1,14 @@
 import {
   Parser,
   anyNot,
-  eof,
   kind,
   makeEolf,
   matchOneOf,
   matchingLexer,
-  opt,
   or,
   repeat,
   seq,
   setTraceName,
-  srcLog,
   tokenMatcher,
   tokenSkipSet,
   tracing,
@@ -62,55 +59,41 @@ const lineStart = seq(notReplace, repeat(notReplace)).map((r) =>
   r.src.slice(r.start, r.end)
 );
 
-const lineWithOptReplace = seq(
-  lineStart.named("line"),
-  opt(replaceClause),
+// prettier-ignore
+const lineWithReplace = seq(
+  lineStart.named("line"), 
+  replaceClause, 
   eolf
-).map((r) => {
-  const line = r.named.line[0];
-  const patched = patchLine(r.ctx, line, r.named.nameValue ?? []);
-  r.app.state.push(patched);
-});
-
-const ws = kind(replaceTokens.ws);
-
-const blankLine = or(
-  seq(ws, eolf), // match eof only if there is ws, lest we loop on eof
-  seq(opt(ws), "\n")
-).map((r) => {
-  const blank = r.src.slice(r.start, r.end);
-  r.app.state.push(blank);
-});
-
-const line = or(blankLine, lineWithOptReplace);
-
-const root = tokenSkipSet(null, seq(repeat(line), eof()));
+).map(
+  (r) => {
+    const line = r.named.line[0];
+    const patched = patchLine(r.ctx, line, r.named.nameValue ?? []);
+    return patched;
+  }
+);
 
 export function replacer(src: string, params: Record<string, any>): string {
-  const lexer = matchingLexer(src, replaceTokens);
-  const lines: string[] = [];
-  const app = { state: lines, context: params };
-  root.parse({ lexer, app }) ||
-    srcLog(src, lexer.position(), "Replacer: parse failed");
-  // const r = root.parse({ lexer, app });
-  // if (!r) {
-  //   throw new Error("Replacer: parse failed");
-  // }
+  const srcLines = src.split("\n");
 
-  return lines.join("");
+  const lines = srcLines.map((line) => {
+    const replaced = lineWithReplace.parse({
+      lexer: matchingLexer(line, replaceTokens),
+      app: { state: [], context: params },
+    });
+    return replaced?.value || line;
+  });
+
+  return lines.join("\n");
 }
 
 if (tracing) {
   const names: Record<string, Parser<unknown>> = {
-    blankLine,
     replaceValue,
     nameValue,
     replaceClause,
     notReplace,
-    lineWithOptReplace,
-    line,
+    lineWithReplace,
     lineStart, // TODO tracing label doesn't work
-    root,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
