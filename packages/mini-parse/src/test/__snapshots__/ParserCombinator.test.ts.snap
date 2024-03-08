@@ -23,7 +23,7 @@ exports[`opt() makes failing match ok 1`] = `
 {
   "named": {},
   "value": [
-    false,
+    undefined,
     "foo",
   ],
 }
