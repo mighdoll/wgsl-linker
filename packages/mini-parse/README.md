@@ -2,28 +2,27 @@
 
 ## Parser Features
 
-- Small code size makes **MiniParse** suitable for runtime embedding (< 4kb compressed).
 - **MiniParse** is a combinator library.
   You write a grammar by combining simple TypeScript
   functions like `or()`, `repeat()`, and `seq()`.
   It's just TypeScript so it's easy to mix with your existing code,
   IDE, test frameworks, etc.
 - **MiniParse** is a Parsing Expression Grammar (PEG) parser.
-  It parses top down, using recursive descent with backtracking.
-  Top down parsing is easy to understand.
+  Parsing is simple to understand, top down, using recursive descent with backtracking.
 - Parsers are modular - every grammar fragment is also a parser and can be tested and reused independently.
-- Extensive debug tracing for use while developing grammars is built in.
+- Small code size makes **MiniParse** suitable for runtime embedding (< 4kb compressed).
+- Extensive debug tracing for use while developing grammars.
   (Tracing is automatically removed from production builds).
 - Error reporting is included, with full line context displayed.
 
 ## Advanced Features
 
-- Swap lexers under parser control. This is handy for parsing quotes,
+- Swap lexers under parser control. Handy for parsing quotes,
   or for mixed language parsing (e.g. html in jsx).
 - Stack parsers to parse things that can appear almost anywhere in your grammar.
   Handy for things like nested comments, semantic comments (jsdoc), or annotations.
 - Named accumulators make it easy to collect parsing results from deeply nested sub parsers.
-- Mapped src logging can optionally reference to preprocessed src.
+- Mapped logging utilities are available for error reporting on preprocessed src.
 
 ## Parsing
 
