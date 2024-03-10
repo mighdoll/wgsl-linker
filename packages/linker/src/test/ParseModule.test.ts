@@ -33,7 +33,7 @@ test("match #extends", () => {
     }
   `;
   const module = parseModule(src, {}, "my.module");
-  const merges = module.structs[0].importMerges!;
+  const merges = module.structs[0].extendsElems!;
   expect(merges[0].name).eq("Foo");
   expect(merges[1].name).eq("Bar");
 });

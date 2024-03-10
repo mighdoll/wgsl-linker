@@ -15,7 +15,7 @@ import {
 import {
   ExportElem,
   ImportElem,
-  ImportMergeElem,
+  ExtendsElem,
   NamedElem,
 } from "./AbstractElems.js";
 import {
@@ -40,7 +40,7 @@ export const directiveArgs: Parser<string[]> =
   ).map((r) => r.value[1]);
 
 /** foo <(A,B)> <as boo> <from bar>  EOL */
-function importPhrase<T extends ImportElem | ImportMergeElem>(
+function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
 ): Parser<T> {
   const p = seq(
@@ -58,7 +58,7 @@ function importPhrase<T extends ImportElem | ImportMergeElem>(
 }
 
 const importElemPhrase = importPhrase<ImportElem>("import");
-const importMergeElemPhrase = importPhrase<ImportMergeElem>("importMerge");
+const importMergeElemPhrase = importPhrase<ExtendsElem>("extends");
 
 export const importing = seq(
   "importing",
@@ -76,13 +76,13 @@ const importDirective = seq(
   r.app.state.push(imp);
 });
 
-const importMergeSym = Symbol("importMerge");
+const importMergeSym = Symbol("extends");
 
 export const importMergeDirective = seq(
   "#extends",
   seq(importMergeElemPhrase.named(importMergeSym), eolf)
 ).map((r) => {
-  const imp: ImportMergeElem = r.named[importMergeSym][0];
+  const imp: ExtendsElem = r.named[importMergeSym][0];
   imp.start = r.start; // use start of #import, not import phrase
   r.app.state.push(imp);
 });

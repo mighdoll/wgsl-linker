@@ -3,7 +3,7 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
-  ImportMergeElem,
+  ExtendsElem,
   ModuleElem,
   StructElem,
   TemplateElem,
@@ -21,7 +21,7 @@ export interface TextModule {
   fns: FnElem[];
   vars: VarElem[];
   structs: StructElem[];
-  imports: (ImportElem | ImportMergeElem)[];
+  imports: (ImportElem | ExtendsElem)[];
   name: string;
   src: string;
   preppedSrc: string;
@@ -45,8 +45,8 @@ export function parseModule(
   const exports = findExports(parsed, srcMap);
   const fns = filterElems<FnElem>(parsed, "fn");
   const imports = parsed.filter(
-    (e) => e.kind === "import" || e.kind === "importMerge"
-  ) as (ImportElem | ImportMergeElem)[];
+    (e) => e.kind === "import" || e.kind === "extends"
+  ) as (ImportElem | ExtendsElem)[];
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];
@@ -77,7 +77,7 @@ function findExports(parsed: AbstractElem[], srcMap: SrcMap): TextExport[] {
     let next: AbstractElem | undefined;
     do {
       next = parsed[++i];
-    } while (next?.kind === "importMerge");
+    } while (next?.kind === "extends");
     if (elem.kind === "export") {
       if (next?.kind === "fn" || next?.kind === "struct") {
         results.push({ ...elem, ref: next });
@@ -91,15 +91,15 @@ function findExports(parsed: AbstractElem[], srcMap: SrcMap): TextExport[] {
 
 /** fill in importMerges field of structs */
 function matchMergeImports(parsed: AbstractElem[], srcMap: SrcMap): void {
-  const importMerges = findKind<ImportMergeElem>(parsed, "importMerge");
+  const importMerges = findKind<ExtendsElem>(parsed, "extends");
   importMerges.forEach(([mergeElem, i]) => {
     let next: AbstractElem | undefined;
     do {
       next = parsed[++i];
-    } while (next?.kind === "importMerge" || next?.kind === "export");
+    } while (next?.kind === "extends" || next?.kind === "export");
     if (next?.kind === "struct") {
-      next.importMerges = next.importMerges ?? [];
-      next.importMerges.push(mergeElem);
+      next.extendsElems = next.extendsElems ?? [];
+      next.extendsElems.push(mergeElem);
     } else {
       srcLog(srcMap, mergeElem.start, `#extends not followed by a struct`);
     }

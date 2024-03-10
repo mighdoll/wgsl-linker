@@ -252,7 +252,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
     exp,
-    (r) => r.fromImport.kind === "importMerge"
+    (r) => r.fromImport.kind === "extends"
   );
 
   return {

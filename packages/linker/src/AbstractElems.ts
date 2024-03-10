@@ -2,7 +2,7 @@
 
 export type AbstractElem =
   | ImportElem
-  | ImportMergeElem
+  | ExtendsElem
   | ExportElem
   | ModuleElem
   | TemplateElem
@@ -44,7 +44,7 @@ export interface StructElem extends AbstractElemBase {
   name: string;
   members?: StructMemberElem[];
   typeRefs: TypeRefElem[];
-  importMerges?: ImportMergeElem[];
+  extendsElems?: ExtendsElem[];
 }
 
 export interface StructMemberElem extends AbstractElemBase {
@@ -66,8 +66,8 @@ export interface ImportElem extends AbstractElemBase {
   from?: string;
 }
 
-export interface ImportMergeElem extends Omit<ImportElem, "kind"> {
-  kind: "importMerge";
+export interface ExtendsElem extends Omit<ImportElem, "kind"> {
+  kind: "extends";
   name: string;
   args?: string[];
   as?: string;

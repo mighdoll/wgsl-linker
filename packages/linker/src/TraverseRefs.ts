@@ -4,7 +4,7 @@ import {
   ExportElem,
   FnElem,
   ImportElem,
-  ImportMergeElem,
+  ExtendsElem,
   NamedElem,
   StructElem,
   TypeRefElem,
@@ -40,7 +40,7 @@ interface ExportRefBase {
   fromRef: FoundRef;
 
   /** import elem that resolved to this export */
-  fromImport: ImportElem | ImportMergeElem;
+  fromImport: ImportElem | ExtendsElem;
 
   /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
    * name might still be rewritten by global uniqueness remapping */
@@ -207,7 +207,7 @@ function importMergeRefs(
   mod: TextModule,
   registry: ModuleRegistry
 ): FoundRef[] {
-  const merges = elem.importMerges;
+  const merges = elem.extendsElems;
   if (!merges) return [];
   return merges.flatMap((merge) => {
     const foundRef = importRef(srcRef, merge.name, mod, registry);
@@ -264,7 +264,7 @@ function importRef(
 
 function matchImportExportArgs(
   impMod: TextModule | GeneratorModule,
-  imp: ImportElem | ImportMergeElem,
+  imp: ImportElem | ExtendsElem,
   expMod: TextModule | GeneratorModule,
   exp: ExportElem | GeneratorExport
 ): StringPairs {
@@ -378,7 +378,7 @@ function isDefined<T>(a: T | undefined): asserts a is T {
 }
 
 function matchingExport(
-  imp: ImportElem | ImportMergeElem | undefined,
+  imp: ImportElem | ExtendsElem | undefined,
   mod: TextModule,
   registry: ModuleRegistry
 ): ModuleExport | undefined {

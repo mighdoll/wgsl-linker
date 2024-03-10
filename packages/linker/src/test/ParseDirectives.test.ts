@@ -93,7 +93,7 @@ test("parse #extends", () => {
       "as": "Bar",
       "end": 33,
       "from": "baz",
-      "kind": "importMerge",
+      "kind": "extends",
       "name": "Foo",
       "start": 0,
     }
