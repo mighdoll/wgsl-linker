@@ -10,20 +10,20 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
 
 ### WGSL extensions
 
-- **#import** / **#export** - Combine functions and structs from other modules.
+- **#import** &ensp; **#export** &emsp; _Combine functions and structs from other modules._
 
   - import / export functionality is roughly similar to TypeScript / JavaScript.
     Linking is wgsl syntax aware, including import deduplication and token renaming.
     Internally, wgsl-linker works like a javascript module bundler.
 
-- **#import foo(arg, ...) / #export(arg, ...)** - Imports and exports can take parameters
+- **#import foo(arg, ...)** &ensp; **#export(arg, ...)** &emsp; _Imports and exports can take parameters_
   - Unlike JavaScript, imports and exports can take parameters.
     - Typically you'll use import parameters like you would use type parameters
       in TypesScript, to write generic functions that can be reused.
     ```
     #import workgroupReduce(Histogram) as reduceHistogram
     ```
-- **#if** / **#else** / **#endif** - compile differently depending on runtime variables.
+- **#if** &ensp; **#else** &ensp; **#endif**  &emsp; _Compile differently depending on runtime variables_
 
   - Preprocessing works on full lines, similarly to languages like C.
     **#if** clauses may nest.
@@ -31,28 +31,29 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
     `0`, `null`, and `undefined` are considered `false`.
     Negation is also allowed with a `!`, e.g. `#if !mySetting`.
 
-- **#template** - each module can specify its own string templating engine to tweak the wgsl with runtime variables.
+- **#template** &emsp; _Each module can specify its own string templating engine_
+   - Tweak the wgsl based on runtime variables you provide.
 
-- **#extends** - combine members from multiple structs.
+- **#extends** &emsp; _Combine members from multiple structs_
 
   - Use it wher you might use `extends` in TypesScript, to mix in member elements from
     a struct in another module. The syntax is like `#import`.
 
-- **#module** - organize exports semantically.
+- **#module** &emsp; _Organize exports semantically_
 
-- **wgsl syntax compatible** - The **wgsl-linker** will also parse directives that are in line comments.
+- **wgsl syntax compatible** &emsp; _The **wgsl-linker** will parse directives inside line comments_
 
-  - So you can continue to use static wgsl tools like code formatters and `wgsl-analyzer`
-    by simply prefixing the directives with `// `.  
-    e.g. if you use wgsl source tools, simply use `// #export` instead of `#export`.
+  - Continue to use static wgsl tools like code formatters and `wgsl-analyzer`
+    by simply prefixing the directives with `//`.  
+    e.g. use `// #export` instead of `#export`.
 
 ### Other Features
 
-- **Runtime Linking** - link at runtime rather than at build time if you prefer
+- **Runtime Linking** &emsp; _Link at runtime rather than at build time if you like_ 
 
   - Choose different wgsl modules depending on runtime reported detected gpu features, or based on user application settings.
   - Keep integration into web development easy - no need to add any new steps into your build process or IDE.
-  - To enable runtime linking scenarios, **wgsl-linker** is intentionally kept small, currently less than 10kb (compressed).
+  - To enable runtime linking scenarios, **wgsl-linker** is intentionally kept small, currently about 10kb (compressed).
 
 - **Code generation**
   - Typically write static wgsl (perhaps with some simple templates), but
@@ -144,10 +145,10 @@ with params provided by the importer.
 `#import name` import code, selected by export name, from any registered module.
 
 [This short import syntax is convenient for small/moderate size codebases.
-But perhaps we should disallow imports w/o module specifiers because it
-breaks module encapsulation.
-If a third module later changes to export a function with the same name, 
-then the original import will no longer work]
+But perhaps we should disallow imports w/o module specifiers... It
+breaks module encapsulation - 
+if a third module later changes to export a function with the same name, 
+then the original import will no longer work..]
 
 `#import name from moduleName` import code, selected by module and export name.
 
@@ -158,7 +159,19 @@ an export with parameters.
 
 #### Extends
 
-[TODO]
+`#extends` is roughly equivalent to TypeScript `extends` with an `import`'ed struct.
+
+Use `#extends` to merge fields into your struct from a struct that has been tagged for
+`#export` in another module.
+
+`#extends` clauses should be placed immediately before a struct. 
+
+`#extends name` import fields from the named struct, exported from any registere module.
+
+`#extends name from moduleName` import fields, selected by module and export name.
+
+Multiple `#extends` clauses may be attached to the same struct.
+
 
 #### Template
 
@@ -169,15 +182,15 @@ and runs prior to #export parameter string replacement.
 
 - Two example template engines are published in `wgsl-linker/templates`:
 
-  - `"simple"` - replaces strings with values provided by a runtime dictionary.
-  - `"replacer"` - provides a **// #replace** directive for specifiying string
-    replacement in comments.
-    This allows for templating while keeping syntax compability with wgsl.
-    Replacements are of the form `srcText=runtimeVariable`.
+- `"simple"` - replaces strings with values provided by a runtime dictionary.
+- `"replacer"` - provides a **// #replace** directive for specifiying string
+  replacement in comments.
+  This allows for templating while keeping syntax compability with wgsl.
+  Replacements are of the form `srcText=runtimeVariable`.
 
-    ```
-    for (let i = 0; i < 4; i++) { // #replace "4"=workgroupSize
-    ```
+  ```
+  for (let i = 0; i < 4; i++) { // #replace "4"=workgroupSize
+  ```
 
 #### Module
 
