@@ -337,9 +337,9 @@ test("#import a struct", () => {
   expect(linked).contains("struct AStruct {");
 });
 
-test("#importMerge a struct in the root src", () => {
+test("#extends a struct in the root src", () => {
   const src = `
-    #importMerge AStruct 
+    #extends AStruct 
     struct MyStruct {
       x: u32,
     }
@@ -360,9 +360,9 @@ test("#importMerge a struct in the root src", () => {
   expect(linked).toContain(`struct MyStruct {\n  x: u32,\n  y: u32\n}`);
 });
 
-test("#importMerge an empty struct", () => {
+test("#extends an empty struct", () => {
   const src = `
-    #importMerge AStruct 
+    #extends AStruct 
     struct MyStruct {
     }
 
@@ -382,7 +382,7 @@ test("#importMerge an empty struct", () => {
   expect(linked).toContain(`struct MyStruct {\n  y: u32\n}`);
 });
 
-test("#importMerge a struct in a module", () => {
+test("#extends a struct in a module", () => {
   const src = `
     #import AStruct
     fn main() {
@@ -391,7 +391,7 @@ test("#importMerge a struct in a module", () => {
   `;
   const module1 = `
     #export
-    #importMerge BStruct
+    #extends BStruct
     struct AStruct {
       x: i32,
     }
@@ -409,7 +409,7 @@ test("#importMerge a struct in a module", () => {
   expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
 
-test("two #importMerges on the same struct", () => {
+test("two #extendss on the same struct", () => {
   const src = `
     #import AStruct
     fn main() {
@@ -418,8 +418,8 @@ test("two #importMerges on the same struct", () => {
   `;
   const module1 = `
     #export
-    #importMerge BStruct
-    #importMerge CStruct
+    #extends BStruct
+    #extends CStruct
     struct AStruct {
       x: i32,
     }
@@ -445,7 +445,7 @@ test("two #importMerges on the same struct", () => {
   );
 });
 
-test("#importMerge struct with imp/exp param", () => {
+test("#extends struct with imp/exp param", () => {
   const src = `
     #import AStruct(i32)
     fn main() {
@@ -454,7 +454,7 @@ test("#importMerge struct with imp/exp param", () => {
   `;
   const module1 = `
     #export(X)
-    #importMerge BStruct
+    #extends BStruct
     struct AStruct {
       x: X,
     }
@@ -472,7 +472,7 @@ test("#importMerge struct with imp/exp param", () => {
   expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
 
-test("transitive #importMerge ", () => {
+test("transitive #extends ", () => {
   const src = `
     #import AStruct 
 
@@ -482,13 +482,13 @@ test("transitive #importMerge ", () => {
   `;
   const module1 = `
     #export
-    #importMerge BStruct
+    #extends BStruct
     struct AStruct {
       x: u32,
     }
 
     #export
-    #importMerge CStruct
+    #extends CStruct
     struct BStruct {
       y: u32
     }
@@ -506,16 +506,16 @@ test("transitive #importMerge ", () => {
   );
 });
 
-test("transitive #importMerge from root", () => {
+test("transitive #extends from root", () => {
   const src = `
-    #importMerge BStruct
+    #extends BStruct
     struct AStruct {
       x: u32,
     }
   `;
   const module1 = `
     #export
-    #importMerge CStruct
+    #extends CStruct
     struct BStruct {
       y: u32
     }

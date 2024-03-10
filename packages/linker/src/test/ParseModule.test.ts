@@ -24,10 +24,10 @@ test("simple fn import", () => {
   expect(module).toMatchSnapshot();
 });
 
-test("match #importMerge", () => {
+test("match #extends", () => {
   const src = `
-    // #importMerge Foo
-    // #importMerge Bar
+    // #extends Foo
+    // #extends Bar
     struct Elem {
       sum: f32
     }

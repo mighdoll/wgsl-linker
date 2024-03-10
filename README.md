@@ -87,7 +87,7 @@ fn myFn() {
   let x:u32 = rand();
 }
 
-// #importMerge RandomXY from wgsl-utils
+// #extends RandomXY from wgsl-utils
 struct MyStruct {
   color: vec4<u32>
 }

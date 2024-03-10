@@ -79,7 +79,7 @@ const importDirective = seq(
 const importMergeSym = Symbol("importMerge");
 
 export const importMergeDirective = seq(
-  "#importMerge",
+  "#extends",
   seq(importMergeElemPhrase.named(importMergeSym), eolf)
 ).map((r) => {
   const imp: ImportMergeElem = r.named[importMergeSym][0];

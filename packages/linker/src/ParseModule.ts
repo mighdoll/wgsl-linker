@@ -101,7 +101,7 @@ function matchMergeImports(parsed: AbstractElem[], srcMap: SrcMap): void {
       next.importMerges = next.importMerges ?? [];
       next.importMerges.push(mergeElem);
     } else {
-      srcLog(srcMap, mergeElem.start, `#importMerge not followed by a struct`);
+      srcLog(srcMap, mergeElem.start, `#extends not followed by a struct`);
     }
   });
 }

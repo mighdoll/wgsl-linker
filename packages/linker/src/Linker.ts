@@ -211,7 +211,7 @@ function combineMergeRefs(
   mergeRefs: ExportRef[],
   nonMergeRefs: ExportRef[]
 ): ExportRef[] {
-  // map from the element name of a struct annotated with #importMerge to the merge refs
+  // map from the element name of a struct annotated with #extends to the merge refs
   const mergeMap = new Map<string, ExportRef[]>();
   mergeRefs.forEach((r) => {
     const fullName = refFullName(r.fromRef);
@@ -318,7 +318,7 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
   return name;
 }
 
-/** load a struct text, mixing in any elements from #importMerge */
+/** load a struct text, mixing in any elements from #extends */
 function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
   if (!r.mergeRefs || !r.mergeRefs.length)

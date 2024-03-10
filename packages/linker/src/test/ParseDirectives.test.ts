@@ -81,8 +81,8 @@ test("#export w/o closing paren", () => {
   `);
 });
 
-test("parse #importMerge", () => {
-  const src = `#importMerge Foo(a,b) as Bar from baz`;
+test("parse #extends", () => {
+  const src = `#extends Foo(a,b) as Bar from baz`;
   const appState = parseWgslD(src);
   expect(appState[0]).toMatchInlineSnapshot(`
     {
@@ -91,7 +91,7 @@ test("parse #importMerge", () => {
         "b",
       ],
       "as": "Bar",
-      "end": 37,
+      "end": 33,
       "from": "baz",
       "kind": "importMerge",
       "name": "Foo",

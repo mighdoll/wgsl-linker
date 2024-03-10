@@ -322,9 +322,9 @@ test("traverse ref from struct constructor", () => {
   expect(refName(refs[0])).toBe("AStruct");
 });
 
-test("traverse #importMerge", () => {
+test("traverse #extends", () => {
   const src = `
-    #importMerge A
+    #extends A
     struct B {
       x: u32
     }
