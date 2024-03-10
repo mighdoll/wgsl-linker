@@ -53,7 +53,7 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
 
   - Choose different wgsl modules depending on runtime reported detected gpu features, or based on user application settings.
   - Keep integration into web development easy - no need to add any new steps into your build process or IDE.
-  - To enable runtime linking scenarios, **wgsl-linker** is intentionally kept small, currently about 10kb (compressed).
+  - To enable runtime linking, **wgsl-linker** is small, currently about 10kb (compressed).
 
 - **Code generation**
   - Typically write static wgsl (perhaps with some simple templates), but
