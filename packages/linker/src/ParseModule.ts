@@ -89,19 +89,19 @@ function findExports(parsed: AbstractElem[], srcMap: SrcMap): TextExport[] {
   return results;
 }
 
-/** fill in importMerges field of structs */
+/** fill in extendsElem field of structs */
 function matchMergeImports(parsed: AbstractElem[], srcMap: SrcMap): void {
-  const importMerges = findKind<ExtendsElem>(parsed, "extends");
-  importMerges.forEach(([mergeElem, i]) => {
+  const extendsElems = findKind<ExtendsElem>(parsed, "extends");
+  extendsElems.forEach(([extendsElem, i]) => {
     let next: AbstractElem | undefined;
     do {
       next = parsed[++i];
     } while (next?.kind === "extends" || next?.kind === "export");
     if (next?.kind === "struct") {
       next.extendsElems = next.extendsElems ?? [];
-      next.extendsElems.push(mergeElem);
+      next.extendsElems.push(extendsElem);
     } else {
-      srcLog(srcMap, mergeElem.start, `#extends not followed by a struct`);
+      srcLog(srcMap, extendsElem.start, `#extends not followed by a struct`);
     }
   });
 }

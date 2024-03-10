@@ -76,7 +76,7 @@ export interface ExportRef extends ExportRefBase {
   /** reference to the exported function or struct */
   elem: FnElem | StructElem;
 
-  /** refs to importMerge elements on this same element
+  /** refs to extends elements on this same element
    * (added in a post processing step after traverse) */
   mergeRefs?: ExportRef[]; // CONSIDER make separate type for ExportRef after processing?
 }
@@ -117,7 +117,7 @@ export function traverseRefs(
  *  fn -> calls -> (local fn or import+export+fn)
  *  fn -> typeRefs -> (local struct or import+export+struct)
  *  struct -> typeRefs -> (local struct or import+export+struct)
- *  struct -> importMerge -> (local struct or import+export+struct)
+ *  struct -> extends -> (local struct or import+export+struct)
  *  var -> typeRefs -> (local struct or import+export+struct)
  */
 function recursiveRefs(
@@ -160,7 +160,7 @@ function elemRefs(
     const userCalls = elem.calls.filter((call) => !stdFn(call.name));
     fnRefs = elemChildrenRefs(srcRef, userCalls, mod, registry);
   } else if (elem.kind === "struct") {
-    mergeRefs = importMergeRefs(srcRef, elem, mod, registry);
+    mergeRefs = extendsRefs(srcRef, elem, mod, registry);
   }
   const userTypeRefs = elem.typeRefs.filter((ref) => !stdType(ref.name));
   const tRefs = elemChildrenRefs(srcRef, userTypeRefs, mod, registry);
@@ -200,8 +200,8 @@ function elemRef(
   return [];
 }
 
-/** create references to any importMerge elements attached to this struct */
-function importMergeRefs(
+/** create references to any extends elements attached to this struct */
+function extendsRefs(
   srcRef: TextRef,
   elem: StructElem,
   mod: TextModule,

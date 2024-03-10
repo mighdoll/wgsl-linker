@@ -58,7 +58,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
 }
 
 const importElemPhrase = importPhrase<ImportElem>("import");
-const importMergeElemPhrase = importPhrase<ExtendsElem>("extends");
+const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
 
 export const importing = seq(
   "importing",
@@ -76,13 +76,13 @@ const importDirective = seq(
   r.app.state.push(imp);
 });
 
-const importMergeSym = Symbol("extends");
+const extendsSym = Symbol("extends");
 
-export const importMergeDirective = seq(
+export const extendsDirective = seq(
   "#extends",
-  seq(importMergeElemPhrase.named(importMergeSym), eolf)
+  seq(extendsElemPhrase.named(extendsSym), eolf)
 ).map((r) => {
-  const imp: ExtendsElem = r.named[importMergeSym][0];
+  const imp: ExtendsElem = r.named[extendsSym][0];
   imp.start = r.start; // use start of #import, not import phrase
   r.app.state.push(imp);
 });
@@ -121,7 +121,7 @@ export const directive = tokens(
     or(
       exportDirective,
       importDirective,
-      importMergeDirective,
+      extendsDirective,
       moduleDirective,
       templateDirective
     )
@@ -144,10 +144,10 @@ if (tracing) {
   const names: Record<string, Parser<unknown>> = {
     directiveArgs,
     importElemPhrase,
-    importMergeElemPhrase,
+    extendsElemPhrase,
     importing,
     importDirective,
-    importMergeDirective,
+    extendsDirective,
     exportDirective,
     lineCommentOptDirective,
     moduleDirective,

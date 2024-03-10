@@ -228,8 +228,8 @@ function combineMergeRefs(
 
   return expRefs;
 
-  /** find the importMerges on this element,
-   * and recurse to find importMerges on the merging source element */
+  /** find any extends on this element,
+   * and recurse to find any extends on the merging source element */
   function recursiveMerges(ref: ExportRef): ExportRef[] {
     const fullName = refFullName(ref);
     const merges = mergeMap.get(fullName) ?? [];
@@ -263,8 +263,8 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   };
 }
 
-/** create a synthetic ExportRef so we can treat importMerge on root structs
- * the same as importMerge on exported structs */
+/** create a synthetic ExportRef so we can treat extends on root structs
+ * the same as extends on exported structs */
 function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
   const exp: ExportRef = {
     kind: "exp",
