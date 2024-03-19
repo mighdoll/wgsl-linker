@@ -134,10 +134,36 @@ function recursiveRefs(
   [...modGroups.entries()].forEach(([mod, refs]) => {
     if (refs.length) {
       const childRefs = refs.flatMap((r) => elemRefs(r, mod, registry));
-      recursiveRefs(childRefs, registry, fn);
+      const noRepeats = childRefs.filter((r) => !includesRef(r, refs));
+      recursiveRefs(noRepeats, registry, fn);
     }
   });
 }
+
+/** @return true if the ref refers to matching ref already found */
+function includesRef(r: FoundRef, refs: FoundRef[]): boolean {
+  return !!refs.find((a) => matchRef(r, a));
+}
+
+/** @return true if the two refs refer to the same named element in the same module */
+function matchRef(a: FoundRef, b: FoundRef): boolean {
+  if (a.expMod.name !== b.expMod.name) return false;
+  if (
+    (a.kind === "exp" && b.kind === "exp") ||
+    (a.kind === "local" && b.kind === "local")
+  ) {
+    return a.elem.name == b.elem.name;
+  }
+  if (a.kind === "gen" && b.kind === "gen") {
+    return a.name === b.name;
+  }
+  return false;
+}
+
+// Debug
+// function _refName(ref: FoundRef): string {
+//   return ref.kind !== "gen" ? ref.elem.name : ref.name;
+// }
 
 export function textRefs(refs: FoundRef[]): TextRef[] {
   return refs.filter(textRef);
