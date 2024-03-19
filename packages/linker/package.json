@@ -1,11 +1,12 @@
 {
   "name": "wgsl-linker",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
+    "prepublishOnly": "run-s build",
     "build": "run-s build:main build:templates build:minified build:brotli",
     "build:main": "vite build",
     "build:minified": "vite build -c minified.vite.config.js",
