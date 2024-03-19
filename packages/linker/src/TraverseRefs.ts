@@ -88,7 +88,7 @@ export interface ExportRef extends ExportRefBase {
  * Note that the reference graph may have multiple reference to the same src element.
  * Return false in the provided filter fn to avoid recursing into the node.
  * Currently the linker will recurse through the the same node multiple times
- * to handle varied import parameters. 
+ * to handle varied import parameters.
  */
 export function traverseRefs(
   srcModule: TextModule,
@@ -157,12 +157,16 @@ function elemRefs(
   let fnRefs: FoundRef[] = [];
   let mergeRefs: FoundRef[] = [];
   if (elem.kind === "fn") {
-    const userCalls = elem.calls.filter((call) => !stdFn(call.name));
+    const userCalls = elem.calls.filter(
+      (call) => !stdFn(call.name) && call.name !== elem.name
+    );
     fnRefs = elemChildrenRefs(srcRef, userCalls, mod, registry);
   } else if (elem.kind === "struct") {
     mergeRefs = extendsRefs(srcRef, elem, mod, registry);
   }
-  const userTypeRefs = elem.typeRefs.filter((ref) => !stdType(ref.name));
+  const userTypeRefs = elem.typeRefs.filter(
+    (ref) => !stdType(ref.name) && ref.name !== elem.name
+  );
   const tRefs = elemChildrenRefs(srcRef, userTypeRefs, mod, registry);
   return [...fnRefs, ...tRefs, ...mergeRefs];
 }
@@ -431,9 +435,7 @@ const stdFns = `bitcast all any select arrayLength
   unpack4x8snorm unpack4x8unorm unpack4xI8 unpack4xU8 
   unpack2x16snorm unpack2x16unorm unpack2x16float
   storageBarrier textureBarrier workgroupBarrier workgroupUniformLoad
-  `.split(
-  /\s+/
-);
+  `.split(/\s+/);
 
 const stdTypes = `array atomic bool f16 f32 i32 
   mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 mat3x4 mat4x2 mat4x3 mat4x4

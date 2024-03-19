@@ -7,6 +7,7 @@ import {
   ExportRef,
   FoundRef,
   LocalRef,
+  TextRef,
   refName,
   traverseRefs,
 } from "../TraverseRefs.js";
@@ -384,11 +385,33 @@ test("traverse skips built in fn and type", () => {
   `;
 
   const { refs, log } = traverseWithLog(src);
-  const refElems = refs.map((x) => (x as TextRef).elem.name) ;
+  const refElems = refs.map((x) => (x as TextRef).elem.name);
   expect(refElems).deep.eq(["bar"]);
   expect(log).eq("");
 });
 
+test("type inside fn with same name as fn", () => {
+  const src = `
+    fn foo() {
+      let a:foo;
+    }
+    fn bar() {}
+  `;
+  const { refs, log } = traverseWithLog(src);
+  expect(refs).is.empty;
+  expect(log).is.empty;
+});
+
+test("call inside fn with same name as fn", () => {
+  const src = `
+    fn foo() {
+      foo();
+    }
+  `;
+  const { refs, log } = traverseWithLog(src);
+  expect(refs).is.empty;
+  expect(log).is.empty;
+});
 
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
