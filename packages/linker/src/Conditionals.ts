@@ -158,6 +158,7 @@ export function processConditionals(
   const text = lines.join("");
   const srcMap = new SrcMap(text);
   srcMap.addEntries(srcMapEntries);
+  srcMap.compact();
   return { text, srcMap };
 }
 

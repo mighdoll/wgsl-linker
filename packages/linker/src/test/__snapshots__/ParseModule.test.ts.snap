@@ -65,7 +65,7 @@ exports[`simple fn export 1`] = `
   ",
     "entries": [
       {
-        "destEnd": 1,
+        "destEnd": 62,
         "destStart": 0,
         "src": "
     // #export
@@ -73,68 +73,8 @@ exports[`simple fn export 1`] = `
       return 1;
     }
   ",
-        "srcEnd": 1,
-        "srcStart": 0,
-      },
-      {
-        "destEnd": 16,
-        "destStart": 1,
-        "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
-  ",
-        "srcEnd": 16,
-        "srcStart": 1,
-      },
-      {
-        "destEnd": 38,
-        "destStart": 16,
-        "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
-  ",
-        "srcEnd": 38,
-        "srcStart": 16,
-      },
-      {
-        "destEnd": 54,
-        "destStart": 38,
-        "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
-  ",
-        "srcEnd": 54,
-        "srcStart": 38,
-      },
-      {
-        "destEnd": 60,
-        "destStart": 54,
-        "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
-  ",
-        "srcEnd": 60,
-        "srcStart": 54,
-      },
-      {
-        "destEnd": 62,
-        "destStart": 60,
-        "src": "
-    // #export
-    fn one() -> i32 {
-      return 1;
-    }
-  ",
         "srcEnd": 62,
-        "srcStart": 60,
+        "srcStart": 0,
       },
     ],
   },
@@ -189,44 +129,14 @@ exports[`simple fn import 1`] = `
   ",
     "entries": [
       {
-        "destEnd": 1,
+        "destEnd": 46,
         "destStart": 0,
         "src": "
     // #import foo
     fn bar() { foo(); }
   ",
-        "srcEnd": 1,
-        "srcStart": 0,
-      },
-      {
-        "destEnd": 20,
-        "destStart": 1,
-        "src": "
-    // #import foo
-    fn bar() { foo(); }
-  ",
-        "srcEnd": 20,
-        "srcStart": 1,
-      },
-      {
-        "destEnd": 44,
-        "destStart": 20,
-        "src": "
-    // #import foo
-    fn bar() { foo(); }
-  ",
-        "srcEnd": 44,
-        "srcStart": 20,
-      },
-      {
-        "destEnd": 46,
-        "destStart": 44,
-        "src": "
-    // #import foo
-    fn bar() { foo(); }
-  ",
         "srcEnd": 46,
-        "srcStart": 44,
+        "srcStart": 0,
       },
     ],
   },
