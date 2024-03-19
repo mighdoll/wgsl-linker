@@ -413,6 +413,24 @@ test("call inside fn with same name as fn", () => {
   expect(log).is.empty;
 });
 
+test("call cross reference", () => {
+  const src = `
+    fn foo() {
+      bar();
+    }
+
+    fn bar() {
+      foo();
+    }
+  `;
+  const { refs, log } = traverseWithLog(src);
+  const refNames = refs.map((r) => (r as TextRef).elem.name);
+  expect(refNames).contains("foo");
+  expect(refNames).contains("bar");
+  expect(refNames).length(2);
+  expect(log).is.empty;
+});
+
 test("struct self reference", () => {
   const src = `
     struct A {
