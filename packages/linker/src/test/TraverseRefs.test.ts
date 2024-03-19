@@ -373,6 +373,23 @@ test("traverse from return type of function", () => {
   expect(refNames).deep.eq(["A"]);
 });
 
+test("traverse skips built in fn and type", () => {
+  const src = `
+    fn foo() {
+      bar();
+      min(3,4);
+      vec3(u);
+    }
+    fn bar() {}
+  `;
+
+  const { refs, log } = traverseWithLog(src);
+  const refElems = refs.map((x) => (x as TextRef).elem.name) ;
+  expect(refElems).deep.eq(["bar"]);
+  expect(log).eq("");
+});
+
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
