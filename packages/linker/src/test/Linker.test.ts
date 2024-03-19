@@ -20,6 +20,7 @@ test("simple #import", () => {
   `;
   const registry = new ModuleRegistry(myModule);
   const linked = linkWgsl(src, registry);
+  expect(linked).contains("// \n    fn bar()");
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
   expect(linked).not.includes("#export");

@@ -368,7 +368,7 @@ function rmElems(src: string, elems: AbstractElem[]): string {
 
   const slicePoints = [0, ...startEnds, src.length];
   const edits = grouped(slicePoints, 2);
-  return edits.map(([start, end]) => src.slice(start, end)).join("\n");
+  return edits.map(([start, end]) => src.slice(start, end)).join("");
 }
 
 /** extract the text for an element a module,
@@ -406,7 +406,10 @@ function loadModuleSlice(
   return replaceWords(templated, rewrite);
 }
 
-function expImpToParams(expImpEntries:[string,string][], extParams: Record<string, string>): Record<string, string> {
+function expImpToParams(
+  expImpEntries: [string, string][],
+  extParams: Record<string, string>
+): Record<string, string> {
   const expImp = Object.fromEntries(expImpEntries);
   const expImpExt = mapForward(expImp, extParams);
   return { ...extParams, ...expImpExt };
