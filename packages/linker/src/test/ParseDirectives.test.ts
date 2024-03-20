@@ -119,3 +119,11 @@ test("parse template", () => {
   const appState = parseWgslD(src);
   expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
 });
+
+
+test("parse import relpath", () => {
+  const src = `#import foo from ./util`;
+  const appState = parseWgslD(src);
+  const importElem = appState[0] as ImportElem;
+  expect(importElem.from).eq("./util");
+});

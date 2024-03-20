@@ -29,6 +29,7 @@ import { eolf, makeElem } from "./ParseSupport.js";
 /* parse #directive enhancements to wgsl: #import, #export, etc. */
 
 const argsWord = kind(argsTokens.arg);
+const fromWord = or(argsWord, kind(argsTokens.relPath))
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
@@ -47,7 +48,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
     argsWord.named("name"),
     opt(directiveArgs.named("args")),
     opt(seq("as", argsWord.named("as"))),
-    opt(seq("from", argsWord.named("from")))
+    opt(seq("from", fromWord.named("from")))
   ).map((r) => {
     // flatten 'args' by putting it with the other extracted names
     const named: (keyof T)[] = ["name", "from", "as", "args"];

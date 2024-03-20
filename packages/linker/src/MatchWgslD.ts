@@ -47,6 +47,7 @@ export const lineCommentTokens = tokenMatcher(
 export const argsTokens = tokenMatcher(
   {
     directive,
+    relPath: /[.][/\w._-]+/,
     arg: /[\w._-]+/,
     symbol,
     ws: /[ \t]+/, // don't include \n, so we can find eol separately
