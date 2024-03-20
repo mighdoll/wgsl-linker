@@ -777,7 +777,6 @@ test.skip("#import twice with different params", () => {
   expect(linked).includes("fn foo() { /** A **/ }");
 });
 
-
 test("external param applied to template", () => {
   const module1 = `
     #template replace
@@ -802,7 +801,6 @@ test("external param applied to template", () => {
   expect(linked).includes("step < 128");
 });
 
-
 test("warn on missing template", () => {
   const src = `
     #module test.missing.template
@@ -819,4 +817,23 @@ test("warn on missing template", () => {
         #template missing   Ln 4
         ^"
   `);
+});
+
+test.skip("extend struct with rename", () => {
+  const src = `
+    // #extends HasColor(fill) 
+    struct Sprite {
+        pos: vec2f,
+    }
+  `;
+  const module1 = `
+      // #export(color)
+      struct HasColor {
+         color: vec4f, 
+      }
+    `;
+
+  const registry = new ModuleRegistry(module1);
+  const linked = linkWgsl(src, registry);
+  console.log(linked);
 });
