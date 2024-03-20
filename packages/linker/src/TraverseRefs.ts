@@ -1,10 +1,9 @@
-import { dlog } from "berry-pretty";
 import {
   CallElem,
   ExportElem,
+  ExtendsElem,
   FnElem,
   ImportElem,
-  ExtendsElem,
   NamedElem,
   StructElem,
   TypeRefElem,
