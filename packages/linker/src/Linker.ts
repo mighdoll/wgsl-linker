@@ -34,6 +34,14 @@ export function linkWgsl(
   extParams: Record<string, any> = {}
 ): string {
   const srcModule = parseModule(src, extParams);
+  return linkWgslModule(srcModule, registry, extParams)
+}
+
+export function linkWgslModule(srcModule:TextModule,
+  registry: ModuleRegistry,
+  extParams: Record<string, any> = {}
+  ): string {
+
   const { fns, structs, vars, template, preppedSrc } = srcModule;
   const srcElems = [fns, structs, vars].flat();
   const decls = new Set(srcElems.map((e) => e.name));
