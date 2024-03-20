@@ -23,6 +23,7 @@ export interface TextModule {
   structs: StructElem[];
   imports: (ImportElem | ExtendsElem)[];
   name: string;
+  fileName?: string;
   src: string;
   preppedSrc: string;
   srcMap: SrcMap;

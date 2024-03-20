@@ -1,3 +1,4 @@
+import { linkWgsl } from "./Linker.js";
 import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
@@ -63,9 +64,35 @@ export class ModuleRegistry {
   // map from export names to a map of module names to exports
   private exports = new Map<string, ModuleExport[]>();
   private templates = new Map<string, ApplyTemplateFn>();
+  private modules: TextModule[] = [];
 
   constructor(...src: string[]) {
     this.registerModules({}, ...src);
+  }
+
+  link(moduleName: string, params: Record<string, any> = {}): string {
+    const foundModule = this.modules.find(
+      (m) => m.name === moduleName || m.fileName === moduleName
+    );
+    if (foundModule) {
+      return linkWgsl(foundModule.src, this, params);
+    }
+    console.error("no module found for ", moduleName);
+    return "";
+  }
+
+  /**
+   * @param params runtime name-value variables for e.g. conditional compilation
+   * @param files record of fileNames and wgsl module src code
+   */
+  registerMany(
+    files: Record<string, string>,
+    params: Record<string, any> = {}
+  ): void {
+    const nameSrc = Object.entries(files);
+    nameSrc.forEach(([fileName, src]) => {
+      this.registerOneModule(src, params, fileName);
+    });
   }
 
   /** register modules' exports */
@@ -77,14 +104,16 @@ export class ModuleRegistry {
   registerOneModule(
     src: string,
     params: Record<string, any>,
+    fileName?: string,
     moduleName?: string
   ): void {
     const m = parseModule(src, params, moduleName);
+    m.fileName = fileName;
     this.addTextModule(m);
   }
 
   /** register a function that generates code on demand */
-  registerGenerator(reg:RegisterGenerator):void {
+  registerGenerator(reg: RegisterGenerator): void {
     const exp: GeneratorExport = {
       name: reg.name,
       args: reg.args ?? [],
@@ -135,6 +164,7 @@ export class ModuleRegistry {
   }
 
   private addTextModule(module: TextModule): void {
+    this.modules.push(module); // TODO dedupe?
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExport = {
         module,
