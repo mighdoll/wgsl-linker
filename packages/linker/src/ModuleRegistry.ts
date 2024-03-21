@@ -67,10 +67,16 @@ export class ModuleRegistry {
   private templates = new Map<string, ApplyTemplateFn>();
   private modules: TextModule[] = [];
 
-  constructor(...src: string[]) {
-    this.registerModules({}, ...src);
+  constructor(...sources: string[]) {
+    // TODO get rid of this entry point, it's only for testing
+    sources.forEach((src) => this.registerOneModule(src, {}));
   }
 
+  /**
+   * Produced a linked wgsl string with all directives processed
+   * (e.g. #import'd functions from other modules are inserted into the resulting string).
+   * @param moduleName select the module to use as the root source
+   */
   link(moduleName: string, params: Record<string, any> = {}): string {
     const foundModule = this.findModule(moduleName);
     if (foundModule) {
@@ -92,11 +98,6 @@ export class ModuleRegistry {
     nameSrc.forEach(([fileName, src]) => {
       this.registerOneModule(src, params, fileName);
     });
-  }
-
-  /** register modules' exports */
-  registerModules(params: Record<string, any>, ...sources: string[]): void {
-    sources.forEach((src) => this.registerOneModule(src, params));
   }
 
   /** register one module's exports  */
