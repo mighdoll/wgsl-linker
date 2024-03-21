@@ -80,17 +80,6 @@ export class ModuleRegistry {
     return "";
   }
 
-  findModule(searchName: string): TextModule | undefined {
-    const exactMatch = this.modules.find(
-      (m) => m.name === searchName || m.fileName === searchName
-    );
-    if (exactMatch) return exactMatch;
-    const baseSearch = basename(searchName);
-    return this.modules.find(
-      (m) => m.fileName && basename(m.fileName) === baseSearch
-    );
-  }
-
   /**
    * @param params runtime name-value variables for e.g. conditional compilation
    * @param files record of fileNames and wgsl module src code
@@ -182,6 +171,17 @@ export class ModuleRegistry {
           `Use "#import ${exportName} from <moduleName>" to select which one import`
       );
     }
+  }
+
+  private findModule(searchName: string): TextModule | undefined {
+    const exactMatch = this.modules.find(
+      (m) => m.name === searchName || m.fileName === searchName
+    );
+    if (exactMatch) return exactMatch;
+    const baseSearch = basename(searchName);
+    return this.modules.find(
+      (m) => m.fileName && basename(m.fileName) === baseSearch
+    );
   }
 
   private addTextModule(module: TextModule): void {
