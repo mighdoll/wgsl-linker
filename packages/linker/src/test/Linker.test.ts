@@ -165,10 +165,12 @@ test("#import twice with different names", () => {
 
 test("#import foo from zap (multiple modules)", () => {
   const module1 = `
+    // #module module1
     // #export
     fn foo() { /* module1 */ }
   `;
   const module2 = `
+    // #module module2
     // #export
     fn foo() { /* module2 */ }
   `;
@@ -182,8 +184,8 @@ test("#import foo from zap (multiple modules)", () => {
   `;
 
   const registry = new ModuleRegistry();
-  registry.registerOneModule(module1, {}, "module1");
-  registry.registerOneModule(module2, {}, "module2");
+  registry.registerOneModule(module1, {});
+  registry.registerOneModule(module2, {});
   const linked = linkWgsl(src, registry);
   expect(linked).contains("/* module2 */");
 });

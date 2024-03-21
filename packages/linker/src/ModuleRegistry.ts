@@ -1,5 +1,6 @@
-import { linkWgsl } from "./Linker.js";
-import { parseModule, TextExport, TextModule } from "./ParseModule.js";
+import { linkWgslModule } from "./Linker.js";
+import { TextExport, TextModule, parseModule } from "./ParseModule.js";
+import { basename, normalize, relativePath } from "./PathUtil.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -71,14 +72,23 @@ export class ModuleRegistry {
   }
 
   link(moduleName: string, params: Record<string, any> = {}): string {
-    const foundModule = this.modules.find(
-      (m) => m.name === moduleName || m.fileName === moduleName
-    );
+    const foundModule = this.findModule(moduleName);
     if (foundModule) {
-      return linkWgsl(foundModule.src, this, params);
+      return linkWgslModule(foundModule, this, params);
     }
     console.error("no module found for ", moduleName);
     return "";
+  }
+
+  findModule(searchName: string): TextModule | undefined {
+    const exactMatch = this.modules.find(
+      (m) => m.name === searchName || m.fileName === searchName
+    );
+    if (exactMatch) return exactMatch;
+    const baseSearch = basename(searchName);
+    return this.modules.find(
+      (m) => m.fileName && basename(m.fileName) === baseSearch
+    );
   }
 
   /**
@@ -108,7 +118,7 @@ export class ModuleRegistry {
     moduleName?: string
   ): void {
     const m = parseModule(src, params, moduleName);
-    m.fileName = fileName;
+    m.fileName = fileName && normalize(fileName);
     this.addTextModule(m);
   }
 
@@ -144,12 +154,23 @@ export class ModuleRegistry {
 
   /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
   getModuleExport(
+    requesting: TextModule,
     exportName: string,
     moduleName?: string
   ): ModuleExport | undefined {
     const exports = this.exports.get(exportName);
     if (!exports) {
       return undefined;
+    } else if (moduleName?.startsWith(".")) {
+      const searchName = relativePath(requesting.fileName, moduleName);
+      const baseSearch = basename(searchName);
+
+      return exports.find((e) => {
+        const fileName = (e.module as TextModule).fileName;
+        if (!fileName) return false;
+        if (fileName === searchName) return true;
+        if (baseSearch === basename(fileName)) return true;
+      });
     } else if (moduleName) {
       return exports.find((e) => e.module.name === moduleName);
     } else if (exports.length === 1) {

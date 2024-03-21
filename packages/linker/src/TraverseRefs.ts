@@ -413,7 +413,7 @@ function matchingExport(
 ): ModuleExport | undefined {
   if (!imp) return;
 
-  const modExp = registry.getModuleExport(imp.name, imp.from);
+  const modExp = registry.getModuleExport(mod, imp.name, imp.from);
   if (!modExp) {
     moduleLog(mod, imp.start, "export not found for import");
   }
