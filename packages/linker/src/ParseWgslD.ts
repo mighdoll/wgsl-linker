@@ -5,7 +5,6 @@ import {
   SrcMap,
   anyNot,
   anyThrough,
-  enableTracing,
   eof,
   fn,
   kind,
@@ -19,7 +18,7 @@ import {
   setTraceName,
   simpleParser,
   tracing,
-  withSep,
+  withSep
 } from "mini-parse";
 import {
   AbstractElem,
@@ -197,7 +196,6 @@ const root = preParse(comment, seq(repeat(rootDecl), eof()));
 // for debug tracing
 export const traceRoot = root.trace();
 
-enableTracing();
 export function parseWgslD(
   src: string,
   srcMap?: SrcMap,
