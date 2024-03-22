@@ -76,6 +76,8 @@ export class ModuleRegistry {
    * Produced a linked wgsl string with all directives processed
    * (e.g. #import'd functions from other modules are inserted into the resulting string).
    * @param moduleName select the module to use as the root source
+   * @param params runtime parameters extend #import/#export values, 
+   *  provide values for templates, and settings for code generation
    */
   link(moduleName: string, params: Record<string, any> = {}): string {
     const foundModule = this.findModule(moduleName);
@@ -89,7 +91,7 @@ export class ModuleRegistry {
   /**
    * Register and parse wgsl text modules with optional directives.
    * @param files record. keys are file names and values contain wgsl text with directives
-   * @param params runtime name-value variables for e.g. conditional compilation
+   * @param params runtime name-value variables for conditional compilation
    */
   registerMany(
     files: Record<string, string>,
