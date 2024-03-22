@@ -87,8 +87,9 @@ export class ModuleRegistry {
   }
 
   /**
+   * Register and parse wgsl text modules with optional directives.
+   * @param files record. keys are file names and values contain wgsl text with directives
    * @param params runtime name-value variables for e.g. conditional compilation
-   * @param files record of fileNames and wgsl module src code
    */
   registerMany(
     files: Record<string, string>,
