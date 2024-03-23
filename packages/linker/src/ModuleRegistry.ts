@@ -76,13 +76,13 @@ export class ModuleRegistry {
    * Produced a linked wgsl string with all directives processed
    * (e.g. #import'd functions from other modules are inserted into the resulting string).
    * @param moduleName select the module to use as the root source
-   * @param params runtime parameters extend #import/#export values, 
+   * @param runtimeParams runtime parameters for #import/#export values, 
    *  provide values for templates, and settings for code generation
    */
-  link(moduleName: string, params: Record<string, any> = {}): string {
+  link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
     const foundModule = this.findModule(moduleName);
     if (foundModule) {
-      return linkWgslModule(foundModule, this, params);
+      return linkWgslModule(foundModule, this, runtimeParams);
     }
     console.error("no module found for ", moduleName);
     return "";
