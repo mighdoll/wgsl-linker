@@ -104,11 +104,11 @@ export class ModuleRegistry {
   }
 
   /**
-   * Produced a linked wgsl string with all directives processed
+   * Produce a linked wgsl string with all directives processed
    * (e.g. #import'd functions from other modules are inserted into the resulting string).
    * @param moduleName select the module to use as the root source
    * @param runtimeParams runtime parameters for #import/#export values,
-   *  provide values for templates, and settings for code generation
+   *  template values, and code generation parameters
    */
   link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
     const foundModule = this.findModule(moduleName);

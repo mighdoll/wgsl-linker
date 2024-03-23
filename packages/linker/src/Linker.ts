@@ -27,27 +27,18 @@ interface Rewriting {
   extParams: Record<string, string>;
   registry: ModuleRegistry;
 }
-/*
-new api in progress:
 
-  new ModuleRegistry({wgsl?, rawWgsl?, generators?, templates?})
-  registry.link("main", params)
-
-do we need a way to specify the src file separately?
-  registry.linkSrc(wgsl, params)
-
-do we need a way to pass wgsl without a file name?
-  .rawWgsl 
-
-convenience for tests
-  linkWgsl(...wgslStrings)
-*/
-
-
+/**
+ * Produce a linked wgsl string with all directives processed
+ * (e.g. #import'd functions from other modules are inserted into the resulting string).
+ * 
+ * @param runtimeParams runtime parameters for #import/#export values,
+ *  template values, and code generation parameters
+ */
 export function linkWgslModule(
   srcModule: TextModule,
   registry: ModuleRegistry,
-  extParams: Record<string, any> = {}
+  runtimeParams: Record<string, any> = {}
 ): string {
   const { fns, structs, vars, template, preppedSrc } = srcModule;
   const srcElems = [fns, structs, vars].flat();
@@ -60,7 +51,7 @@ export function linkWgslModule(
   const { loadRefs, rmRootOrig } = prepRefsMergeAndLoad(refs, srcModule);
 
   // extract export texts, rewriting via rename map and exp/imp args
-  const rewriting: Rewriting = { renames, extParams, registry };
+  const rewriting: Rewriting = { renames, extParams: runtimeParams, registry };
   const importedText = extractTexts(loadRefs, rewriting);
 
   /* edit orig src to remove: 
@@ -74,7 +65,12 @@ export function linkWgslModule(
     ...templateElem,
   ]);
 
-  const templatedSrc = applyTemplate(slicedSrc, srcModule, extParams, registry);
+  const templatedSrc = applyTemplate(
+    slicedSrc,
+    srcModule,
+    runtimeParams,
+    registry
+  );
 
   return [templatedSrc, importedText].join("\n\n");
 }
