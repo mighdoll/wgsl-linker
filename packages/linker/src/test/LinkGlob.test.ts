@@ -2,8 +2,17 @@
 import { test, expect } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 
-const wgsl1 = import.meta.glob("./wgsl_1/*.wgsl", { as: "raw", eager: true });
-const wgsl2 = import.meta.glob("./wgsl_2/*.wgsl", { as: "raw", eager: true });
+const wgsl1: Record<string, string> = import.meta.glob("./wgsl_1/*.wgsl", {
+  query: "?raw",
+  eager: true,
+  import: "default",
+});
+
+const wgsl2: Record<string, string> = import.meta.glob("./wgsl_2/*.wgsl", {
+  query: "?raw",
+  eager: true,
+  import: "default",
+});
 
 test("basic import glob", async () => {
   const linked = new ModuleRegistry({ wgsl: wgsl1 }).link("main");

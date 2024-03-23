@@ -115,7 +115,11 @@ producing a raw wgsl string suitable for WebGPU's `createShaderModule`.
 
 ```
 // load wgsl text (using vite syntax. see Build Support below.)
-const wgsl = import.meta.glob("./shaders/*.wgsl", { as: "raw", eager: true });
+const wgsl = import.meta.glob("./shaders/*.wgsl", { 
+  query: "?raw",
+  eager: true,
+  import: "default",
+});
 
 // register the linkable exports
 const registry = new ModuleRegistry({ wgsl, conditions: { DEBUG: true} });
