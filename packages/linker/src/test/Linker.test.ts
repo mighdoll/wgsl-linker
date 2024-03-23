@@ -775,9 +775,10 @@ test("external param applied to template", () => {
       foo();
     }
   `;
-  const registry = new ModuleRegistry();
-  registry.registerOneModule(module1);
-  registry.registerTemplate(replaceTemplate);
+  const registry = new ModuleRegistry({
+    rawWgsl: [module1],
+    templates: [replaceTemplate],
+  });
   const params = { workgroupThreads: 128 };
   const linked = linkWgsl(src, registry, params);
   expect(linked).includes("step < 128");
@@ -791,9 +792,8 @@ test("warn on missing template", () => {
 
     fn main() { }
   `;
-  const registry = new ModuleRegistry();
   const { log, logged } = logCatch();
-  _withBaseLogger(log, () => linkWgsl(src, registry));
+  _withBaseLogger(log, () => linkWgsl2(src));
   expect(logged()).toMatchInlineSnapshot(`
     "template 'missing' not found in ModuleRegistry  module: test.missing.template
         #template missing   Ln 4

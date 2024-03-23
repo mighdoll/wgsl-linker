@@ -18,10 +18,18 @@ export interface GeneratorExport {
   generate: CodeGenFn;
 }
 
+/** a named code generation function */
 export interface RegisterGenerator {
+  /** export name for this generator */
   name: string;
+
+  /** module namespace for this generator */
   moduleName: string;
+
+  /** function to generate code at runtime */
   generate: CodeGenFn;
+
+  /** arguments to pass when importing from this generator */
   args?: string[];
 }
 
@@ -54,6 +62,24 @@ export interface GeneratorModuleExport {
 /** unique index for naming otherwise unnamed generator modules */
 let unnamedCodeDex = 0;
 
+export interface RegistryParams {
+  /** record of file names an wgsl text for modules */
+  wgsl?: Record<string, string>;
+
+  /** alt interface to provide wgsl module texts w/o file names.
+   * (usually best to provide filenames though, to allow relative imports) */
+  rawWgsl?: string[];
+
+  /** string template handlers for processing exported functions and structs */
+  templates?: Template[];
+
+  /** code generation functions */
+  generators?: RegisterGenerator[];
+
+  /** values for #if condition processing */
+  conditions?: Record<string, any>;
+}
+
 /**
  * A ModuleRegistry collects exportable code fragments, code generator functions,
  * and template processors.
@@ -67,15 +93,21 @@ export class ModuleRegistry {
   private templates = new Map<string, ApplyTemplateFn>();
   private modules: TextModule[] = [];
 
-  constructor() {
-    /** TODO accept hash of options*/
+  constructor(args?: RegistryParams) {
+    if (!args) return;
+    const { wgsl, rawWgsl, templates, generators, conditions } = args;
+
+    wgsl && this.registerMany(wgsl, conditions);
+    templates && this.registerTemplate(...templates);
+    rawWgsl?.map((w) => this.registerOneModule(w, args.conditions));
+    generators?.map((g) => this.registerGenerator(g));
   }
 
   /**
    * Produced a linked wgsl string with all directives processed
    * (e.g. #import'd functions from other modules are inserted into the resulting string).
    * @param moduleName select the module to use as the root source
-   * @param runtimeParams runtime parameters for #import/#export values, 
+   * @param runtimeParams runtime parameters for #import/#export values,
    *  provide values for templates, and settings for code generation
    */
   link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
