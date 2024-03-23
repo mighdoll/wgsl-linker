@@ -6,6 +6,8 @@ Linking can be done entirely at runtime.
 The **wgsl-linker** also supports struct inheritance,
 conditional compilation, pluggable templating and code generation.
 
+A simple demo of the **wgsl-linker** is available [on StackBlitz](https://stackblitz.com/~/github.com/mighdoll/wgsl-linker-rand-example).
+
 The linker is brand new, and not robust or fully featured. Contributions are welcome.
 
 ### WGSL extensions
@@ -23,7 +25,7 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
     ```
     #import workgroupReduce(Histogram) as reduceHistogram
     ```
-- **#if** &ensp; **#else** &ensp; **#endif**  &emsp; _Compile differently depending on runtime variables_
+- **#if** &ensp; **#else** &ensp; **#endif** &emsp; _Compile differently depending on runtime variables_
 
   - Preprocessing works on full lines, similarly to languages like C.
     **#if** clauses may nest.
@@ -32,7 +34,8 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
     Negation is also allowed with a `!`, e.g. `#if !mySetting`.
 
 - **#template** &emsp; _Each module can specify its own string templating engine_
-   - Tweak the wgsl based on runtime variables you provide.
+
+  - Tweak the wgsl based on runtime variables you provide.
 
 - **#extends** &emsp; _Combine members from multiple structs_
 
@@ -49,15 +52,16 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
 
 ### Other Features
 
-- **Runtime Linking** &emsp; _Link at runtime rather than at build time if you like_ 
+- **Runtime Linking** &emsp; _Link at runtime rather than at build time if you like_
 
   - Choose different wgsl modules depending on runtime reported detected gpu features, or based on user application settings.
   - Keep integration into web development easy - no need to add any new steps into your build process or IDE.
   - To enable runtime linking, **wgsl-linker** is small, currently about 10kb (compressed).
 
 - **Code generation**
-  - Typically write static wgsl (perhaps with some simple templates), but
-    know that the escape hatch of arbitrary code generation is available for complex situations.
+  - Typically it's best to write static wgsl
+    (perhaps with some simple templates),
+    but know that the escape hatch of arbitrary code generation is available for complex situations.
   - You can register a function to generate wgsl text for an exported module function.
   - Imports work identically on code generated exports.
 
@@ -65,8 +69,8 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
 
 Export functions and structs:
 
-```
-#module wgsl-utils
+```wgsl
+#module demo.utils
 
 #export
 fn rand() -> u32 { /* .. */ }
@@ -81,14 +85,14 @@ struct RandomXY {
 
 Import functions and structs
 
-```
-// #import rand from wgsl-utils
+```wgsl
+#import rand from demo.utils
 
 fn myFn() {
   let x:u32 = rand();
 }
 
-// #extends RandomXY from wgsl-utils
+#extends RandomXY from wgsl-utils
 struct MyStruct {
   color: vec4<u32>
 }
@@ -97,32 +101,28 @@ struct MyStruct {
 
 ### Main API
 
-`new ModuleRegistry(wgslFragment1, wgslFragment2)` - register wgsl modules for imports to use.
+`new ModuleRegistry({wgsl, templates?, generators?, conditions?})` - register wgsl files for later linking.
 
-`linkWgsl(src, registry, params?)` - process wgsl extensions, merge in imports, producing a
-raw wgsl string suitable for WebGPU's `createShaderModule`.
+- `conditions` - set variables for conditional compilation
+- `templates` - register string templating to that use additional text transformation.
+- `generators` - register code generating functions
 
-#### Additional APIs
+`registry.link("main", runtimeParams?)` - process wgsl extensions, merge in imports,
+producing a raw wgsl string suitable for WebGPU's `createShaderModule`.
 
-`registry.registerTemplate()` -
-register string templating for modules to that use additional text transformation.
-
-`registry.registerGenerator(name, fn, params?, moduleName?)` -
-register a code generation function to produce an export.
 
 ### API Example
 
 ```
-// load wgsl text
-import randWgsl from "./randModule.wgsl?raw";  // ?raw is vite syntax. See Build Support.
-import myShaderWgsl from "./myShader.wgsl?raw";
+// load wgsl text (using vite syntax. see Build Support below.)
+const wgsl = import.meta.glob("./shaders/*.wgsl", { as: "raw", eager: true });
 
 // register the linkable exports
-const registry = new ModuleRegistry(randWgsl);
+const registry = new ModuleRegistry({ wgsl, conditions: { DEBUG: true} });
 
-// link my shader code with imported modules,
-// using the provided variables for conditional compilation and string templates
-const code = linkWgsl(myShaderWgsl, registry, {WorkgroupSize: 128, DEBUG: true}
+// link my main shader wgsl with imported modules,
+// using the provided variables for import parameters or string templates
+const code = registry.link("main", { WorkgroupSize: 128 });
 
 // pass the linked wgsl to WebGPU as normal
 device.createShaderModule({ code });
@@ -142,17 +142,19 @@ with params provided by the importer.
 
 #### Import
 
-`#import name` import code, selected by export name, from any registered module.
+`#import name` import code, selected by export name (e.g. function or struct name).
+The export can be in any registered module.
 
-[This short import syntax is convenient for small/moderate size codebases.
-But perhaps we should disallow imports w/o module specifiers... It
-breaks module encapsulation - 
-if a third module later changes to export a function with the same name, 
-then the original import will no longer work..]
+For larger code bases, specify the module name with imports as well.
+This provides better encapsulation:
 
 `#import name from moduleName` import code, selected by module and export name.
 
-`#import name <from moduleName> as rename` and rewrite the imported fn or struct to a new name.
+`#import name from ./moduleFile` import code, selected by 
+module filename and exported name within the module. 
+Module filenames also match with suffixes removed.
+
+`#import name <from moduleName> as rename` rewrite the imported fn or struct to a new name.
 
 `#import name (arg1, arg2) <from moduleName> <as rename>` pass parameters to
 an export with parameters.
@@ -164,14 +166,13 @@ an export with parameters.
 Use `#extends` to merge fields into your struct from a struct that has been tagged for
 `#export` in another module.
 
-`#extends` clauses should be placed immediately before a struct. 
+`#extends` clauses should be placed immediately before a struct.
 
 `#extends name` import fields from the named struct, exported from any registere module.
 
 `#extends name from moduleName` import fields, selected by module and export name.
 
 Multiple `#extends` clauses may be attached to the same struct.
-
 
 #### Template
 
@@ -196,7 +197,7 @@ and runs prior to #export parameter string replacement.
 
 `#module package.name` declare a name for the module.
 Module names are arbitrary. It's a good practice to use
-your npm package name as a prefix to avoid potential 
+your npm package name as a prefix to avoid potential
 future conflicts with other packages modules.
 
 ### Build Support
@@ -204,14 +205,19 @@ future conflicts with other packages modules.
 You can simply put your wgsl modules in strings in your TypeScript/JavaScript source
 if you'd like.
 
-Or you can store your shader and shader module templates as `.wgsl` files and load
-them as strings with whatever build tool you use, e.g.:
+The easiest way to load all the `.wgsl` files at once is to use your
+bundler's glob import mechanism:
+- Vite: [import.meta.glob](https://vitejs.dev/guide/features#glob-import)
+- Rollup: [rollup-plugin-glob-import](https://github.com/gjbkz/rollup-plugin-glob-import)
+- Parcel: [glob-specifiers](https://parceljs.org/features/dependency-resolution/#glob-specifiers)
+
+You can also load `.wgsl` files individually with your favorite bundler:
 
 - Vite: [import ?raw](https://vitejs.dev/guide/assets#importing-asset-as-string)
 - Webpack: [Source Assets](https://webpack.js.org/guides/asset-modules/).
 - Rollup: [rollup-plugin-string](https://github.com/TrySound/rollup-plugin-string)
 
-### Known Limitations 
+### Known Limitations
 
 - fn/struct renaming currently uses text find and replace in the module,
   so avoid aliasing global names for now. e.g. don't have a
