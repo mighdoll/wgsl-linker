@@ -97,7 +97,7 @@ export class ModuleRegistry {
     if (!args) return;
     const { wgsl, rawWgsl, templates, generators, conditions } = args;
 
-    wgsl && this.registerMany(wgsl, conditions);
+    wgsl && this.registerModules(wgsl, conditions);
     templates && this.registerTemplate(...templates);
     rawWgsl?.map((w) => this.registerOneModule(w, args.conditions));
     generators?.map((g) => this.registerGenerator(g));
@@ -124,7 +124,7 @@ export class ModuleRegistry {
    * @param files record. keys are file names and values contain wgsl text with directives
    * @param params runtime name-value variables for conditional compilation
    */
-  registerMany(
+  registerModules(
     files: Record<string, string>,
     params: Record<string, any> = {}
   ): void {
