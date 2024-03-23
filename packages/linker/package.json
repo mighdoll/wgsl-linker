@@ -1,6 +1,6 @@
 {
   "name": "wgsl-linker",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "files": [
     "dist",
     "src"
