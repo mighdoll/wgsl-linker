@@ -148,7 +148,7 @@ export function processConditionals(
       context: {},
       state: { ifStack, lines, srcMapEntries, destLength: 0, params },
     },
-    maxParseCount: 1000,
+    maxParseCount: 1e6,
   });
   if (ifStack.length > 0) {
     const { pos } = ifStack.slice(-1)[0];
@@ -172,6 +172,7 @@ if (tracing) {
     simpleLine,
     lastLine,
     line,
+    srcLines,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
