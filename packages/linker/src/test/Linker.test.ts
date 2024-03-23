@@ -1,10 +1,10 @@
+import { _withBaseLogger } from "mini-parse";
+import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
-import { linkWgsl, linkWgsl2 } from "../Linker.js";
+import { linkWgsl2 } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
-import { logCatch } from "mini-parse/test-util";
-import { _withBaseLogger } from "mini-parse";
 
 test("simple #import", () => {
   const myModule = `

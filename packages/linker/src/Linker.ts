@@ -50,15 +50,6 @@ export function linkWgsl2(...wgsl: string[]): string {
   return linkWgslModule(srcModule, registry);
 }
 
-export function linkWgsl(
-  src: string,
-  registry: ModuleRegistry,
-  extParams: Record<string, any> = {}
-): string {
-  const srcModule = parseModule(src, extParams);
-  return linkWgslModule(srcModule, registry, extParams);
-}
-
 export function linkWgslModule(
   srcModule: TextModule,
   registry: ModuleRegistry,

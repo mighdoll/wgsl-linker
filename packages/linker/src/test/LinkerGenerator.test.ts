@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry, RegisterGenerator } from "../ModuleRegistry.js";
-import { linkWgsl } from "../Linker.js";
 import { replaceTemplate } from "../templates/Replacer.js";
 
 const fooGenerator: RegisterGenerator = {
