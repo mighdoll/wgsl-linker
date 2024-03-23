@@ -18,8 +18,9 @@ test("#import from code generator", () => {
 
     fn main() { foo(); }
   `;
-  const registry = new ModuleRegistry();
-  registry.registerGenerator(fooGenerator);
+  const registry = new ModuleRegistry({
+    generators: [fooGenerator],
+  });
   const linked = linkWgsl(src, registry);
   expect(linked).contains("barImpl");
 });
@@ -30,8 +31,9 @@ test("#import as from code generator", () => {
 
     fn main() { zip(); }
   `;
-  const registry = new ModuleRegistry();
-  registry.registerGenerator(fooGenerator);
+  const registry = new ModuleRegistry({
+    generators: [fooGenerator],
+  });
   const linked = linkWgsl(src, registry);
   expect(linked).contains("fn zip()");
 });
@@ -42,8 +44,9 @@ test("#import with arg from code generator", () => {
 
     fn main() { foo(); }
   `;
-  const registry = new ModuleRegistry();
-  registry.registerGenerator(fooGenerator);
+  const registry = new ModuleRegistry({
+    generators: [fooGenerator],
+  });
   const linked = linkWgsl(src, registry);
   expect(linked).contains("barImpl");
 });
@@ -73,9 +76,10 @@ test("#import conficted code gen fn", () => {
     fn bar() { foo(); }
   `;
 
-  const registry = new ModuleRegistry();
-  registry.registerOneModule(module0);
-  registry.registerGenerator(fooGenerator);
+  const registry = new ModuleRegistry({
+    rawWgsl: [module0],
+    generators: [fooGenerator],
+  });
   const linked = linkWgsl(src, registry, { zee: "zog" });
   expect(linked).contains("booImpl");
   expect(linked).contains("fn foo0()");
@@ -103,9 +107,10 @@ test("external param applied to generator", () => {
     moduleName: "test.module",
   };
 
-  const registry = new ModuleRegistry();
-  registry.registerTemplate(replaceTemplate);
-  registry.registerGenerator(gen);
+  const registry = new ModuleRegistry({
+    templates: [replaceTemplate],
+    generators: [gen]
+  });
   const params = { workgroupThreads: 128 };
   const linked = linkWgsl(src, registry, params);
   expect(linked).includes("step < 128");
