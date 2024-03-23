@@ -27,6 +27,29 @@ interface Rewriting {
   extParams: Record<string, string>;
   registry: ModuleRegistry;
 }
+/*
+new api in progress:
+
+  new ModuleRegistry({wgsl?, rawWgsl?, generators?, templates?})
+  registry.link("main", params)
+
+do we need a way to specify the src file separately?
+  registry.linkSrc(wgsl, params)
+
+do we need a way to pass wgsl without a file name?
+  .rawWgsl 
+
+convenience for tests
+  linkWgsl(...wgslStrings)
+*/
+
+/** convenience to load modules and immediately link, e.g. for tests. */
+export function linkWgsl2(...wgsl: string[]): string {
+  const srcModule = parseModule(wgsl[0]);
+  const registry = new ModuleRegistry();
+  wgsl.slice(1).forEach((s) => registry.registerOneModule(s));
+  return linkWgslModule(srcModule, registry);
+}
 
 export function linkWgsl(
   src: string,
@@ -34,14 +57,14 @@ export function linkWgsl(
   extParams: Record<string, any> = {}
 ): string {
   const srcModule = parseModule(src, extParams);
-  return linkWgslModule(srcModule, registry, extParams)
+  return linkWgslModule(srcModule, registry, extParams);
 }
 
-export function linkWgslModule(srcModule:TextModule,
+export function linkWgslModule(
+  srcModule: TextModule,
   registry: ModuleRegistry,
   extParams: Record<string, any> = {}
-  ): string {
-
+): string {
   const { fns, structs, vars, template, preppedSrc } = srcModule;
   const srcElems = [fns, structs, vars].flat();
   const decls = new Set(srcElems.map((e) => e.name));

@@ -67,9 +67,8 @@ export class ModuleRegistry {
   private templates = new Map<string, ApplyTemplateFn>();
   private modules: TextModule[] = [];
 
-  constructor(...sources: string[]) {
-    // TODO get rid of this entry point, it's only for testing
-    sources.forEach((src) => this.registerOneModule(src, {}));
+  constructor() {
+    /** TODO accept hash of options*/
   }
 
   /**
@@ -106,7 +105,7 @@ export class ModuleRegistry {
   /** register one module's exports  */
   registerOneModule(
     src: string,
-    params: Record<string, any>,
+    params: Record<string, any> = {},
     fileName?: string,
     moduleName?: string
   ): void {

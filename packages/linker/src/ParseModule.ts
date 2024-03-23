@@ -22,10 +22,19 @@ export interface TextModule {
   vars: VarElem[];
   structs: StructElem[];
   imports: (ImportElem | ExtendsElem)[];
+
+  /** name of the module. A synthetic name will be assigned if none is provided */
   name: string;
+  
   fileName?: string;
+
+  /** original src for module */
   src: string;
+
+  /** src code after processing #if conditionals  */
   preppedSrc: string;
+
+  /** tracks changes through conditional processing for error reporting */
   srcMap: SrcMap;
 }
 

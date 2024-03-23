@@ -154,10 +154,10 @@ test("importing args don't match", () => {
   const { log } = traverseWithLog(src, module1, module2);
 
   expect(log).toMatchInlineSnapshot(`
-    "importing arg doesn't match export  module: module16
+    "importing arg doesn't match export  module: module17
         #export(C, D) importing bar(E)   Ln 2
                                 ^
-    reference not found: X  module: module17
+    reference not found: X  module: module18
         fn bar(x:X) { }    Ln 3
                  ^"
   `);
@@ -175,10 +175,10 @@ test("mismatched import export params", () => {
 
   const { log } = traverseWithLog(src, module1);
   expect(log).toMatchInlineSnapshot(`
-    "mismatched import and export params  module: module20
+    "mismatched import and export params  module: module19
         #import foo(A, B)   Ln 2
         ^
-     module: module19
+     module: module20
         #export(C)    Ln 2
         ^"
   `);
@@ -474,9 +474,10 @@ function traverseWithLog(
 }
 
 function traverseTest(src: string, ...modules: string[]): FoundRef[] {
-  const registry = new ModuleRegistry(...modules);
+  const registry = new ModuleRegistry();
   const srcModule = parseModule(src);
   const refs: FoundRef[] = [];
+  modules.forEach(m => registry.registerOneModule(m))
   traverseRefs(srcModule, registry, (ref) => {
     refs.push(ref);
     return true;

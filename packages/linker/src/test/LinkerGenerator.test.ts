@@ -73,7 +73,8 @@ test("#import conficted code gen fn", () => {
     fn bar() { foo(); }
   `;
 
-  const registry = new ModuleRegistry(module0);
+  const registry = new ModuleRegistry();
+  registry.registerOneModule(module0);
   registry.registerGenerator(fooGenerator);
   const linked = linkWgsl(src, registry, { zee: "zog" });
   expect(linked).contains("booImpl");
