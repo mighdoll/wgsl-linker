@@ -43,12 +43,6 @@ convenience for tests
   linkWgsl(...wgslStrings)
 */
 
-/** convenience to load modules and immediately link, e.g. for tests. */
-export function linkWgsl2(...wgsl: string[]): string {
-  const srcModule = parseModule(wgsl[0]);
-  const registry = new ModuleRegistry({ rawWgsl: wgsl.slice(1) });
-  return linkWgslModule(srcModule, registry);
-}
 
 export function linkWgslModule(
   srcModule: TextModule,

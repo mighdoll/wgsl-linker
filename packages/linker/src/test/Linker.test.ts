@@ -1,10 +1,10 @@
 import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
-import { linkWgsl2 } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
+import { linkWgslTest } from "./TestUtil.js";
 
 test("simple #import", () => {
   const myModule = `
@@ -18,7 +18,7 @@ test("simple #import", () => {
       foo();
     }
   `;
-  const linked = linkWgsl2(src, myModule);
+  const linked = linkWgslTest(src, myModule);
   expect(linked).contains("// \n    fn bar()");
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
@@ -39,7 +39,7 @@ test("#import with parameter", () => {
       foo();
     }
   `;
-  const linked = linkWgsl2(src, myModule);
+  const linked = linkWgslTest(src, myModule);
   expect(linked).includes("a: MyElem");
 });
 
@@ -61,7 +61,7 @@ test("transitive import", () => {
     fn main() {
       reduceWorkgroup(localId); // call the imported function
     }`;
-  const linked = linkWgsl2(src, binOpModule, reduceModule);
+  const linked = linkWgslTest(src, binOpModule, reduceModule);
   expect(linked).includes("myWork[index]");
   expect(linked).not.includes("work[");
   expect(linked).includes("binOpImpl");
@@ -80,7 +80,7 @@ test("#import foo as bar", () => {
       bar();
     }
    `;
-  const linked = linkWgsl2(src, myModule);
+  const linked = linkWgslTest(src, myModule);
   expect(linked).contains("fn bar()");
 });
 
@@ -104,7 +104,7 @@ test("#import twice doesn't get two copies", () => {
       bar();
     }
   `;
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   const matches = linked.matchAll(/fooImpl/g);
   expect([...matches].length).toBe(1);
 });
@@ -133,7 +133,7 @@ test("import transitive conflicts with main", () => {
       /* main impl */
     }
   `;
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked).includes("mid() { grand0(); }");
 });
 
@@ -151,7 +151,7 @@ test("#import twice with different names", () => {
       zap();
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   const matches = linked.matchAll(/module1/g);
   expect([...matches].length).toBe(2);
 });
@@ -176,7 +176,7 @@ test("#import foo from zap (multiple modules)", () => {
     }
   `;
 
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked).contains("/* module2 */");
 });
 
@@ -195,7 +195,7 @@ test("multiple exports from the same module", () => {
       bar();
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked).toMatchSnapshot();
 });
 
@@ -215,7 +215,7 @@ test("#import and resolve conflicting support function", () => {
       bar();
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   const origMatch = linked.matchAll(/\bsupport\b/g);
   expect([...origMatch].length).toBe(1);
   const module1Match = linked.matchAll(/\bsupport0\b/g);
@@ -252,7 +252,7 @@ test("#import support fn that references another import", () => {
     fn support() { }
   `;
 
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
 
   const origMatch = linked.matchAll(/\bsupport\b/g);
   expect([...origMatch].length).toBe(1);
@@ -285,7 +285,7 @@ test("#import support fn from two exports", () => {
     fn support() { }
   `;
 
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   const supportMatch = linked.matchAll(/\bsupport\b/g);
   expect([...supportMatch].length).toBe(3);
 });
@@ -302,7 +302,7 @@ test("#export importing", () => {
   const module2 = `
     #export(X)
     fn bar(x:X) { } `;
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked).contains("fn bar(x:B)");
 });
 
@@ -320,7 +320,7 @@ test("#import a struct", () => {
       x: u32,
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked).contains("struct AStruct {");
 });
 
@@ -341,7 +341,7 @@ test("#extends a struct in the root src", () => {
       y: u32,
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked.match(/struct MyStruct {/g)).toHaveLength(1);
   expect(linked).toContain(`struct MyStruct {\n  x: u32,\n  y: u32\n}`);
 });
@@ -362,7 +362,7 @@ test("#extends an empty struct", () => {
       y: u32,
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked.match(/struct MyStruct {/g)).toHaveLength(1);
   expect(linked).toContain(`struct MyStruct {\n  y: u32\n}`);
 });
@@ -388,7 +388,7 @@ test("#extends a struct in a module", () => {
     }
   `;
 
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked.match(/struct AStruct/g)).toHaveLength(1);
   expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
@@ -421,7 +421,7 @@ test("two #extendss on the same struct", () => {
     }
   `;
 
-  const linked = linkWgsl2(src, module1, module2, module3);
+  const linked = linkWgslTest(src, module1, module2, module3);
   expect(linked.match(/struct AStruct/g)).toHaveLength(1);
   expect(linked).toContain(
     `struct AStruct {\n  x: i32,\n  z: u32,\n  d: f32\n}`
@@ -449,7 +449,7 @@ test("#extends struct with imp/exp param", () => {
     }
   `;
 
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked.match(/struct AStruct/g)).toHaveLength(1);
   expect(linked).toContain(`struct AStruct {\n  x: i32,\n  z: u32\n}`);
 });
@@ -480,7 +480,7 @@ test("transitive #extends ", () => {
       z: u32
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
   expect(linked).toContain(
     `struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`
@@ -507,7 +507,7 @@ test("transitive #extends from root", () => {
       z: u32
     }
   `;
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked.match(/struct AStruct {/g)).toHaveLength(1);
   expect(linked).toContain(
     `struct AStruct {\n  x: u32,\n  y: u32,\n  z: u32\n}`
@@ -532,7 +532,7 @@ test("import fn with support struct constructor", () => {
       return Elem(1u);
     }
   `;
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked).contains("struct Elem {");
   expect(linked).contains("fn elemOne() ");
 });
@@ -559,7 +559,7 @@ test("import a transitive struct", () => {
       x: u32,
     }
   `;
-  const linked = linkWgsl2(src, module1, module2);
+  const linked = linkWgslTest(src, module1, module2);
   expect(linked).contains("struct SrcStruct {");
   expect(linked).contains("struct AStruct {");
   expect(linked).contains("struct BStruct {");
@@ -577,7 +577,7 @@ test("'import as' a struct", () => {
     struct AStruct { x: u32 }
   `;
 
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked).contains("struct AA {");
 });
 
@@ -597,7 +597,7 @@ test("import a struct with imp/exp params", () => {
     struct AStruct { x: elemType }
   `;
 
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked).contains("struct AStruct { x: i32 }");
 });
 
@@ -622,7 +622,7 @@ test("import a struct with name conflicting support struct", () => {
     }
   `;
 
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   expect(linked).contains("struct Base {");
   expect(linked).contains("struct Base0 {");
   expect(linked).contains("x: Base0");
@@ -760,7 +760,7 @@ test.skip("#import twice with different params", () => {
     fn foo() { /** X */}
   `;
 
-  const linked = linkWgsl2(src, module0);
+  const linked = linkWgslTest(src, module0);
   expect(linked).includes("fn bar() { /** B **/ }");
   expect(linked).includes("fn foo() { /** A **/ }");
 });
@@ -800,7 +800,7 @@ test("warn on missing template", () => {
     fn main() { }
   `;
   const { log, logged } = logCatch();
-  _withBaseLogger(log, () => linkWgsl2(src));
+  _withBaseLogger(log, () => linkWgslTest(src));
   expect(logged()).toMatchInlineSnapshot(`
     "template 'missing' not found in ModuleRegistry  module: test.missing.template
         #template missing   Ln 4
@@ -822,6 +822,6 @@ test.skip("extend struct with rename", () => {
       }
     `;
 
-  const linked = linkWgsl2(src, module1);
+  const linked = linkWgslTest(src, module1);
   console.log(linked);
 });
