@@ -59,9 +59,9 @@ The linker is brand new, and not robust or fully featured. Contributions are wel
   - To enable runtime linking, **wgsl-linker** is small, currently about 10kb (compressed).
 
 - **Code generation**
-  - Typically it's best to write static wgsl
-    (perhaps with some simple templates),
-    but know that the escape hatch of arbitrary code generation is available for complex situations.
+  - Typically it's best to write static wgsl,
+    perhaps with some simple templates.
+    But the escape hatch of arbitrary code generation is available for complex situations.
   - You can register a function to generate wgsl text for an exported module function.
   - Imports work identically on code generated exports.
 
