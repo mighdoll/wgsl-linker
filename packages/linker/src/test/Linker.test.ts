@@ -637,19 +637,21 @@ test("import with simple template", () => {
     }
   `;
   const src = `
+    #module main
     #import foo
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry({
-    rawWgsl: [myModule],
+    rawWgsl: [myModule, src],
     templates: [simpleTemplate],
   });
-  const linked = linkWgsl(src, registry, { WORKGROUP_SIZE: "128" });
+  const linked = registry.link("main", { WORKGROUP_SIZE: "128" });
   expect(linked).includes("step < 128");
 });
 
 test("#import using replace template and ext param", () => {
   const src = `
+    // #module main
     // #import foo
 
     fn main() { foo(); }
@@ -666,29 +668,33 @@ test("#import using replace template and ext param", () => {
   `;
 
   const registry = new ModuleRegistry({
-    rawWgsl: [module1],
+    rawWgsl: [module1, src],
     templates: [replaceTemplate],
   });
-  const linked = linkWgsl(src, registry, { threads: 128 });
+  const linked = registry.link("main", { threads: 128 });
   expect(linked).contains("step < 128");
 });
 
 test("#template in src", () => {
   const src = `
+    #module main
     #template replace
     fn main() {
       for (var step = 0; step < 4; step++) { //#replace 4=threads
       }
     }
   `;
-  const registry = new ModuleRegistry({ templates: [replaceTemplate] });
-  const params = { threads: 128 };
-  const linked = linkWgsl(src, registry, params);
+  const registry = new ModuleRegistry({
+    rawWgsl: [src],
+    templates: [replaceTemplate],
+  });
+  const linked = registry.link("main", { threads: 128 });
   expect(linked).includes("step < 128");
 });
 
 test("#import using replace template and imp/exp param", () => {
   const src = `
+    // #module main
     // #import foo(128)
 
     fn main() { foo(); }
@@ -705,15 +711,16 @@ test("#import using replace template and imp/exp param", () => {
   `;
 
   const registry = new ModuleRegistry({
-    rawWgsl: [module1],
+    rawWgsl: [src, module1],
     templates: [replaceTemplate],
   });
-  const linked = linkWgsl(src, registry);
+  const linked = registry.link("main");
   expect(linked).contains("step < 128");
 });
 
 test("#import using external param", () => {
   const src = `
+    // #module main
     // #import foo(ext.workgroupSize)
 
     fn main() { foo(); }
@@ -730,10 +737,10 @@ test("#import using external param", () => {
   `;
 
   const registry = new ModuleRegistry({
-    rawWgsl: [module1],
-    templates: [replaceTemplate]
+    rawWgsl: [src, module1],
+    templates: [replaceTemplate],
   });
-  const linked = linkWgsl(src, registry, { workgroupSize: 128 });
+  const linked = registry.link("main", { workgroupSize: 128 });
   expect(linked).contains("step < 128");
 });
 
@@ -769,6 +776,7 @@ test("external param applied to template", () => {
     }
   `;
   const src = `
+    #module main
     #import foo(workgroupThreads)
 
     fn main() {
@@ -776,11 +784,10 @@ test("external param applied to template", () => {
     }
   `;
   const registry = new ModuleRegistry({
-    rawWgsl: [module1],
+    rawWgsl: [module1, src],
     templates: [replaceTemplate],
   });
-  const params = { workgroupThreads: 128 };
-  const linked = linkWgsl(src, registry, params);
+  const linked = registry.link("main", { workgroupThreads: 128 });
   expect(linked).includes("step < 128");
 });
 

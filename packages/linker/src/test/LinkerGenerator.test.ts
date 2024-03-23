@@ -14,14 +14,16 @@ const fooGenerator: RegisterGenerator = {
 
 test("#import from code generator", () => {
   const src = `
+    #module main
     #import foo(bar)
 
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry({
+    rawWgsl: [src],
     generators: [fooGenerator],
   });
-  const linked = linkWgsl(src, registry);
+  const linked = registry.link("main");
   expect(linked).contains("barImpl");
 });
 
@@ -32,9 +34,10 @@ test("#import as from code generator", () => {
     fn main() { zip(); }
   `;
   const registry = new ModuleRegistry({
+    wgsl: { "./main.wgsl": src },
     generators: [fooGenerator],
   });
-  const linked = linkWgsl(src, registry);
+  const linked = registry.link("main");
   expect(linked).contains("fn zip()");
 });
 
@@ -45,9 +48,10 @@ test("#import with arg from code generator", () => {
     fn main() { foo(); }
   `;
   const registry = new ModuleRegistry({
+    wgsl: { "./main": src },
     generators: [fooGenerator],
   });
-  const linked = linkWgsl(src, registry);
+  const linked = registry.link("main");
   expect(linked).contains("barImpl");
 });
 
@@ -57,14 +61,17 @@ test("#import with ext.arg from code generator", () => {
 
     fn main() { foo(); }
   `;
-  const registry = new ModuleRegistry();
-  registry.registerGenerator(fooGenerator);
-  const linked = linkWgsl(src, registry, { zee: "zog" });
+  const registry = new ModuleRegistry({
+    wgsl: { "./main": src },
+    generators: [fooGenerator],
+  });
+  const linked = registry.link("main", { zee: "zog" });
   expect(linked).contains("zogImpl");
 });
 
 test("#import conficted code gen fn", () => {
   const src = `
+    #module main
     #import bar
     fn foo() { bar(); }
   `;
@@ -77,10 +84,10 @@ test("#import conficted code gen fn", () => {
   `;
 
   const registry = new ModuleRegistry({
-    rawWgsl: [module0],
+    rawWgsl: [src, module0],
     generators: [fooGenerator],
   });
-  const linked = linkWgsl(src, registry, { zee: "zog" });
+  const linked = registry.link("main", { zee: "zog" });
   expect(linked).contains("booImpl");
   expect(linked).contains("fn foo0()");
   expect(linked).contains("foo0();");
@@ -108,11 +115,11 @@ test("external param applied to generator", () => {
   };
 
   const registry = new ModuleRegistry({
+    wgsl: { "./main": src },
     templates: [replaceTemplate],
-    generators: [gen]
+    generators: [gen],
   });
-  const params = { workgroupThreads: 128 };
-  const linked = linkWgsl(src, registry, params);
+  const linked = registry.link("main", { workgroupThreads: 128 });
   expect(linked).includes("step < 128");
 });
 
