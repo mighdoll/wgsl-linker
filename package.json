@@ -1,6 +1,9 @@
 {
   "name": "root",
   "type": "module",
+  "scripts": {
+    "bump": "scripts/runTs bump --version"
+  },
   "devDependencies": {
     "@types/node": "^20.11.30",
     "@types/yargs": "^17.0.32",
