@@ -43,7 +43,7 @@ async function setPackageVersions(version: string): Promise<void> {
 
 async function gitDirty(): Promise<boolean> {
   const status = await execAsync("git status --short");
-  return status.stdout === ""; 
+  return status.stdout !== ""; 
 }
 
 async function commitAndTag(version: string): Promise<void> {
