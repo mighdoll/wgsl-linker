@@ -49,6 +49,6 @@ async function gitDirty(): Promise<string> {
 }
 
 async function commitAndTag(version: string): Promise<void> {
-  await execAsync(`git commit -m 'bump version to ${version}'`);
+  await execAsync(`git commit -a -m 'bump version to ${version}'`);
   await execAsync(`git tag v${version}`);
 }
