@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { linkWgslModule } from "./Linker.js";
 import { TextExport, TextModule, parseModule } from "./ParseModule.js";
 import { basename, normalize, relativePath } from "./PathUtil.js";
@@ -94,6 +95,7 @@ export class ModuleRegistry {
   private modules: TextModule[] = [];
 
   constructor(args?: RegistryParams) {
+    console.log("creating ModuleRegistry");
     if (!args) return;
     const { wgsl, rawWgsl, templates, generators, conditions } = args;
 
@@ -141,6 +143,8 @@ export class ModuleRegistry {
     fileName?: string,
     moduleName?: string
   ): void {
+    const newFileName = fileName && normalize(fileName);
+    dlog({ fileName, newFileName});
     const m = parseModule(src, params, moduleName);
     m.fileName = fileName && normalize(fileName);
     this.addTextModule(m);
