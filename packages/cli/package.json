@@ -1,0 +1,17 @@
+{
+  "name": "wgsl-linker-cli",
+  "version": "0.3.10",
+  "type": "module",
+  "dependencies": {
+    "fast-glob": "^3.3.2",
+    "wgsl-linker": "workspace:*",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@esbuild-plugins/tsconfig-paths": "^0.1.2",
+    "@types/node": "^20.11.30",
+    "@types/yargs": "^17.0.32",
+    "esbuild": "^0.20.2",
+    "tsx": "^4.7.1"
+  }
+}
