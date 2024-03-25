@@ -22,8 +22,21 @@ export function join(a: string, b: string): string {
 }
 
 export function normalize(path: string): string {
-  const leading = path.replace(/^[.][.]\//, "");
-  return path.replaceAll("./", "");
+  const segments = path.split("/");
+  const noDots = segments.filter((s) => s !== ".");
+  const noDbl: string[] = [];
+
+  noDots.forEach((s) => {
+    if (s === "..") {
+      if (noDbl.length) {
+        noDbl.pop();
+      }
+    } else if (s !== "") {
+      noDbl.push(s);
+    }
+  });
+
+  return noDbl.join("/");
 }
 
 export function basename(path: string): string {
