@@ -1,5 +1,6 @@
 /** simplistic path manipulation utilities */
 
+
 export function relativePath(
   srcPath: string | undefined,
   reqPath: string
@@ -27,12 +28,12 @@ export function normalize(path: string): string {
   const noDbl: string[] = [];
 
   noDots.forEach((s) => {
-    if (s === "..") {
-      if (noDbl.length) {
+    if (s !== "") {
+      if (s === ".." && noDbl.length) {
         noDbl.pop();
+      } else {
+        noDbl.push(s);
       }
-    } else if (s !== "") {
-      noDbl.push(s);
     }
   });
 
