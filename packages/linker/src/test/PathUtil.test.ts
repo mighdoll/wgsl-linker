@@ -27,3 +27,8 @@ test("normalize ../foo", () => {
   const n = normalize("../foo");
   expect(n).equals("../foo");
 });
+
+test("normalize ../../foo", () => {
+  const n = normalize("../../foo");
+  expect(n).equals("../../foo");
+});
