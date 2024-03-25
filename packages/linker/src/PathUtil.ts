@@ -22,6 +22,7 @@ export function join(a: string, b: string): string {
 }
 
 export function normalize(path: string): string {
+  const leading = path.replace(/^[.][.]\//, "");
   return path.replaceAll("./", "");
 }
 
