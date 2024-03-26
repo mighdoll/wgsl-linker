@@ -16,5 +16,5 @@ export function moduleLog(
   ...msgs: any[]
 ): void {
   const { src, srcMap } = mod;
-  srcLog(srcMap ?? src, pos, ...msgs, ` module: ${mod.name}`);
+  srcLog(srcMap ?? src, pos, ...msgs, ` module: ${mod.name} ${mod.fileName || ""}`);
 }
