@@ -95,7 +95,6 @@ export class ModuleRegistry {
   private modules: TextModule[] = [];
 
   constructor(args?: RegistryParams) {
-    console.log("creating ModuleRegistry");
     if (!args) return;
     const { wgsl, rawWgsl, templates, generators, conditions } = args;
 
@@ -144,9 +143,8 @@ export class ModuleRegistry {
     moduleName?: string
   ): void {
     const newFileName = fileName && normalize(fileName);
-    dlog({ fileName, newFileName});
     const m = parseModule(src, params, moduleName);
-    m.fileName = fileName && normalize(fileName);
+    m.fileName = newFileName;
     this.addTextModule(m);
   }
 
@@ -212,7 +210,7 @@ export class ModuleRegistry {
     }
   }
 
-  private findModule(searchName: string): TextModule | undefined {
+  findModule(searchName: string): TextModule | undefined {
     const exactMatch = this.modules.find(
       (m) => m.name === searchName || m.fileName === searchName
     );
