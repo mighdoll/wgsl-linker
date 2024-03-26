@@ -480,7 +480,19 @@ const stdTypes = `array atomic bool f16 f32 i32
   texture_depth_2d texture_depth_2d_array texture_depth_cube
   texture_depth_cube_array
   sampler sampler_comparison
+  rgba8unorm rgba8snorm rgba8uint rgba8sint
+  rgba16uint rgba16sint rgba16float 
+  r32uint r32sint r32float rg32uint rg32sint rg32float
+  rgba32uint rgba32sint rgba32float
+  bgra8unorm 
   `.split(/\s+/);
+
+/* Note the texel formats like rgba8unorm are here because they appear in type position
+ in <templates> for texture_storage_* types. 
+ (We could parse texture_storage types specially, but user code is unlikely to alias 
+  the texture format names with e.g. a 'struct rbga8unorm .)
+*/
+
 
 /** return true if the name is for a built in type (not a user struct) */
 function stdType(name: string): boolean {

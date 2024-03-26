@@ -462,6 +462,12 @@ test("struct cross reference", () => {
   expect(refNames).length(2);
 });
 
+test("parse texture_storage_2d with texture format in type position", () => {
+  const src = `var t: texture_storage_2d<rgba8unorm, write>;`
+  const { log } = traverseWithLog(src);
+  expect(log).is.empty;
+});
+
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
@@ -485,3 +491,4 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   });
   return refs;
 }
+
