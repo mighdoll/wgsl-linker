@@ -3,6 +3,8 @@
   "version": "0.3.10",
   "type": "module",
   "dependencies": {
+    "@types/diff": "^5.0.9",
+    "diff": "^5.2.0",
     "fast-glob": "^3.3.2",
     "wgsl-linker": "workspace:*",
     "yargs": "^17.7.2"
