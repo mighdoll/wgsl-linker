@@ -31,7 +31,7 @@ interface Rewriting {
 /**
  * Produce a linked wgsl string with all directives processed
  * (e.g. #import'd functions from other modules are inserted into the resulting string).
- * 
+ *
  * @param runtimeParams runtime parameters for #import/#export values,
  *  template values, and code generation parameters
  */
@@ -72,7 +72,9 @@ export function linkWgslModule(
     registry
   );
 
-  return [templatedSrc, importedText].join("\n\n");
+  if (importedText) return templatedSrc + "\n\n" + importedText;
+
+  return templatedSrc;
 }
 
 /** find references to structs and fns we might import
