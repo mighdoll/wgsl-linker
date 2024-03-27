@@ -1,7 +1,13 @@
 {
   "name": "wgsl-linker-cli",
   "version": "0.3.10",
-  "type": "module",
+  "type": "commonjs",
+  "scripts": {
+    "build": "esbuild --bundle --platform=node --outfile=bin/wgsl-link src/main.ts"
+  },
+  "files": [
+    "bin"
+  ],
   "dependencies": {
     "@types/diff": "^5.0.9",
     "diff": "^5.2.0",
