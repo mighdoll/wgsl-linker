@@ -16,7 +16,7 @@ export async function cli(rawArgs: string[]): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function parseArgs(args: string[]) {
   return yargs(args)
-    .command("$0 <files...>", "wgsl files to parse")
+    .command("$0 <files...>", "root wgsl file followed by any library wgsl files")
     .option("define", {
       type: "array",
       describe: "definitions for preprocessor and linking",
