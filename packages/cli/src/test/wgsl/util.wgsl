@@ -1,0 +1,4 @@
+// #export
+fn foo() {
+  // fooImpl
+}

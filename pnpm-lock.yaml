@@ -54,6 +54,9 @@ importers:
       tsx:
         specifier: ^4.7.1
         version: 4.7.1
+      vitest:
+        specifier: ^1.4.0
+        version: 1.4.0(@types/node@20.11.30)(@vitest/ui@1.4.0)(terser@5.29.2)
 
   packages/linker:
     dependencies:
