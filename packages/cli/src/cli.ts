@@ -10,7 +10,7 @@ let argv: CliArgs;
 export async function cli(rawArgs: string[]): Promise<void> {
   argv = parseArgs(rawArgs);
   const files = argv.files as string[];
-  argv.separate ? linkSeparately(files) : linkNormally(files);
+  argv.separately ? linkSeparately(files) : linkNormally(files);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -21,7 +21,7 @@ function parseArgs(args: string[]) {
       type: "array",
       describe: "definitions for preprocessor and linking",
     })
-    .option("separate", {
+    .option("separately", {
       type: "boolean",
       default: false,
       describe: "link each file separately (for parser testing)",
