@@ -21,29 +21,33 @@ function parseArgs(args: string[]) {
       type: "array",
       describe: "definitions for preprocessor and linking",
     })
-    .option("separately", {
-      type: "boolean",
-      default: false,
-      describe: "link each file separately (for parser testing)",
-    })
     .option("baseDir", {
       requiresArg: true,
       type: "string",
       describe: "rm common prefix from file paths",
     })
+    .option("separately", {
+      type: "boolean",
+      default: false,
+      hidden: true,
+      describe: "link each file separately (for parser testing)",
+    })
     .option("details", {
       type: "boolean",
       default: false,
+      hidden: true,
       describe: "show details about parsed files",
     })
     .option("diff", {
       type: "boolean",
       default: false,
+      hidden: true,
       describe: "show comparison with src file",
     })
     .option("emit", {
       type: "boolean",
       default: true,
+      hidden: true,
       describe: "emit linked result",
     })
     .help()
