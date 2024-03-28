@@ -8,8 +8,6 @@ conditional compilation, pluggable templating and code generation.
 
 A simple demo of the **wgsl-linker** is available [on StackBlitz](https://stackblitz.com/~/github.com/mighdoll/wgsl-linker-rand-example).
 
-The linker is brand new, and not robust or fully featured. Contributions are welcome.
-
 ### WGSL extensions
 
 - **#import** &ensp; **#export** &emsp; _Combine functions and structs from other modules._
@@ -110,12 +108,11 @@ struct MyStruct {
 `registry.link("main", runtimeParams?)` - process wgsl extensions, merge in imports,
 producing a raw wgsl string suitable for WebGPU's `createShaderModule`.
 
-
 ### API Example
 
 ```
 // load wgsl text (using vite syntax. see Build Support below.)
-const wgsl = import.meta.glob("./shaders/*.wgsl", { 
+const wgsl = import.meta.glob("./shaders/*.wgsl", {
   query: "?raw",
   eager: true,
   import: "default",
@@ -131,6 +128,11 @@ const code = registry.link("main", { WorkgroupSize: 128 });
 // pass the linked wgsl to WebGPU as normal
 device.createShaderModule({ code });
 ```
+
+## Command Line Linking
+
+The linker is also packaged as a command line tool.
+See [wgsl-link](https://www.npmjs.com/package/wgsl-link).
 
 ### WGSL Syntax extensions
 
@@ -154,8 +156,8 @@ This provides better encapsulation:
 
 `#import name from moduleName` import code, selected by module and export name.
 
-`#import name from ./moduleFile` import code, selected by 
-module filename and exported name within the module. 
+`#import name from ./moduleFile` import code, selected by
+module filename and exported name within the module.
 Module filenames also match with suffixes removed.
 
 `#import name <from moduleName> as rename` rewrite the imported fn or struct to a new name.
@@ -211,6 +213,7 @@ if you'd like.
 
 The easiest way to load all the `.wgsl` files at once is to use your
 bundler's glob import mechanism:
+
 - Vite: [import.meta.glob](https://vitejs.dev/guide/features#glob-import)
 - Rollup: [rollup-plugin-glob-import](https://github.com/gjbkz/rollup-plugin-glob-import)
 - Parcel: [glob-specifiers](https://parceljs.org/features/dependency-resolution/#glob-specifiers)
