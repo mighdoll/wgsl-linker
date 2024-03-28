@@ -1,6 +1,6 @@
 {
   "name": "wgsl-linker-cli",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "type": "commonjs",
   "scripts": {
     "prepublishOnly": "run-s build",
