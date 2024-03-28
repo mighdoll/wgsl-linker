@@ -6,8 +6,7 @@
     "src"
   ],
   "scripts": {
-    "prepublishOnly": "run-s build",
-    "build": "run-s build:main build:templates build:minified build:brotli",
+    "build": "run-s build:main build:templates build:minified",
     "build:main": "vite build",
     "build:minified": "vite build -c minified.vite.config.js",
     "build:brotli": "brotli dist/minified.cjs && ls -l dist/minified.cjs.br",
