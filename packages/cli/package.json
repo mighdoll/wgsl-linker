@@ -6,6 +6,8 @@
     "prepublishOnly": "run-s build",
     "build": "esbuild --bundle --platform=node --outfile=bin/wgsl-link src/main.ts"
   },
+  "repository": "https://github.com/mighdoll/wgsl-linker/tree/main/packages/cli",
+  "homepage": "https://github.com/mighdoll/wgsl-linker/tree/main/packages/cli#readme",
   "files": [
     "bin"
   ],
