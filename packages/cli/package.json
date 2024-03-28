@@ -11,6 +11,7 @@
   "files": [
     "bin"
   ],
+  "bin": "bin/wgsl-link",
   "dependencies": {
     "@types/diff": "^5.0.9",
     "diff": "^5.2.0",
