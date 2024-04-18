@@ -3,7 +3,7 @@
 **wgsl-link** is a tool for preprocessing and linking multiple WGSL shader modules into a single WGSL module from the command line.
 
 See [wgsl-linker](https://github.com/mighdoll/wgsl-linker) 
-for more details of the wgsl syntax 
+for more details of wgsl syntax extensions
 like `#import` and `#export`.
 
 ### Usage
