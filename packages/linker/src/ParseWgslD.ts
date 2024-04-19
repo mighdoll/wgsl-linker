@@ -18,12 +18,13 @@ import {
   setTraceName,
   simpleParser,
   tracing,
-  withSep
+  withSep,
 } from "mini-parse";
 import {
   AbstractElem,
   CallElem,
   FnElem,
+  NameElem,
   StructElem,
   StructMemberElem,
   TypeRefElem,
@@ -38,6 +39,7 @@ import {
   word,
   wordNumArgs,
 } from "./ParseSupport.js";
+import { dlog } from "berry-pretty";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -157,16 +159,23 @@ const block: Parser<any> = seq(
   req("}")
 );
 
+export const fnNameDecl = req(word.named("name")).map((r) => {
+  return makeElem<NameElem>("name", r, ["name"]);
+});
+
 export const fnDecl = seq(
   optAttributes,
   "fn",
-  req(word.named("name")),
+  req(fnNameDecl).named("nameElem"),
   // TODO some built in functions can have a template here, e.g. bitcast
   req(fnParamList),
   opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
   req(block)
 ).map((r) => {
-  const e = makeElem<FnElem>("fn", r, ["name"]);
+  const e = makeElem<FnElem>("fn", r);
+  const nameElem = r.named.nameElem[0];
+  e.nameElem = nameElem;
+  e.name = nameElem.name;
   e.calls = r.named.calls || [];
   e.typeRefs = r.named.typeRefs?.flat() || [];
   r.app.state.push(e);

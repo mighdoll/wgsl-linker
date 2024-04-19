@@ -7,6 +7,7 @@ export type AbstractElem =
   | ModuleElem
   | TemplateElem
   | FnElem
+  | NameElem
   | CallElem
   | StructElem
   | StructMemberElem
@@ -15,7 +16,6 @@ export type AbstractElem =
 
 export type NamedElem = Extract<AbstractElem, { name: string }>;
 
-/** 'interesting' elements found in the source */
 export interface AbstractElemBase {
   kind: string;
   start: number;
@@ -27,9 +27,15 @@ export interface CallElem extends AbstractElemBase {
   name: string;
 }
 
+export interface NameElem extends AbstractElemBase {
+  kind: "name";
+  name: string;
+}
+
 export interface FnElem extends AbstractElemBase {
   kind: "fn";
   name: string;
+  nameElem: NameElem;
   calls: CallElem[];
   typeRefs: TypeRefElem[];
 }
@@ -42,6 +48,7 @@ export interface TypeRefElem extends AbstractElemBase {
 export interface StructElem extends AbstractElemBase {
   kind: "struct";
   name: string;
+  nameElem?: NameElem; // TODO
   members?: StructMemberElem[];
   typeRefs: TypeRefElem[];
   extendsElems?: ExtendsElem[];
@@ -82,6 +89,7 @@ export interface ModuleElem extends AbstractElemBase {
 export interface VarElem extends AbstractElemBase {
   kind: "var";
   name: string;
+  nameElem?: NameElem; // TODO
   typeRefs: TypeRefElem[];
 }
 
