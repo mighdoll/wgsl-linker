@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
@@ -21,6 +22,7 @@ import {
   partition,
   replaceWords,
 } from "./Util.js";
+import { srcLog } from "mini-parse";
 
 interface Rewriting {
   renames: RenameMap;
@@ -107,6 +109,21 @@ function refFullName(ref: FoundRef): string {
 
 type RenameMap = Map<string, Map<string, string>>;
 
+export function printRef(r: FoundRef, msg?: string): void {
+  const {
+    kind,
+    elem,
+    expMod,
+    rename,
+    srcElem,
+    fromRef,
+    proposedName,
+    fromImport,
+    expImpArgs,
+  } = r as ExportRef;
+  dlog(msg ?? "", { kind, rename, srcElem, elem });
+}
+
 /**
  * Calculate and @return a renaming map so that all the found top level elements
  * will have unique, non conflicting names.
@@ -132,17 +149,25 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
 
     // name we'll actually use in the linked result
     const linkName = uniquifyName(proposedName);
+
     declaredNames.add(linkName);
+
+    // TODO rm rename map
 
     // record rename for this import in the exporting module
     if (linkName !== refName(r)) {
       multiKeySet(renames, r.expMod.name, refName(r), linkName);
+      if (r.rename) {
+        console.error("unexpected: rename already exists", r.rename, linkName);
+      }
+      r.rename = linkName;
     }
 
     const ref = r as PartialRef;
     // record rename for this import in the importing module
     if (ref.fromRef && linkName !== proposedName) {
       multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
+      dlog({ refFromRef: ref.fromRef });
     }
   });
 
@@ -302,7 +327,8 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       }
       if (r.kind === "exp" || r.kind === "local") {
         const replaces = refExpImp(r, rewriting.extParams);
-        return loadElemText(r.elem, r.expMod, replaces, rewriting);
+        return loadElemText2(r, replaces, rewriting);
+        // return loadElemText(r.elem, r.expMod, replaces, rewriting);
       }
       if (r.kind === "gen") {
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
@@ -384,6 +410,33 @@ function rmElems(src: string, elems: AbstractElem[]): string {
   return edits.map(([start, end]) => src.slice(start, end)).join("");
 }
 
+function loadElemText2(
+  ref: ExportRef | LocalRef,
+  replaces: [string, string][],
+  rewriting: Rewriting
+): string {
+  const { start, end } = ref.elem;
+  if (!ref.rename) {
+    const result = loadModuleSlice(ref.expMod, start, end, replaces, rewriting);
+    dlog({ result });
+    return result;
+  } else {
+    const nameElem = ref.elem.nameElem;  // TODO add nameElem to other t
+    dlog({rename:ref.rename, nameElem})
+    if (nameElem) {
+      const { start:nameStart, end:nameEnd} = nameElem;
+      const part1 = loadModuleSlice(ref.expMod, start, nameStart, replaces, rewriting);
+      const part2 = loadModuleSlice(ref.expMod, nameEnd, end, replaces, rewriting);
+      const result = part1 + ref.rename + part2
+      dlog("renamed slice", { result });
+      return result;
+    } else {
+      refLog(ref, "missing nameElem");
+    }
+    return "";
+  }
+}
+
 /** extract the text for an element a module,
  * optionally replace export params with corresponding import arguments
  * optionally replace fn/struct name with 'import as' name
@@ -413,9 +466,9 @@ function loadModuleSlice(
 
   const params = expImpToParams(replaces, extParams);
   const templated = applyTemplate(slice, mod, params, registry);
-  const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
+  // const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
 
-  const rewrite = Object.fromEntries([...moduleRenames, ...replaces]);
+  const rewrite = Object.fromEntries([...replaces]);
   return replaceWords(templated, rewrite);
 }
 

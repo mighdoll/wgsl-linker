@@ -5,6 +5,7 @@ import { ModuleRegistry } from "../ModuleRegistry.js";
 import { replaceTemplate } from "../templates/Replacer.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
 import { linkWgslTest } from "./TestUtil.js";
+import { dlog } from "berry-pretty";
 
 test("simple #import", () => {
   const myModule = `
@@ -745,7 +746,7 @@ test("#import using external param", () => {
 });
 
 // TODO needs text replacement via ref links rather than renameMap
-test.skip("#import twice with different params", () => {
+test.only("#import twice with different params", () => {
   const src = `
     #import foo(A)
     #import foo(B) as bar
@@ -757,12 +758,13 @@ test.skip("#import twice with different params", () => {
   `;
   const module0 = `
     #export(X)
-    fn foo() { /** X */}
+    fn foo() { /* X */ }
   `;
 
   const linked = linkWgslTest(src, module0);
-  expect(linked).includes("fn bar() { /** B **/ }");
-  expect(linked).includes("fn foo() { /** A **/ }");
+  console.log("linked\n", linked);
+  expect(linked).includes("fn bar() { /* B */ }");
+  expect(linked).includes("fn foo() { /* A */ }");
 });
 
 test("external param applied to template", () => {
