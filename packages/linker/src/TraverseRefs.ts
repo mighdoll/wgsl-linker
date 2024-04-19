@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   CallElem,
   ExportElem,
@@ -18,6 +19,7 @@ import {
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
+import { srcLog } from "mini-parse";
 
 export type FoundRef = TextRef | GeneratorRef;
 export type TextRef = ExportRef | LocalRef;
@@ -28,13 +30,21 @@ export type PartialRef = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<ExportRef, "kind">> &
   Partial<Omit<GeneratorRef, "kind" | "expMod">>;
 
-export interface LocalRef {
+export interface LocalRef extends HasSourceElem {
   kind: "local";
   expMod: TextModule;
   elem: FnElem | StructElem | VarElem;
 }
 
-interface ExportRefBase {
+interface HasSourceElem {
+  /** element that referred to this ref, e.g. a call Elem like foo(). 
+   * used to rewrite sources */
+  srcElem?: CallElem | TypeRefElem | StructElem;
+
+  rename?: string;
+}
+
+interface ExportRefBase extends HasSourceElem {
   /** reference that led us to find this ref (for mapping imp/exp args) */
   fromRef: FoundRef;
 
@@ -216,12 +226,21 @@ function elemRef(
   registry: ModuleRegistry
 ): FoundRef[] {
   const { name } = elem;
+  dlog({ elemName: name });
   if (importArgRef(srcRef, name)) return [];
 
   const foundRef =
     importRef(srcRef, name, mod, registry) ??
     importingRef(srcRef, name, mod, registry) ??
     localRef(name, mod);
+
+  if (foundRef) {
+    if (["fn", "struct", "call"].includes(elem.kind)) {
+      foundRef.srcElem = elem as StructElem | CallElem | TypeRefElem;
+    } else {
+      console.error("unexpected", elem);
+    }
+  }
 
   if (foundRef) return [foundRef];
 
@@ -492,7 +511,6 @@ const stdTypes = `array atomic bool f16 f32 i32
  (We could parse texture_storage types specially, but user code is unlikely to alias 
   the texture format names with e.g. a 'struct rbga8unorm .)
 */
-
 
 /** return true if the name is for a built in type (not a user struct) */
 function stdType(name: string): boolean {
