@@ -328,7 +328,6 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       if (r.kind === "exp" || r.kind === "local") {
         const replaces = refExpImp(r, rewriting.extParams);
         return loadElemText2(r, replaces, rewriting);
-        // return loadElemText(r.elem, r.expMod, replaces, rewriting);
       }
       if (r.kind === "gen") {
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
@@ -421,14 +420,24 @@ function loadElemText2(
     dlog({ result });
     return result;
   } else {
-    const nameElem = ref.elem.nameElem;  // TODO add nameElem to other t
-    dlog({rename:ref.rename, nameElem})
+    const nameElem = ref.elem.nameElem; // TODO add nameElem to other t
     if (nameElem) {
-      const { start:nameStart, end:nameEnd} = nameElem;
-      const part1 = loadModuleSlice(ref.expMod, start, nameStart, replaces, rewriting);
-      const part2 = loadModuleSlice(ref.expMod, nameEnd, end, replaces, rewriting);
-      const result = part1 + ref.rename + part2
-      dlog("renamed slice", { result });
+      const { start: nameStart, end: nameEnd } = nameElem;
+      const part1 = loadModuleSlice(
+        ref.expMod,
+        start,
+        nameStart,
+        replaces,
+        rewriting
+      );
+      const part2 = loadModuleSlice(
+        ref.expMod,
+        nameEnd,
+        end,
+        replaces,
+        rewriting
+      );
+      const result = part1 + ref.rename + part2;
       return result;
     } else {
       refLog(ref, "missing nameElem");
