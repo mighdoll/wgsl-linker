@@ -361,7 +361,7 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
 function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
   if (!r.mergeRefs || !r.mergeRefs.length)
-    return loadElemText(r.elem, r.expMod, replaces, rewriting);
+    return loadElemText2(r, replaces, rewriting);
 
   const structElem = r.elem as StructElem;
 
