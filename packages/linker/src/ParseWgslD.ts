@@ -60,6 +60,12 @@ const globalDirectiveOrAssert = seq(
   req(anyThrough(";"))
 );
 
+/** parse an identifier into a NameElem */
+export const nameDecl = req(word.named("name")).map((r) => {
+  return makeElem<NameElem>("name", r, ["name"]);
+});
+
+
 /** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
   "<",
@@ -100,12 +106,15 @@ export const structMember = seq(
 
 export const structDecl = seq(
   "struct",
-  req(word.named("name")),
+  req(nameDecl).named("nameElem"),
   req("{"),
   withSep(",", structMember).named("members"),
   req("}")
 ).map((r) => {
-  const e = makeElem<StructElem>("struct", r, ["name", "members"]);
+  const e = makeElem<StructElem>("struct", r, ["members"]);
+  const nameElem = r.named.nameElem[0];
+  e.nameElem = nameElem;
+  e.name = nameElem.name;
   e.typeRefs = r.named.typeRefs?.flat() || [];
   r.app.state.push(e);
 });
@@ -159,14 +168,10 @@ const block: Parser<any> = seq(
   req("}")
 );
 
-export const fnNameDecl = req(word.named("name")).map((r) => {
-  return makeElem<NameElem>("name", r, ["name"]);
-});
-
 export const fnDecl = seq(
   optAttributes,
   "fn",
-  req(fnNameDecl).named("nameElem"),
+  req(nameDecl).named("nameElem"),
   // TODO some built in functions can have a template here, e.g. bitcast
   req(fnParamList),
   opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
