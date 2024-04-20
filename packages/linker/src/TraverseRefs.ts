@@ -19,7 +19,6 @@ import {
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
-import { srcLog } from "mini-parse";
 
 export type FoundRef = TextRef | GeneratorRef;
 export type TextRef = ExportRef | LocalRef;
@@ -235,10 +234,10 @@ function elemRef(
     localRef(name, mod);
 
   if (foundRef) {
-    if (["fn", "struct", "call"].includes(elem.kind)) {
-      foundRef.srcElem = elem as StructElem | CallElem | TypeRefElem;
+    if (["typeRef", "struct", "call"].includes(elem.kind)) {
+      foundRef.srcElem = elem as FoundRef["srcElem"];
     } else {
-      console.error("unexpected", elem);
+      dlog("unexpected kind", elem);
     }
   }
 
