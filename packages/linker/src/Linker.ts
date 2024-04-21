@@ -156,7 +156,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
 
     // record rename for this import in the exporting module
     if (linkName !== refName(r)) {
-      multiKeySet(renames, r.expMod.name, refName(r), linkName);
+      // multiKeySet(renames, r.expMod.name, refName(r), linkName);
       if (r.rename) {
         console.error("unexpected: rename already exists", r.rename, linkName);
       }
@@ -166,7 +166,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
     const ref = r as PartialRef;
     // record rename for this import in the importing module
     if (ref.fromRef && linkName !== proposedName) {
-      multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
+      // multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
       dlog({ refFromRef: ref.fromRef });
     }
   });
