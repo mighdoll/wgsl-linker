@@ -24,9 +24,10 @@ import {
   AbstractElem,
   CallElem,
   FnElem,
-  NameElem,
+  FnNameElem,
   StructElem,
   StructMemberElem,
+  TypeNameElem,
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
@@ -60,9 +61,14 @@ const globalDirectiveOrAssert = seq(
   req(anyThrough(";"))
 );
 
-/** parse an identifier into a NameElem */
-export const nameDecl = req(word.named("name")).map((r) => {
-  return makeElem<NameElem>("name", r, ["name"]);
+/** parse an identifier into a TypeNameElem */
+export const typeNameDecl = req(word.named("name")).map((r) => {
+  return makeElem<TypeNameElem>("typeName", r, ["name"]);
+});
+
+/** parse an identifier into a TypeNameElem */
+export const fnNameDecl = req(word.named("name")).map((r) => {
+  return makeElem<FnNameElem>("fnName", r, ["name"]);
 });
 
 
@@ -106,7 +112,7 @@ export const structMember = seq(
 
 export const structDecl = seq(
   "struct",
-  req(nameDecl).named("nameElem"),
+  req(typeNameDecl).named("nameElem"),
   req("{"),
   withSep(",", structMember).named("members"),
   req("}")
@@ -171,7 +177,7 @@ const block: Parser<any> = seq(
 export const fnDecl = seq(
   optAttributes,
   "fn",
-  req(nameDecl).named("nameElem"),
+  req(fnNameDecl).named("nameElem"),
   // TODO some built in functions can have a template here, e.g. bitcast
   req(fnParamList),
   opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),

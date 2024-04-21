@@ -7,7 +7,10 @@ export type AbstractElem =
   | ModuleElem
   | TemplateElem
   | FnElem
-  | NameElem
+  | TypeNameElem
+  | FnNameElem
+  | VarNameElem
+  | FnRefElem
   | CallElem
   | StructElem
   | StructMemberElem
@@ -27,17 +30,26 @@ export interface CallElem extends AbstractElemBase {
   name: string;
 }
 
-export interface NameElem extends AbstractElemBase {
-  kind: "name";
+export interface FnNameElem extends AbstractElemBase {
+  kind: "fnName";
+  name: string;
+}
+
+export interface VarNameElem extends AbstractElemBase {
+  kind: "varName";
   name: string;
 }
 
 export interface FnElem extends AbstractElemBase {
   kind: "fn";
   name: string;
-  nameElem: NameElem;
+  nameElem: FnNameElem;
   calls: CallElem[];
   typeRefs: TypeRefElem[];
+}
+
+export interface FnRefElem extends AbstractElemBase {
+  kind: "fnRef";
 }
 
 export interface TypeRefElem extends AbstractElemBase {
@@ -45,11 +57,16 @@ export interface TypeRefElem extends AbstractElemBase {
   name: string;
 }
 
+export interface TypeNameElem extends AbstractElemBase {
+  kind: "typeName";
+  name: string;
+}
+
 export interface StructElem extends AbstractElemBase {
   kind: "struct";
   name: string;
-  nameElem?: NameElem; // TODO
-  members?: StructMemberElem[];
+  nameElem: TypeNameElem;
+  members: StructMemberElem[];
   typeRefs: TypeRefElem[];
   extendsElems?: ExtendsElem[];
 }
@@ -89,7 +106,7 @@ export interface ModuleElem extends AbstractElemBase {
 export interface VarElem extends AbstractElemBase {
   kind: "var";
   name: string;
-  nameElem?: NameElem; // TODO
+  nameElem: VarNameElem;
   typeRefs: TypeRefElem[];
 }
 
