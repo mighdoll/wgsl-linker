@@ -100,6 +100,12 @@ function findReferences(
   return found;
 }
 
+/**
+ * unique id for a future root level element in the form:
+ *    moduleName.elemName(impParam1, impParam2, ...)
+ * We'll eventually give each unique element a unique fn, struct or variable name
+ * in the linked source.
+ */
 function refFullName(ref: FoundRef): string {
   const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
   const impArgs = expImpArgs.map(([, arg]) => arg);
@@ -161,7 +167,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
         console.error("unexpected: rename already exists", r.rename, linkName);
       }
       r.rename = linkName;
-      refLog(r, {rename:linkName});
+      refLog(r, { rename: linkName });
     }
 
     const ref = r as PartialRef;
