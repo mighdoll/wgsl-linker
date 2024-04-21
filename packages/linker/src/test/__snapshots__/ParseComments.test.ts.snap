@@ -23,6 +23,12 @@ exports[`parse fn with line comment 1`] = `
     "end": 39,
     "kind": "fn",
     "name": "binaryOp",
+    "nameElem": {
+      "end": 16,
+      "kind": "fnName",
+      "name": "binaryOp",
+      "start": 8,
+    },
     "start": 5,
     "typeRefs": [],
   },

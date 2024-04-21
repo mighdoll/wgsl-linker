@@ -62,6 +62,12 @@ test("parse struct", () => {
           },
         ],
         "name": "Foo",
+        "nameElem": {
+          "end": 10,
+          "kind": "typeName",
+          "name": "Foo",
+          "start": 7,
+        },
         "start": 0,
         "typeRefs": [
           {

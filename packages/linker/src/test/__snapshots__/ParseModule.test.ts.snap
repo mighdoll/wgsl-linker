@@ -11,6 +11,12 @@ exports[`simple fn export 1`] = `
         "end": 59,
         "kind": "fn",
         "name": "one",
+        "nameElem": {
+          "end": 26,
+          "kind": "fnName",
+          "name": "one",
+          "start": 23,
+        },
         "start": 20,
         "typeRefs": [
           {
@@ -30,6 +36,12 @@ exports[`simple fn export 1`] = `
       "end": 59,
       "kind": "fn",
       "name": "one",
+      "nameElem": {
+        "end": 26,
+        "kind": "fnName",
+        "name": "one",
+        "start": 23,
+      },
       "start": 20,
       "typeRefs": [
         {
@@ -100,6 +112,12 @@ exports[`simple fn import 1`] = `
       "end": 43,
       "kind": "fn",
       "name": "bar",
+      "nameElem": {
+        "end": 30,
+        "kind": "fnName",
+        "name": "bar",
+        "start": 27,
+      },
       "start": 24,
       "typeRefs": [],
     },

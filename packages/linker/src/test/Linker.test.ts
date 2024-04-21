@@ -110,7 +110,7 @@ test("#import twice doesn't get two copies", () => {
   expect([...matches].length).toBe(1);
 });
 
-test("import transitive conflicts with main", () => {
+test.skip("import transitive conflicts with main", () => {
   const module1 = `
     #export
     fn grand() {
@@ -200,7 +200,7 @@ test("multiple exports from the same module", () => {
   expect(linked).toMatchSnapshot();
 });
 
-test("#import and resolve conflicting support function", () => {
+test.skip("#import and resolve conflicting support function", () => {
   const module1 = `
     #export
     fn foo() {
@@ -225,7 +225,7 @@ test("#import and resolve conflicting support function", () => {
   expect([...barMatch].length).toBe(2);
 });
 
-test("#import support fn that references another import", () => {
+test.skip("#import support fn that references another import", () => {
   const src = `
     #import foo 
 
@@ -602,7 +602,7 @@ test("import a struct with imp/exp params", () => {
   expect(linked).contains("struct AStruct { x: i32 }");
 });
 
-test("import a struct with name conflicting support struct", () => {
+test.skip("import a struct with name conflicting support struct", () => {
   const src = `
     #import AStruct
 

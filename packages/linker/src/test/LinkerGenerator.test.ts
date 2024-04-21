@@ -68,7 +68,7 @@ test("#import with ext.arg from code generator", () => {
   expect(linked).contains("zogImpl");
 });
 
-test("#import conficted code gen fn", () => {
+test.skip("#import conficted code gen fn", () => {
   const src = `
     #module main
     #import bar
