@@ -161,6 +161,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
         console.error("unexpected: rename already exists", r.rename, linkName);
       }
       r.rename = linkName;
+      refLog(r, {rename:linkName});
     }
 
     const ref = r as PartialRef;
@@ -359,6 +360,7 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
 /** load a struct text, mixing in any elements from #extends */
 function loadStruct(r: ExportRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
+  printRef(r);
   if (!r.mergeRefs || !r.mergeRefs.length)
     return loadElemText2(r, replaces, rewriting);
 
@@ -409,6 +411,7 @@ function rmElems(src: string, elems: AbstractElem[]): string {
   return edits.map(([start, end]) => src.slice(start, end)).join("");
 }
 
+/** load element text from a FoundRef, respecting rename */
 function loadElemText2(
   ref: ExportRef | LocalRef,
   replaces: [string, string][],

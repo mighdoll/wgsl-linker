@@ -566,7 +566,7 @@ test("import a transitive struct", () => {
   expect(linked).contains("struct BStruct {");
 });
 
-test.only("'import as' a struct", () => {
+test("'import as' a struct", () => {
   const src = `
     #import AStruct as AA
 
@@ -579,7 +579,6 @@ test.only("'import as' a struct", () => {
   `;
 
   const linked = linkWgslTest(src, module1);
-  console.log("linked\n", linked)
   expect(linked).contains("struct AA {");
 });
 
@@ -625,6 +624,7 @@ test("import a struct with name conflicting support struct", () => {
   `;
 
   const linked = linkWgslTest(src, module1);
+  console.log("linked\n",linked)
   expect(linked).contains("struct Base {");
   expect(linked).contains("struct Base0 {");
   expect(linked).contains("x: Base0");
