@@ -127,7 +127,18 @@ export function printRef(r: FoundRef, msg?: string): void {
     fromImport,
     expImpArgs,
   } = r as ExportRef;
-  dlog(msg ?? "", { kind, rename, srcElem, elem });
+  dlog(msg ?? "", {
+    kind,
+    rename,
+  },
+    elemToText("elem", elem),
+  );
+}
+
+export function elemToText(msg:string, elem?: AbstractElem): string {
+  if (!elem) return "";
+  const { kind, ref: link, name="" } = elem as CallElem;
+  return `${msg}: {kind: ${kind}, name: ${name}, link: ${link !== undefined}}`;
 }
 
 /**
