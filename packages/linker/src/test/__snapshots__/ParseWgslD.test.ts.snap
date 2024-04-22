@@ -38,8 +38,6 @@ exports[`parse @compute @workgroup_size(a, b, 1) before fn 1`] = `
 ]
 `;
 
-exports[`parse alias 1`] = `[]`;
-
 exports[`parse and ignore const_assert 1`] = `
 [
   {
@@ -74,6 +72,33 @@ exports[`parse and ignore global diagnostic 1`] = `
     },
     "start": 49,
     "typeRefs": [],
+  },
+]
+`;
+
+exports[`parse array alias 1`] = `
+[
+  {
+    "end": 37,
+    "kind": "alias",
+    "name": "Points3",
+    "start": 5,
+    "typeRefs": [
+      [
+        {
+          "end": 36,
+          "kind": "typeRef",
+          "name": "array",
+          "start": 21,
+        },
+        {
+          "end": 36,
+          "kind": "typeRef",
+          "name": "Point",
+          "start": 21,
+        },
+      ],
+    ],
   },
 ]
 `;
@@ -132,6 +157,27 @@ exports[`parse fn with calls 1`] = `
 `;
 
 exports[`parse root level ;; 1`] = `[]`;
+
+exports[`parse simple alias 1`] = `
+[
+  {
+    "end": 24,
+    "kind": "alias",
+    "name": "NewType",
+    "start": 0,
+    "typeRefs": [
+      [
+        {
+          "end": 23,
+          "kind": "typeRef",
+          "name": "OldType",
+          "start": 16,
+        },
+      ],
+    ],
+  },
+]
+`;
 
 exports[`parse top level override and const 1`] = `
 [

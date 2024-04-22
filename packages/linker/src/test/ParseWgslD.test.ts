@@ -13,6 +13,7 @@ import {
   typeSpecifier,
 } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
+import { dlog } from "berry-pretty";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");
@@ -170,9 +171,17 @@ test("parse root level ;;", () => {
   });
 });
 
-test("parse alias", () => {
+test("parse simple alias", () => {
+  const src = `alias NewType = OldType;`;
+  expectNoLogErr(() => {
+    const parsed = parseWgslD(src);
+    expect(parsed).toMatchSnapshot();
+  });
+});
+
+test("parse array alias", () => {
   const src = `
-    alias RTArr = array<vec4<f32>>;
+    alias Points3 = array<Point, 3>;
   `;
   expectNoLogErr(() => {
     const parsed = parseWgslD(src);
@@ -302,3 +311,4 @@ test("parse fn with attributes and suffix comma", () => {
     expect(first.name).eq("main");
   });
 });
+

@@ -1,6 +1,7 @@
 /** Structures for the abstract syntax tree constructed by the parser. */
 
 export type AbstractElem =
+  | AliasElem
   | ImportElem
   | ExtendsElem
   | ExportElem
@@ -113,4 +114,11 @@ export interface VarElem extends AbstractElemBase {
 export interface TemplateElem extends AbstractElemBase {
   kind: "template";
   name: string;
+}
+
+export interface AliasElem extends AbstractElemBase {
+  kind: "alias";
+  name: string;
+  targetName: string;
+  typeRefs: TypeRefElem[];
 }

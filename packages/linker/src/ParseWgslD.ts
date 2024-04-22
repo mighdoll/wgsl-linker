@@ -22,6 +22,7 @@ import {
 } from "mini-parse";
 import {
   AbstractElem,
+  AliasElem,
   CallElem,
   FnElem,
   FnNameElem,
@@ -70,7 +71,6 @@ export const typeNameDecl = req(word.named("name")).map((r) => {
 export const fnNameDecl = req(word.named("name")).map((r) => {
   return makeElem<FnNameElem>("fnName", r, ["name"]);
 });
-
 
 /** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
@@ -205,7 +205,16 @@ export const globalVar = seq(
   r.app.state.push(e);
 });
 
-export const globalAlias = seq("alias", req(anyThrough(";")));
+export const globalAlias = seq(
+  "alias",
+  req(word.named("name")),
+  req("="),
+  req(typeSpecifier).named("typeRefs"),
+  req(";")
+).map(r => {
+  const e = makeElem<AliasElem>("alias", r, ["name"], ["typeRefs"])
+  r.app.state.push(e);
+});
 
 const globalDecl = or(fnDecl, globalVar, globalAlias, structDecl, ";");
 
