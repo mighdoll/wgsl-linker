@@ -1,6 +1,7 @@
 import { logger, srcLog } from "mini-parse";
 import { FoundRef } from "./TraverseRefs.js";
 import { TextModule } from "./ParseModule.js";
+import { AbstractElem } from "./AbstractElems.js";
 
 export function refLog(ref: FoundRef, ...msgs: any[]): void {
   if (ref.kind !== "gen") {
@@ -17,4 +18,14 @@ export function moduleLog(
 ): void {
   const { src, srcMap } = mod;
   srcLog(srcMap ?? src, pos, ...msgs, ` module: ${mod.name} ${mod.fileName || ""}`);
+}
+
+export function elemLog(
+  mod: TextModule,
+  elem:AbstractElem,
+  ...msgs: any[]
+): void {
+  const { src, srcMap } = mod;
+  const {start, end} = elem;
+  srcLog(srcMap ?? src, [start, end], ...msgs);
 }
