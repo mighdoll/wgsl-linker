@@ -11,7 +11,6 @@ export type AbstractElem =
   | TypeNameElem
   | FnNameElem
   | VarNameElem
-  | FnRefElem
   | CallElem
   | StructElem
   | StructMemberElem
@@ -47,10 +46,6 @@ export interface FnElem extends AbstractElemBase {
   nameElem: FnNameElem;
   calls: CallElem[];
   typeRefs: TypeRefElem[];
-}
-
-export interface FnRefElem extends AbstractElemBase {
-  kind: "fnRef";
 }
 
 export interface TypeRefElem extends AbstractElemBase {
