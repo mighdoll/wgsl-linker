@@ -19,6 +19,7 @@ import {
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
+import { LinkedCall } from "./LinkedElems.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 export type TextRef = ExportRef | LocalRef;
@@ -92,10 +93,22 @@ export interface ExportRef extends ExportRefBase {
 export function traverseRefs2(
   srcModule: TextModule,
   registry: ModuleRegistry,
-):void {
-  const { fns, structs, vars } = srcModule;
-
+): void {
+  const { fns, structs, vars, aliases } = srcModule;
+  
+  // fns.map(fnElem => {
+  //   const linkedCalls = fnElem.calls.map(c => linkCall(c))
+  // })
 }
+
+  /** a call element like foo() can be one of several things:
+   *   . a reference to a built in function, e.g. sin()
+   *   . a reference to a local function definition 
+   *   . a reference to an import  
+   */ 
+// function linkCall(callElem:CallElem, srcModule:TextModule, registry:ModuleRegistry):LinkedCall {
+
+// }
 
 /**
  * Recursively walk through all imported references starting from a src module, calling
@@ -207,7 +220,7 @@ function elemRefs(
     mergeRefs = extendsRefs(srcRef, elem, mod, registry);
   }
   const userTypeRefs = elem.typeRefs.filter(
-    (ref) => !stdType(ref.name) && ref.name !== elem.name
+    (ref) => !stdType(ref.name) && ref.name !== elem.name // TODO is this needed? (recursion is not allowed in wgsl..)
   );
   const tRefs = elemChildrenRefs(srcRef, userTypeRefs, mod, registry);
   return [...fnRefs, ...tRefs, ...mergeRefs];
