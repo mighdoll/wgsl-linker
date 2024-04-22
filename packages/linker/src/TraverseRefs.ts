@@ -39,7 +39,7 @@ export interface LocalRef extends HasSourceElem {
 interface HasSourceElem {
   /** element that referred to this ref, e.g. a call Elem like foo(). 
    * used to rewrite sources */
-  srcElem?: CallElem | TypeRefElem | StructElem;
+  srcElem?: CallElem | TypeRefElem | StructElem; // TODO drop this, we're putting foundRef in the src elem itself
 
   rename?: string;
 }
@@ -230,17 +230,17 @@ function elemRefs(
  * (children being call references and type references from the fn or struct) */
 function elemChildrenRefs(
   srcRef: TextRef,
-  children: (CallElem | VarElem | StructElem | TypeRefElem)[],
+  children: (CallElem | TypeRefElem)[],
   mod: TextModule,
   registry: ModuleRegistry
 ): FoundRef[] {
   return children.flatMap((elem) => elemRef(elem, srcRef, mod, registry));
 }
 
-/** given a source elem that references a struct or fn, return a TextRef linking
+/** given a source elem that references a function or struct, return a TextRef linking
  * the src elem to its referent, possibly through an import/export */
 function elemRef(
-  elem: NamedElem,
+  elem: CallElem | TypeRefElem,
   srcRef: TextRef,
   mod: TextModule,
   registry: ModuleRegistry
@@ -255,8 +255,10 @@ function elemRef(
     localRef(name, mod);
 
   if (foundRef) {
-    if (["typeRef", "struct", "call"].includes(elem.kind)) {
+    if (["typeRef", "call"].includes(elem.kind)) {
       foundRef.srcElem = elem as FoundRef["srcElem"];
+      // bind src elem to referent elem (resolve reference)
+      elem.ref = foundRef;
     } else {
       dlog("unexpected kind", elem);
     }
