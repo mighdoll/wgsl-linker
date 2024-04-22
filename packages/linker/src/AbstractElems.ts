@@ -1,5 +1,7 @@
 /** Structures for the abstract syntax tree constructed by the parser. */
 
+import { FoundRef } from "./TraverseRefs.js";
+
 export type AbstractElem =
   | AliasElem
   | ImportElem
@@ -28,6 +30,7 @@ export interface AbstractElemBase {
 export interface CallElem extends AbstractElemBase {
   kind: "call";
   name: string;
+  ref?: FoundRef;
 }
 
 export interface FnNameElem extends AbstractElemBase {
@@ -51,6 +54,7 @@ export interface FnElem extends AbstractElemBase {
 export interface TypeRefElem extends AbstractElemBase {
   kind: "typeRef";
   name: string;
+  ref?: FoundRef;
 }
 
 export interface TypeNameElem extends AbstractElemBase {
