@@ -2,6 +2,7 @@
 
 exports[`simple fn export 1`] = `
 {
+  "aliases": [],
   "exports": [
     {
       "end": 16,
@@ -98,6 +99,7 @@ exports[`simple fn export 1`] = `
 
 exports[`simple fn import 1`] = `
 {
+  "aliases": [],
   "exports": [],
   "fns": [
     {

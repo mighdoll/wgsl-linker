@@ -89,6 +89,14 @@ export interface ExportRef extends ExportRefBase {
   mergeRefs?: ExportRef[]; // CONSIDER make separate type for ExportRef after processing?
 }
 
+export function traverseRefs2(
+  srcModule: TextModule,
+  registry: ModuleRegistry,
+):void {
+  const { fns, structs, vars } = srcModule;
+
+}
+
 /**
  * Recursively walk through all imported references starting from a src module, calling
  * a function with each struct/fn reference found.

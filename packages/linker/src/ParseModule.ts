@@ -8,6 +8,7 @@ import {
   StructElem,
   TemplateElem,
   VarElem,
+  AliasElem,
 } from "./AbstractElems.js";
 import { processConditionals } from "./Conditionals.js";
 import { parseWgslD } from "./ParseWgslD.js";
@@ -22,6 +23,7 @@ export interface TextModule {
   vars: VarElem[];
   structs: StructElem[];
   imports: (ImportElem | ExtendsElem)[];
+  aliases: AliasElem[];
 
   /** name of the module. A synthetic name will be assigned if none is provided */
   name: string;
@@ -54,6 +56,7 @@ export function parseModule(
   const parsed = parseWgslD(preppedSrc, srcMap);
   const exports = findExports(parsed, srcMap);
   const fns = filterElems<FnElem>(parsed, "fn");
+  const aliases = filterElems<AliasElem>(parsed, "alias");
   const imports = parsed.filter(
     (e) => e.kind === "import" || e.kind === "extends"
   ) as (ImportElem | ExtendsElem)[];
@@ -68,7 +71,7 @@ export function parseModule(
   const kind = "text";
   return {
     ...{ kind, src, srcMap, preppedSrc, name },
-    ...{ exports, fns, structs, vars, imports, template },
+    ...{ exports, fns, structs, vars, imports, template, aliases },
   };
 }
 
