@@ -1,6 +1,6 @@
-import { dlog } from "berry-pretty";
-import { AbstractElem, FnElem, StructElem } from "./AbstractElems.js";
-import { moduleLog, refLog } from "./LinkerLogging.js";
+import { dlog, pretty } from "berry-pretty";
+import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
+import { elemLog, moduleLog, refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
 import { TextModule, parseModule } from "./ParseModule.js";
 import {
@@ -23,6 +23,7 @@ import {
   replaceWords,
 } from "./Util.js";
 import { srcLog } from "mini-parse";
+import { SliceReplace, sliceReplace } from "./Slicer.js";
 
 interface Rewriting {
   renames: RenameMap;
@@ -127,17 +128,19 @@ export function printRef(r: FoundRef, msg?: string): void {
     fromImport,
     expImpArgs,
   } = r as ExportRef;
-  dlog(msg ?? "", {
-    kind,
-    rename,
-  },
-    elemToText("elem", elem),
+  dlog(
+    msg ?? "",
+    {
+      kind,
+      rename,
+    },
+    elemToText("elem", elem)
   );
 }
 
-export function elemToText(msg:string, elem?: AbstractElem): string {
+export function elemToText(msg: string, elem?: AbstractElem): string {
   if (!elem) return "";
-  const { kind, ref: link, name="" } = elem as CallElem;
+  const { kind, ref: link, name = "" } = elem as CallElem;
   return `${msg}: {kind: ${kind}, name: ${name}, link: ${link !== undefined}}`;
 }
 
@@ -185,7 +188,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
     // record rename for this import in the importing module
     if (ref.fromRef && linkName !== proposedName) {
       // multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
-      dlog({ refFromRef: ref.fromRef });
+      dlog("ref.fromRef ", { proposedName, linkName });
     }
   });
 
@@ -428,6 +431,52 @@ function rmElems(src: string, elems: AbstractElem[]): string {
   return edits.map(([start, end]) => src.slice(start, end)).join("");
 }
 
+function loadFnText(
+  elem: FnElem,
+  ref: ExportRef | LocalRef,
+  replaces: [string, string][],
+  rewriting: Rewriting
+): string {
+  const { expMod, rename } = ref;
+  const slicing: SliceReplace[] = [];
+
+  if (rename) {
+    const { start, end } = elem.nameElem;
+    slicing.push({ start, end, replacement: rename });
+  }
+
+  elem.calls.forEach(call => {
+    const rename = call?.ref?.rename;
+    if (rename) {
+      const { start, end } = call;
+      slicing.push({ start, end, replacement: rename });
+    }
+  });
+
+  elem.typeRefs.forEach(typeRef => { // TODO test
+    const rename = typeRef?.ref?.rename;
+    if (rename) {
+      const { start, end } = typeRef;
+      slicing.push({ start, end, replacement: rename });
+    }
+  });
+
+  const patchedSrc = sliceReplace(ref.expMod.preppedSrc, slicing);
+  dlog({patchedSrc})
+
+  const { extParams, registry } = rewriting;
+  const params = expImpToParams(replaces, extParams);
+  const templated = applyTemplate(patchedSrc, expMod, params, registry);
+  const rewrite = Object.fromEntries([...replaces]);
+
+  const result = replaceWords(templated, rewrite);
+  dlog({result});
+  return result;
+}
+
+/** TODO we need to rename this fn or struct if it has been renamed,
+ * and we also need to rename any contained references to other fns or structs that have been renamed
+ */
 /** load element text from a FoundRef, respecting rename */
 function loadElemText2(
   ref: ExportRef | LocalRef,
@@ -435,12 +484,16 @@ function loadElemText2(
   rewriting: Rewriting
 ): string {
   const { start, end } = ref.elem;
+  printRef(ref, "loadElemText2");
+  if (ref.elem.kind === "fn") {
+    return loadFnText(ref.elem, ref, replaces, rewriting);
+  }
   if (!ref.rename) {
     const result = loadModuleSlice(ref.expMod, start, end, replaces, rewriting);
     dlog({ result });
     return result;
   } else {
-    const nameElem = ref.elem.nameElem; // TODO add nameElem to other t
+    const nameElem = ref.elem.nameElem;
     if (nameElem) {
       const { start: nameStart, end: nameEnd } = nameElem;
       const part1 = loadModuleSlice(

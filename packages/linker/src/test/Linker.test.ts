@@ -110,7 +110,7 @@ test("#import twice doesn't get two copies", () => {
   expect([...matches].length).toBe(1);
 });
 
-test.skip("import transitive conflicts with main", () => {
+test("import transitive conflicts with main", () => {
   const module1 = `
     #export
     fn grand() {
@@ -135,6 +135,7 @@ test.skip("import transitive conflicts with main", () => {
     }
   `;
   const linked = linkWgslTest(src, module1, module2);
+  console.log("linked\n", linked);
   expect(linked).includes("mid() { grand0(); }");
 });
 
@@ -624,7 +625,7 @@ test.skip("import a struct with name conflicting support struct", () => {
   `;
 
   const linked = linkWgslTest(src, module1);
-  console.log("linked\n",linked)
+  console.log("linked\n", linked);
   expect(linked).contains("struct Base {");
   expect(linked).contains("struct Base0 {");
   expect(linked).contains("x: Base0");
