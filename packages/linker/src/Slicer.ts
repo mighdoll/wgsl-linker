@@ -1,5 +1,6 @@
 import { scan } from "./Util.js";
 
+/** specify a start,end portion of a string to be replaced */
 export interface SliceReplace {
   start: number;
   end: number;
@@ -7,13 +8,17 @@ export interface SliceReplace {
 }
 
 /**
- *  aaabbbbbc
- *     s    e
- *  aaarrrrrc
+ * Rewrite a string by replacing segments them with provided texts.
  *
- * @param src
- * @param slices
- * @returns
+ * example:
+ * src:
+ *  aaabbbbbc
+ *     ^    ^
+ *     St   End Repl='XXX'
+ * 
+ * returns:
+ *  aaaXXXc
+ *
  */
 
 export function sliceReplace(src: string, slices: SliceReplace[]): string {
