@@ -257,7 +257,6 @@ function elemRef(
   registry: ModuleRegistry
 ): FoundRef[] {
   const { name } = elem;
-  dlog({ elemName: name });
   if (importArgRef(srcRef, name)) return [];
 
   const foundRef =

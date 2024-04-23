@@ -20,7 +20,6 @@ test("simple #import", () => {
     }
   `;
   const linked = linkWgslTest(src, myModule);
-  console.log("linked\n", linked);
   expect(linked).contains("// \n    fn bar()");
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
@@ -136,7 +135,6 @@ test("import transitive conflicts with main", () => {
     }
   `;
   const linked = linkWgslTest(src, module1, module2);
-  console.log("linked\n", linked);
   expect(linked).includes("mid() { grand0(); }");
 });
 
@@ -626,7 +624,6 @@ test("import a struct with name conflicting support struct", () => {
   `;
 
   const linked = linkWgslTest(src, module1);
-  console.log("linked\n", linked);
   expect(linked).contains("struct Base {");
   expect(linked).contains("struct Base0 {");
   expect(linked).contains("x: Base0"); // TBD
@@ -764,7 +761,6 @@ test("#import twice with different params", () => {
   `;
 
   const linked = linkWgslTest(src, module0);
-  console.log("linked\n", linked);
   expect(linked).includes("fn bar() { /* B */ }");
   expect(linked).includes("fn foo() { /* A */ }");
 });
@@ -812,7 +808,7 @@ test("warn on missing template", () => {
   `);
 });
 
-test("extend struct with rename", () => {
+test("extend struct with rename", () => { // TODO
   const src = `
     // #extends HasColor(fill) 
     struct Sprite {

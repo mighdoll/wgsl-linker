@@ -384,7 +384,6 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
 /** load a struct text, mixing in any elements from #extends */
 function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
   const replaces = ref.kind === "exp" ? ref.expImpArgs : [];
-  printRef(ref);
   if (ref.kind === "local") {
     return loadElemText2(ref, replaces, rewriting);
   }
@@ -420,6 +419,7 @@ function loadMemberText(
     member.start,
     member.end
   );
+
   return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
 }
 
@@ -526,7 +526,6 @@ function loadElemText2(
   printRef(ref, "loadElemText2");
   if (!ref.rename) {
     const result = loadModuleSlice(ref.expMod, start, end, replaces, rewriting);
-    dlog({ result });
     return result;
   } else {
     const nameElem = ref.elem.nameElem;
