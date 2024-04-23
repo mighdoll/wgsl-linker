@@ -202,7 +202,7 @@ test("multiple exports from the same module", () => {
   expect(linked).toMatchSnapshot();
 });
 
-test.skip("#import and resolve conflicting support function", () => {
+test("#import and resolve conflicting support function", () => {
   const module1 = `
     #export
     fn foo() {
@@ -227,7 +227,7 @@ test.skip("#import and resolve conflicting support function", () => {
   expect([...barMatch].length).toBe(2);
 });
 
-test.skip("#import support fn that references another import", () => {
+test("#import support fn that references another import", () => {
   const src = `
     #import foo 
 
@@ -812,7 +812,7 @@ test("warn on missing template", () => {
   `);
 });
 
-test.skip("extend struct with rename", () => {
+test("extend struct with rename", () => {
   const src = `
     // #extends HasColor(fill) 
     struct Sprite {
