@@ -146,13 +146,10 @@ export function elemToText(msg: string, elem?: AbstractElem): string {
 }
 
 /**
- * Calculate and @return a renaming map so that all the found top level elements
+ * Calculate rename entries so that all the found top level elements
  * will have unique, non conflicting names.
  *
- * The rename map includes entries to rename references in both the exporting module
- * and the importing module.
- *
- * @param declaredNames declarations visible in the linked src so far
+ * @param declaredNames update global list of root declarations visible in the linked src 
  */
 function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
   /** number of conflicting names, used as a unique suffix for deconflicting */
@@ -357,11 +354,6 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
 
 /** load a struct text, mixing in any elements from #extends */
 function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
-  const replaces = ref.kind === "exp" ? ref.expImpArgs : [];
-  if (ref.kind === "local") {
-    return loadElemText2(ref, replaces, rewriting);
-  }
-
   const structElem = ref.elem as StructElem;
 
   const rootMembers =
@@ -372,7 +364,7 @@ function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
     return mergeStruct.members?.map((member) =>
       loadMemberText(member, mergeRef, rewriting)
     );
-  });
+  }) ?? [];
 
   const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
   const membersText = allMembers.join(",\n");
@@ -487,80 +479,6 @@ function typeRefSlices(typeRefs: TypeRefElem[]): SliceReplace[] {
   return slicing;
 }
 
-/** TODO we need to rename this fn or struct if it has been renamed,
- * and we also need to rename any contained references to other fns or structs that have been renamed
- */
-/** load element text from a FoundRef, respecting rename */
-function loadElemText2(
-  ref: ExportRef | LocalRef,
-  replaces: [string, string][],
-  rewriting: Rewriting
-): string {
-  const { start, end } = ref.elem;
-  if (!ref.rename) {
-    const result = loadModuleSlice(ref.expMod, start, end, replaces, rewriting);
-    return result;
-  } else {
-    const nameElem = ref.elem.nameElem;
-    if (nameElem) {
-      const { start: nameStart, end: nameEnd } = nameElem;
-      const part1 = loadModuleSlice(
-        ref.expMod,
-        start,
-        nameStart,
-        replaces,
-        rewriting
-      );
-      const part2 = loadModuleSlice(
-        ref.expMod,
-        nameEnd,
-        end,
-        replaces,
-        rewriting
-      );
-      const result = part1 + ref.rename + part2;
-      return result;
-    } else {
-      refLog(ref, "missing nameElem");
-    }
-    return "";
-  }
-}
-
-/** extract the text for an element a module,
- * optionally replace export params with corresponding import arguments
- * optionally replace fn/struct name with 'import as' name
- */
-function loadElemText(
-  elem: AbstractElem,
-  mod: TextModule,
-  replaces: [string, string][],
-  rewriting: Rewriting
-): string {
-  const { start, end } = elem;
-  return loadModuleSlice(mod, start, end, replaces, rewriting);
-}
-
-/** load and transform a chunk of text from a module
- * @param replaces - renaming from exp/imp params and as name
- */
-function loadModuleSlice(
-  mod: TextModule,
-  start: number,
-  end: number,
-  replaces: [string, string][],
-  rewriting: Rewriting
-): string {
-  const { extParams, registry } = rewriting;
-  const slice = mod.preppedSrc.slice(start, end);
-
-  const params = expImpToParams(replaces, extParams);
-  const templated = applyTemplate(slice, mod, params, registry);
-  // const moduleRenames = rewriting.renames.get(mod.name)?.entries() ?? [];
-
-  const rewrite = Object.fromEntries([...replaces]);
-  return replaceWords(templated, rewrite);
-}
 
 function expImpToParams(
   expImpEntries: [string, string][],

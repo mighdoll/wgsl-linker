@@ -5,7 +5,6 @@ import {
   ExtendsElem,
   FnElem,
   ImportElem,
-  NamedElem,
   StructElem,
   TypeRefElem,
   VarElem,
@@ -19,7 +18,6 @@ import {
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
-import { LinkedCall } from "./LinkedElems.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 export type TextRef = ExportRef | LocalRef;
@@ -34,6 +32,8 @@ export interface LocalRef extends HasSourceElem {
   kind: "local";
   expMod: TextModule;
   elem: FnElem | StructElem | VarElem;
+
+  mergeRefs?:undefined;
 }
 
 interface HasSourceElem {
@@ -64,6 +64,8 @@ export interface GeneratorRef extends ExportRefBase {
 
   /** name of the generated function (may be renamed by import as) */
   name: string;
+
+  mergeRefs?: undefined;
 }
 
 /** found reference to an exported function or struct.
@@ -83,28 +85,8 @@ export interface ExportRef extends ExportRefBase {
 
   /** refs to extends elements on this same element
    * (added in a post processing step after traverse) */
-  mergeRefs?: ExportRef[]; // CONSIDER make separate type for ExportRef after processing?
+  mergeRefs?: ExportRef[];
 }
-
-export function traverseRefs2(
-  srcModule: TextModule,
-  registry: ModuleRegistry
-): void {
-  const { fns, structs, vars, aliases } = srcModule;
-
-  // fns.map(fnElem => {
-  //   const linkedCalls = fnElem.calls.map(c => linkCall(c))
-  // })
-}
-
-/** a call element like foo() can be one of several things:
- *   . a reference to a built in function, e.g. sin()
- *   . a reference to a local function definition
- *   . a reference to an import
- */
-// function linkCall(callElem:CallElem, srcModule:TextModule, registry:ModuleRegistry):LinkedCall {
-
-// }
 
 /**
  * Recursively walk through all imported references starting from a src module, calling
