@@ -823,5 +823,5 @@ test("extend struct with rename", () => { // TODO
     `;
 
   const linked = linkWgslTest(src, module1);
-  console.log(linked);
+  expect(linked).includes ("fill: vec4f")
 });
