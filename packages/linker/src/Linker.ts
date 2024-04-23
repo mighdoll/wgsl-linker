@@ -186,14 +186,13 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
         console.error("unexpected: rename already exists", r.rename, linkName);
       }
       r.rename = linkName;
-      refLog(r, { rename: linkName });
     }
 
     const ref = r as PartialRef;
     // record rename for this import in the importing module
     if (ref.fromRef && linkName !== proposedName) {
       // multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
-      dlog("ref.fromRef ", { proposedName, linkName });
+      // dlog("ref.fromRef ", { proposedName, linkName });
     }
   });
 
@@ -523,7 +522,6 @@ function loadElemText2(
   rewriting: Rewriting
 ): string {
   const { start, end } = ref.elem;
-  printRef(ref, "loadElemText2");
   if (!ref.rename) {
     const result = loadModuleSlice(ref.expMod, start, end, replaces, rewriting);
     return result;
