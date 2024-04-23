@@ -28,7 +28,6 @@ export type PartialRef = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<ExportRef, "kind">> &
   Partial<Omit<GeneratorRef, "kind" | "expMod">>;
 
-
 interface ExportRefBase {
   /** reference that led us to find this ref (for mapping imp/exp args) */
   fromRef: FoundRef;
@@ -51,12 +50,29 @@ interface ExportRefBase {
   mergeRefs?: ExportRef[];
 }
 
+export interface ExportInfo {
+  /** reference that led us to find this ref (for mapping imp/exp args) */
+  fromRef: FoundRef;
+
+  /** import or extends elem that resolved to this export */
+  fromImport: ImportElem | ExtendsElem;
+
+  /** mapping from export arguments to import arguments
+   * (could be mapping to import args prior to this import, via chain of importing) */
+  expImpArgs: [string, string][];
+
+  /** refs to extends elements on this struct element
+   * (added in a post processing step after traverse) */
+  mergeRefs?: ExportRef[];
+}
+
 export interface LocalRef {
   kind: "local";
   expMod: TextModule;
   elem: FnElem | StructElem | VarElem;
   mergeRefs?: undefined;
   rename?: string;
+  expInfo?: undefined;
 }
 
 export interface GeneratorRef extends ExportRefBase {
@@ -85,6 +101,8 @@ export interface ExportRef extends ExportRefBase {
 
   /** reference to the exported function or struct */
   elem: FnElem | StructElem;
+
+  expInfo: ExportInfo;
 }
 
 /**
@@ -295,12 +313,20 @@ function importRef(
   const expMod = modExp.module;
   if (expMod.kind === "text") {
     const exp = modExp.export as TextExport;
+    const expImpArgs = matchImportExportArgs(impMod, fromImport, expMod, exp);
+    const expInfo: ExportInfo = {
+      fromImport,
+      fromRef,
+      expImpArgs,
+    };
+
     return {
       kind: "exp",
+      expInfo,
       fromRef,
       fromImport,
       expMod,
-      expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
+      expImpArgs,
       elem: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
@@ -363,12 +389,20 @@ function importingRef(
 
   if (modExp.kind === "text") {
     const exp = modExp.export;
+    const expImpArgs = importingArgs(fromImport, exp, srcRef);
+    const expInfo: ExportInfo = {
+      fromRef: srcRef,
+      fromImport,
+      expImpArgs,
+    };
+
     return {
       kind: "exp",
+      expInfo,
       fromRef: srcRef,
       fromImport,
       expMod: modExp.module as TextModule,
-      expImpArgs: importingArgs(fromImport, exp, srcRef),
+      expImpArgs,
       elem: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };

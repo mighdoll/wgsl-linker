@@ -12,6 +12,7 @@ import { ModuleRegistry } from "./ModuleRegistry.js";
 import { TextModule } from "./ParseModule.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
 import {
+  ExportInfo,
   ExportRef,
   FoundRef,
   GeneratorRef,
@@ -149,7 +150,7 @@ export function elemToText(msg: string, elem?: AbstractElem): string {
  * Calculate rename entries so that all the found top level elements
  * will have unique, non conflicting names.
  *
- * @param declaredNames update global list of root declarations visible in the linked src 
+ * @param declaredNames update global list of root declarations visible in the linked src
  */
 function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
   /** number of conflicting names, used as a unique suffix for deconflicting */
@@ -309,8 +310,15 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
 /** create a synthetic ExportRef so we can treat extends on root structs
  * the same as extends on exported structs */
 function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
+  const expInfo: ExportInfo = {
+    fromRef,
+    fromImport: null as any,
+    expImpArgs: [],
+  };
+
   const exp: ExportRef = {
     kind: "exp",
+    expInfo,
     elem: fromRef.elem as StructElem | FnElem,
     expMod: rootModule,
     fromRef,
@@ -359,12 +367,13 @@ function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
   const rootMembers =
     structElem.members?.map((m) => loadMemberText(m, ref, rewriting)) ?? [];
 
-  const newMembers = ref.mergeRefs?.flatMap((mergeRef) => {
-    const mergeStruct = mergeRef.elem as StructElem;
-    return mergeStruct.members?.map((member) =>
-      loadMemberText(member, mergeRef, rewriting)
-    );
-  }) ?? [];
+  const newMembers =
+    ref.mergeRefs?.flatMap((mergeRef) => {
+      const mergeStruct = mergeRef.elem as StructElem;
+      return mergeStruct.members?.map((member) =>
+        loadMemberText(member, mergeRef, rewriting)
+      );
+    }) ?? [];
 
   const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
   const membersText = allMembers.join(",\n");
@@ -478,7 +487,6 @@ function typeRefSlices(typeRefs: TypeRefElem[]): SliceReplace[] {
   });
   return slicing;
 }
-
 
 function expImpToParams(
   expImpEntries: [string, string][],
