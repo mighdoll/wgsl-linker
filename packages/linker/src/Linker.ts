@@ -382,37 +382,37 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
 }
 
 /** load a struct text, mixing in any elements from #extends */
-function loadStruct(r: ExportRef | LocalRef, rewriting: Rewriting): string {
-  const replaces = r.kind === "exp" ? r.expImpArgs : [];
-  printRef(r);
-  if (r.kind === "local") {
-    return loadElemText2(r, replaces, rewriting);
+function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
+  const replaces = ref.kind === "exp" ? ref.expImpArgs : [];
+  printRef(ref);
+  if (ref.kind === "local") {
+    return loadElemText2(ref, replaces, rewriting);
   }
 
-  const structElem = r.elem as StructElem;
+  const structElem = ref.elem as StructElem;
 
   const rootMembers =
-    structElem.members?.map((m) => loadMemberText(m, r.expMod, rewriting)) ??
-    [];
+    structElem.members?.map((m) => loadMemberText(m, ref, rewriting)) ?? [];
 
-  const newMembers = r.mergeRefs?.flatMap((merge) => {
-    const mergeStruct = merge.elem as StructElem;
+  const newMembers = ref.mergeRefs?.flatMap((mergeRef) => {
+    const mergeStruct = mergeRef.elem as StructElem;
     return mergeStruct.members?.map((member) =>
-      loadMemberText(member, merge.expMod, rewriting)
+      loadMemberText(member, mergeRef, rewriting)
     );
   });
 
   const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
   const membersText = allMembers.join(",\n");
-  const name = r.rename || structElem.name;
+  const name = ref.rename || structElem.name;
   return `struct ${name} {\n${membersText}\n}`;
 }
 
 function loadMemberText(
   member: StructMemberElem,
-  expMod: TextModule,
+  ref: TextRef | LocalRef,
   rewriting: Rewriting
 ): string {
+  const { expMod } = ref;
   const slicing = typeRefSlices(member.typeRefs);
   const patchedSrc = sliceReplace(
     expMod.preppedSrc,
@@ -420,8 +420,7 @@ function loadMemberText(
     member.start,
     member.end
   );
-
-  return patchedSrc; // TODO apply template?
+  return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
 }
 
 /** get the export/import param map if appropriate for this ref */
