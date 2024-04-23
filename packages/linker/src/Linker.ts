@@ -120,16 +120,7 @@ function refFullName(ref: FoundRef): string {
 }
 
 export function printRef(r: FoundRef, msg?: string): void {
-  const {
-    kind,
-    elem,
-    expMod,
-    rename,
-    fromRef,
-    proposedName,
-    fromImport,
-    expImpArgs,
-  } = r as ExportRef;
+  const { kind, elem, rename } = r as ExportRef;
   dlog(
     msg ?? "",
     {
@@ -227,12 +218,12 @@ function prepRefsMergeAndLoad(
 
   // create refs for the root module in the same form as module refs
   const rawRootMerges = mergeRefs.filter(
-    (r) => r.fromRef.expMod === rootModule
+    (r) => r.expInfo.fromRef.expMod === rootModule
   );
 
   const byElem = groupBy(rawRootMerges, (r) => refName(r));
   const rootMergeRefs = [...byElem.entries()].flatMap(([, merges]) => {
-    const fromRef = merges[0].fromRef as TextRef;
+    const fromRef = merges[0].expInfo.fromRef as TextRef;
     const synth = syntheticRootExp(rootModule, fromRef);
     const combined = combineMergeRefs(mergeRefs, [synth]);
     return combined;
@@ -245,7 +236,9 @@ function prepRefsMergeAndLoad(
     ...rootMergeRefs,
   ];
 
-  const rmRootOrig = rootMergeRefs.map((r) => (r.fromRef as TextRef).elem);
+  const rmRootOrig = rootMergeRefs.map(
+    (r) => (r.expInfo.fromRef as TextRef).elem
+  );
 
   return { rmRootOrig, loadRefs };
 }
@@ -258,7 +251,7 @@ function combineMergeRefs(
   // map from the element name of a struct annotated with #extends to the merge refs
   const mergeMap = new Map<string, ExportRef[]>();
   mergeRefs.forEach((r) => {
-    const fullName = refFullName(r.fromRef);
+    const fullName = refFullName(r.expInfo.fromRef);
     const merges = mergeMap.get(fullName) || [];
     merges.push(r);
     mergeMap.set(fullName, merges);
@@ -321,7 +314,6 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
     expInfo,
     elem: fromRef.elem as StructElem | FnElem,
     expMod: rootModule,
-    fromRef,
 
     proposedName: null as any,
     fromImport: null as any,

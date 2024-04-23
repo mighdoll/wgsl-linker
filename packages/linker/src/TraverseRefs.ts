@@ -29,9 +29,6 @@ export type PartialRef = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<GeneratorRef, "kind" | "expMod">>;
 
 interface ExportRefBase {
-  /** reference that led us to find this ref (for mapping imp/exp args) */
-  fromRef: FoundRef;
-
   /** import or extends elem that resolved to this export */
   fromImport: ImportElem | ExtendsElem;
 
@@ -77,6 +74,8 @@ export interface LocalRef {
 
 export interface GeneratorRef extends ExportRefBase {
   kind: "gen";
+
+  expInfo: ExportInfo;
 
   /** module containing the exported function */
   expMod: GeneratorModule;
@@ -311,19 +310,23 @@ function importRef(
   const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp || !fromImport) return;
   const expMod = modExp.module;
+  const expImpArgs = matchImportExportArgs(
+    impMod,
+    fromImport,
+    expMod,
+    modExp.export
+  );
+  const expInfo: ExportInfo = {
+    fromImport,
+    fromRef,
+    expImpArgs,
+  };
   if (expMod.kind === "text") {
     const exp = modExp.export as TextExport;
-    const expImpArgs = matchImportExportArgs(impMod, fromImport, expMod, exp);
-    const expInfo: ExportInfo = {
-      fromImport,
-      fromRef,
-      expImpArgs,
-    };
 
     return {
       kind: "exp",
       expInfo,
-      fromRef,
       fromImport,
       expMod,
       expImpArgs,
@@ -334,7 +337,7 @@ function importRef(
     const exp = modExp.export as GeneratorExport;
     return {
       kind: "gen",
-      fromRef,
+      expInfo,
       fromImport,
       expMod,
       expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
@@ -387,19 +390,18 @@ function importingRef(
     return;
   }
 
-  if (modExp.kind === "text") {
-    const exp = modExp.export;
-    const expImpArgs = importingArgs(fromImport, exp, srcRef);
+  const expImpArgs = importingArgs(fromImport, modExp.export, srcRef);
     const expInfo: ExportInfo = {
       fromRef: srcRef,
       fromImport,
       expImpArgs,
     };
+  if (modExp.kind === "text") {
+    const exp = modExp.export;
 
     return {
       kind: "exp",
       expInfo,
-      fromRef: srcRef,
       fromImport,
       expMod: modExp.module as TextModule,
       expImpArgs,
@@ -410,7 +412,7 @@ function importingRef(
     const exp = modExp.export;
     return {
       kind: "gen",
-      fromRef: srcRef,
+      expInfo,
       fromImport,
       expMod: modExp.module,
       expImpArgs: importingArgs(fromImport, exp, srcRef),
@@ -446,7 +448,7 @@ function importingArgs(
   srcRef: ExportRef
 ): StringPairs {
   const expImp = matchImportExportArgs(
-    srcRef.fromRef.expMod,
+    srcRef.expInfo.fromRef.expMod,
     imp,
     srcRef.expMod,
     exp
