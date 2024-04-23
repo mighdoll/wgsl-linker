@@ -152,11 +152,8 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
    */
 
   refs.forEach((r) => {
-    // name proposed in the importing module (or in the local module for a support fn)
-    const proposedName = r.kind === "local" ? r.elem.name : r.proposedName;
-
     // name we'll actually use in the linked result
-    const linkName = uniquifyName(proposedName);
+    const linkName = uniquifyName(r.proposedName);
 
     declaredNames.add(linkName);
 

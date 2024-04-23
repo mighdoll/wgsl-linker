@@ -27,8 +27,9 @@ export type StringPairs = [string, string][];
 interface FoundRefBase {
   /** proposed name to use for this referent, either fn/struct name or 'as' name from the import.
    * name might still be rewritten by global uniqueness remapping */
-  proposedName?: string;
+  proposedName: string;
 
+  /** rename needed for the referent element due to the global uniqueness mapping */
   rename?: string;
 }
 
@@ -106,6 +107,7 @@ export function traverseRefs(
   const expMod = srcModule;
   const srcRefs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
     kind: "local",
+    proposedName: elem.name,
     expMod,
     elem,
   }));
@@ -371,11 +373,11 @@ function importingRef(
   }
 
   const expImpArgs = importingArgs(fromImport, modExp.export, srcRef);
-    const expInfo: ExportInfo = {
-      fromRef: srcRef,
-      fromImport,
-      expImpArgs,
-    };
+  const expInfo: ExportInfo = {
+    fromRef: srcRef,
+    fromImport,
+    expImpArgs,
+  };
   if (modExp.kind === "text") {
     const exp = modExp.export;
 
@@ -464,7 +466,7 @@ function localRef(name: string, mod: TextModule): LocalRef | undefined {
     mod.fns.find((fn) => fn.name === name) ??
     mod.structs.find((s) => s.name === name);
   if (elem) {
-    return { kind: "local", expMod: mod, elem: elem };
+    return { kind: "local", expMod: mod, elem: elem, proposedName: elem.name, expInfo:undefined };
   }
 }
 
