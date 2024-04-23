@@ -24,20 +24,12 @@ export type TextRef = ExportRef | LocalRef;
 
 export type StringPairs = [string, string][];
 
-export type PartialRef = Partial<Omit<LocalRef, "kind">> &
-  Partial<Omit<ExportRef, "kind">> &
-  Partial<Omit<GeneratorRef, "kind" | "expMod">>;
-
-interface ExportRefBase {
-  /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
+interface FoundRefBase {
+  /** proposed name to use for this referent, either fn/struct name or 'as' name from the import.
    * name might still be rewritten by global uniqueness remapping */
-  proposedName: string;
+  proposedName?: string;
 
   rename?: string;
-
-  /** refs to extends elements on this struct element
-   * (added in a post processing step after traverse) */
-  mergeRefs?: ExportRef[];
 }
 
 export interface ExportInfo {
@@ -52,16 +44,15 @@ export interface ExportInfo {
   expImpArgs: [string, string][];
 }
 
-export interface LocalRef {
+export interface LocalRef extends FoundRefBase {
   kind: "local";
   expMod: TextModule;
   elem: FnElem | StructElem | VarElem;
   mergeRefs?: undefined;
-  rename?: string;
   expInfo?: undefined;
 }
 
-export interface GeneratorRef extends ExportRefBase {
+export interface GeneratorRef extends FoundRefBase {
   kind: "gen";
 
   expInfo: ExportInfo;
@@ -81,7 +72,7 @@ export interface GeneratorRef extends ExportRefBase {
  *  -> to an import in the same module
  *  -> to the resolved export in another module
  */
-export interface ExportRef extends ExportRefBase {
+export interface ExportRef extends FoundRefBase {
   kind: "exp";
 
   /** module containing the exported function */
@@ -91,6 +82,10 @@ export interface ExportRef extends ExportRefBase {
   elem: FnElem | StructElem;
 
   expInfo: ExportInfo;
+
+  /** refs to extends elements on this struct element
+   * (added in a post processing step after traverse) */
+  mergeRefs?: ExportRef[]; // LATER could allow any LocalRefs too
 }
 
 /**

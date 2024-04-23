@@ -332,7 +332,7 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
         }
         const { extParams } = rewriting;
 
-        const fnName = r.rename ?? r.proposedName;
+        const fnName = r.rename ?? r.proposedName ?? r.name;
         const expImpEntries = refExpImp(r, extParams);
         const params = expImpToParams(expImpEntries, extParams);
 
