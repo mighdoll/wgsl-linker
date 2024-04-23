@@ -348,7 +348,6 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
       if (r.kind === "gen") {
-        dlog({rRename:r.rename, rname:r.name})
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
         if (!genExp) {
           refLog(r, "missing generator", r.name);
