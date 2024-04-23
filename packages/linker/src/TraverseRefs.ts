@@ -37,10 +37,6 @@ export interface LocalRef extends HasSourceElem {
 }
 
 interface HasSourceElem {
-  /** element that referred to this ref, e.g. a call Elem like foo().
-   * used to rewrite sources */
-  srcElem?: CallElem | TypeRefElem | StructElem; // TODO drop this, we're putting foundRef in the src elem itself
-
   rename?: string;
 }
 
@@ -266,7 +262,6 @@ function elemRef(
 
   if (foundRef) {
     if (["typeRef", "call"].includes(elem.kind)) {
-      foundRef.srcElem = elem as FoundRef["srcElem"];
       // bind src elem to referent elem (resolve reference)
       elem.ref = foundRef;
     } else {

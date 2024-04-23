@@ -124,7 +124,6 @@ export function printRef(r: FoundRef, msg?: string): void {
     elem,
     expMod,
     rename,
-    srcElem,
     fromRef,
     proposedName,
     fromImport,
