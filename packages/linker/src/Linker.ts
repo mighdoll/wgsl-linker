@@ -289,7 +289,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
     exp,
-    (r) => r.fromImport.kind === "extends"
+    (r) => r.expInfo.fromImport.kind === "extends"
   );
 
   return {
@@ -316,7 +316,6 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
     expMod: rootModule,
 
     proposedName: null as any,
-    fromImport: null as any,
     expImpArgs: [],
   };
 

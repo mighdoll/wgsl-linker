@@ -29,9 +29,6 @@ export type PartialRef = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<GeneratorRef, "kind" | "expMod">>;
 
 interface ExportRefBase {
-  /** import or extends elem that resolved to this export */
-  fromImport: ImportElem | ExtendsElem;
-
   /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
    * name might still be rewritten by global uniqueness remapping */
   proposedName: string;
@@ -327,7 +324,6 @@ function importRef(
     return {
       kind: "exp",
       expInfo,
-      fromImport,
       expMod,
       expImpArgs,
       elem: exp.ref,
@@ -338,7 +334,6 @@ function importRef(
     return {
       kind: "gen",
       expInfo,
-      fromImport,
       expMod,
       expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
       proposedName: fromImport.as ?? exp.name,
@@ -391,18 +386,17 @@ function importingRef(
   }
 
   const expImpArgs = importingArgs(fromImport, modExp.export, srcRef);
-    const expInfo: ExportInfo = {
-      fromRef: srcRef,
-      fromImport,
-      expImpArgs,
-    };
+  const expInfo: ExportInfo = {
+    fromRef: srcRef,
+    fromImport,
+    expImpArgs,
+  };
   if (modExp.kind === "text") {
     const exp = modExp.export;
 
     return {
       kind: "exp",
       expInfo,
-      fromImport,
       expMod: modExp.module as TextModule,
       expImpArgs,
       elem: exp.ref,
@@ -413,7 +407,6 @@ function importingRef(
     return {
       kind: "gen",
       expInfo,
-      fromImport,
       expMod: modExp.module,
       expImpArgs: importingArgs(fromImport, exp, srcRef),
       proposedName: fromImport.as ?? exp.name,
