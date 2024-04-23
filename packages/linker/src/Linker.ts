@@ -445,7 +445,7 @@ function loadFnText(
     slicing.push({ start, end, replacement: rename });
   }
 
-  elem.calls.forEach(call => {
+  elem.calls.forEach((call) => {
     const rename = call?.ref?.rename;
     if (rename) {
       const { start, end } = call;
@@ -453,7 +453,8 @@ function loadFnText(
     }
   });
 
-  elem.typeRefs.forEach(typeRef => { // TODO test
+  elem.typeRefs.forEach((typeRef) => {
+    // TODO test
     const rename = typeRef?.ref?.rename;
     if (rename) {
       const { start, end } = typeRef;
@@ -461,8 +462,13 @@ function loadFnText(
     }
   });
 
-  const patchedSrc = sliceReplace(ref.expMod.preppedSrc, slicing);
-  dlog({patchedSrc})
+  const patchedSrc = sliceReplace(
+    ref.expMod.preppedSrc,
+    slicing,
+    elem.start,
+    elem.end
+  );
+  dlog({ patchedSrc });
 
   const { extParams, registry } = rewriting;
   const params = expImpToParams(replaces, extParams);
@@ -470,7 +476,7 @@ function loadFnText(
   const rewrite = Object.fromEntries([...replaces]);
 
   const result = replaceWords(templated, rewrite);
-  dlog({result});
+  dlog({ result });
   return result;
 }
 

@@ -20,6 +20,7 @@ test("simple #import", () => {
     }
   `;
   const linked = linkWgslTest(src, myModule);
+  console.log("linked\n", linked);
   expect(linked).contains("// \n    fn bar()");
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
