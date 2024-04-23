@@ -343,13 +343,6 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
 function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
-      if (r.kind === "exp" && r.elem.kind === "struct") {
-        return loadStruct(r, rewriting);
-      }
-      if (r.kind === "exp" || r.kind === "local") {
-        const replaces = refExpImp(r, rewriting.extParams);
-        return loadElemText2(r, replaces, rewriting);
-      }
       if (r.kind === "gen") {
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
         if (!genExp) {
@@ -365,6 +358,12 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
         const text = genExp?.generate(fnName, params);
         return text;
       }
+      if (r.elem.kind === "struct") {
+        return loadStruct(r, rewriting);
+      }
+      if (r.elem.kind === "fn") {
+        return loadFnText(r.elem, r, rewriting);
+      }
     })
     .join("\n\n");
 }
@@ -378,9 +377,13 @@ function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
 }
 
 /** load a struct text, mixing in any elements from #extends */
-function loadStruct(r: ExportRef, rewriting: Rewriting): string {
+function loadStruct(r: ExportRef | LocalRef, rewriting: Rewriting): string {
   const replaces = r.kind === "exp" ? r.expImpArgs : [];
   printRef(r);
+  if (r.kind === "local") {
+    return loadElemText2(r, replaces, rewriting);
+  }
+
   if (!r.mergeRefs || !r.mergeRefs.length)
     return loadElemText2(r, replaces, rewriting);
 
@@ -434,9 +437,9 @@ function rmElems(src: string, elems: AbstractElem[]): string {
 function loadFnText(
   elem: FnElem,
   ref: ExportRef | LocalRef,
-  replaces: [string, string][],
   rewriting: Rewriting
 ): string {
+  const replaces = refExpImp(ref, rewriting.extParams);
   const { expMod, rename } = ref;
   const slicing: SliceReplace[] = [];
 
@@ -468,16 +471,13 @@ function loadFnText(
     elem.start,
     elem.end
   );
-  dlog({ patchedSrc });
 
   const { extParams, registry } = rewriting;
   const params = expImpToParams(replaces, extParams);
   const templated = applyTemplate(patchedSrc, expMod, params, registry);
   const rewrite = Object.fromEntries([...replaces]);
 
-  const result = replaceWords(templated, rewrite);
-  dlog({ result });
-  return result;
+  return replaceWords(templated, rewrite);
 }
 
 /** TODO we need to rename this fn or struct if it has been renamed,
@@ -491,9 +491,6 @@ function loadElemText2(
 ): string {
   const { start, end } = ref.elem;
   printRef(ref, "loadElemText2");
-  if (ref.elem.kind === "fn") {
-    return loadFnText(ref.elem, ref, replaces, rewriting);
-  }
   if (!ref.rename) {
     const result = loadModuleSlice(ref.expMod, start, end, replaces, rewriting);
     dlog({ result });
