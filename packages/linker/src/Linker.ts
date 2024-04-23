@@ -31,7 +31,6 @@ import {
 } from "./Util.js";
 
 interface Rewriting {
-  renames: RenameMap;
   extParams: Record<string, string>;
   registry: ModuleRegistry;
 }
@@ -53,13 +52,13 @@ export function linkWgslModule(
   const decls = new Set(srcElems.map((e) => e.name));
 
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
-  const renames = uniquify(refs, decls); // construct rename map to make struct and fn names unique at the top level
+  uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
   // mix the merge refs into the import/export refs
   const { loadRefs, rmRootOrig } = prepRefsMergeAndLoad(refs, srcModule);
 
   // extract export texts, rewriting via rename map and exp/imp args
-  const rewriting: Rewriting = { renames, extParams: runtimeParams, registry };
+  const rewriting: Rewriting = { extParams: runtimeParams, registry };
   const importedText = extractTexts(loadRefs, rewriting);
 
   /* edit orig src to remove: 
@@ -119,8 +118,6 @@ function refFullName(ref: FoundRef): string {
   return ref.expMod.name + "." + refName(ref) + argsStr;
 }
 
-type RenameMap = Map<string, Map<string, string>>;
-
 export function printRef(r: FoundRef, msg?: string): void {
   const {
     kind,
@@ -158,7 +155,7 @@ export function elemToText(msg: string, elem?: AbstractElem): string {
  *
  * @param declaredNames declarations visible in the linked src so far
  */
-function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
+function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
   /** number of conflicting names, used as a unique suffix for deconflicting */
   let conflicts = 0;
 
@@ -166,7 +163,6 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
    * In the importing module the key is the 'as' name, the value is the linked name
    * In the export module the key is the export name, the value is the linked name
    */
-  const renames: RenameMap = new Map();
 
   refs.forEach((r) => {
     // name proposed in the importing module (or in the local module for a support fn)
@@ -177,26 +173,14 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): RenameMap {
 
     declaredNames.add(linkName);
 
-    // TODO rm rename map
-
-    // record rename for this import in the exporting module
+    // record rename for this import in the reference link
     if (linkName !== refName(r)) {
-      // multiKeySet(renames, r.expMod.name, refName(r), linkName);
       if (r.rename) {
         console.error("unexpected: rename already exists", r.rename, linkName);
       }
       r.rename = linkName;
     }
-
-    const ref = r as PartialRef;
-    // record rename for this import in the importing module
-    if (ref.fromRef && linkName !== proposedName) {
-      // multiKeySet(renames, ref.fromRef.expMod.name, proposedName, linkName);
-      // dlog("ref.fromRef ", { proposedName, linkName });
-    }
   });
-
-  return renames;
 
   function uniquifyName(
     /** proposed name for this fn in the linked results (e.g. import as name) */
