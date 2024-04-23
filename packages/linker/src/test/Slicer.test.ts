@@ -28,8 +28,22 @@ test("slice multiple", () => {
   expect(result).eq("ABc");
 });
 
-test.only("slice none", () => {
+test("slice none", () => {
   const src = "aaabbbc";
   const result = sliceReplace(src, []);
   expect(result).eq(src);
+});
+
+test("slice none with start and end", () => {
+  const src = "aaabbbc";
+  const result = sliceReplace(src, [], 3, 6);
+  expect(result).eq("bbb");
+});
+
+test("slice one with start and end", () => {
+  const src = "aaabbbc";
+
+  const slices = [{ start: 3, end: 6, replacement: "B" }];
+  const result = sliceReplace(src, slices, 2);
+  expect(result).eq("aBc");
 });
