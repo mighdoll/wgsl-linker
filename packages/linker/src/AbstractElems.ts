@@ -67,13 +67,13 @@ export interface StructElem extends AbstractElemBase {
   name: string;
   nameElem: TypeNameElem;
   members: StructMemberElem[];
-  typeRefs: TypeRefElem[];
   extendsElems?: ExtendsElem[];
 }
 
 export interface StructMemberElem extends AbstractElemBase {
   kind: "member";
   name: string;
+  typeRefs: TypeRefElem[];
 }
 
 export interface ExportElem extends AbstractElemBase {

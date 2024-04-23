@@ -37,7 +37,7 @@ export interface LocalRef extends HasSourceElem {
 }
 
 interface HasSourceElem {
-  /** element that referred to this ref, e.g. a call Elem like foo(). 
+  /** element that referred to this ref, e.g. a call Elem like foo().
    * used to rewrite sources */
   srcElem?: CallElem | TypeRefElem | StructElem; // TODO drop this, we're putting foundRef in the src elem itself
 
@@ -92,20 +92,20 @@ export interface ExportRef extends ExportRefBase {
 
 export function traverseRefs2(
   srcModule: TextModule,
-  registry: ModuleRegistry,
+  registry: ModuleRegistry
 ): void {
   const { fns, structs, vars, aliases } = srcModule;
-  
+
   // fns.map(fnElem => {
   //   const linkedCalls = fnElem.calls.map(c => linkCall(c))
   // })
 }
 
-  /** a call element like foo() can be one of several things:
-   *   . a reference to a built in function, e.g. sin()
-   *   . a reference to a local function definition 
-   *   . a reference to an import  
-   */ 
+/** a call element like foo() can be one of several things:
+ *   . a reference to a built in function, e.g. sin()
+ *   . a reference to a local function definition
+ *   . a reference to an import
+ */
 // function linkCall(callElem:CallElem, srcModule:TextModule, registry:ModuleRegistry):LinkedCall {
 
 // }
@@ -219,11 +219,22 @@ function elemRefs(
   } else if (elem.kind === "struct") {
     mergeRefs = extendsRefs(srcRef, elem, mod, registry);
   }
-  const userTypeRefs = elem.typeRefs.filter(
-    (ref) => !stdType(ref.name) && ref.name !== elem.name // TODO is this needed? (recursion is not allowed in wgsl..)
-  );
+  const userTypeRefs = elemTypeRefs(elem);
   const tRefs = elemChildrenRefs(srcRef, userTypeRefs, mod, registry);
   return [...fnRefs, ...tRefs, ...mergeRefs];
+}
+
+function elemTypeRefs(elem: FnElem | StructElem | VarElem): TypeRefElem[] {
+  let typeRefs: TypeRefElem[];
+  if (elem.kind === "fn" || elem.kind === "var") {
+    typeRefs = elem.typeRefs;
+  } else {
+    typeRefs = elem.members?.flatMap((m) => m.typeRefs) || [];
+  }
+  const userTypeRefs = typeRefs.filter(
+    (ref) => !stdType(ref.name) && ref.name !== elem.name // TODO is this needed? (recursion is not allowed in wgsl..)
+  );
+  return userTypeRefs;
 }
 
 /** find fn/struct references from children of a fn or struct elem

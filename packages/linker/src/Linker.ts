@@ -1,8 +1,16 @@
-import { dlog, pretty } from "berry-pretty";
-import { AbstractElem, CallElem, FnElem, StructElem } from "./AbstractElems.js";
-import { elemLog, moduleLog, refLog } from "./LinkerLogging.js";
+import { dlog } from "berry-pretty";
+import {
+  AbstractElem,
+  CallElem,
+  FnElem,
+  StructElem,
+  StructMemberElem,
+  TypeRefElem,
+} from "./AbstractElems.js";
+import { moduleLog, refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
-import { TextModule, parseModule } from "./ParseModule.js";
+import { TextModule } from "./ParseModule.js";
+import { SliceReplace, sliceReplace } from "./Slicer.js";
 import {
   ExportRef,
   FoundRef,
@@ -18,12 +26,9 @@ import {
   groupBy,
   grouped,
   mapForward,
-  multiKeySet,
   partition,
   replaceWords,
 } from "./Util.js";
-import { srcLog } from "mini-parse";
-import { SliceReplace, sliceReplace } from "./Slicer.js";
 
 interface Rewriting {
   renames: RenameMap;
@@ -358,11 +363,11 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
         const text = genExp?.generate(fnName, params);
         return text;
       }
-      if (r.elem.kind === "struct") {
-        return loadStruct(r, rewriting);
-      }
       if (r.elem.kind === "fn") {
         return loadFnText(r.elem, r, rewriting);
+      }
+      if (r.elem.kind === "struct") {
+        return loadStruct(r, rewriting);
       }
     })
     .join("\n\n");
@@ -384,26 +389,39 @@ function loadStruct(r: ExportRef | LocalRef, rewriting: Rewriting): string {
     return loadElemText2(r, replaces, rewriting);
   }
 
-  if (!r.mergeRefs || !r.mergeRefs.length)
-    return loadElemText2(r, replaces, rewriting);
-
   const structElem = r.elem as StructElem;
 
   const rootMembers =
-    structElem.members?.map((m) => {
-      return loadElemText(m, r.expMod, r.expImpArgs, rewriting);
-    }) ?? [];
+    structElem.members?.map((m) => loadMemberText(m, r.expMod, rewriting)) ??
+    [];
 
   const newMembers = r.mergeRefs?.flatMap((merge) => {
     const mergeStruct = merge.elem as StructElem;
     return mergeStruct.members?.map((member) =>
-      loadElemText(member, merge.expMod, replaces, rewriting)
+      loadMemberText(member, merge.expMod, rewriting)
     );
   });
 
   const allMembers = [rootMembers, newMembers].flat().map((m) => "  " + m);
   const membersText = allMembers.join(",\n");
-  return `struct ${r.elem.name} {\n${membersText}\n}`;
+  const name = r.rename || structElem.name;
+  return `struct ${name} {\n${membersText}\n}`;
+}
+
+function loadMemberText(
+  member: StructMemberElem,
+  expMod: TextModule,
+  rewriting: Rewriting
+): string {
+  const slicing = typeRefSlices(member.typeRefs);
+  const patchedSrc = sliceReplace(
+    expMod.preppedSrc,
+    slicing,
+    member.start,
+    member.end
+  );
+
+  return patchedSrc; // TODO apply template?
 }
 
 /** get the export/import param map if appropriate for this ref */
@@ -439,8 +457,7 @@ function loadFnText(
   ref: ExportRef | LocalRef,
   rewriting: Rewriting
 ): string {
-  const replaces = refExpImp(ref, rewriting.extParams);
-  const { expMod, rename } = ref;
+  const { rename } = ref;
   const slicing: SliceReplace[] = [];
 
   if (rename) {
@@ -456,14 +473,7 @@ function loadFnText(
     }
   });
 
-  elem.typeRefs.forEach((typeRef) => {
-    // TODO test
-    const rename = typeRef?.ref?.rename;
-    if (rename) {
-      const { start, end } = typeRef;
-      slicing.push({ start, end, replacement: rename });
-    }
-  });
+  slicing.push(...typeRefSlices(elem.typeRefs));
 
   const patchedSrc = sliceReplace(
     ref.expMod.preppedSrc,
@@ -472,12 +482,36 @@ function loadFnText(
     elem.end
   );
 
-  const { extParams, registry } = rewriting;
-  const params = expImpToParams(replaces, extParams);
-  const templated = applyTemplate(patchedSrc, expMod, params, registry);
-  const rewrite = Object.fromEntries([...replaces]);
+  return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
+}
 
+/** rewrite the src text according to module templating and exp/imp params */
+function applyExpImpAndTemplate(
+  src: string,
+  ref: ExportRef | LocalRef,
+  rewriting: Rewriting
+): string {
+  const { expMod } = ref;
+  const { extParams, registry } = rewriting;
+
+  const replaces = refExpImp(ref, extParams);
+  const params = expImpToParams(replaces, extParams);
+  const templated = applyTemplate(src, expMod, params, registry);
+
+  const rewrite = Object.fromEntries([...replaces]);
   return replaceWords(templated, rewrite);
+}
+
+function typeRefSlices(typeRefs: TypeRefElem[]): SliceReplace[] {
+  const slicing: SliceReplace[] = [];
+  typeRefs.forEach((typeRef) => {
+    const rename = typeRef?.ref?.rename;
+    if (rename) {
+      const { start, end } = typeRef;
+      slicing.push({ start, end, replacement: rename });
+    }
+  });
+  return slicing;
 }
 
 /** TODO we need to rename this fn or struct if it has been renamed,

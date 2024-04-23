@@ -604,7 +604,7 @@ test("import a struct with imp/exp params", () => {
   expect(linked).contains("struct AStruct { x: i32 }");
 });
 
-test.skip("import a struct with name conflicting support struct", () => {
+test("import a struct with name conflicting support struct", () => {
   const src = `
     #import AStruct
 
@@ -629,7 +629,7 @@ test.skip("import a struct with name conflicting support struct", () => {
   console.log("linked\n", linked);
   expect(linked).contains("struct Base {");
   expect(linked).contains("struct Base0 {");
-  expect(linked).contains("x: Base0");
+  expect(linked).contains("x: Base0"); // TBD
 });
 
 test("import with simple template", () => {

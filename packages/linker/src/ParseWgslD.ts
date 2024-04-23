@@ -106,8 +106,7 @@ export const structMember = seq(
   ":",
   req(typeSpecifier.named("typeRefs"))
 ).map((r) => {
-  const e = makeElem<StructMemberElem>("member", r, ["name"]);
-  return e;
+  return makeElem<StructMemberElem>("member", r, ["name", "typeRefs"]);
 });
 
 export const structDecl = seq(
@@ -121,7 +120,6 @@ export const structDecl = seq(
   const nameElem = r.named.nameElem[0];
   e.nameElem = nameElem;
   e.name = nameElem.name;
-  e.typeRefs = r.named.typeRefs?.flat() || [];
   r.app.state.push(e);
 });
 
@@ -211,8 +209,8 @@ export const globalAlias = seq(
   req("="),
   req(typeSpecifier).named("typeRefs"),
   req(";")
-).map(r => {
-  const e = makeElem<AliasElem>("alias", r, ["name"], ["typeRefs"])
+).map((r) => {
+  const e = makeElem<AliasElem>("alias", r, ["name"], ["typeRefs"]);
   r.app.state.push(e);
 });
 

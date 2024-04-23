@@ -35,9 +35,9 @@ test("parse fn with calls", () => {
 test("structDecl parses struct member types", () => {
   const src = "struct Foo { a: f32, b: i32 }";
   const { appState } = testAppParse(structDecl, src);
-  const { typeRefs } = appState[0] as StructElem;
-  expect(typeRefs[0].name).eq("f32");
-  expect(typeRefs[1].name).eq("i32");
+  const { members } = appState[0] as StructElem;
+  const typeNames = members.flatMap((m) => m.typeRefs.map((t) => t.name));
+  expect(typeNames).deep.eq(["f32", "i32"]);
 });
 
 test("parse struct", () => {
@@ -54,12 +54,28 @@ test("parse struct", () => {
             "kind": "member",
             "name": "a",
             "start": 13,
+            "typeRefs": [
+              {
+                "end": 19,
+                "kind": "typeRef",
+                "name": "f32",
+                "start": 16,
+              },
+            ],
           },
           {
             "end": 27,
             "kind": "member",
             "name": "b",
             "start": 21,
+            "typeRefs": [
+              {
+                "end": 27,
+                "kind": "typeRef",
+                "name": "i32",
+                "start": 24,
+              },
+            ],
           },
         ],
         "name": "Foo",
@@ -70,20 +86,6 @@ test("parse struct", () => {
           "start": 7,
         },
         "start": 0,
-        "typeRefs": [
-          {
-            "end": 19,
-            "kind": "typeRef",
-            "name": "f32",
-            "start": 16,
-          },
-          {
-            "end": 27,
-            "kind": "typeRef",
-            "name": "i32",
-            "start": 24,
-          },
-        ],
       },
     ]
   `);
@@ -257,9 +259,9 @@ test("parse nested template that ends with >> ", () => {
 test("parse struct member with templated type", () => {
   const src = `struct Foo { a: vec2<array<Bar,4>> }`;
   const { appState } = testAppParse(structDecl, src);
-  const typeRefs = (appState[0] as StructElem).typeRefs;
-  const typeRefNames = typeRefs.map((r) => r.name);
-  expect(typeRefNames).deep.eq(["vec2", "array", "Bar"]);
+  const members = filterElems<StructElem>(appState, "struct")[0].members;
+  const memberNames = members.flatMap((m) => m.typeRefs.map((t) => t.name));
+  expect(memberNames).deep.eq(["vec2", "array", "Bar"]);
 });
 
 test("parse type in <template> in global var", () => {
@@ -311,4 +313,3 @@ test("parse fn with attributes and suffix comma", () => {
     expect(first.name).eq("main");
   });
 });
-
