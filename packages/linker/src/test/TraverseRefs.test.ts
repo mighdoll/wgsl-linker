@@ -41,7 +41,7 @@ test("traverse nested import with params and support fn", () => {
   const first = refs[0] as ExportRef;
   const second = refs[1] as LocalRef;
   expect(first.kind).toBe("exp");
-  expect(first.expImpArgs).deep.eq([["A", "u32"]]);
+  expect(first.expInfo.expImpArgs).deep.eq([["A", "u32"]]);
   expect(second.kind).toBe("local");
   expect(second.elem.name).eq("support");
 });
@@ -62,7 +62,7 @@ test("traverse importing", () => {
   const refs = traverseTest(src, module1, module2);
 
   const importingRef = refs[1] as ExportRef;
-  expect(importingRef.expImpArgs).deep.eq([["X", "B"]]);
+  expect(importingRef.expInfo.expImpArgs).deep.eq([["X", "B"]]);
 });
 
 test("traverse double importing", () => {
@@ -85,7 +85,7 @@ test("traverse double importing", () => {
 
   const expImpArgs = refs.flatMap((r) => {
     const er = r as ExportRef;
-    return er ? [er.expImpArgs] : [];
+    return er ? [er.expInfo.expImpArgs] : [];
   });
   expect(expImpArgs[1]).deep.eq([["X", "B"]]);
   expect(expImpArgs[2]).deep.eq([["Y", "B"]]);
@@ -112,7 +112,7 @@ test("traverse importing from a support fn", () => {
 
   const expImpArgs = refs.flatMap((r) => {
     const er = r as ExportRef;
-    return er ? [{ name: er.elem.name, args: er.expImpArgs }] : [];
+    return er ? [{ name: er.elem.name, args: er.expInfo.expImpArgs }] : [];
   });
   expect(expImpArgs).toMatchSnapshot();
 });

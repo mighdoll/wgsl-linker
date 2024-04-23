@@ -33,10 +33,6 @@ interface ExportRefBase {
    * name might still be rewritten by global uniqueness remapping */
   proposedName: string;
 
-  /** mapping from export arguments to import arguments
-   * (could be mapping to import args prior to this import, via chain of importing) */
-  expImpArgs: [string, string][];
-
   rename?: string;
 
   /** refs to extends elements on this struct element
@@ -291,7 +287,7 @@ function extendsRefs(
 /** @return true if the ref is to an import parameter */
 function importArgRef(srcRef: FoundRef, name: string): boolean | undefined {
   if (srcRef.kind === "exp") {
-    return !!srcRef.expImpArgs.find(([expArg]) => expArg === name);
+    return !!srcRef.expInfo.expImpArgs.find(([expArg]) => expArg === name);
   }
 }
 
@@ -325,7 +321,6 @@ function importRef(
       kind: "exp",
       expInfo,
       expMod,
-      expImpArgs,
       elem: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
@@ -335,7 +330,6 @@ function importRef(
       kind: "gen",
       expInfo,
       expMod,
-      expImpArgs: matchImportExportArgs(impMod, fromImport, expMod, exp),
       proposedName: fromImport.as ?? exp.name,
       name: exp.name,
     };
@@ -386,11 +380,11 @@ function importingRef(
   }
 
   const expImpArgs = importingArgs(fromImport, modExp.export, srcRef);
-  const expInfo: ExportInfo = {
-    fromRef: srcRef,
-    fromImport,
-    expImpArgs,
-  };
+    const expInfo: ExportInfo = {
+      fromRef: srcRef,
+      fromImport,
+      expImpArgs,
+    };
   if (modExp.kind === "text") {
     const exp = modExp.export;
 
@@ -398,7 +392,6 @@ function importingRef(
       kind: "exp",
       expInfo,
       expMod: modExp.module as TextModule,
-      expImpArgs,
       elem: exp.ref,
       proposedName: fromImport.as ?? exp.ref.name,
     };
@@ -408,7 +401,6 @@ function importingRef(
       kind: "gen",
       expInfo,
       expMod: modExp.module,
-      expImpArgs: importingArgs(fromImport, exp, srcRef),
       proposedName: fromImport.as ?? exp.name,
       name: exp.name,
     };
@@ -446,7 +438,7 @@ function importingArgs(
     srcRef.expMod,
     exp
   ); // X -> D
-  const srcExpImp = srcRef.expImpArgs;
+  const srcExpImp = srcRef.expInfo.expImpArgs;
   return expImp.flatMap(([iExp, iImp]) => {
     const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
     if (!pair) {

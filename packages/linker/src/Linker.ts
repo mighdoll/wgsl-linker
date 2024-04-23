@@ -17,11 +17,10 @@ import {
   FoundRef,
   GeneratorRef,
   LocalRef,
-  PartialRef,
   TextRef,
   refName,
   textRefs,
-  traverseRefs,
+  traverseRefs
 } from "./TraverseRefs.js";
 import {
   groupBy,
@@ -113,7 +112,7 @@ function findReferences(
  * in the linked source.
  */
 function refFullName(ref: FoundRef): string {
-  const expImpArgs = ref.kind === "exp" ? ref.expImpArgs : [];
+  const expImpArgs = ref.kind === "exp" ? ref.expInfo.expImpArgs : [];
   const impArgs = expImpArgs.map(([, arg]) => arg);
   const argsStr = "(" + impArgs.join(",") + ")";
   return ref.expMod.name + "." + refName(ref) + argsStr;
@@ -316,7 +315,6 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
     expMod: rootModule,
 
     proposedName: null as any,
-    expImpArgs: [],
   };
 
   return exp;
@@ -394,7 +392,7 @@ function refExpImp(
   ref: FoundRef,
   extParams: Record<string, string>
 ): [string, string][] {
-  const expImp = (ref as PartialRef).expImpArgs ?? [];
+  const expImp = ref.expInfo?.expImpArgs ?? [];
   return expImp.map(([exp, imp]) => {
     if (imp.startsWith("ext.")) {
       const value = extParams[imp.slice(4)];
