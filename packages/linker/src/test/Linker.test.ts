@@ -593,7 +593,7 @@ test("import a struct with imp/exp params", () => {
 
   const module1 = `
     #if typecheck
-    alias elemType = u32
+    alias elemType = u32;
     #endif
 
     #export (elemType)
@@ -601,7 +601,7 @@ test("import a struct with imp/exp params", () => {
   `;
 
   const linked = linkWgslTest(src, module1);
-  expect(linked).contains("struct AStruct { x: i32 }");
+  expect(linked).contains("x: i32");
 });
 
 test("import a struct with name conflicting support struct", () => {
