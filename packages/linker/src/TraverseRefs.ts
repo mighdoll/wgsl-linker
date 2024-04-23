@@ -50,10 +50,6 @@ export interface ExportInfo {
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
-
-  /** refs to extends elements on this struct element
-   * (added in a post processing step after traverse) */
-  mergeRefs?: ExportRef[];
 }
 
 export interface LocalRef {
