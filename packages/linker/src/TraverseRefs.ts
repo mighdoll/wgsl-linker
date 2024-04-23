@@ -28,23 +28,12 @@ export type PartialRef = Partial<Omit<LocalRef, "kind">> &
   Partial<Omit<ExportRef, "kind">> &
   Partial<Omit<GeneratorRef, "kind" | "expMod">>;
 
-export interface LocalRef extends HasSourceElem {
-  kind: "local";
-  expMod: TextModule;
-  elem: FnElem | StructElem | VarElem;
 
-  mergeRefs?:undefined;
-}
-
-interface HasSourceElem {
-  rename?: string;
-}
-
-interface ExportRefBase extends HasSourceElem {
+interface ExportRefBase {
   /** reference that led us to find this ref (for mapping imp/exp args) */
   fromRef: FoundRef;
 
-  /** import elem that resolved to this export */
+  /** import or extends elem that resolved to this export */
   fromImport: ImportElem | ExtendsElem;
 
   /** proposed name to use for this export, either fn/struct name or 'as' name from the import.
@@ -54,6 +43,20 @@ interface ExportRefBase extends HasSourceElem {
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
+
+  rename?: string;
+
+  /** refs to extends elements on this struct element
+   * (added in a post processing step after traverse) */
+  mergeRefs?: ExportRef[];
+}
+
+export interface LocalRef {
+  kind: "local";
+  expMod: TextModule;
+  elem: FnElem | StructElem | VarElem;
+  mergeRefs?: undefined;
+  rename?: string;
 }
 
 export interface GeneratorRef extends ExportRefBase {
@@ -82,10 +85,6 @@ export interface ExportRef extends ExportRefBase {
 
   /** reference to the exported function or struct */
   elem: FnElem | StructElem;
-
-  /** refs to extends elements on this same element
-   * (added in a post processing step after traverse) */
-  mergeRefs?: ExportRef[];
 }
 
 /**
@@ -465,6 +464,7 @@ interface AsNamed {
 function importName(asNamed: AsNamed): string {
   return asNamed.as || asNamed.name;
 }
+
 const stdFns = `bitcast all any select arrayLength 
   abs acos acosh asin asinh atan atanh atan2 ceil clamp cos cosh 
   countLeadingZeros countOneBits countTrailingZeros cross 
