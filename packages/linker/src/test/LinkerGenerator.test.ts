@@ -68,7 +68,7 @@ test("#import with ext.arg from code generator", () => {
   expect(linked).contains("zogImpl");
 });
 
-test.skip("#import conficted code gen fn", () => { // TODO
+test.only("#import conficted code gen fn", () => { // TODO
   const src = `
     #module main
     #import bar
@@ -87,6 +87,7 @@ test.skip("#import conficted code gen fn", () => { // TODO
     generators: [fooGenerator],
   });
   const linked = registry.link("main", { zee: "zog" });
+  console.log("linked\n", linked);
   expect(linked).contains("booImpl");
   expect(linked).contains("fn foo0()");
   expect(linked).contains("foo0();");

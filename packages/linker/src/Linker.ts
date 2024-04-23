@@ -348,14 +348,15 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
       if (r.kind === "gen") {
+        dlog({rRename:r.rename, rname:r.name})
         const genExp = r.expMod.exports.find((e) => e.name === r.name);
         if (!genExp) {
           refLog(r, "missing generator", r.name);
           return "//?";
         }
-        const { extParams, renames } = rewriting;
+        const { extParams } = rewriting;
 
-        const fnName = generatedFnName(r, renames);
+        const fnName = r.rename ?? r.proposedName;
         const expImpEntries = refExpImp(r, extParams);
         const params = expImpToParams(expImpEntries, extParams);
 
@@ -370,14 +371,6 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       }
     })
     .join("\n\n");
-}
-
-function generatedFnName(ref: GeneratorRef, renameMap: RenameMap): string {
-  const moduleRenames = renameMap.get(ref.expMod.name)?.entries() ?? [];
-  const rename = new Map(moduleRenames);
-  const asName = ref.proposedName;
-  const name = rename.get(asName) || asName;
-  return name;
 }
 
 /** load a struct text, mixing in any elements from #extends */
