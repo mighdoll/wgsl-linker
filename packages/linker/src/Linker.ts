@@ -271,10 +271,10 @@ interface RefTypes {
 
 /** separate refs into local, gen, merge, and non-merge refs */
 function partitionRefTypes(refs: FoundRef[]): RefTypes {
-  const exp = refs.filter((r) => r.kind === "txt") as TextRef[];
+  const txt = refs.filter((r) => r.kind === "txt") as TextRef[];
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
-    exp,
+    txt,
     (r) => r.expInfo?.fromImport.kind === "extends"
   );
 
@@ -294,7 +294,7 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
     expImpArgs: [],
   };
 
-  const exp: TextRef = {
+  const txt: TextRef = {
     kind: "txt",
     expInfo,
     elem: fromRef.elem as StructElem | FnElem,
@@ -303,7 +303,7 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
     proposedName: null as any,
   };
 
-  return exp;
+  return txt;
 }
 
 /** load exported text for an import */
