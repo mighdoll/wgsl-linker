@@ -20,7 +20,6 @@ import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
 
 export type FoundRef = TextRef | GeneratorRef;
-export type TextRef = ExportRef;
 
 export type StringPairs = [string, string][];
 
@@ -65,7 +64,7 @@ export interface GeneratorRef extends FoundRefBase {
  *  -> to an import in the same module
  *  -> to the resolved export in another module
  */
-export interface ExportRef extends FoundRefBase {
+export interface TextRef extends FoundRefBase {
   kind: "exp";
 
   /** module containing the exported function */
@@ -78,7 +77,7 @@ export interface ExportRef extends FoundRefBase {
 
   /** refs to extends elements on this struct element
    * (added in a post processing step after traverse) */
-  mergeRefs?: ExportRef[]; // LATER could allow any LocalRefs too
+  mergeRefs?: TextRef[];
 }
 
 /**
@@ -269,13 +268,13 @@ function importArgRef(srcRef: FoundRef, name: string): boolean | undefined {
 }
 
 /** If this src element references an #import function
- * @return an ExportRef describing the export to link */
+ * @return an TextRef describing the export to link */
 function importRef(
   fromRef: FoundRef,
   name: string,
   impMod: TextModule,
   registry: ModuleRegistry
-): ExportRef | GeneratorRef | undefined {
+): TextRef | GeneratorRef | undefined {
   const fromImport = impMod.imports.find((imp) => importName(imp) == name);
   const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp || !fromImport) return;
@@ -336,7 +335,7 @@ function importingRef(
   name: string,
   impMod: TextModule,
   registry: ModuleRegistry
-): ExportRef | GeneratorRef | undefined {
+): TextRef | GeneratorRef | undefined {
   let fromImport: ImportElem | undefined;
 
   // find a matching 'importing' phrase in an #export
@@ -407,7 +406,7 @@ function importingRef(
 function importingArgs(
   imp: ImportElem,
   exp: ExportElem | GeneratorExport,
-  srcRef: ExportRef
+  srcRef: TextRef
 ): StringPairs {
   if (srcRef.expInfo === undefined) return [];
   const expImp = matchImportExportArgs(
@@ -446,7 +445,7 @@ function matchingExport(
   return modExp;
 }
 
-function localRef(name: string, mod: TextModule): ExportRef | undefined {
+function localRef(name: string, mod: TextModule): TextRef | undefined {
   const elem =
     mod.fns.find((fn) => fn.name === name) ??
     mod.structs.find((s) => s.name === name);

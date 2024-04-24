@@ -13,7 +13,6 @@ import { TextModule } from "./ParseModule.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
 import {
   ExportInfo,
-  ExportRef,
   FoundRef,
   GeneratorRef,
   TextRef,
@@ -118,7 +117,7 @@ function refFullName(ref: FoundRef): string {
 }
 
 export function printRef(r: FoundRef, msg?: string): void {
-  const { kind, elem, rename } = r as ExportRef;
+  const { kind, elem, rename } = r as TextRef;
   dlog(
     msg ?? "",
     {
@@ -232,11 +231,11 @@ function prepRefsMergeAndLoad(
 
 /** combine export refs with any merge refs for the same element */
 function combineMergeRefs(
-  mergeRefs: ExportRef[],
-  nonMergeRefs: ExportRef[]
-): ExportRef[] {
+  mergeRefs: TextRef[],
+  nonMergeRefs: TextRef[]
+): TextRef[] {
   // map from the element name of a struct annotated with #extends to the merge refs
-  const mergeMap = new Map<string, ExportRef[]>();
+  const mergeMap = new Map<string, TextRef[]>();
   mergeRefs.forEach((r) => {
     if (r.expInfo) { // LATER support merges from local refs too
       const fullName = refFullName(r.expInfo.fromRef);
@@ -247,7 +246,7 @@ function combineMergeRefs(
   });
 
   // combine the merge refs into the export refs on the same element
-  const expRefs: ExportRef[] = nonMergeRefs.map((ref) => ({
+  const expRefs: TextRef[] = nonMergeRefs.map((ref) => ({
     ...ref,
     mergeRefs: recursiveMerges(ref),
   }));
@@ -256,7 +255,7 @@ function combineMergeRefs(
 
   /** find any extends on this element,
    * and recurse to find any extends on the merging source element */
-  function recursiveMerges(ref: ExportRef): ExportRef[] {
+  function recursiveMerges(ref: TextRef): TextRef[] {
     const fullName = refFullName(ref);
     const merges = mergeMap.get(fullName) ?? [];
     const transitiveMerges = merges.flatMap(recursiveMerges);
@@ -265,14 +264,14 @@ function combineMergeRefs(
 }
 
 interface RefTypes {
-  mergeRefs: ExportRef[];
+  mergeRefs: TextRef[];
   generatorRefs: GeneratorRef[];
-  nonMergeRefs: ExportRef[];
+  nonMergeRefs: TextRef[];
 }
 
 /** separate refs into local, gen, merge, and non-merge refs */
 function partitionRefTypes(refs: FoundRef[]): RefTypes {
-  const exp = refs.filter((r) => r.kind === "exp") as ExportRef[];
+  const exp = refs.filter((r) => r.kind === "exp") as TextRef[];
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
     exp,
@@ -286,16 +285,16 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   };
 }
 
-/** create a synthetic ExportRef so we can treat extends on root structs
+/** create a synthetic TextRef so we can treat extends on root structs
  * the same as extends on exported structs */
-function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): ExportRef {
+function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
   const expInfo: ExportInfo = {
     fromRef,
     fromImport: null as any,
     expImpArgs: [],
   };
 
-  const exp: ExportRef = {
+  const exp: TextRef = {
     kind: "exp",
     expInfo,
     elem: fromRef.elem as StructElem | FnElem,
@@ -337,7 +336,7 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
 }
 
 /** load a struct text, mixing in any elements from #extends */
-function loadStruct(ref: ExportRef, rewriting: Rewriting): string {
+function loadStruct(ref: TextRef, rewriting: Rewriting): string {
   const structElem = ref.elem as StructElem;
 
   const rootMembers =
@@ -404,7 +403,7 @@ function rmElems(src: string, elems: AbstractElem[]): string {
 
 function loadFnText(
   elem: FnElem,
-  ref: ExportRef,
+  ref: TextRef,
   rewriting: Rewriting
 ): string {
   const { rename } = ref;
@@ -438,7 +437,7 @@ function loadFnText(
 /** rewrite the src text according to module templating and exp/imp params */
 function applyExpImpAndTemplate(
   src: string,
-  ref: ExportRef,
+  ref: TextRef,
   rewriting: Rewriting
 ): string {
   const { expMod } = ref;

@@ -4,7 +4,6 @@ import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { parseModule } from "../ParseModule.js";
 import {
-  ExportRef,
   FoundRef,
   TextRef,
   refName,
@@ -37,8 +36,8 @@ test("traverse nested import with params and support fn", () => {
   `;
 
   const refs = traverseTest(src, module1, module2);
-  const first = refs[0] as ExportRef;
-  const second = refs[1] as ExportRef;
+  const first = refs[0] as TextRef;
+  const second = refs[1] as TextRef;
   expect(first.kind).toBe("exp");
   expect(first.expInfo?.expImpArgs).deep.eq([["A", "u32"]]);
   expect(second.kind).toBe("exp");
@@ -60,7 +59,7 @@ test("traverse importing", () => {
 
   const refs = traverseTest(src, module1, module2);
 
-  const importingRef = refs[1] as ExportRef;
+  const importingRef = refs[1] as TextRef;
   expect(importingRef.expInfo?.expImpArgs).deep.eq([["X", "B"]]);
 });
 
@@ -83,7 +82,7 @@ test("traverse double importing", () => {
   const refs = traverseTest(src, module1, module2, module3);
 
   const expImpArgs = refs.flatMap((r) => {
-    const er = r as ExportRef;
+    const er = r as TextRef;
     return er ? [er.expInfo?.expImpArgs] : [];
   });
   expect(expImpArgs[1]).deep.eq([["X", "B"]]);
@@ -110,7 +109,7 @@ test("traverse importing from a support fn", () => {
   const refs = traverseTest(src, module1, module2);
 
   const expImpArgs = refs.flatMap((r) => {
-    const er = r as ExportRef;
+    const er = r as TextRef;
     return er ? [{ name: er.elem.name, args: er.expInfo?.expImpArgs }] : [];
   });
   expect(expImpArgs).toMatchSnapshot();
@@ -219,7 +218,7 @@ test("traverse a fn to struct ref", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  const exp = refs[0] as ExportRef;
+  const exp = refs[0] as TextRef;
   expect(exp.kind).eq("exp");
   expect(exp.elem.kind).eq("struct");
   expect(exp.elem.name).eq("AStruct");
@@ -239,7 +238,7 @@ test("traverse a global var to struct ref", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  const exp = refs[0] as ExportRef;
+  const exp = refs[0] as TextRef;
   expect(exp.kind).eq("exp");
   expect(exp.elem.kind).eq("struct");
   expect(exp.elem.name).eq("Uniforms");
