@@ -271,7 +271,7 @@ interface RefTypes {
 
 /** separate refs into local, gen, merge, and non-merge refs */
 function partitionRefTypes(refs: FoundRef[]): RefTypes {
-  const exp = refs.filter((r) => r.kind === "exp") as TextRef[];
+  const exp = refs.filter((r) => r.kind === "txt") as TextRef[];
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
     exp,
@@ -295,7 +295,7 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
   };
 
   const exp: TextRef = {
-    kind: "exp",
+    kind: "txt",
     expInfo,
     elem: fromRef.elem as StructElem | FnElem,
     expMod: rootModule,

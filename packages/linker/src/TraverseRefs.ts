@@ -65,7 +65,7 @@ export interface GeneratorRef extends FoundRefBase {
  *  -> to the resolved export in another module
  */
 export interface TextRef extends FoundRefBase {
-  kind: "exp";
+  kind: "txt";
 
   /** module containing the exported function */
   expMod: TextModule;
@@ -96,8 +96,8 @@ export function traverseRefs(
 ): void {
   const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
-  const srcRefs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
-    kind: "exp",
+  const srcRefs: TextRef[] = [...fns, ...structs, ...vars].map((elem) => ({
+    kind: "txt",
     proposedName: elem.name,
     expMod,
     elem,
@@ -148,7 +148,7 @@ function includesRef(r: FoundRef, refs: FoundRef[]): boolean {
 /** @return true if the two refs refer to the same named element in the same module */
 function matchRef(a: FoundRef, b: FoundRef): boolean {
   if (a.expMod.name !== b.expMod.name) return false;
-  if (a.kind === "exp" && b.kind === "exp") {
+  if (a.kind === "txt" && b.kind === "txt") {
     return a.elem.name == b.elem.name;
   }
   if (a.kind === "gen" && b.kind === "gen") {
@@ -294,7 +294,7 @@ function importRef(
     const exp = modExp.export as TextExport;
 
     return {
-      kind: "exp",
+      kind: "txt",
       expInfo,
       expMod,
       elem: exp.ref,
@@ -350,7 +350,7 @@ function importingRef(
   isDefined(fromImport);
   isDefined(textExport);
 
-  if (srcRef.kind !== "exp") {
+  if (srcRef.kind !== "txt") {
     refLog(srcRef, "unexpected srcRef", srcRef.kind);
     return;
   }
@@ -365,7 +365,7 @@ function importingRef(
     const exp = modExp.export;
 
     return {
-      kind: "exp",
+      kind: "txt",
       expInfo,
       expMod: modExp.module as TextModule,
       elem: exp.ref,
@@ -451,7 +451,7 @@ function localRef(name: string, mod: TextModule): TextRef | undefined {
     mod.structs.find((s) => s.name === name);
   if (elem) {
     return {
-      kind: "exp",
+      kind: "txt",
       expMod: mod,
       elem: elem,
       proposedName: elem.name,

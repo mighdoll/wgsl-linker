@@ -38,9 +38,9 @@ test("traverse nested import with params and support fn", () => {
   const refs = traverseTest(src, module1, module2);
   const first = refs[0] as TextRef;
   const second = refs[1] as TextRef;
-  expect(first.kind).toBe("exp");
+  expect(first.kind).toBe("txt");
   expect(first.expInfo?.expImpArgs).deep.eq([["A", "u32"]]);
-  expect(second.kind).toBe("exp");
+  expect(second.kind).toBe("txt");
   expect(second.elem.name).eq("support");
 });
 
@@ -198,7 +198,7 @@ test("traverse a struct to struct ref", () => {
   `;
 
   const refs = traverseTest(src, module1);
-  expect(refs[0].kind).toBe("exp");
+  expect(refs[0].kind).toBe("txt");
   expect(refName(refs[0])).toBe("AStruct");
 });
 
@@ -219,7 +219,7 @@ test("traverse a fn to struct ref", () => {
 
   const refs = traverseTest(src, module1);
   const exp = refs[0] as TextRef;
-  expect(exp.kind).eq("exp");
+  expect(exp.kind).eq("txt");
   expect(exp.elem.kind).eq("struct");
   expect(exp.elem.name).eq("AStruct");
 });
@@ -239,7 +239,7 @@ test("traverse a global var to struct ref", () => {
 
   const refs = traverseTest(src, module1);
   const exp = refs[0] as TextRef;
-  expect(exp.kind).eq("exp");
+  expect(exp.kind).eq("txt");
   expect(exp.elem.kind).eq("struct");
   expect(exp.elem.name).eq("Uniforms");
 });
