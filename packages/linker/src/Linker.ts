@@ -17,8 +17,7 @@ import {
   GeneratorRef,
   TextRef,
   refName,
-  textRefs,
-  traverseRefs,
+  traverseRefs
 } from "./TraverseRefs.js";
 import {
   groupBy,
