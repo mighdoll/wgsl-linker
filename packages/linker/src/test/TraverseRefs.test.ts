@@ -6,7 +6,6 @@ import { parseModule } from "../ParseModule.js";
 import {
   ExportRef,
   FoundRef,
-  LocalRef,
   TextRef,
   refName,
   traverseRefs,
@@ -39,7 +38,7 @@ test("traverse nested import with params and support fn", () => {
 
   const refs = traverseTest(src, module1, module2);
   const first = refs[0] as ExportRef;
-  const second = refs[1] as LocalRef;
+  const second = refs[1] as ExportRef;
   expect(first.kind).toBe("exp");
   expect(first.expInfo?.expImpArgs).deep.eq([["A", "u32"]]);
   expect(second.kind).toBe("exp");

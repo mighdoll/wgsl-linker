@@ -16,7 +16,6 @@ import {
   ExportRef,
   FoundRef,
   GeneratorRef,
-  LocalRef,
   TextRef,
   refName,
   textRefs,
@@ -201,16 +200,9 @@ function prepRefsMergeAndLoad(
   refs: FoundRef[],
   rootModule: TextModule
 ): MergeAndNonMerge {
-  const { localRefs, generatorRefs, mergeRefs, nonMergeRefs } =
+  const { generatorRefs, mergeRefs, nonMergeRefs } =
     partitionRefTypes(refs);
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
-
-  // rm refs to local text in root module from the local refs found in the traverse
-  const localTextRefs = textRefs(localRefs);
-  const rootNames = localTextRefs.map((r) => r.elem.name);
-  const localRefsToLoad = localRefs.filter(
-    (r) => !rootNames.includes(r.elem.name) || r.expMod !== rootModule
-  );
 
   // create refs for the root module in the same form as module refs
   const rawRootMerges = mergeRefs.filter(
@@ -226,7 +218,6 @@ function prepRefsMergeAndLoad(
   });
 
   const loadRefs = [
-    ...localRefsToLoad,
     ...generatorRefs,
     ...expRefs,
     ...rootMergeRefs,
@@ -277,13 +268,11 @@ interface RefTypes {
   mergeRefs: ExportRef[];
   generatorRefs: GeneratorRef[];
   nonMergeRefs: ExportRef[];
-  localRefs: LocalRef[];
 }
 
 /** separate refs into local, gen, merge, and non-merge refs */
 function partitionRefTypes(refs: FoundRef[]): RefTypes {
   const exp = refs.filter((r) => r.kind === "exp") as ExportRef[];
-  const local = refs.filter((r) => r.kind === "local") as LocalRef[];
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
     exp,
@@ -294,7 +283,6 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
     generatorRefs: gen,
     mergeRefs: merge,
     nonMergeRefs: nonMerge,
-    localRefs: local,
   };
 }
 
@@ -349,7 +337,7 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
 }
 
 /** load a struct text, mixing in any elements from #extends */
-function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
+function loadStruct(ref: ExportRef, rewriting: Rewriting): string {
   const structElem = ref.elem as StructElem;
 
   const rootMembers =
@@ -371,7 +359,7 @@ function loadStruct(ref: ExportRef | LocalRef, rewriting: Rewriting): string {
 
 function loadMemberText(
   member: StructMemberElem,
-  ref: TextRef | LocalRef,
+  ref: TextRef,
   rewriting: Rewriting
 ): string {
   const { expMod } = ref;
@@ -416,7 +404,7 @@ function rmElems(src: string, elems: AbstractElem[]): string {
 
 function loadFnText(
   elem: FnElem,
-  ref: ExportRef | LocalRef,
+  ref: ExportRef,
   rewriting: Rewriting
 ): string {
   const { rename } = ref;
@@ -450,7 +438,7 @@ function loadFnText(
 /** rewrite the src text according to module templating and exp/imp params */
 function applyExpImpAndTemplate(
   src: string,
-  ref: ExportRef | LocalRef,
+  ref: ExportRef,
   rewriting: Rewriting
 ): string {
   const { expMod } = ref;

@@ -20,7 +20,7 @@ import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
 
 export type FoundRef = TextRef | GeneratorRef;
-export type TextRef = ExportRef | LocalRef;
+export type TextRef = ExportRef;
 
 export type StringPairs = [string, string][];
 
@@ -43,14 +43,6 @@ export interface ExportInfo {
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
   expImpArgs: [string, string][];
-}
-
-export interface LocalRef extends FoundRefBase {
-  kind: "local";
-  expMod: TextModule;
-  elem: FnElem | StructElem | VarElem;
-  mergeRefs?: undefined;
-  expInfo?: undefined;
 }
 
 export interface GeneratorRef extends FoundRefBase {
@@ -157,9 +149,7 @@ function includesRef(r: FoundRef, refs: FoundRef[]): boolean {
 /** @return true if the two refs refer to the same named element in the same module */
 function matchRef(a: FoundRef, b: FoundRef): boolean {
   if (a.expMod.name !== b.expMod.name) return false;
-  if (
-    (a.kind === "exp" && b.kind === "exp") 
-  ) {
+  if (a.kind === "exp" && b.kind === "exp") {
     return a.elem.name == b.elem.name;
   }
   if (a.kind === "gen" && b.kind === "gen") {
@@ -167,11 +157,6 @@ function matchRef(a: FoundRef, b: FoundRef): boolean {
   }
   return false;
 }
-
-// Debug
-// function _refName(ref: FoundRef): string {
-//   return ref.kind !== "gen" ? ref.elem.name : ref.name;
-// }
 
 export function textRefs(refs: FoundRef[]): TextRef[] {
   return refs.filter(textRef);
