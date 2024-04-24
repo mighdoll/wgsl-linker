@@ -80,7 +80,7 @@ export interface ExportRef extends FoundRefBase {
   expMod: TextModule;
 
   /** reference to the exported function or struct */
-  elem: FnElem | StructElem;
+  elem: FnElem | StructElem | VarElem;
 
   expInfo?: ExportInfo;
 
@@ -106,7 +106,7 @@ export function traverseRefs(
   const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
   const srcRefs: FoundRef[] = [...fns, ...structs, ...vars].map((elem) => ({
-    kind: "local",
+    kind: "exp",
     proposedName: elem.name,
     expMod,
     elem,
@@ -158,8 +158,7 @@ function includesRef(r: FoundRef, refs: FoundRef[]): boolean {
 function matchRef(a: FoundRef, b: FoundRef): boolean {
   if (a.expMod.name !== b.expMod.name) return false;
   if (
-    (a.kind === "exp" && b.kind === "exp") ||
-    (a.kind === "local" && b.kind === "local")
+    (a.kind === "exp" && b.kind === "exp") 
   ) {
     return a.elem.name == b.elem.name;
   }
