@@ -20,7 +20,7 @@ import {
   TextRef,
   refName,
   textRefs,
-  traverseRefs
+  traverseRefs,
 } from "./TraverseRefs.js";
 import {
   groupBy,
@@ -112,7 +112,7 @@ function findReferences(
  * in the linked source.
  */
 function refFullName(ref: FoundRef): string {
-  const expImpArgs = ref.kind === "exp" ? ref.expInfo.expImpArgs : [];
+  const expImpArgs = ref.expInfo?.expImpArgs ?? [];
   const impArgs = expImpArgs.map(([, arg]) => arg);
   const argsStr = "(" + impArgs.join(",") + ")";
   return ref.expMod.name + "." + refName(ref) + argsStr;
@@ -214,12 +214,12 @@ function prepRefsMergeAndLoad(
 
   // create refs for the root module in the same form as module refs
   const rawRootMerges = mergeRefs.filter(
-    (r) => r.expInfo.fromRef.expMod === rootModule
+    (r) => r.expInfo?.fromRef.expMod === rootModule
   );
 
   const byElem = groupBy(rawRootMerges, (r) => refName(r));
   const rootMergeRefs = [...byElem.entries()].flatMap(([, merges]) => {
-    const fromRef = merges[0].expInfo.fromRef as TextRef;
+    const fromRef = merges[0].expInfo?.fromRef as TextRef;
     const synth = syntheticRootExp(rootModule, fromRef);
     const combined = combineMergeRefs(mergeRefs, [synth]);
     return combined;
@@ -233,7 +233,7 @@ function prepRefsMergeAndLoad(
   ];
 
   const rmRootOrig = rootMergeRefs.map(
-    (r) => (r.expInfo.fromRef as TextRef).elem
+    (r) => (r.expInfo?.fromRef as TextRef).elem // TODO consider cast safety
   );
 
   return { rmRootOrig, loadRefs };
@@ -247,10 +247,12 @@ function combineMergeRefs(
   // map from the element name of a struct annotated with #extends to the merge refs
   const mergeMap = new Map<string, ExportRef[]>();
   mergeRefs.forEach((r) => {
-    const fullName = refFullName(r.expInfo.fromRef);
-    const merges = mergeMap.get(fullName) || [];
-    merges.push(r);
-    mergeMap.set(fullName, merges);
+    if (r.expInfo) { // LATER support merges from local refs too
+      const fullName = refFullName(r.expInfo.fromRef);
+      const merges = mergeMap.get(fullName) || [];
+      merges.push(r);
+      mergeMap.set(fullName, merges);
+    }
   });
 
   // combine the merge refs into the export refs on the same element
@@ -285,7 +287,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   const gen = refs.filter((r) => r.kind === "gen") as GeneratorRef[];
   const [merge, nonMerge] = partition(
     exp,
-    (r) => r.expInfo.fromImport.kind === "extends"
+    (r) => r.expInfo?.fromImport.kind === "extends"
   );
 
   return {

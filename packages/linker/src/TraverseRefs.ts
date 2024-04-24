@@ -34,7 +34,7 @@ interface FoundRefBase {
 }
 
 export interface ExportInfo {
-  /** reference that led us to find this ref (for mapping imp/exp args) */
+  /** reference that led us to find this ref */
   fromRef: FoundRef;
 
   /** import or extends elem that resolved to this export */
@@ -82,7 +82,7 @@ export interface ExportRef extends FoundRefBase {
   /** reference to the exported function or struct */
   elem: FnElem | StructElem;
 
-  expInfo: ExportInfo;
+  expInfo?: ExportInfo;
 
   /** refs to extends elements on this struct element
    * (added in a post processing step after traverse) */
@@ -279,7 +279,7 @@ function extendsRefs(
 
 /** @return true if the ref is to an import parameter */
 function importArgRef(srcRef: FoundRef, name: string): boolean | undefined {
-  if (srcRef.kind === "exp") {
+  if (srcRef.expInfo) {
     return !!srcRef.expInfo.expImpArgs.find(([expArg]) => expArg === name);
   }
 }
@@ -425,6 +425,7 @@ function importingArgs(
   exp: ExportElem | GeneratorExport,
   srcRef: ExportRef
 ): StringPairs {
+  if (srcRef.expInfo === undefined) return [];
   const expImp = matchImportExportArgs(
     srcRef.expInfo.fromRef.expMod,
     imp,
@@ -461,12 +462,18 @@ function matchingExport(
   return modExp;
 }
 
-function localRef(name: string, mod: TextModule): LocalRef | undefined {
+function localRef(name: string, mod: TextModule): ExportRef | undefined {
   const elem =
     mod.fns.find((fn) => fn.name === name) ??
     mod.structs.find((s) => s.name === name);
   if (elem) {
-    return { kind: "local", expMod: mod, elem: elem, proposedName: elem.name, expInfo:undefined };
+    return {
+      kind: "exp",
+      expMod: mod,
+      elem: elem,
+      proposedName: elem.name,
+      expInfo: undefined,
+    };
   }
 }
 
