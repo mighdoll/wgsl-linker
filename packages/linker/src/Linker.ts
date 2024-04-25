@@ -305,9 +305,10 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
   return txt;
 }
 
+// TODO what about renaming imported vars or other aliases
 function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
   const { expMod, elem } = ref;
-  const typeRefs = (elem as VarElem | AliasElem).typeRefs || [];
+  const typeRefs = (elem as VarElem | AliasElem).typeRefs ?? [];
   const slicing = typeRefSlices(typeRefs);
   const patchedSrc = sliceReplace(
     expMod.preppedSrc,
@@ -319,32 +320,37 @@ function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
   return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
 }
 
+function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
+  const genExp = ref.expMod.exports.find((e) => e.name === ref.name);
+  if (!genExp) {
+    refLog(ref, "missing generator", ref.name);
+    return "//?";
+  }
+  const { extParams } = rewriting;
+
+  const fnName = ref.rename ?? ref.proposedName ?? ref.name;
+  const expImpEntries = refExpImp(ref, extParams);
+  const params = expImpToParams(expImpEntries, extParams);
+
+  const text = genExp?.generate(fnName, params);
+  return text;
+}
+
 /** load exported text for an import */
 function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
       if (r.kind === "gen") {
-        const genExp = r.expMod.exports.find((e) => e.name === r.name);
-        if (!genExp) {
-          refLog(r, "missing generator", r.name);
-          return "//?";
-        }
-        const { extParams } = rewriting;
-
-        const fnName = r.rename ?? r.proposedName ?? r.name;
-        const expImpEntries = refExpImp(r, extParams);
-        const params = expImpToParams(expImpEntries, extParams);
-
-        const text = genExp?.generate(fnName, params);
-        return text;
+        return loadGeneratedElem(r, rewriting);
       }
-      if (r.elem.kind === "fn") {
+      const elemKind = r.elem.kind;
+      if (elemKind === "fn") {
         return loadFnText(r.elem, r, rewriting);
       }
-      if (r.elem.kind === "struct") {
+      if (elemKind === "struct") {
         return loadStruct(r, rewriting);
       }
-      if (r.elem.kind === "var") {
+      if (elemKind === "var") {
         return loadOtherElem(r, rewriting);
       }
     })
@@ -372,6 +378,7 @@ function loadStruct(ref: TextRef, rewriting: Rewriting): string {
   return `struct ${name} {\n${membersText}\n}`;
 }
 
+// TODO use loadOtherElem?
 function loadMemberText(
   member: StructMemberElem,
   ref: TextRef,
