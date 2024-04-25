@@ -3,12 +3,8 @@ import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { parseModule } from "../ParseModule.js";
-import {
-  FoundRef,
-  TextRef,
-  refName,
-  traverseRefs,
-} from "../TraverseRefs.js";
+import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
+import { dlog } from "berry-pretty";
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -461,7 +457,7 @@ test("struct cross reference", () => {
 });
 
 test("parse texture_storage_2d with texture format in type position", () => {
-  const src = `var t: texture_storage_2d<rgba8unorm, write>;`
+  const src = `var t: texture_storage_2d<rgba8unorm, write>;`;
   const { log } = traverseWithLog(src);
   expect(log).is.empty;
 });
@@ -483,10 +479,14 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   });
   const srcModule = parseModule(src);
   const refs: FoundRef[] = [];
-  traverseRefs(srcModule, registry, (ref) => {
-    refs.push(ref);
-    return true;
-  });
+  traverseRefs(
+    srcModule,
+    registry,
+    (ref) => {
+      refs.push(ref);
+      return true;
+    },
+    true
+  );
   return refs;
 }
-

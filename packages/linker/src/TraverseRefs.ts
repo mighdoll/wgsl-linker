@@ -18,6 +18,7 @@ import {
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
+import { printRef } from "./Linker.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 
@@ -92,7 +93,8 @@ export interface TextRef extends FoundRefBase {
 export function traverseRefs(
   srcModule: TextModule,
   registry: ModuleRegistry,
-  fn: (ref: FoundRef) => boolean
+  fn: (ref: FoundRef) => boolean,
+  skipSrcRefs = false 
 ): void {
   const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
@@ -102,7 +104,8 @@ export function traverseRefs(
     expMod,
     elem,
   }));
-  srcRefs.forEach((ref) => fn(ref));
+  // srcRefs.forEach(r => printRef(r, "traverseRefs.src"))
+  if (!skipSrcRefs) srcRefs.forEach((ref) => fn(ref));
   if (!srcRefs.length) return;
 
   // recurse on the external refs from the src root elements

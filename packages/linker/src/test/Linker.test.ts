@@ -37,7 +37,6 @@ test("copy root elements linked output", () => {
     ${rootFn}
   `;
   const linked = linkWgslTest(src);
-  console.log("linked\n", linked);
   expect(linked).includes(rootStruct);
   expect(linked).includes(rootVar);
   expect(linked).includes(rootFn);

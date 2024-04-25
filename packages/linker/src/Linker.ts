@@ -57,6 +57,7 @@ export function linkWgslModule(
   // mix the merge refs into the import/export refs
   const loadRefs = prepRefsMergeAndLoad(refs);
 
+  // loadRefs.map((r) => printRef(r, "load ref"));
 
   // extract export texts, rewriting via rename map and exp/imp args
   const rewriting: Rewriting = { extParams: runtimeParams, registry };
