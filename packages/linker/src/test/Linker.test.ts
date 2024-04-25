@@ -198,7 +198,7 @@ test("#import foo from zap (multiple modules)", () => {
   expect(linked).contains("/* module2 */");
 });
 
-test.only("multiple exports from the same module", () => {
+test("multiple exports from the same module", () => {
   const module1 = `
     #export
     fn foo() { }

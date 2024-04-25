@@ -55,7 +55,8 @@ export function linkWgslModule(
   uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
   // mix the merge refs into the import/export refs
-  const { loadRefs } = prepRefsMergeAndLoad(refs, srcModule);
+  const loadRefs = prepRefsMergeAndLoad(refs);
+
 
   // extract export texts, rewriting via rename map and exp/imp args
   const rewriting: Rewriting = { extParams: runtimeParams, registry };
@@ -183,48 +184,20 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
   }
 }
 
-interface MergeAndNonMerge {
-  loadRefs: FoundRef[];
-  rmRootOrig: AbstractElem[];
-}
-
 /**
  * Perpare the refs found in the traverse for loading:
  * . sort through found refs, and attach merge refs to normal export refs
  *   so that the export can be rewritten with the merged struct members
- * . filter out any local refs to the root src
- *   (they don't need to be loaded, they're already in the src)
  *
- * @return the set of refs that will be loaded, and the original
- *  root elements that will be excised from the source
+ * @return the set of refs that will be loaded
  */
 function prepRefsMergeAndLoad(
   refs: FoundRef[],
-  rootModule: TextModule
-): MergeAndNonMerge {
+): FoundRef[] {
   const { generatorRefs, mergeRefs, nonMergeRefs } = partitionRefTypes(refs);
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
 
-  // create refs for the root module in the same form as module refs
-  const rawRootMerges = mergeRefs.filter(
-    (r) => r.expInfo?.fromRef.expMod === rootModule
-  );
-
-  const byElem = groupBy(rawRootMerges, (r) => refName(r));
-  const rootMergeRefs = [...byElem.entries()].flatMap(([, merges]) => {
-    const fromRef = merges[0].expInfo?.fromRef as TextRef;
-    const synth = syntheticRootExp(rootModule, fromRef);
-    const combined = combineMergeRefs(mergeRefs, [synth]);
-    return combined;
-  });
-
-  const loadRefs = [...generatorRefs, ...expRefs, ...rootMergeRefs];
-
-  const rmRootOrig = rootMergeRefs.map(
-    (r) => (r.expInfo?.fromRef as TextRef).elem // TODO consider cast safety
-  );
-
-  return { rmRootOrig, loadRefs };
+  return [...generatorRefs, ...expRefs];
 }
 
 /** combine export refs with any merge refs for the same element */
@@ -264,8 +237,8 @@ function combineMergeRefs(
 
 interface RefTypes {
   mergeRefs: TextRef[];
-  generatorRefs: GeneratorRef[];
   nonMergeRefs: TextRef[];
+  generatorRefs: GeneratorRef[];
 }
 
 /** separate refs into local, gen, merge, and non-merge refs */
@@ -284,26 +257,6 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   };
 }
 
-/** create a synthetic TextRef so we can treat extends on root structs
- * the same as extends on exported structs */
-function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
-  const expInfo: ExportInfo = {
-    fromRef,
-    fromImport: null as any,
-    expImpArgs: [],
-  };
-
-  const txt: TextRef = {
-    kind: "txt",
-    expInfo,
-    elem: fromRef.elem as StructElem | FnElem,
-    expMod: rootModule,
-
-    proposedName: null as any,
-  };
-
-  return txt;
-}
 
 // TODO what about renaming imported vars or other aliases
 function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
