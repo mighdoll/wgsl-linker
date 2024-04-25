@@ -413,17 +413,6 @@ function refExpImp(
   });
 }
 
-/** rewrite prepped src with elements removed */
-function rmElems(src: string, elems: AbstractElem[]): string {
-  const startEnds = [...elems]
-    .sort((a, b) => a.start - b.start)
-    .flatMap((e) => [e.start, e.end]);
-
-  const slicePoints = [0, ...startEnds, src.length];
-  const edits = grouped(slicePoints, 2);
-  return edits.map(([start, end]) => src.slice(start, end)).join("");
-}
-
 function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
   const { rename } = ref;
   const slicing: SliceReplace[] = [];
