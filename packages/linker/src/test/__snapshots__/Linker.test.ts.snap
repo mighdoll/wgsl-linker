@@ -1,14 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`multiple exports from the same module 1`] = `
-"
-    
-    
-    fn main() {
+"fn main() {
       foo();
       bar();
     }
-  
 
 fn foo() { }
 

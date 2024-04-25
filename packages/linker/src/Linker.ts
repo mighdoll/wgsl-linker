@@ -1,11 +1,13 @@
 import { dlog } from "berry-pretty";
 import {
   AbstractElem,
+  AliasElem,
   CallElem,
   FnElem,
   StructElem,
   StructMemberElem,
   TypeRefElem,
+  VarElem,
 } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
@@ -17,7 +19,7 @@ import {
   GeneratorRef,
   TextRef,
   refName,
-  traverseRefs
+  traverseRefs,
 } from "./TraverseRefs.js";
 import {
   groupBy,
@@ -44,41 +46,43 @@ export function linkWgslModule(
   registry: ModuleRegistry,
   runtimeParams: Record<string, any> = {}
 ): string {
-  const { fns, structs, vars, template, preppedSrc } = srcModule;
-  const srcElems = [fns, structs, vars].flat();
-  const decls = new Set(srcElems.map((e) => e.name));
+  // const { fns, structs, vars, template, preppedSrc } = srcModule;
+  // const srcElems = [fns, structs, vars].flat();
+  // const decls = new Set(srcElems.map((e) => e.name));
+  const decls = new Set<string>();
 
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
   uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
   // mix the merge refs into the import/export refs
-  const { loadRefs, rmRootOrig } = prepRefsMergeAndLoad(refs, srcModule);
+  const { loadRefs } = prepRefsMergeAndLoad(refs, srcModule);
 
   // extract export texts, rewriting via rename map and exp/imp args
   const rewriting: Rewriting = { extParams: runtimeParams, registry };
   const importedText = extractTexts(loadRefs, rewriting);
+  return importedText;
 
   /* edit orig src to remove: 
       . #import and #module statements (to not cause errors in wgsl parsing if they're not commented out)
       . structs for which we've created new merged structs (we'll append the merged versions at the end)
   */
-  const templateElem = template ? [template] : [];
-  const slicedSrc = rmElems(preppedSrc, [
-    ...rmRootOrig,
-    ...srcModule.imports,
-    ...templateElem,
-  ]);
+  // const templateElem = template ? [template] : [];
+  // const slicedSrc = rmElems(preppedSrc, [
+  //   ...rmRootOrig,
+  //   ...srcModule.imports,
+  //   ...templateElem,
+  // ]);
 
-  const templatedSrc = applyTemplate(
-    slicedSrc,
-    srcModule,
-    runtimeParams,
-    registry
-  );
+  // const templatedSrc = applyTemplate(
+  //   slicedSrc,
+  //   srcModule,
+  //   runtimeParams,
+  //   registry
+  // );
 
-  if (importedText) return templatedSrc + "\n\n" + importedText;
+  // if (importedText) return templatedSrc + "\n\n" + importedText;
 
-  return templatedSrc;
+  // return templatedSrc;
 }
 
 /** find references to structs and fns we might import
@@ -198,8 +202,7 @@ function prepRefsMergeAndLoad(
   refs: FoundRef[],
   rootModule: TextModule
 ): MergeAndNonMerge {
-  const { generatorRefs, mergeRefs, nonMergeRefs } =
-    partitionRefTypes(refs);
+  const { generatorRefs, mergeRefs, nonMergeRefs } = partitionRefTypes(refs);
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
 
   // create refs for the root module in the same form as module refs
@@ -215,11 +218,7 @@ function prepRefsMergeAndLoad(
     return combined;
   });
 
-  const loadRefs = [
-    ...generatorRefs,
-    ...expRefs,
-    ...rootMergeRefs,
-  ];
+  const loadRefs = [...generatorRefs, ...expRefs, ...rootMergeRefs];
 
   const rmRootOrig = rootMergeRefs.map(
     (r) => (r.expInfo?.fromRef as TextRef).elem // TODO consider cast safety
@@ -236,7 +235,8 @@ function combineMergeRefs(
   // map from the element name of a struct annotated with #extends to the merge refs
   const mergeMap = new Map<string, TextRef[]>();
   mergeRefs.forEach((r) => {
-    if (r.expInfo) { // LATER support merges from local refs too
+    if (r.expInfo) {
+      // LATER support merges from local refs too
       const fullName = refFullName(r.expInfo.fromRef);
       const merges = mergeMap.get(fullName) || [];
       merges.push(r);
@@ -305,6 +305,20 @@ function syntheticRootExp(rootModule: TextModule, fromRef: TextRef): TextRef {
   return txt;
 }
 
+function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
+  const { expMod, elem } = ref;
+  const typeRefs = (elem as VarElem | AliasElem).typeRefs || [];
+  const slicing = typeRefSlices(typeRefs);
+  const patchedSrc = sliceReplace(
+    expMod.preppedSrc,
+    slicing,
+    elem.start,
+    elem.end
+  );
+
+  return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
+}
+
 /** load exported text for an import */
 function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
   return refs
@@ -329,6 +343,9 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       }
       if (r.elem.kind === "struct") {
         return loadStruct(r, rewriting);
+      }
+      if (r.elem.kind === "var") {
+        return loadOtherElem(r, rewriting);
       }
     })
     .join("\n\n");
@@ -400,11 +417,7 @@ function rmElems(src: string, elems: AbstractElem[]): string {
   return edits.map(([start, end]) => src.slice(start, end)).join("");
 }
 
-function loadFnText(
-  elem: FnElem,
-  ref: TextRef,
-  rewriting: Rewriting
-): string {
+function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
   const { rename } = ref;
   const slicing: SliceReplace[] = [];
 

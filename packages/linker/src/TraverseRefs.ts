@@ -96,12 +96,13 @@ export function traverseRefs(
 ): void {
   const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
-  const srcRefs: TextRef[] = [...fns, ...structs, ...vars].map((elem) => ({
+  const srcRefs: TextRef[] = [...structs, ...vars, ...fns].map((elem) => ({
     kind: "txt",
     proposedName: elem.name,
     expMod,
     elem,
   }));
+  srcRefs.forEach((ref) => fn(ref));
   if (!srcRefs.length) return;
 
   // recurse on the external refs from the src root elements

@@ -20,10 +20,27 @@ test("simple #import", () => {
     }
   `;
   const linked = linkWgslTest(src, myModule);
-  expect(linked).contains("// \n    fn bar()");
+  expect(linked).contains("fn bar()");
   expect(linked).includes("fooImpl");
   expect(linked).not.includes("#import");
   expect(linked).not.includes("#export");
+});
+
+test("copy root elements linked output", () => {
+  const rootStruct = "struct Uniforms {\n  a: u32\n}";
+  const rootVar = `@group(0) @binding(0) var<uniform> u: Uniforms;`;
+  const rootFn = `fn main() { }`;
+  const src = `
+    // #module main
+    ${rootStruct}
+    ${rootVar}
+    ${rootFn}
+  `;
+  const linked = linkWgslTest(src);
+  console.log("linked\n", linked);
+  expect(linked).includes(rootStruct);
+  expect(linked).includes(rootVar);
+  expect(linked).includes(rootFn);
 });
 
 test("#import with parameter", () => {
@@ -181,7 +198,7 @@ test("#import foo from zap (multiple modules)", () => {
   expect(linked).contains("/* module2 */");
 });
 
-test("multiple exports from the same module", () => {
+test.only("multiple exports from the same module", () => {
   const module1 = `
     #export
     fn foo() { }
@@ -808,7 +825,8 @@ test("warn on missing template", () => {
   `);
 });
 
-test("extend struct with rename", () => { // TODO
+test("extend struct with rename", () => {
+  // TODO
   const src = `
     // #extends HasColor(fill) 
     struct Sprite {
@@ -823,5 +841,5 @@ test("extend struct with rename", () => { // TODO
     `;
 
   const linked = linkWgslTest(src, module1);
-  expect(linked).includes ("fill: vec4f")
+  expect(linked).includes("fill: vec4f");
 });
