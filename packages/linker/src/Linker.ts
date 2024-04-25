@@ -61,30 +61,7 @@ export function linkWgslModule(
 
   // extract export texts, rewriting via rename map and exp/imp args
   const rewriting: Rewriting = { extParams: runtimeParams, registry };
-  const importedText = extractTexts(loadRefs, rewriting);
-  return importedText;
-
-  /* edit orig src to remove: 
-      . #import and #module statements (to not cause errors in wgsl parsing if they're not commented out)
-      . structs for which we've created new merged structs (we'll append the merged versions at the end)
-  */
-  // const templateElem = template ? [template] : [];
-  // const slicedSrc = rmElems(preppedSrc, [
-  //   ...rmRootOrig,
-  //   ...srcModule.imports,
-  //   ...templateElem,
-  // ]);
-
-  // const templatedSrc = applyTemplate(
-  //   slicedSrc,
-  //   srcModule,
-  //   runtimeParams,
-  //   registry
-  // );
-
-  // if (importedText) return templatedSrc + "\n\n" + importedText;
-
-  // return templatedSrc;
+  return extractTexts(loadRefs, rewriting);
 }
 
 /** find references to structs and fns we might import
@@ -192,9 +169,7 @@ function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
  *
  * @return the set of refs that will be loaded
  */
-function prepRefsMergeAndLoad(
-  refs: FoundRef[],
-): FoundRef[] {
+function prepRefsMergeAndLoad(refs: FoundRef[]): FoundRef[] {
   const { generatorRefs, mergeRefs, nonMergeRefs } = partitionRefTypes(refs);
   const expRefs = combineMergeRefs(mergeRefs, nonMergeRefs);
 
@@ -257,7 +232,6 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
     nonMergeRefs: nonMerge,
   };
 }
-
 
 // TODO what about renaming imported vars or other aliases
 function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
