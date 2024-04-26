@@ -130,7 +130,6 @@ export class ModuleRegistry {
   _parseSrc(runtimeParams: Record<string, any> = {}): void {
     this.textModules = [];
     this.wgslSrc.forEach((src, fileName) => {
-      // dlog("parseSrc", { fileName, src });
       this.registerOneModule(src, runtimeParams, fileName);
     });
   }
@@ -143,7 +142,7 @@ export class ModuleRegistry {
     moduleName?: string
   ): void {
     const newFileName = fileName && normalize(fileName);
-    const m = parseModule(src, newFileName, params, moduleName);
+    const m = parseModule(src, this.templates, newFileName, params, moduleName);
     this.addTextModule(m);
   }
 
@@ -152,17 +151,17 @@ export class ModuleRegistry {
     const exp: GeneratorExport = {
       name: reg.name,
       args: reg.args ?? [],
-      generate: reg.generate
+      generate: reg.generate,
     };
     const module: GeneratorModule = {
       kind: "generator",
       name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
-      exports: [exp]
+      exports: [exp],
     };
     const moduleExport: GeneratorModuleExport = {
       module,
       export: exp,
-      kind: "function"
+      kind: "function",
     };
     this.addModuleExport(moduleExport);
   }
@@ -230,7 +229,7 @@ export class ModuleRegistry {
       const moduleExport: TextModuleExport = {
         module,
         export: e,
-        kind: "text"
+        kind: "text",
       };
       this.addModuleExport(moduleExport);
     });
