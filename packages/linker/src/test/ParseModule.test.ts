@@ -60,3 +60,8 @@ test("read #module", () => {
   const textModule = parseModule(src);
   expect(textModule.name).toBe("my.module.com");
 });
+
+
+test("parse #template", () => { // TODO verify src map
+
+});
