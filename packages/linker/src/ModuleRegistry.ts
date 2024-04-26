@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { linkWgslModule } from "./Linker.js";
 import { TextExport, TextModule, parseModule } from "./ParseModule.js";
 import { noSuffix, normalize, relativePath } from "./PathUtil.js";
@@ -118,18 +117,17 @@ export class ModuleRegistry {
    *  template values, and code generation parameters
    */
   link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
-    // dlog("link", { wgslSrc: Object.fromEntries(this.wgslSrc.entries()) });
-    this.parseSrc(runtimeParams);
-    const foundModule = this.findModule(moduleName);
-    if (!foundModule) {
+    this._parseSrc(runtimeParams);
+    const rootModule = this.findTextModule(moduleName);
+    if (!rootModule) {
       console.error("no module found for ", moduleName);
       return "";
     }
 
-    return linkWgslModule(foundModule, this, runtimeParams);
+    return linkWgslModule(rootModule, this, runtimeParams);
   }
 
-  parseSrc(runtimeParams: Record<string, any> = {}): void {
+  _parseSrc(runtimeParams: Record<string, any> = {}): void {
     this.textModules = [];
     this.wgslSrc.forEach((src, fileName) => {
       // dlog("parseSrc", { fileName, src });
@@ -137,23 +135,8 @@ export class ModuleRegistry {
     });
   }
 
-  /**
-   * Register and parse wgsl text modules with optional directives.
-   * @param files record. keys are file names and values contain wgsl text with directives
-   * @param params runtime name-value variables for conditional compilation
-   */
-  registerModules(
-    files: Record<string, string>,
-    params: Record<string, any> = {}
-  ): void {
-    const nameSrc = Object.entries(files);
-    nameSrc.forEach(([fileName, src]) => {
-      this.registerOneModule(src, params, fileName);
-    });
-  }
-
   /** register one module's exports  */
-  registerOneModule(
+  private registerOneModule(
     src: string,
     params: Record<string, any> = {},
     fileName: string,
@@ -226,7 +209,7 @@ export class ModuleRegistry {
     }
   }
 
-  findModule(searchName: string): TextModule | undefined {
+  findTextModule(searchName: string): TextModule | undefined {
     const moduleNameMatch = this.textModules.find(
       (m) => m.name === searchName || m.fileName === searchName
     );
@@ -239,7 +222,6 @@ export class ModuleRegistry {
       (m) => m.fileName === baseSearch || noSuffix(m.fileName) === baseSearch
     );
     if (pathMatch) return pathMatch;
-
   }
 
   private addTextModule(module: TextModule): void {

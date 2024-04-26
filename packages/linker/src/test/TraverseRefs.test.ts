@@ -480,8 +480,8 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const wgsl = { "./main": src, ...moduleFiles };
   const registry = new ModuleRegistry({ wgsl });
   const refs: FoundRef[] = [];
-  registry.parseSrc();
-  const mainModule = registry.findModule("./main")!;
+  registry._parseSrc();
+  const mainModule = registry.findTextModule("./main")!;
   traverseRefs(
     mainModule,
     registry,
