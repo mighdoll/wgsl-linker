@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   AliasElem,
@@ -233,7 +234,7 @@ function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
     elem.end
   );
 
-  return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
+  return applyExpImp(patchedSrc, ref, rewriting);
 }
 
 function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
@@ -309,7 +310,7 @@ function loadMemberText(
     member.end
   );
 
-  return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
+  return applyExpImp(patchedSrc, ref, rewriting);
 }
 
 /** get the export/import param map if appropriate for this ref */
@@ -355,24 +356,20 @@ function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
     elem.end
   );
 
-  return applyExpImpAndTemplate(patchedSrc, ref, rewriting);
+  return applyExpImp(patchedSrc, ref, rewriting);
 }
 
 /** rewrite the src text according to module templating and exp/imp params */
-function applyExpImpAndTemplate(
+function applyExpImp(
   src: string,
   ref: TextRef,
   rewriting: Rewriting
 ): string {
-  const { expMod } = ref;
-  const { extParams, registry } = rewriting;
+  const { extParams } = rewriting;
 
   const replaces = refExpImp(ref, extParams);
   const params = expImpToParams(replaces, extParams);
-  const templated = applyTemplate(src, expMod, params, registry);
-
-  const rewrite = Object.fromEntries([...replaces]);
-  return replaceWords(templated, rewrite);
+  return replaceWords(src, params);
 }
 
 function typeRefSlices(typeRefs: TypeRefElem[]): SliceReplace[] {
@@ -394,23 +391,4 @@ function expImpToParams(
   const expImp = Object.fromEntries(expImpEntries);
   const expImpExt = mapForward(expImp, extParams);
   return { ...extParams, ...expImpExt };
-}
-
-function applyTemplate(
-  src: string,
-  mod: TextModule,
-  params: Record<string, any>,
-  registry: ModuleRegistry
-): string {
-  const name = mod.template?.name;
-  if (!name) return src;
-  const template = registry.getTemplate(name);
-  if (!template) {
-    moduleLog(
-      mod,
-      mod.template?.start ?? 0,
-      `template '${name}' not found in ModuleRegistry`
-    );
-  }
-  return template ? template(src, params) : src;
 }

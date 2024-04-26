@@ -1,4 +1,5 @@
 import { srcLog, SrcMap } from "mini-parse";
+import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   AliasElem,
@@ -9,10 +10,12 @@ import {
   ModuleElem,
   StructElem,
   TemplateElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
-import { processConditionals } from "./Conditionals.js";
+import { PreppedSrc, processConditionals } from "./Conditionals.js";
 import { parseWgslD } from "./ParseWgslD.js";
+import { ApplyTemplateFn } from "./ModuleRegistry.js";
+import { SliceReplace, sliceReplace } from "./Slicer.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -51,11 +54,18 @@ let unnamedFileDex = 0;
 
 export function parseModule(
   src: string,
+  templates: Map<string, ApplyTemplateFn> = new Map(),
   fileName = `/unnamed-${unnamedFileDex++}`,
   params: Record<string, any> = {},
   defaultModuleName?: string
 ): TextModule {
-  const { text: preppedSrc, srcMap } = processConditionals(src, params);
+  const { srcMap: condSrcMap } = processConditionals(src, params);
+  const { text: preppedSrc, srcMap } = applyTemplate(
+    condSrcMap,
+    templates,
+    params
+  );
+
   const parsed = parseWgslD(preppedSrc, srcMap);
   const exports = findExports(parsed, srcMap);
   const fns = filterElems<FnElem>(parsed, "fn");
@@ -74,7 +84,7 @@ export function parseModule(
   const kind = "text";
   return {
     ...{ kind, src, srcMap, preppedSrc, fileName, name },
-    ...{ exports, fns, structs, vars, imports, template, aliases }
+    ...{ exports, fns, structs, vars, imports, template, aliases },
   };
 }
 
@@ -129,4 +139,41 @@ function findKind<T extends AbstractElem>(
   return parsed.flatMap((elem, i) =>
     elem.kind === kind ? ([[elem, i]] as [T, number][]) : []
   );
+}
+
+const templateRegex = /#template\s+([/[a-zA-Z_][\w./-]*)/;
+
+export function applyTemplate(
+  entrySrcMap: SrcMap,
+  templates: Map<string, ApplyTemplateFn>,
+  params: Record<string, any>
+): PreppedSrc {
+  const src = entrySrcMap.dest;
+  const foundTemplate = src.match(templateRegex);
+  if (!foundTemplate) {
+    return { text: src, srcMap: entrySrcMap };
+  }
+  const templateName = foundTemplate[1];
+  // dlog({ templateName });
+  const templateFn = templates.get(templateName);
+  if (!templateFn) {
+    srcLog(
+      entrySrcMap,
+      foundTemplate.index!,
+      `template '${templateName}' not found in ModuleRegistry`
+    );
+    return { text: src, srcMap: entrySrcMap };
+  }
+
+  const start = foundTemplate.index!;
+  const end = start + foundTemplate[0].length;
+  const rmDirective: SliceReplace = { start, end, replacement: "" };
+  // console.log(`unTemplated\n${src}`);
+  const directiveRemoved = sliceReplace(src, [rmDirective]);
+
+  const text = templateFn(directiveRemoved, params);
+  // console.log(`templated\n${text}`);
+  // TODO new srcmap
+
+  return { text, srcMap: entrySrcMap };
 }

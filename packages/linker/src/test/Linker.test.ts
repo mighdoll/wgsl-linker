@@ -721,7 +721,7 @@ test("#import using replace template and imp/exp param", () => {
 
     // #export(threads)
     fn foo () {
-      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      for (var step = 0; step < threads; step++) {
       }
     }
   `;
@@ -747,7 +747,7 @@ test("#import using external param", () => {
 
     // #export(threads)
     fn foo () {
-      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      for (var step = 0; step < threads; step++) { 
       }
     }
   `;
@@ -786,7 +786,7 @@ test("external param applied to template", () => {
 
     #export(threads)
     fn foo() {
-      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      for (var step = 0; step < threads; step++) { 
       }
     }
   `;
@@ -817,7 +817,7 @@ test("warn on missing template", () => {
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => linkWgslTest(src));
   expect(logged()).toMatchInlineSnapshot(`
-    "template 'missing' not found in ModuleRegistry  module: test.missing.template file0
+    "template 'missing' not found in ModuleRegistry
         #template missing   Ln 4
         ^"
   `);
