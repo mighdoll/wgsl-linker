@@ -189,13 +189,13 @@ export class ModuleRegistry {
       return undefined;
     } else if (moduleName?.startsWith(".")) {
       const searchName = relativePath(requesting.fileName, moduleName);
-      const baseSearch = basename(searchName);
+      const baseSearch = noSuffix(searchName);
 
       return exports.find((e) => {
         const fileName = (e.module as TextModule).fileName;
         if (!fileName) return false;
         if (fileName === searchName) return true;
-        if (baseSearch === basename(fileName)) return true;
+        if (baseSearch === noSuffix(fileName)) return true;
       });
     } else if (moduleName) {
       return exports.find((e) => e.module.name === moduleName);

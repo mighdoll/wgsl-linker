@@ -21,6 +21,7 @@ export function join(a: string, b: string): string {
   return normalize(joined);
 }
 
+/** return path with ./ and foo/.. elements removed */
 export function normalize(path: string): string {
   const segments = path.split("/");
   const noDots = segments.filter((s) => s !== ".");
@@ -39,7 +40,9 @@ export function normalize(path: string): string {
   return noDbl.join("/");
 }
 
-export function basename(path: string): string {
+/** return path w/o a suffix. 
+ * e.g. /foo/bar.wgsl => /foo/bar */
+export function noSuffix(path: string): string {
   const lastSlash = path.lastIndexOf("/");
   const lastStart = lastSlash === -1 ? 0 : lastSlash + 1;
 
