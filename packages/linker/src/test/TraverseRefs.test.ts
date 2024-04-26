@@ -6,6 +6,28 @@ import { parseModule } from "../ParseModule.js";
 import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
 import { dlog } from "berry-pretty";
 
+test("traverse a fn to struct ref", () => {
+  const src = `
+    #import AStruct 
+
+    fn main() {
+      let a:AStruct; 
+    }
+  `;
+  const module1 = `
+    #export
+    struct AStruct {
+      x: u32,
+    }
+  `;
+
+  const refs = traverseTest(src, module1);
+  const exp = refs[0] as TextRef;
+  expect(exp.kind).eq("txt");
+  expect(exp.elem.kind).eq("struct");
+  expect(exp.elem.name).eq("AStruct");
+});
+
 test("traverse nested import with params and support fn", () => {
   const src = `
     // #import foo(u32)
@@ -148,10 +170,10 @@ test("importing args don't match", () => {
   const { log } = traverseWithLog(src, module1, module2);
 
   expect(log).toMatchInlineSnapshot(`
-    "importing arg doesn't match export  module: module16 
+    "importing arg doesn't match export  module: module19 moduleFile0
         #export(C, D) importing bar(E)   Ln 2
                                 ^
-    reference not found: X  module: module17 
+    reference not found: X  module: module20 moduleFile1
         fn bar(x:X) { }    Ln 3
                  ^"
   `);
@@ -169,10 +191,10 @@ test("mismatched import export params", () => {
 
   const { log } = traverseWithLog(src, module1);
   expect(log).toMatchInlineSnapshot(`
-    "mismatched import and export params  module: module20 
+    "mismatched import and export params  module: module21 main
         #import foo(A, B)   Ln 2
         ^
-     module: module19 
+     module: module22 moduleFile0
         #export(C)    Ln 2
         ^"
   `);
@@ -196,28 +218,6 @@ test("traverse a struct to struct ref", () => {
   const refs = traverseTest(src, module1);
   expect(refs[0].kind).toBe("txt");
   expect(refName(refs[0])).toBe("AStruct");
-});
-
-test("traverse a fn to struct ref", () => {
-  const src = `
-    #import AStruct 
-
-    fn main() {
-      let a:AStruct; 
-    }
-  `;
-  const module1 = `
-    #export
-    struct AStruct {
-      x: u32,
-    }
-  `;
-
-  const refs = traverseTest(src, module1);
-  const exp = refs[0] as TextRef;
-  expect(exp.kind).eq("txt");
-  expect(exp.elem.kind).eq("struct");
-  expect(exp.elem.name).eq("AStruct");
 });
 
 test("traverse a global var to struct ref", () => {
@@ -474,13 +474,16 @@ function traverseWithLog(
 }
 
 function traverseTest(src: string, ...modules: string[]): FoundRef[] {
-  const registry = new ModuleRegistry({
-    rawWgsl: modules,
-  });
-  const srcModule = parseModule(src);
+  const moduleFiles = Object.fromEntries(
+    modules.map((m, i) => [`moduleFile${i}`, m])
+  );
+  const wgsl = { "./main": src, ...moduleFiles };
+  const registry = new ModuleRegistry({ wgsl });
   const refs: FoundRef[] = [];
+  registry.parseSrc();
+  const mainModule = registry.findModule("./main")!;
   traverseRefs(
-    srcModule,
+    mainModule,
     registry,
     (ref) => {
       refs.push(ref);

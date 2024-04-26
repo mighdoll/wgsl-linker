@@ -139,12 +139,11 @@ export class ModuleRegistry {
   registerOneModule(
     src: string,
     params: Record<string, any> = {},
-    fileName?: string,
+    fileName: string,
     moduleName?: string
   ): void {
     const newFileName = fileName && normalize(fileName);
-    const m = parseModule(src, params, moduleName);
-    m.fileName = newFileName;
+    const m = parseModule(src, newFileName, params, moduleName);
     this.addTextModule(m);
   }
 

@@ -8,7 +8,7 @@ test("simple fn export", () => {
       return 1;
     }
   `;
-  const module = parseModule(src, {}, "my.module");
+  const module = parseModule(src);
   expect(module.exports.length).toBe(1);
   expect(module).toMatchSnapshot();
 });
@@ -18,7 +18,7 @@ test("simple fn import", () => {
     // #import foo
     fn bar() { foo(); }
   `;
-  const module = parseModule(src, {}, "my.module");
+  const module = parseModule(src);
   expect(module.imports.length).toBe(1);
   expect(module.imports[0].name).toBe("foo");
   expect(module).toMatchSnapshot();
@@ -32,7 +32,7 @@ test("match #extends", () => {
       sum: f32
     }
   `;
-  const module = parseModule(src, {}, "my.module");
+  const module = parseModule(src);
   const merges = module.structs[0].extendsElems!;
   expect(merges[0].name).eq("Foo");
   expect(merges[1].name).eq("Bar");

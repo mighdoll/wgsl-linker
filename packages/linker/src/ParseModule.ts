@@ -28,7 +28,8 @@ export interface TextModule {
   /** name of the module. A synthetic name will be assigned if none is provided */
   name: string;
   
-  fileName?: string;
+  /** name of the module. A synthetic file name will be assigned if none is provided */
+  fileName: string;
 
   /** original src for module */
   src: string;
@@ -46,9 +47,11 @@ export interface TextExport extends ExportElem {
 }
 
 let unnamedModuleDex = 0;
+let unnamedFileDex = 0
 
 export function parseModule(
   src: string,
+  fileName = `/unnamed-${unnamedFileDex++}`,
   params: Record<string, any> = {},
   defaultModuleName?: string
 ): TextModule {
@@ -70,7 +73,7 @@ export function parseModule(
   const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
   const kind = "text";
   return {
-    ...{ kind, src, srcMap, preppedSrc, name },
+    ...{ kind, src, srcMap, preppedSrc, fileName, name },
     ...{ exports, fns, structs, vars, imports, template, aliases },
   };
 }

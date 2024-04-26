@@ -818,7 +818,7 @@ test("warn on missing template", () => {
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => linkWgslTest(src));
   expect(logged()).toMatchInlineSnapshot(`
-    "template 'missing' not found in ModuleRegistry  module: test.missing.template 
+    "template 'missing' not found in ModuleRegistry  module: test.missing.template file0
         #template missing   Ln 4
         ^"
   `);
