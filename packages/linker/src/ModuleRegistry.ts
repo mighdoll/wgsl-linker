@@ -1,7 +1,7 @@
 import { dlog } from "berry-pretty";
 import { linkWgslModule } from "./Linker.js";
 import { TextExport, TextModule, parseModule } from "./ParseModule.js";
-import { basename, normalize, relativePath } from "./PathUtil.js";
+import { noSuffix, normalize, relativePath } from "./PathUtil.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -60,8 +60,9 @@ export interface GeneratorModuleExport {
   kind: "function";
 }
 
-/** unique index for naming otherwise unnamed generator modules */
+/** unique index for naming otherwise unnamed generator modules and src files */
 let unnamedCodeDex = 0;
+let unnamedTextDex = 0;
 
 export interface RegistryParams {
   /** record of file names an wgsl text for modules */
@@ -92,15 +93,20 @@ export class ModuleRegistry {
   // map from export names to a map of module names to exports
   private exports = new Map<string, ModuleExport[]>();
   private templates = new Map<string, ApplyTemplateFn>();
-  private modules: TextModule[] = [];
+  private textModules: TextModule[] = [];
+  private wgslSrc = new Map<string, string>();
 
   constructor(args?: RegistryParams) {
     if (!args) return;
-    const { wgsl, rawWgsl, templates, generators, conditions } = args;
+    const { wgsl = {}, rawWgsl = [], templates = [], generators } = args;
 
-    wgsl && this.registerModules(wgsl, conditions);
+    Object.entries(wgsl).forEach(([fileName, src]) =>
+      this.wgslSrc.set(normalize(fileName), src)
+    );
+    rawWgsl.forEach((src) =>
+      this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src)
+    );
     templates && this.registerTemplate(...templates);
-    rawWgsl?.map((w) => this.registerOneModule(w, args.conditions));
     generators?.map((g) => this.registerGenerator(g));
   }
 
@@ -112,12 +118,23 @@ export class ModuleRegistry {
    *  template values, and code generation parameters
    */
   link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
+    // dlog("link", { wgslSrc: Object.fromEntries(this.wgslSrc.entries()) });
+    this.parseSrc(runtimeParams);
     const foundModule = this.findModule(moduleName);
-    if (foundModule) {
-      return linkWgslModule(foundModule, this, runtimeParams);
+    if (!foundModule) {
+      console.error("no module found for ", moduleName);
+      return "";
     }
-    console.error("no module found for ", moduleName);
-    return "";
+
+    return linkWgslModule(foundModule, this, runtimeParams);
+  }
+
+  parseSrc(runtimeParams: Record<string, any> = {}): void {
+    this.textModules = [];
+    this.wgslSrc.forEach((src, fileName) => {
+      // dlog("parseSrc", { fileName, src });
+      this.registerOneModule(src, runtimeParams, fileName);
+    });
   }
 
   /**
@@ -210,18 +227,23 @@ export class ModuleRegistry {
   }
 
   findModule(searchName: string): TextModule | undefined {
-    const exactMatch = this.modules.find(
+    const moduleNameMatch = this.textModules.find(
       (m) => m.name === searchName || m.fileName === searchName
     );
-    if (exactMatch) return exactMatch;
-    const baseSearch = basename(searchName);
-    return this.modules.find(
-      (m) => m.fileName && basename(m.fileName) === baseSearch
+    // dlog({searchName, moduleNameMatch:moduleNameMatch?.name})
+    // dlog({textModules:this.textModules.map(m => m.name)})
+    if (moduleNameMatch) return moduleNameMatch;
+
+    const baseSearch = normalize(searchName);
+    const pathMatch = this.textModules.find(
+      (m) => m.fileName === baseSearch || noSuffix(m.fileName) === baseSearch
     );
+    if (pathMatch) return pathMatch;
+
   }
 
   private addTextModule(module: TextModule): void {
-    this.modules.push(module); // TODO dedupe?
+    this.textModules.push(module); // TODO dedupe?
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExport = {
         module,
