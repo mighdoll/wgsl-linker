@@ -46,12 +46,8 @@ export function linkWgslModule(
   registry: ModuleRegistry,
   runtimeParams: Record<string, any> = {}
 ): string {
-  // const { fns, structs, vars, template, preppedSrc } = srcModule;
-  // const srcElems = [fns, structs, vars].flat();
-  // const decls = new Set(srcElems.map((e) => e.name));
-  const decls = new Set<string>();
-
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
+  const decls = new Set<string>();
   uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
   // mix the merge refs into the import/export refs
