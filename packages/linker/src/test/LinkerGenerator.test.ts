@@ -8,7 +8,7 @@ const fooGenerator: RegisterGenerator = {
   generate: (fnName: string, params: Record<string, string>): string => {
     return `fn ${fnName}() { /* ${params.name}Impl */ }`;
   },
-  args: ["name"],
+  args: ["name"]
 };
 
 test("#import from code generator", () => {
@@ -20,7 +20,7 @@ test("#import from code generator", () => {
   `;
   const registry = new ModuleRegistry({
     rawWgsl: [src],
-    generators: [fooGenerator],
+    generators: [fooGenerator]
   });
   const linked = registry.link("main");
   expect(linked).contains("barImpl");
@@ -34,7 +34,7 @@ test("#import as from code generator", () => {
   `;
   const registry = new ModuleRegistry({
     wgsl: { "./main.wgsl": src },
-    generators: [fooGenerator],
+    generators: [fooGenerator]
   });
   const linked = registry.link("main");
   expect(linked).contains("fn zip()");
@@ -48,7 +48,7 @@ test("#import with arg from code generator", () => {
   `;
   const registry = new ModuleRegistry({
     wgsl: { "./main": src },
-    generators: [fooGenerator],
+    generators: [fooGenerator]
   });
   const linked = registry.link("main");
   expect(linked).contains("barImpl");
@@ -62,7 +62,7 @@ test("#import with ext.arg from code generator", () => {
   `;
   const registry = new ModuleRegistry({
     wgsl: { "./main": src },
-    generators: [fooGenerator],
+    generators: [fooGenerator]
   });
   const linked = registry.link("main", { zee: "zog" });
   expect(linked).contains("zogImpl");
@@ -84,7 +84,7 @@ test("#import conficted code gen fn", () => {
 
   const registry = new ModuleRegistry({
     rawWgsl: [src, module0],
-    generators: [fooGenerator],
+    generators: [fooGenerator]
   });
   const linked = registry.link("main", { zee: "zog" });
   expect(linked).contains("booImpl");
@@ -110,13 +110,13 @@ test("external param applied to generator", () => {
     name: "foo",
     args: ["threads"],
     generate,
-    moduleName: "test.module",
+    moduleName: "test.module"
   };
 
   const registry = new ModuleRegistry({
     wgsl: { "./main": src },
     templates: [replaceTemplate],
-    generators: [gen],
+    generators: [gen]
   });
   const linked = registry.link("main", { workgroupThreads: 128 });
   expect(linked).includes("step < 128");

@@ -1,18 +1,18 @@
+import { srcLog, SrcMap } from "mini-parse";
 import {
   AbstractElem,
+  AliasElem,
   ExportElem,
+  ExtendsElem,
   FnElem,
   ImportElem,
-  ExtendsElem,
   ModuleElem,
   StructElem,
   TemplateElem,
-  VarElem,
-  AliasElem,
+  VarElem
 } from "./AbstractElems.js";
 import { processConditionals } from "./Conditionals.js";
 import { parseWgslD } from "./ParseWgslD.js";
-import { srcLog, SrcMap } from "mini-parse";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -27,7 +27,7 @@ export interface TextModule {
 
   /** name of the module. A synthetic name will be assigned if none is provided */
   name: string;
-  
+
   /** name of the module. A synthetic file name will be assigned if none is provided */
   fileName: string;
 
@@ -47,7 +47,7 @@ export interface TextExport extends ExportElem {
 }
 
 let unnamedModuleDex = 0;
-let unnamedFileDex = 0
+let unnamedFileDex = 0;
 
 export function parseModule(
   src: string,
@@ -74,7 +74,7 @@ export function parseModule(
   const kind = "text";
   return {
     ...{ kind, src, srcMap, preppedSrc, fileName, name },
-    ...{ exports, fns, structs, vars, imports, template, aliases },
+    ...{ exports, fns, structs, vars, imports, template, aliases }
   };
 }
 

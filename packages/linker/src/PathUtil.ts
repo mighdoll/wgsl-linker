@@ -40,7 +40,7 @@ export function normalize(path: string): string {
   return noDbl.join("/");
 }
 
-/** return path w/o a suffix. 
+/** return path w/o a suffix.
  * e.g. /foo/bar.wgsl => /foo/bar */
 export function noSuffix(path: string): string {
   const lastSlash = path.lastIndexOf("/");

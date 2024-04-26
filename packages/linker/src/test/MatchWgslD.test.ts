@@ -1,5 +1,5 @@
-import { expect, test } from "vitest";
 import { matchingLexer } from "mini-parse";
+import { expect, test } from "vitest";
 import { mainTokens } from "../MatchWgslD.js";
 
 test("lex #import foo", () => {

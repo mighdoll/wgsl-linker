@@ -1,6 +1,6 @@
 import { linkWgslModule } from "./Linker.js";
-import { TextExport, TextModule, parseModule } from "./ParseModule.js";
-import { noSuffix, normalize, relativePath } from "./PathUtil.js";
+import { parseModule, TextExport, TextModule } from "./ParseModule.js";
+import { normalize, noSuffix, relativePath } from "./PathUtil.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -152,17 +152,17 @@ export class ModuleRegistry {
     const exp: GeneratorExport = {
       name: reg.name,
       args: reg.args ?? [],
-      generate: reg.generate,
+      generate: reg.generate
     };
     const module: GeneratorModule = {
       kind: "generator",
       name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
-      exports: [exp],
+      exports: [exp]
     };
     const moduleExport: GeneratorModuleExport = {
       module,
       export: exp,
-      kind: "function",
+      kind: "function"
     };
     this.addModuleExport(moduleExport);
   }
@@ -230,7 +230,7 @@ export class ModuleRegistry {
       const moduleExport: TextModuleExport = {
         module,
         export: e,
-        kind: "text",
+        kind: "text"
       };
       this.addModuleExport(moduleExport);
     });

@@ -2,9 +2,7 @@ import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
-import { parseModule } from "../ParseModule.js";
-import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
-import { dlog } from "berry-pretty";
+import { FoundRef, refName, TextRef, traverseRefs } from "../TraverseRefs.js";
 
 test("traverse a fn to struct ref", () => {
   const src = `

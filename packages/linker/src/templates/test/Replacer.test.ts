@@ -1,7 +1,6 @@
+import { expectNoLogErr } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { replacer } from "../Replacer.js";
-import { expectNoLogErr } from "mini-parse/test-util";
-import { dlog } from "berry-pretty";
 
 test("parse blank line", () => {
   const src = "";

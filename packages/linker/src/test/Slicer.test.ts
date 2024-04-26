@@ -23,7 +23,7 @@ test("slice multiple", () => {
   const src = "aaabbbc";
   const result = sliceReplace(src, [
     { start: 3, end: 6, replacement: "B" },
-    { start: 0, end: 3, replacement: "A" },
+    { start: 0, end: 3, replacement: "A" }
   ]);
   expect(result).eq("ABc");
 });

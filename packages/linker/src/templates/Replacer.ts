@@ -1,11 +1,11 @@
 import {
-  Parser,
   anyNot,
   kind,
   makeEolf,
-  matchOneOf,
   matchingLexer,
+  matchOneOf,
   or,
+  Parser,
   repeat,
   seq,
   setTraceName,
@@ -17,7 +17,7 @@ import { patchLine } from "./PatchLine.js";
 
 export const replaceTemplate: Template = {
   name: "replace",
-  apply: replacer,
+  apply: replacer
 };
 
 const symbolSet = "= //";
@@ -29,7 +29,7 @@ export const replaceTokens = tokenMatcher(
     word: /[\w-.]+/,
     directive: /#[\w-.]+/,
     symbol: matchOneOf(symbolSet),
-    other: /./,
+    other: /./
   },
   "replace"
 );
@@ -72,7 +72,7 @@ export function replacer(src: string, params: Record<string, any>): string {
   const lines = srcLines.map((line) => {
     const replaced = lineWithReplace.parse({
       lexer: matchingLexer(line, replaceTokens),
-      app: { state: [], context: params },
+      app: { state: [], context: params }
     });
     return replaced?.value || line;
   });
@@ -87,7 +87,7 @@ if (tracing) {
     replaceClause,
     notReplace,
     lineWithReplace,
-    lineStart, // TODO tracing label doesn't work
+    lineStart // TODO tracing label doesn't work
   };
 
   Object.entries(names).forEach(([name, parser]) => {

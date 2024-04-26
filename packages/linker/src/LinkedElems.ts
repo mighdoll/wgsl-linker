@@ -7,4 +7,3 @@ export interface LinkedCall {
   targetFn: FnElem;
   targetModule: TextModule;
 }
-

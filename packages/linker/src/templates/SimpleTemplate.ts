@@ -1,5 +1,5 @@
-import { Template } from "../ModuleRegistry.js";
 import { replaceWords } from "wgsl-linker";
+import { Template } from "../ModuleRegistry.js";
 
 export const simpleTemplate: Template = {
   name: "simple",

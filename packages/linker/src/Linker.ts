@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   AliasElem,
@@ -7,27 +6,20 @@ import {
   StructElem,
   StructMemberElem,
   TypeRefElem,
-  VarElem,
+  VarElem
 } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
 import { TextModule } from "./ParseModule.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
 import {
-  ExportInfo,
   FoundRef,
   GeneratorRef,
-  TextRef,
   refName,
-  traverseRefs,
+  TextRef,
+  traverseRefs
 } from "./TraverseRefs.js";
-import {
-  groupBy,
-  grouped,
-  mapForward,
-  partition,
-  replaceWords,
-} from "./Util.js";
+import { mapForward, partition, replaceWords } from "./Util.js";
 
 interface Rewriting {
   extParams: Record<string, string>;
@@ -94,17 +86,17 @@ function refFullName(ref: FoundRef): string {
   return ref.expMod.name + "." + refName(ref) + argsStr;
 }
 
-export function printRef(r: FoundRef, msg?: string): void {
-  const { kind, elem, rename } = r as TextRef;
-  dlog(
-    msg ?? "",
-    {
-      kind,
-      rename,
-    },
-    elemToText("elem", elem)
-  );
-}
+// export function printRef(r: FoundRef, msg?: string): void {
+//   const { kind, elem, rename } = r as TextRef;
+//   dlog(
+//     msg ?? "",
+//     {
+//       kind,
+//       rename,
+//     },
+//     elemToText("elem", elem)
+//   );
+// }
 
 export function elemToText(msg: string, elem?: AbstractElem): string {
   if (!elem) return "";
@@ -192,7 +184,7 @@ function combineMergeRefs(
   // combine the merge refs into the export refs on the same element
   const expRefs: TextRef[] = nonMergeRefs.map((ref) => ({
     ...ref,
-    mergeRefs: recursiveMerges(ref),
+    mergeRefs: recursiveMerges(ref)
   }));
 
   return expRefs;
@@ -225,7 +217,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   return {
     generatorRefs: gen,
     mergeRefs: merge,
-    nonMergeRefs: nonMerge,
+    nonMergeRefs: nonMerge
   };
 }
 

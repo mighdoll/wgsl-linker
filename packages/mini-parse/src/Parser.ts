@@ -2,11 +2,9 @@ import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import { srcLog } from "./ParserLogging.js";
 import {
-  TraceContext,
-  TraceOptions,
-  parserLog,
-  tracing,
-  withTraceLogging,
+    parserLog, TraceContext,
+    TraceOptions, tracing,
+    withTraceLogging
 } from "./ParserTracing.js";
 import { mergeNamed } from "./ParserUtil.js";
 import { SrcMap } from "./SrcMap.js";

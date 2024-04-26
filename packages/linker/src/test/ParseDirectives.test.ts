@@ -1,4 +1,4 @@
-import { _withBaseLogger, tokens } from "mini-parse";
+import { tokens, _withBaseLogger } from "mini-parse";
 import { logCatch, testParse } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
@@ -7,7 +7,7 @@ import { argsTokens } from "../MatchWgslD.js";
 import {
   directive,
   importing,
-  lineCommentOptDirective,
+  lineCommentOptDirective
 } from "../ParseDirective.js";
 import { parseWgslD } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
@@ -119,7 +119,6 @@ test("parse template", () => {
   const appState = parseWgslD(src);
   expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
 });
-
 
 test("parse import relpath", () => {
   const src = `#import foo from ./util`;

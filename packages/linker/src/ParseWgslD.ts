@@ -1,8 +1,4 @@
 import {
-  Parser,
-  ParserContext,
-  ParserInit,
-  SrcMap,
   anyNot,
   anyThrough,
   eof,
@@ -11,14 +7,18 @@ import {
   matchingLexer,
   opt,
   or,
+  Parser,
+  ParserContext,
+  ParserInit,
   preParse,
   repeat,
   req,
   seq,
   setTraceName,
   simpleParser,
+  SrcMap,
   tracing,
-  withSep,
+  withSep
 } from "mini-parse";
 import {
   AbstractElem,
@@ -30,7 +30,7 @@ import {
   StructMemberElem,
   TypeNameElem,
   TypeRefElem,
-  VarElem,
+  VarElem
 } from "./AbstractElems.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
@@ -39,9 +39,8 @@ import {
   makeElem,
   unknown,
   word,
-  wordNumArgs,
+  wordNumArgs
 } from "./ParseSupport.js";
-import { dlog } from "berry-pretty";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
@@ -231,13 +230,13 @@ export function parseWgslD(
   const context: ParseState = { ifStack: [], params };
   const app = {
     context,
-    state,
+    state
   };
   const init: ParserInit = {
     lexer,
     app,
     srcMap,
-    maxParseCount: 50000,
+    maxParseCount: 50000
   };
 
   grammar.parse(init);
@@ -261,7 +260,7 @@ if (tracing) {
     globalAlias,
     globalDecl,
     rootDecl,
-    root,
+    root
   };
 
   Object.entries(names).forEach(([name, parser]) => {

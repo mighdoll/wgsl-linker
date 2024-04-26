@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { scan } from "./Util.js";
 
 /** specify a start,end portion of a string to be replaced */

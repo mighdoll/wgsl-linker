@@ -1,4 +1,4 @@
-import { _withBaseLogger, or, repeat } from "mini-parse";
+import { or, repeat, _withBaseLogger } from "mini-parse";
 import { expectNoLogErr, logCatch } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
@@ -10,10 +10,9 @@ import {
   globalVar,
   parseWgslD,
   structDecl,
-  typeSpecifier,
+  typeSpecifier
 } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
-import { dlog } from "berry-pretty";
 
 test("parse empty string", () => {
   const parsed = parseWgslD("");

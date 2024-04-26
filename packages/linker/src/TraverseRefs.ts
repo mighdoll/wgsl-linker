@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   CallElem,
   ExportElem,
@@ -7,18 +6,17 @@ import {
   ImportElem,
   StructElem,
   TypeRefElem,
-  VarElem,
+  VarElem
 } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import {
   GeneratorExport,
   GeneratorModule,
   ModuleExport,
-  ModuleRegistry,
+  ModuleRegistry
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
-import { printRef } from "./Linker.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 
@@ -94,7 +92,7 @@ export function traverseRefs(
   srcModule: TextModule,
   registry: ModuleRegistry,
   fn: (ref: FoundRef) => boolean,
-  skipSrcRefs = false 
+  skipSrcRefs = false
 ): void {
   const { fns, structs, vars } = srcModule;
   const expMod = srcModule;
@@ -102,7 +100,7 @@ export function traverseRefs(
     kind: "txt",
     proposedName: elem.name,
     expMod,
-    elem,
+    elem
   }));
   // srcRefs.forEach(r => printRef(r, "traverseRefs.src"))
   if (!skipSrcRefs) srcRefs.forEach((ref) => fn(ref));
@@ -236,7 +234,7 @@ function elemRef(
       // bind src elem to referent elem (resolve reference)
       elem.ref = foundRef;
     } else {
-      dlog("unexpected kind", elem);
+      console.error("unexpected kind", elem);
     }
   }
 
@@ -292,7 +290,7 @@ function importRef(
   const expInfo: ExportInfo = {
     fromImport,
     fromRef,
-    expImpArgs,
+    expImpArgs
   };
   if (expMod.kind === "text") {
     const exp = modExp.export as TextExport;
@@ -302,7 +300,7 @@ function importRef(
       expInfo,
       expMod,
       elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name,
+      proposedName: fromImport.as ?? exp.ref.name
     };
   } else if (expMod.kind === "generator") {
     const exp = modExp.export as GeneratorExport;
@@ -311,7 +309,7 @@ function importRef(
       expInfo,
       expMod,
       proposedName: fromImport.as ?? exp.name,
-      name: exp.name,
+      name: exp.name
     };
   }
 }
@@ -363,7 +361,7 @@ function importingRef(
   const expInfo: ExportInfo = {
     fromRef: srcRef,
     fromImport,
-    expImpArgs,
+    expImpArgs
   };
   if (modExp.kind === "text") {
     const exp = modExp.export;
@@ -373,7 +371,7 @@ function importingRef(
       expInfo,
       expMod: modExp.module as TextModule,
       elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name,
+      proposedName: fromImport.as ?? exp.ref.name
     };
   } else if (modExp.kind === "function") {
     const exp = modExp.export;
@@ -382,7 +380,7 @@ function importingRef(
       expInfo,
       expMod: modExp.module,
       proposedName: fromImport.as ?? exp.name,
-      name: exp.name,
+      name: exp.name
     };
   }
 
@@ -459,7 +457,7 @@ function localRef(name: string, mod: TextModule): TextRef | undefined {
       expMod: mod,
       elem: elem,
       proposedName: elem.name,
-      expInfo: undefined,
+      expInfo: undefined
     };
   }
 }

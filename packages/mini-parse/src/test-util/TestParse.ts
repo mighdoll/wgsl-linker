@@ -1,8 +1,5 @@
+import { matchingLexer, matchOneOf, OptParserResult, Parser, TokenMatcher, tokenMatcher, _withBaseLogger } from "mini-parse";
 import { expect } from "vitest";
-import { matchingLexer } from "mini-parse";
-import { OptParserResult, Parser } from "mini-parse";
-import { _withBaseLogger } from "mini-parse";
-import { TokenMatcher, matchOneOf, tokenMatcher } from "mini-parse";
 import { logCatch } from "./LogCatcher.js";
 
 const symbolSet =

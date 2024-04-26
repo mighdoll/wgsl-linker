@@ -1,7 +1,7 @@
 import { logger, srcLog } from "mini-parse";
-import { FoundRef } from "./TraverseRefs.js";
-import { TextModule } from "./ParseModule.js";
 import { AbstractElem } from "./AbstractElems.js";
+import { TextModule } from "./ParseModule.js";
+import { FoundRef } from "./TraverseRefs.js";
 
 export function refLog(ref: FoundRef, ...msgs: any[]): void {
   if (ref.kind !== "gen") {
@@ -17,15 +17,20 @@ export function moduleLog(
   ...msgs: any[]
 ): void {
   const { src, srcMap } = mod;
-  srcLog(srcMap ?? src, pos, ...msgs, ` module: ${mod.name} ${mod.fileName || ""}`);
+  srcLog(
+    srcMap ?? src,
+    pos,
+    ...msgs,
+    ` module: ${mod.name} ${mod.fileName || ""}`
+  );
 }
 
 export function elemLog(
   mod: TextModule,
-  elem:AbstractElem,
+  elem: AbstractElem,
   ...msgs: any[]
 ): void {
   const { src, srcMap } = mod;
-  const {start, end} = elem;
+  const { start, end } = elem;
   srcLog(srcMap ?? src, [start, end], ...msgs);
 }

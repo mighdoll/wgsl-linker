@@ -1,14 +1,14 @@
 import { quotedText } from "./MatchingLexer.js";
 import {
-  ExtendedResult,
-  OptParserResult,
-  Parser,
-  parser,
-  ParserContext,
-  ParserResult,
-  runExtended,
-  simpleParser,
-  tokenSkipSet,
+    ExtendedResult,
+    OptParserResult,
+    Parser,
+    parser,
+    ParserContext,
+    ParserResult,
+    runExtended,
+    simpleParser,
+    tokenSkipSet
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
 import { mergeNamed } from "./ParserUtil.js";

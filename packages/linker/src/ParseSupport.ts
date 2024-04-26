@@ -1,20 +1,20 @@
 import {
-  ExtendedResult,
-  Parser,
   any,
   anyNot,
   disablePreParse,
+  ExtendedResult,
   fn,
   kind,
   makeEolf,
   or,
+  Parser,
   repeat,
   req,
   resultLog,
   seq,
   setTraceName,
   tracing,
-  withSep,
+  withSep
 } from "mini-parse";
 import { AbstractElem } from "./AbstractElems.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
@@ -92,7 +92,7 @@ if (tracing) {
   const names: Record<string, Parser<unknown>> = {
     skipBlockComment: blockComment,
     comment,
-    wordNumArgs,
+    wordNumArgs
   };
 
   Object.entries(names).forEach(([name, parser]) => {

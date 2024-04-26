@@ -1,5 +1,5 @@
+import { expect, test } from "vitest";
 import { normalize } from "../PathUtil.js";
-import { test, expect } from "vitest";
 
 // ../../../lib/webgpu-samples/src/anim/anim.wgsl
 

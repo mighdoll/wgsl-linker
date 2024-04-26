@@ -1,35 +1,35 @@
 import {
-  Parser,
   anyThrough,
   kind,
   opt,
   or,
+  Parser,
   repeat,
   req,
   seq,
   setTraceName,
   tokens,
   tracing,
-  withSep,
+  withSep
 } from "mini-parse";
 import {
   ExportElem,
   ExtendsElem,
   ImportElem,
-  NamedElem,
+  NamedElem
 } from "./AbstractElems.js";
 import {
   argsTokens,
   lineCommentTokens,
   mainTokens,
-  moduleTokens,
+  moduleTokens
 } from "./MatchWgslD.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, etc. */
 
 const argsWord = kind(argsTokens.arg);
-const fromWord = or(argsWord, kind(argsTokens.relPath))
+const fromWord = or(argsWord, kind(argsTokens.relPath));
 
 // prettier-ignore
 /** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
@@ -153,7 +153,7 @@ if (tracing) {
     lineCommentOptDirective,
     moduleDirective,
     templateDirective,
-    directive,
+    directive
   };
 
   Object.entries(names).forEach(([name, parser]) => {

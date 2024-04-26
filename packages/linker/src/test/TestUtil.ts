@@ -1,5 +1,5 @@
 import { Parser } from "mini-parse";
-import { TestParseResult, testParse } from "mini-parse/test-util";
+import { testParse, TestParseResult } from "mini-parse/test-util";
 
 import { AbstractElem } from "../AbstractElems.js";
 import { mainTokens } from "../MatchWgslD.js";
