@@ -659,10 +659,22 @@ test("import with simple template", () => {
   `;
   const registry = new ModuleRegistry({
     rawWgsl: [myModule, src],
-    templates: [simpleTemplate]
+    templates: [simpleTemplate],
   });
   const linked = registry.link("main", { WORKGROUP_SIZE: "128" });
   expect(linked).includes("step < 128");
+});
+
+test("ext params don't replace override", () => {
+  const src = `
+    #module main 
+    override workgroupSizeX = 4u;
+  `;
+  const registry = new ModuleRegistry({
+    rawWgsl: [src],
+  });
+  const linked = registry.link("main", { workgroupSizeX: 4 });
+  expect(linked).contains("override workgroupSizeX = 4u;");
 });
 
 test("#import using replace template and ext param", () => {
@@ -685,7 +697,7 @@ test("#import using replace template and ext param", () => {
 
   const registry = new ModuleRegistry({
     rawWgsl: [module1, src],
-    templates: [replaceTemplate]
+    templates: [replaceTemplate],
   });
   const linked = registry.link("main", { threads: 128 });
   expect(linked).contains("step < 128");
@@ -702,7 +714,7 @@ test("#template in src", () => {
   `;
   const registry = new ModuleRegistry({
     rawWgsl: [src],
-    templates: [replaceTemplate]
+    templates: [replaceTemplate],
   });
   const linked = registry.link("main", { threads: 128 });
   expect(linked).includes("step < 128");
@@ -728,7 +740,7 @@ test("#import using replace template and imp/exp param", () => {
 
   const registry = new ModuleRegistry({
     rawWgsl: [src, module1],
-    templates: [replaceTemplate]
+    templates: [replaceTemplate],
   });
   const linked = registry.link("main");
   expect(linked).contains("step < 128");
@@ -754,7 +766,7 @@ test("#import using external param", () => {
 
   const registry = new ModuleRegistry({
     rawWgsl: [src, module1],
-    templates: [replaceTemplate]
+    templates: [replaceTemplate],
   });
   const linked = registry.link("main", { workgroupSize: 128 });
   expect(linked).contains("step < 128");
@@ -800,7 +812,7 @@ test("external param applied to template", () => {
   `;
   const registry = new ModuleRegistry({
     rawWgsl: [module1, src],
-    templates: [replaceTemplate]
+    templates: [replaceTemplate],
   });
   const linked = registry.link("main", { workgroupThreads: 128 });
   expect(linked).includes("step < 128");
@@ -824,7 +836,6 @@ test("warn on missing template", () => {
 });
 
 test("extend struct with rename", () => {
-  // TODO
   const src = `
     // #extends HasColor(fill) 
     struct Sprite {

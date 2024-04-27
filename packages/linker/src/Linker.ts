@@ -390,5 +390,5 @@ function expImpToParams(
 ): Record<string, string> {
   const expImp = Object.fromEntries(expImpEntries);
   const expImpExt = mapForward(expImp, extParams);
-  return { ...extParams, ...expImpExt };
+  return { ...expImpExt };
 }
