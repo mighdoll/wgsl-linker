@@ -852,3 +852,20 @@ test("extend struct with rename", () => {
   const linked = linkWgslTest(src, module1);
   expect(linked).includes("fill: vec4f");
 });
+
+test("template on struct member", () => {
+  const src = `
+    #module main
+    #template simple
+
+    struct Foo {
+      point: POINT_TYPE
+    }
+  `;
+  const registry = new ModuleRegistry({
+    rawWgsl: [src],
+    templates: [simpleTemplate],
+  });
+  const linked = registry.link("main", { POINT_TYPE: "vec2f" });
+  expect(linked).includes("point: vec2f");
+});
