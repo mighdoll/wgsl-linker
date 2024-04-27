@@ -100,11 +100,9 @@ export class ModuleRegistry {
     const { wgsl = {}, rawWgsl = [], templates = [], generators } = args;
 
     Object.entries(wgsl).forEach(([fileName, src]) =>
-      this.wgslSrc.set(normalize(fileName), src)
+      this.addModuleSrc(src, fileName)
     );
-    rawWgsl.forEach((src) =>
-      this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src)
-    );
+    rawWgsl.forEach((src) => this.addModuleSrc(src));
     templates && this.registerTemplate(...templates);
     generators?.map((g) => this.registerGenerator(g));
   }
@@ -132,6 +130,14 @@ export class ModuleRegistry {
     this.wgslSrc.forEach((src, fileName) => {
       this.registerOneModule(src, runtimeParams, fileName);
     });
+  }
+
+  addModuleSrc(src: string, fileName?: string): void {
+    if (fileName) {
+      this.wgslSrc.set(normalize(fileName), src);
+    } else {
+      this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
+    }
   }
 
   /** register one module's exports  */
