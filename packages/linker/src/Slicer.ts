@@ -46,3 +46,25 @@ export function sliceReplace(
     results.push(src.slice(lastEnd ?? start, end));
   }
 }
+
+const tokenRegex = /\b(\w+)\b/gi;
+/** find strings in a text -
+ * found strings must be 'tokens', surrounded by spaces or punctuation
+ *
+ * @return SliceReplace elements
+ */
+export function sliceWords(
+  text: string,
+  replace: Record<string, string>
+): SliceReplace[] {
+  const tokens = [...text.matchAll(tokenRegex)];
+  const find = Object.keys(replace);
+  const matches = tokens.filter((m) => find.includes(m[0]));
+  const slices = matches.map((m) => {
+    const start = m.index;
+    const end = start + m[0].length;
+    const replacement = replace[m[0]];
+    return { start, end, replacement };
+  });
+  return slices;
+}
