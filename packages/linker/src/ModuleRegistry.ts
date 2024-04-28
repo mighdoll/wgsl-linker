@@ -1,3 +1,4 @@
+import { PreppedSrc } from "./Conditionals.js";
 import { linkWgslModule } from "./Linker.js";
 import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
@@ -36,7 +37,7 @@ export interface RegisterGenerator {
 export type ApplyTemplateFn = (
   src: string,
   params: Record<string, any> // combination of external params and imp/exp params
-) => string;
+) => PreppedSrc ;
 
 /** a single export from a module */
 export type ModuleExport = TextModuleExport | GeneratorModuleExport;

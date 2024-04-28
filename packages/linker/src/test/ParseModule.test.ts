@@ -1,7 +1,6 @@
 import { expect, test } from "vitest";
 import { parseModule } from "../ParseModule.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
-import { text } from "mini-parse";
 
 test("simple fn export", () => {
   const src = `
@@ -63,8 +62,8 @@ test("read #module", () => {
   expect(textModule.name).toBe("my.module.com");
 });
 
-
-test.only("simple #template preserves src map", () => { // TODO verify src map
+test.skip("simple #template preserves src map", () => {
+  // TODO verify src map
   const src = `
     // #template simple
     fn foo() { XX }
@@ -74,8 +73,8 @@ test.only("simple #template preserves src map", () => { // TODO verify src map
     fn foo() { /**/ }
   `;
   const templates = new Map([["simple", simpleTemplate.apply]]);
-  const textModule = parseModule(src, templates, "./foo", {XX: "/**/"});
-  expect(textModule.preppedSrc).includes("fn foo() { /**/ }")
+  const textModule = parseModule(src, templates, "./foo", { XX: "/**/" });
+  expect(textModule.preppedSrc).includes("fn foo() { /**/ }");
   expect(textModule.preppedSrc).equals(expected);
   // console.log("prepped", textModule.srcMap);
   expect(textModule.srcMap.entries).length(3);

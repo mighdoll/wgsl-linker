@@ -9,15 +9,17 @@ import {
   repeat,
   seq,
   setTraceName,
+  SrcMap,
   tokenMatcher,
-  tracing
+  tracing,
 } from "mini-parse";
 import { Template } from "wgsl-linker";
 import { patchLine } from "./PatchLine.js";
+import { PreppedSrc } from "../Conditionals.js";
 
 export const replaceTemplate: Template = {
   name: "replace",
-  apply: replacer
+  apply: replacer,
 };
 
 const symbolSet = "= //";
@@ -29,7 +31,7 @@ export const replaceTokens = tokenMatcher(
     word: /[\w-.]+/,
     directive: /#[\w-.]+/,
     symbol: matchOneOf(symbolSet),
-    other: /./
+    other: /./,
   },
   "replace"
 );
@@ -66,18 +68,19 @@ const lineWithReplace = seq(
   }
 );
 
-export function replacer(src: string, params: Record<string, any>): string {
+export function replacer(src: string, params: Record<string, any>): PreppedSrc {
   const srcLines = src.split("\n");
 
   const lines = srcLines.map((line) => {
     const replaced = lineWithReplace.parse({
       lexer: matchingLexer(line, replaceTokens),
-      app: { state: [], context: params }
+      app: { state: [], context: params },
     });
     return replaced?.value || line;
   });
 
-  return lines.join("\n");
+  const text = lines.join("\n");
+  return { text, srcMap: new SrcMap(text) };
 }
 
 if (tracing) {
@@ -87,7 +90,7 @@ if (tracing) {
     replaceClause,
     notReplace,
     lineWithReplace,
-    lineStart // TODO tracing label doesn't work
+    lineStart, // TODO tracing label doesn't work
   };
 
   Object.entries(names).forEach(([name, parser]) => {

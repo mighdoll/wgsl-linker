@@ -1,5 +1,4 @@
 import { srcLog, SrcMap } from "mini-parse";
-import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   AliasElem,
@@ -13,8 +12,8 @@ import {
   VarElem,
 } from "./AbstractElems.js";
 import { PreppedSrc, processConditionals } from "./Conditionals.js";
-import { parseWgslD } from "./ParseWgslD.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
+import { parseWgslD } from "./ParseWgslD.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
@@ -171,9 +170,9 @@ export function applyTemplate(
   // console.log(`unTemplated\n${src}`);
   const directiveRemoved = sliceReplace(src, [rmDirective]);
 
-  const text = templateFn(directiveRemoved, params);
+  const {text, srcMap }= templateFn(directiveRemoved, params);
   // console.log(`templated\n${text}`);
   // TODO new srcmap
 
-  return { text, srcMap: entrySrcMap };
+  return { text, srcMap };
 }
