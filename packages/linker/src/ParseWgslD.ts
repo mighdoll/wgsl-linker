@@ -18,7 +18,7 @@ import {
   simpleParser,
   SrcMap,
   tracing,
-  withSep
+  withSep,
 } from "mini-parse";
 import {
   AbstractElem,
@@ -30,7 +30,7 @@ import {
   StructMemberElem,
   TypeNameElem,
   TypeRefElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
@@ -39,7 +39,7 @@ import {
   makeElem,
   unknown,
   word,
-  wordNumArgs
+  wordNumArgs,
 } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
@@ -67,9 +67,11 @@ export const typeNameDecl = req(word.named("name")).map((r) => {
 });
 
 /** parse an identifier into a TypeNameElem */
-export const fnNameDecl = req(word.named("name")).map((r) => {
-  return makeElem<FnNameElem>("fnName", r, ["name"]);
-});
+export const fnNameDecl = req(word.named("name"), "missing fn name").map(
+  (r) => {
+    return makeElem<FnNameElem>("fnName", r, ["name"]);
+  }
+);
 
 /** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
@@ -230,13 +232,13 @@ export function parseWgslD(
   const context: ParseState = { ifStack: [], params };
   const app = {
     context,
-    state
+    state,
   };
   const init: ParserInit = {
     lexer,
     app,
     srcMap,
-    maxParseCount: 50000
+    maxParseCount: 50000,
   };
 
   grammar.parse(init);
@@ -260,7 +262,7 @@ if (tracing) {
     globalAlias,
     globalDecl,
     rootDecl,
-    root
+    root,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
