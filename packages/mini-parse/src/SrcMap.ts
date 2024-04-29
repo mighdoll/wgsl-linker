@@ -13,10 +13,12 @@ export interface SrcPosition {
 
 /** map text ranges in multiple src texts to a single dest text */
 export class SrcMap {
-  entries: SrcMapEntry[] = [];
+  entries: SrcMapEntry[];
   dest: string;
-  constructor(dest: string) {
+
+  constructor(dest: string, entries:SrcMapEntry[] = []) {
     this.dest = dest;
+    this.entries = entries;
   }
 
   /** add a new mapping from src to dest ranges.

@@ -1,49 +1,52 @@
 import { expect, test } from "vitest";
-import { sliceReplace } from "../Slicer.js";
+import { sliceReplace2 } from "../Slicer.js";
+import { dlog } from "berry-pretty";
 
-test("slice middle", () => {
+test.only("slice middle", () => {
   const src = "aaabbbc";
-  const result = sliceReplace(src, [{ start: 3, end: 6, replacement: "X" }]);
-  expect(result).eq("aaaXc");
+  const srcMap = sliceReplace2(src, [{ start: 3, end: 6, replacement: "X" }]);
+  const {dest, entries} = srcMap;
+  expect(dest).eq("aaaXc");
+  // dlog({entries});
 });
 
 test("slice end", () => {
   const src = "aaabbb";
-  const result = sliceReplace(src, [{ start: 3, end: 6, replacement: "X" }]);
-  expect(result).eq("aaaX");
+  const { dest } = sliceReplace2(src, [{ start: 3, end: 6, replacement: "X" }]);
+  expect(dest).eq("aaaX");
 });
 
 test("slice beginning", () => {
   const src = "aaabbb";
-  const result = sliceReplace(src, [{ start: 0, end: 3, replacement: "X" }]);
-  expect(result).eq("Xbbb");
+  const { dest } = sliceReplace2(src, [{ start: 0, end: 3, replacement: "X" }]);
+  expect(dest).eq("Xbbb");
 });
 
 test("slice multiple", () => {
   const src = "aaabbbc";
-  const result = sliceReplace(src, [
+  const { dest } = sliceReplace2(src, [
     { start: 3, end: 6, replacement: "B" },
-    { start: 0, end: 3, replacement: "A" }
+    { start: 0, end: 3, replacement: "A" },
   ]);
-  expect(result).eq("ABc");
+  expect(dest).eq("ABc");
 });
 
 test("slice none", () => {
   const src = "aaabbbc";
-  const result = sliceReplace(src, []);
-  expect(result).eq(src);
+  const { dest } = sliceReplace2(src, []);
+  expect(dest).eq(src);
 });
 
 test("slice none with start and end", () => {
   const src = "aaabbbc";
-  const result = sliceReplace(src, [], 3, 6);
-  expect(result).eq("bbb");
+  const { dest } = sliceReplace2(src, [], 3, 6);
+  expect(dest).eq("bbb");
 });
 
 test("slice one with start and end", () => {
   const src = "aaabbbc";
 
   const slices = [{ start: 3, end: 6, replacement: "B" }];
-  const result = sliceReplace(src, slices, 2);
-  expect(result).eq("aBc");
+  const { dest } = sliceReplace2(src, slices, 2);
+  expect(dest).eq("aBc");
 });
