@@ -14,7 +14,7 @@ import {
 import { PreppedSrc, processConditionals } from "./Conditionals.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
 import { parseWgslD } from "./ParseWgslD.js";
-import { SliceReplace, sliceReplace2 } from "./Slicer.js";
+import { SliceReplace, sliceReplace } from "./Slicer.js";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -168,7 +168,7 @@ export function applyTemplate(
   const end = start + foundTemplate[0].length;
   const rmDirective: SliceReplace = { start, end, replacement: "" };
   // console.log(`unTemplated\n${src}`);
-  const removed = sliceReplace2(src, [rmDirective]);
+  const removed = sliceReplace(src, [rmDirective]);
 
   const { text, srcMap } = templateFn(removed.dest, params);
   // console.log(`templated\n${text}`);

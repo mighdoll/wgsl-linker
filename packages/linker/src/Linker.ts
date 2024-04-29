@@ -11,7 +11,7 @@ import {
 import { refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
 import { TextModule } from "./ParseModule.js";
-import { SliceReplace, sliceReplace2 } from "./Slicer.js";
+import { SliceReplace, sliceReplace } from "./Slicer.js";
 import {
   FoundRef,
   GeneratorRef,
@@ -226,7 +226,7 @@ function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
   const { expMod, elem } = ref;
   const typeRefs = (elem as VarElem | AliasElem).typeRefs ?? [];
   const slicing = typeRefSlices(typeRefs);
-  const srcMap = sliceReplace2( 
+  const srcMap = sliceReplace( 
     expMod.preppedSrc,
     slicing,
     elem.start,
@@ -303,7 +303,7 @@ function loadMemberText(
 ): string {
   const { expMod } = ref;
   const slicing = typeRefSlices(member.typeRefs);
-  const srcMap = sliceReplace2(
+  const srcMap = sliceReplace(
     expMod.preppedSrc,
     slicing,
     member.start,
@@ -349,7 +349,7 @@ function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
 
   slicing.push(...typeRefSlices(elem.typeRefs));
 
-  const srcMap = sliceReplace2(
+  const srcMap = sliceReplace(
     ref.expMod.preppedSrc,
     slicing,
     elem.start,
