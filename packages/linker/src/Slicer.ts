@@ -24,11 +24,9 @@ interface SlicingProgress {
  *     ^    ^
  *     St   End Repl='XXX'
  *
- * returns:
+ * returns a srcMap with the new text and mappings from the original text to the new text
  *  aaaXXXc
- *
  */
-
 export function sliceReplace(
   src: string,
   slices: SliceReplace[],
@@ -50,7 +48,6 @@ export function sliceReplace(
     slice: SliceReplace,
     progress: SlicingProgress
   ): SlicingProgress {
-
     // update text with copy and replacement
     const copyText = src.slice(progress.srcPos, slice.start);
     const copied = replaceOne(copyText, slice.end, progress);
