@@ -65,7 +65,7 @@ export function sliceReplace2(
   const sorted = [...slices].sort((a, b) => a.start - b.start);
   const initProgress = { srcPos: start, destPos: 0, results: [], entries: [] };
   const slicePogress = scan(sorted, oneSlice, initProgress);
-  const lastProgress = finalProgress(slicePogress);
+  const lastProgress = finalProgress2(slicePogress);
 
   const { results, entries } = lastProgress;
   const text = results.join("");
@@ -77,77 +77,55 @@ export function sliceReplace2(
     slice: SliceReplace,
     progress: SlicingProgress
   ): SlicingProgress {
-    let { srcPos, destPos } = progress;
-    const { results, entries } = progress;
 
     // update text with copy and replacement
-    const copyText = src.slice(srcPos, slice.start);
-    results.push(copyText);
-    results.push(slice.replacement);
+    const copyText = src.slice(progress.srcPos, slice.start);
+    const copied = replaceOne(copyText, slice.end, progress);
+    const replaced = replaceOne(slice.replacement, slice.end, copied);
 
-    // update srcMap entries with copy and replacement
-    const newEntries = replacementEntries(src, slice, progress);
-    const allEntries = entries.concat(newEntries);
-
-    // update positions in src and dest
-    srcPos = slice.end;
-    destPos += copyText.length + slice.replacement.length;
-    dlog({srcPos, destPos, copyText})
-
-    return { srcPos, destPos, results, entries: allEntries };
+    return replaced;
   }
 
-  /** 
-   * If there's any trailing text uncovered by the slices before the end, 
-   * process it (by synthesizing a SliceReplace entry to duplicate the trailing text)
-   * 
-   * @return the accumulated progress 
-  */
-  function finalProgress(progress: SlicingProgress[]): SlicingProgress {
-    const lastProgress = last(progress) ?? initProgress;
-    // dlog({lastProgress})
-    const { srcPos } = lastProgress;
-    dlog({srcPos, end})
-    if (srcPos >= end) {
-      return lastProgress;
+  /** add text to the result and add a srcMap entry
+   * @return the accumulated progress */
+  function replaceOne(
+    replacement: string,
+    newSrcPos: number,
+    progress: SlicingProgress
+  ): SlicingProgress {
+    if (!replacement) {
+      return progress;
     }
+    const { srcPos, destPos, results, entries } = progress;
+    const newResults = results.concat(replacement);
+    const newDestPos = destPos + replacement.length;
+    const newEntries = entries.concat({
+      src,
+      srcStart: srcPos,
+      srcEnd: newSrcPos,
+      destStart: destPos,
+      destEnd: newDestPos,
+    });
 
-    const replacement = src.slice(srcPos, end);
-    dlog({replacement})
-    const result = oneSlice({ start: srcPos, end, replacement}, lastProgress);
-    dlog({result})
-    return result;
+    return {
+      srcPos: newSrcPos,
+      destPos: newDestPos,
+      results: newResults,
+      entries: newEntries,
+    };
   }
-}
 
-function replacementEntries(
-  src: string,
-  slice: SliceReplace,
-  progress: SlicingProgress
-): SrcMapEntry[] {
-  const { srcPos, destPos } = progress;
-  // entry for the unreplaced text copied before the replacemenent
-  const copyLength = slice.start - srcPos;
-  const destCopyEnd = destPos + copyLength;
-  const copyEntry: SrcMapEntry = {
-    src,
-    srcStart: srcPos,
-    srcEnd: slice.start,
-    destStart: destPos,
-    destEnd: destCopyEnd,
-  };
-  if (copyLength === 0) return [copyEntry];
-
-  // entry for the replaced text
-  const replaceEntry: SrcMapEntry = {
-    src,
-    srcStart: slice.start,
-    srcEnd: slice.end,
-    destStart: destCopyEnd,
-    destEnd: destCopyEnd + slice.replacement.length,
-  };
-
-  return [copyEntry, replaceEntry];
+  /**
+   * If there's any trailing text uncovered by the slices before the end,
+   * add a result and srcMap entry
+   *
+   * @return the accumulated progress
+   */
+  function finalProgress2(progress: SlicingProgress[]): SlicingProgress {
+    const lastProgress = last(progress) ?? initProgress;
+    const { srcPos } = lastProgress;
+    return replaceOne(src.slice(srcPos, end), end, lastProgress);
+  }
 }
 
 const tokenRegex = /\b(\w+)\b/gi;

@@ -2,12 +2,12 @@ import { expect, test } from "vitest";
 import { sliceReplace2 } from "../Slicer.js";
 import { dlog } from "berry-pretty";
 
-test.only("slice middle", () => {
+test("slice middle", () => {
   const src = "aaabbbc";
   const srcMap = sliceReplace2(src, [{ start: 3, end: 6, replacement: "X" }]);
   const {dest, entries} = srcMap;
   expect(dest).eq("aaaXc");
-  // dlog({entries});
+  dlog({entries});
 });
 
 test("slice end", () => {
