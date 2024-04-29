@@ -21,7 +21,7 @@ import {
   SrcMapEntry,
   tokenMatcher,
   tokenSkipSet,
-  tracing
+  tracing,
 } from "mini-parse";
 import { directive, eol } from "./MatchWgslD.js";
 import { ParseState } from "./ParseWgslD.js";
@@ -32,7 +32,7 @@ export const conditionalsTokens = tokenMatcher(
     eol,
     ws: /[ \t]+/,
     symbol: matchOneOf("// !"),
-    word: /[^\s\n]+/
+    word: /[^\s\n]+/,
   },
   "conditionals"
 );
@@ -117,16 +117,11 @@ function pushLine(r: ExtendedResult<any>): void {
     srcStart: r.start,
     srcEnd: r.end,
     destStart: state.destLength,
-    destEnd: state.destLength + line.length
+    destEnd: state.destLength + line.length,
   };
   state.srcMapEntries.push(entry);
   state.destLength += line.length;
   state.lines.push(line);
-}
-
-export interface PreppedSrc {
-  text: string;
-  srcMap: SrcMap;
 }
 
 interface IfStackElem {
@@ -146,9 +141,9 @@ export function processConditionals(
     lexer: matchingLexer(src, conditionalsTokens),
     app: {
       context: {},
-      state: { ifStack, lines, srcMapEntries, destLength: 0, params }
+      state: { ifStack, lines, srcMapEntries, destLength: 0, params },
     },
-    maxParseCount: 1e6
+    maxParseCount: 1e6,
   });
   if (ifStack.length > 0) {
     const { pos } = ifStack.slice(-1)[0];
@@ -172,7 +167,7 @@ if (tracing) {
     simpleLine,
     lastLine,
     line,
-    srcLines
+    srcLines,
   };
 
   Object.entries(names).forEach(([name, parser]) => {

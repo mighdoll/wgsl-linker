@@ -1,5 +1,4 @@
 import { SrcMap } from "mini-parse";
-import { PreppedSrc } from "./Conditionals.js";
 import { linkWgslModule } from "./Linker.js";
 import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";

@@ -11,7 +11,7 @@ import {
   TemplateElem,
   VarElem,
 } from "./AbstractElems.js";
-import { PreppedSrc, processConditionals } from "./Conditionals.js";
+import { processConditionals } from "./Conditionals.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
@@ -59,12 +59,9 @@ export function parseModule(
   defaultModuleName?: string
 ): TextModule {
   const condSrcMap = processConditionals(src, params);
-  const { text: preppedSrc, srcMap } = applyTemplate(
-    condSrcMap,
-    templates,
-    params
-  );
+  const srcMap = applyTemplate(condSrcMap, templates, params);
 
+  const preppedSrc = srcMap.dest;
   const parsed = parseWgslD(preppedSrc, srcMap);
   const exports = findExports(parsed, srcMap);
   const fns = filterElems<FnElem>(parsed, "fn");
@@ -142,15 +139,15 @@ function findKind<T extends AbstractElem>(
 
 const templateRegex = /#template\s+([/[a-zA-Z_][\w./-]*)/;
 
-export function applyTemplate(
+function applyTemplate(
   entrySrcMap: SrcMap,
   templates: Map<string, ApplyTemplateFn>,
   params: Record<string, any>
-): PreppedSrc {
+): SrcMap {
   const src = entrySrcMap.dest;
   const foundTemplate = src.match(templateRegex);
   if (!foundTemplate) {
-    return { text: src, srcMap: entrySrcMap };
+    return entrySrcMap;
   }
   const templateName = foundTemplate[1];
   // dlog({ templateName });
@@ -161,7 +158,7 @@ export function applyTemplate(
       foundTemplate.index!,
       `template '${templateName}' not found in ModuleRegistry`
     );
-    return { text: src, srcMap: entrySrcMap };
+    return entrySrcMap;
   }
 
   const start = foundTemplate.index!;
@@ -170,9 +167,7 @@ export function applyTemplate(
   // console.log(`unTemplated\n${src}`);
   const removed = sliceReplace(src, [rmDirective]);
 
-  const srcMap  = templateFn(removed.dest, params);
-  // console.log(`templated\n${text}`);
-  // TODO new srcmap
+  const srcMap = templateFn(removed.dest, params);
 
-  return { text:srcMap.dest, srcMap };
+  return srcMap;
 }
