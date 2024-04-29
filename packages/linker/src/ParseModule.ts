@@ -58,7 +58,7 @@ export function parseModule(
   params: Record<string, any> = {},
   defaultModuleName?: string
 ): TextModule {
-  const { srcMap: condSrcMap } = processConditionals(src, params);
+  const condSrcMap = processConditionals(src, params);
   const { text: preppedSrc, srcMap } = applyTemplate(
     condSrcMap,
     templates,

@@ -138,7 +138,7 @@ interface IfStackElem {
 export function processConditionals(
   src: string,
   params: Record<string, any>
-): PreppedSrc {
+): SrcMap {
   const lines: string[] = [];
   const srcMapEntries: SrcMapEntry[] = [];
   const ifStack: IfStackElem[] = [];
@@ -159,7 +159,7 @@ export function processConditionals(
   const srcMap = new SrcMap(text);
   srcMap.addEntries(srcMapEntries);
   srcMap.compact();
-  return { text, srcMap };
+  return srcMap;
 }
 
 /** debug for recognizer */

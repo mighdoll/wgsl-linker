@@ -10,8 +10,8 @@ test("parse #if #endif", () => {
     #endif
     `;
 
-  const { text, srcMap: sourceMap } = processConditionals(src, { foo: true });
-  expect(text).contains("fn f() { }");
+  const sourceMap = processConditionals(src, { foo: true });
+  expect(sourceMap.dest).contains("fn f() { }");
   expect(sourceMap.entries).toMatchInlineSnapshot(`
     [
       {
@@ -57,8 +57,8 @@ test("parse // #if !foo", () => {
       fn f() { }
     // #endif 
     `;
-  const { text } = processConditionals(src, { foo: false });
-  expect(text).contains("fn f() { }");
+  const { dest } = processConditionals(src, { foo: false });
+  expect(dest).contains("fn f() { }");
 });
 
 test("parse #if !foo (true)", () => {
@@ -68,9 +68,9 @@ test("parse #if !foo (true)", () => {
     // #endif 
     `;
   expectNoLogErr(() => {
-    const { text } = processConditionals(src, { foo: true });
-    expect(text).not.contains("fn");
-    expect(text).not.contains("//");
+    const { dest } = processConditionals(src, { foo: true });
+    expect(dest).not.contains("fn");
+    expect(dest).not.contains("//");
   });
 });
 
@@ -82,9 +82,9 @@ test("parse #if !foo #else #endif", () => {
       fn g() { foo(); }
     // #endif 
     `;
-  const { text } = processConditionals(src, { foo: true });
-  expect(text).contains("fn g()");
-  expect(text).not.contains("fn f()");
+  const { dest } = processConditionals(src, { foo: true });
+  expect(dest).contains("fn g()");
+  expect(dest).not.contains("fn f()");
 });
 
 test("parse nested #if", () => {
@@ -102,10 +102,10 @@ test("parse nested #if", () => {
       fn g() { }
     #endif 
     `;
-  const { text } = processConditionals(src, { foo: true, zap: true });
-  expect(text).contains("fn zap()");
-  expect(text).contains("fn g()");
-  expect(text).not.contains("fn f()");
+  const { dest } = processConditionals(src, { foo: true, zap: true });
+  expect(dest).contains("fn zap()");
+  expect(dest).contains("fn g()");
+  expect(dest).not.contains("fn f()");
 });
 
 test("parse #if #endif with extra space", () => {
@@ -115,16 +115,16 @@ test("parse #if #endif with extra space", () => {
     #endif
     `;
 
-  const { text } = processConditionals(src, {});
-  expect(text).not.contains("fn f() { }");
+  const { dest } = processConditionals(src, {});
+  expect(dest).not.contains("fn f() { }");
 });
 
 test("parse last line", () => {
   const src = `
     #x
     y`;
-  const { text } = processConditionals(src, {});
-  expect(text).eq(src);
+  const { dest } = processConditionals(src, {});
+  expect(dest).eq(src);
 });
 
 test("srcLog with srcMap", () => {
@@ -132,7 +132,7 @@ test("srcLog with srcMap", () => {
   #if !foo
   1234
   #endif`;
-  const { srcMap: sourceMap } = processConditionals(src, {});
+  const sourceMap = processConditionals(src, {});
 
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
