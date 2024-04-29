@@ -95,3 +95,24 @@ test("parse error shows correct line after simple #template", () => {
           ^"
   `);
 });
+test("parse error shows correct line after #ifdef ", () => {
+  const src = `
+    // #if FALSE
+    foo
+    bar
+    // #endif
+    fn () { } // oops
+  `;
+  const templates = new Map([["simple", simpleTemplate.apply]]);
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    const parsed = parseModule(src, templates, "./foo", { XX: "/**/" });
+    console.log(parsed.preppedSrc);
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "missing fn name
+        fn () { } // oops   Ln 6
+          ^"
+  `);
+});
+
