@@ -5,7 +5,6 @@ export const simpleTemplate: Template = {
   name: "simple",
   apply: (src, extParams) => {
     const slices = sliceWords(src, extParams);
-    const srcMap = sliceReplace(src, slices);
-    return { text: srcMap.dest, srcMap };
+    return sliceReplace(src, slices);
   },
 };

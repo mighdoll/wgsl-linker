@@ -170,9 +170,9 @@ export function applyTemplate(
   // console.log(`unTemplated\n${src}`);
   const removed = sliceReplace(src, [rmDirective]);
 
-  const { text, srcMap } = templateFn(removed.dest, params);
+  const srcMap  = templateFn(removed.dest, params);
   // console.log(`templated\n${text}`);
   // TODO new srcmap
 
-  return { text, srcMap };
+  return { text:srcMap.dest, srcMap };
 }

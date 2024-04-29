@@ -15,7 +15,6 @@ import {
 } from "mini-parse";
 import { Template } from "wgsl-linker";
 import { patchLine } from "./PatchLine.js";
-import { PreppedSrc } from "../Conditionals.js";
 
 export const replaceTemplate: Template = {
   name: "replace",
@@ -68,7 +67,7 @@ const lineWithReplace = seq(
   }
 );
 
-export function replacer(src: string, params: Record<string, any>): PreppedSrc {
+export function replacer(src: string, params: Record<string, any>): SrcMap {
   const srcLines = src.split("\n");
 
   const lines = srcLines.map((line) => {
@@ -80,7 +79,7 @@ export function replacer(src: string, params: Record<string, any>): PreppedSrc {
   });
 
   const text = lines.join("\n");
-  return { text, srcMap: new SrcMap(text) };
+  return new SrcMap(text);
 }
 
 if (tracing) {
