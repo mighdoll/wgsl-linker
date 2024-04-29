@@ -62,8 +62,7 @@ test("read #module", () => {
   expect(textModule.name).toBe("my.module.com");
 });
 
-test.skip("simple #template preserves src map", () => {
-  // TODO verify src map
+test("simple #template preserves src map", () => {
   const src = `
     // #template simple
     fn foo() { XX }
@@ -76,6 +75,5 @@ test.skip("simple #template preserves src map", () => {
   const textModule = parseModule(src, templates, "./foo", { XX: "/**/" });
   expect(textModule.preppedSrc).includes("fn foo() { /**/ }");
   expect(textModule.preppedSrc).equals(expected);
-  // console.log("prepped", textModule.srcMap);
   expect(textModule.srcMap.entries).length(3);
 });
