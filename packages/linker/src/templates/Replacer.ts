@@ -79,7 +79,7 @@ export function replacer(src: string, params: Record<string, any>): SrcMap {
   });
 
   const text = lines.join("\n");
-  return new SrcMap(text);
+  return new SrcMap(text); // LATER calculate actual entries for the src map if Replacer doesn't go away
 }
 
 if (tracing) {
