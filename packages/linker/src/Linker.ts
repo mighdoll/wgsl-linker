@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AbstractElem,
   AliasElem,
@@ -9,15 +8,15 @@ import {
   TypeRefElem,
   VarElem
 } from "./AbstractElems.js";
-import { moduleLog, refLog } from "./LinkerLogging.js";
+import { refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
 import { TextModule } from "./ParseModule.js";
-import { SliceReplace, sliceReplace } from "./Slicer.js";
+import { SliceReplace, sliceReplace2 } from "./Slicer.js";
 import {
   FoundRef,
   GeneratorRef,
-  refName,
   TextRef,
+  refName,
   traverseRefs
 } from "./TraverseRefs.js";
 import { mapForward, partition, replaceWords } from "./Util.js";
@@ -227,14 +226,15 @@ function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
   const { expMod, elem } = ref;
   const typeRefs = (elem as VarElem | AliasElem).typeRefs ?? [];
   const slicing = typeRefSlices(typeRefs);
-  const patchedSrc = sliceReplace(
+  const srcMap = sliceReplace2( 
     expMod.preppedSrc,
     slicing,
     elem.start,
     elem.end
   );
+  // LATER propogate srcMap
 
-  return applyExpImp(patchedSrc, ref, rewriting);
+  return applyExpImp(srcMap.dest, ref, rewriting);
 }
 
 function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
@@ -303,14 +303,14 @@ function loadMemberText(
 ): string {
   const { expMod } = ref;
   const slicing = typeRefSlices(member.typeRefs);
-  const patchedSrc = sliceReplace(
+  const srcMap = sliceReplace2(
     expMod.preppedSrc,
     slicing,
     member.start,
     member.end
   );
 
-  return applyExpImp(patchedSrc, ref, rewriting);
+  return applyExpImp(srcMap.dest, ref, rewriting);
 }
 
 /** get the export/import param map if appropriate for this ref */
@@ -349,14 +349,14 @@ function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
 
   slicing.push(...typeRefSlices(elem.typeRefs));
 
-  const patchedSrc = sliceReplace(
+  const srcMap = sliceReplace2(
     ref.expMod.preppedSrc,
     slicing,
     elem.start,
     elem.end
   );
 
-  return applyExpImp(patchedSrc, ref, rewriting);
+  return applyExpImp(srcMap.dest, ref, rewriting);
 }
 
 /** rewrite the src text according to module templating and exp/imp params */

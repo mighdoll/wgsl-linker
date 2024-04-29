@@ -9,21 +9,7 @@ export interface SliceReplace {
   replacement: string;
 }
 
-/**
- * Rewrite a string by replacing segments them with provided texts.
- *
- * example:
- * src:
- *  aaabbbbbc
- *     ^    ^
- *     St   End Repl='XXX'
- *
- * returns:
- *  aaaXXXc
- *
- */
-
-export function sliceReplace(
+function sliceReplace(
   src: string,
   slices: SliceReplace[],
   start = 0,
@@ -55,6 +41,20 @@ interface SlicingProgress {
   results: string[];
   entries: SrcMapEntry[];
 }
+
+/**
+ * Rewrite a string by replacing segments them with provided texts.
+ *
+ * example:
+ * src:
+ *  aaabbbbbc
+ *     ^    ^
+ *     St   End Repl='XXX'
+ *
+ * returns:
+ *  aaaXXXc
+ *
+ */
 
 export function sliceReplace2(
   src: string,
