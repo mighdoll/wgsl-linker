@@ -78,3 +78,8 @@ export function mapForward(
   });
   return Object.fromEntries(combined);
 }
+
+/** return the last element of an array or undefined */
+export function last<T>(a: T[]): T | undefined {
+  return a[a.length - 1];
+}
