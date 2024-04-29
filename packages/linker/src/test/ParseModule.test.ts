@@ -77,3 +77,21 @@ test("simple #template preserves src map", () => {
   expect(textModule.preppedSrc).equals(expected);
   expect(textModule.srcMap.entries).length(3);
 });
+
+test("parse error shows correct line after simple #template", () => {
+  const src = `
+    // #template simple
+    fn foo () { XX }
+    fn () { } // oops
+  `;
+  const templates = new Map([["simple", simpleTemplate.apply]]);
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    parseModule(src, templates, "./foo", { XX: "/**/" });
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "missing fn name
+        fn () { } // oops   Ln 4
+          ^"
+  `);
+});
