@@ -1,6 +1,8 @@
 import { expect, test } from "vitest";
 import { parseModule } from "../ParseModule.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
+import { logCatch } from "mini-parse/test-util";
+import { _withBaseLogger } from "mini-parse";
 
 test("simple fn export", () => {
   const src = `
@@ -95,6 +97,7 @@ test("parse error shows correct line after simple #template", () => {
           ^"
   `);
 });
+
 test("parse error shows correct line after #ifdef ", () => {
   const src = `
     // #if FALSE
@@ -116,3 +119,25 @@ test("parse error shows correct line after #ifdef ", () => {
   `);
 });
 
+test("parse error shows correct line after #ifdef and simple #template", () => {
+  const src = `
+    // #if FALSE
+    foo
+    bar
+    // #endif
+    // #template simple
+    fn foo () { XX }
+    fn () { } // oops
+  `;
+  const templates = new Map([["simple", simpleTemplate.apply]]);
+  const { log, logged } = logCatch();
+  _withBaseLogger(log, () => {
+    const parsed = parseModule(src, templates, "./foo", { XX: "/**/" });
+    console.log(parsed.preppedSrc);
+  });
+  expect(logged()).toMatchInlineSnapshot(`
+    "missing fn name
+        fn () { } // oops   Ln 8
+          ^"
+  `);
+});
