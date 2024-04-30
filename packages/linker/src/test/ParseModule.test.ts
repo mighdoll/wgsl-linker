@@ -109,8 +109,7 @@ test("parse error shows correct line after #ifdef ", () => {
   const templates = new Map([["simple", simpleTemplate.apply]]);
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    const parsed = parseModule(src, templates, "./foo", { XX: "/**/" });
-    console.log(parsed.preppedSrc);
+    parseModule(src, templates, "./foo", { XX: "/**/" });
   });
   expect(logged()).toMatchInlineSnapshot(`
     "missing fn name
@@ -132,8 +131,7 @@ test("parse error shows correct line after #ifdef and simple #template", () => {
   const templates = new Map([["simple", simpleTemplate.apply]]);
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    const parsed = parseModule(src, templates, "./foo", { XX: "/**/" });
-    console.log(parsed.preppedSrc);
+    parseModule(src, templates, "./foo", { XX: "/**/" });
   });
   expect(logged()).toMatchInlineSnapshot(`
     "missing fn name

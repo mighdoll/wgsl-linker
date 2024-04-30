@@ -15,6 +15,7 @@ import { processConditionals } from "./Conditionals.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
+import { dlog } from "berry-pretty";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -59,8 +60,8 @@ export function parseModule(
   defaultModuleName?: string
 ): TextModule {
   const condSrcMap = processConditionals(src, params);
-  const srcMap = applyTemplate(condSrcMap, templates, params);
-  // TODO combine srcMaps
+  const templatedMap = applyTemplate(condSrcMap, templates, params);
+  const srcMap = condSrcMap.merge(templatedMap);
 
   const preppedSrc = srcMap.dest;
   const parsed = parseWgslD(preppedSrc, srcMap);
@@ -141,34 +142,41 @@ function findKind<T extends AbstractElem>(
 const templateRegex = /#template\s+([/[a-zA-Z_][\w./-]*)/;
 
 function applyTemplate(
-  entrySrcMap: SrcMap,
+  priorSrcMap: SrcMap,
   templates: Map<string, ApplyTemplateFn>,
   params: Record<string, any>
 ): SrcMap {
-  const src = entrySrcMap.dest;
+  const src = priorSrcMap.dest;
   const foundTemplate = src.match(templateRegex);
   if (!foundTemplate) {
-    return entrySrcMap;
+    return priorSrcMap;
   }
   const templateName = foundTemplate[1];
-  // dlog({ templateName });
   const templateFn = templates.get(templateName);
   if (!templateFn) {
     srcLog(
-      entrySrcMap,
+      priorSrcMap,
       foundTemplate.index!,
       `template '${templateName}' not found in ModuleRegistry`
     );
-    return entrySrcMap;
+    return priorSrcMap;
   }
+
+  // dlog({priorSrcMap})
 
   const start = foundTemplate.index!;
   const end = start + foundTemplate[0].length;
   const rmDirective: SliceReplace = { start, end, replacement: "" };
-  // console.log(`unTemplated\n${src}`);
-  const removed = sliceReplace(src, [rmDirective]);
+  const removedMap = sliceReplace(src, [rmDirective]);
+  // dlog({ removedMap });
+  const removeMerged = priorSrcMap.merge(removedMap);
+  // dlog({ removeMerged });
 
-  const srcMap = templateFn(removed.dest, params);
+  const templatedMap = templateFn(removeMerged.dest, params);
+  // dlog({ templatedMap});
+
+  const srcMap = removeMerged.merge(templatedMap);
+  // dlog({ srcMap });
 
   return srcMap;
 }
