@@ -28,8 +28,8 @@ test("compact", () => {
 
 test("merge", () => {
   const src = "a b";
-  const src2 = " d";
-  const mid = "|" + src + src2;
+  const src2 = "d";
+  const mid = "|" + src + " " + src2;
   const dest = "xx" + mid + " z";
   /*
     mid:
@@ -45,8 +45,8 @@ test("merge", () => {
   ]);
 
   const map2 = new SrcMap(dest, [
-    { src: mid, srcStart: 1, srcEnd: 5, destStart: 3, destEnd: 7 },
-    { src: src2, srcStart: 0, srcEnd: 2, destStart: 7, destEnd: 9 },
+    { src: mid, srcStart: 1, srcEnd: 4, destStart: 3, destEnd: 6 },
+    { src: src2, srcStart: 0, srcEnd: 1, destStart: 8, destEnd: 9 },
   ]);
 
   const merged = map1.merge(map2);
@@ -61,9 +61,9 @@ test("merge", () => {
       },
       {
         "destEnd": 9,
-        "destStart": 7,
-        "src": " d",
-        "srcEnd": 2,
+        "destStart": 8,
+        "src": "d",
+        "srcEnd": 1,
         "srcStart": 0,
       },
     ]

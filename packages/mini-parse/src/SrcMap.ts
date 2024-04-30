@@ -70,22 +70,26 @@ export class SrcMap {
    *
    */
   merge(other: SrcMap): SrcMap {
+    if (other === this) return this;
+
     const mappedEntries = other.entries.filter((e) => e.src === this.dest);
     if (mappedEntries.length === 0) {
       console.error("other source map does not link to this one");
-      return this;
+      return other;
     }
-    sortSrc(mappedEntries)
-    const newEntries = this.entries.map(e => {
-      const mappedStart =  srcToDest(e.destStart, mappedEntries)
-      const mappedEnd =  srcToDest(e.destEnd, mappedEntries)
-      const newEntry:SrcMapEntry = {
-        src: e.src,
-        srcStart: e.srcStart,
-        srcEnd: e.srcEnd,
-        destStart: mappedStart.position,
-        destEnd: mappedEnd.position,
-      }
+    sortSrc(mappedEntries);
+    const newEntries = mappedEntries.map((e) => {
+      const {src, position: srcStart}= destToSrc(e.srcStart, this.entries);
+      const {src:endSrc, position: srcEnd} = destToSrc(e.srcEnd, this.entries);
+      if (endSrc !== src) throw new Error("NYI, need to split")
+      const newEntry: SrcMapEntry = {
+        src,
+        srcStart,
+        srcEnd,
+        destStart: e.destStart,
+        destEnd: e.destEnd,
+      };
+      // dlog({ newEntry });
       return newEntry;
     });
 
@@ -99,16 +103,18 @@ export class SrcMap {
 
 /** sort entries in place by src start position */
 function sortSrc(entries: SrcMapEntry[]): void {
-    entries.sort((a, b) => a.srcStart - b.srcStart);
+  entries.sort((a, b) => a.srcStart - b.srcStart);
 }
 
-/** 
+/**
  * @param entries should be sorted in destStart order
- * @return the source position corresponding to a provided destination position 
- * 
-*/
+ * @return the source position corresponding to a provided destination position
+ *
+ */
 function destToSrc(destPos: number, entries: SrcMapEntry[]): SrcPosition {
-  const entry = entries.find((e) => e.destStart <= destPos && e.destEnd >= destPos);
+  const entry = entries.find(
+    (e) => e.destStart <= destPos && e.destEnd >= destPos
+  );
   if (!entry) throw new Error(`no SrcMapEntry for dest position: ${destPos}`);
   return {
     src: entry.src,
@@ -116,14 +122,14 @@ function destToSrc(destPos: number, entries: SrcMapEntry[]): SrcPosition {
   };
 }
 
-/** 
+/**
  * @param entries should be sorted in srcStart order
  * @return the dest position corresponding to a provided src position
- * 
-*/
+ *
+ */
 function srcToDest(pos: number, entries: SrcMapEntry[]): SrcPosition {
   const entry = entries.find((e) => e.srcStart <= pos && e.srcEnd >= pos);
-  dlog({pos, entry})
+  // dlog({pos, entry})
   if (!entry) throw new Error(`no SrcMapEntry for src pos: ${pos}`);
   return {
     src: entry.src,
