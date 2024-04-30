@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { SrcMap } from "../SrcMap.js";
+import {dlog} from "berry-pretty";
 
 test("compact", () => {
   const src = "a b";
@@ -23,3 +24,50 @@ test("compact", () => {
     ]
   `);
 });
+
+
+test("merge", () => {
+  const src = "a b";
+  const src2 = " d";
+  const mid = "|" + src + src2;
+  const dest = "xx" + mid + " z";
+  /*
+    mid:
+      01234567890
+      |a b d
+    dest:
+      01234567890
+      xx|a b d z
+  */
+
+  const map1 = new SrcMap(mid, [
+    { src, srcStart: 0, srcEnd: 3, destStart: 1, destEnd: 4 },
+  ]);
+
+  const map2 = new SrcMap(dest, [
+    { src: mid, srcStart: 1, srcEnd: 5, destStart: 3, destEnd: 7 },
+    { src: src2, srcStart: 0, srcEnd: 2, destStart: 7, destEnd: 9 },
+  ]);
+
+  const merged = map1.merge(map2);
+  dlog(merged.entries);
+  expect(merged.entries).toMatchInlineSnapshot(`
+    [
+      {
+        "destEnd": 6,
+        "destStart": 3,
+        "src": "a b",
+        "srcEnd": 0,
+        "srcStart": 0,
+      },
+      {
+        "destEnd": 9,
+        "destStart": 7,
+        "src": " d",
+        "srcEnd": 2,
+        "srcStart": 0,
+      },
+    ]
+  `); 
+
+})
