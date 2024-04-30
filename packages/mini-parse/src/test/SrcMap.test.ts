@@ -56,7 +56,7 @@ test("merge", () => {
         "destEnd": 6,
         "destStart": 3,
         "src": "a b",
-        "srcEnd": 0,
+        "srcEnd": 3,
         "srcStart": 0,
       },
       {

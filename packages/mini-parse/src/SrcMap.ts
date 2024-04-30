@@ -1,3 +1,5 @@
+import { dlog } from "berry-pretty";
+
 export interface SrcMapEntry {
   src: string;
   srcStart: number;
@@ -80,7 +82,7 @@ export class SrcMap {
       const newEntry:SrcMapEntry = {
         src: e.src,
         srcStart: e.srcStart,
-        srcEnd: e.srcStart,
+        srcEnd: e.srcEnd,
         destStart: mappedStart.position,
         destEnd: mappedEnd.position,
       }
@@ -121,6 +123,7 @@ function destToSrc(destPos: number, entries: SrcMapEntry[]): SrcPosition {
 */
 function srcToDest(pos: number, entries: SrcMapEntry[]): SrcPosition {
   const entry = entries.find((e) => e.srcStart <= pos && e.srcEnd >= pos);
+  dlog({pos, entry})
   if (!entry) throw new Error(`no SrcMapEntry for src pos: ${pos}`);
   return {
     src: entry.src,
