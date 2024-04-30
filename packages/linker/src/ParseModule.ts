@@ -60,8 +60,7 @@ export function parseModule(
   defaultModuleName?: string
 ): TextModule {
   const condSrcMap = processConditionals(src, params);
-  const templatedMap = applyTemplate(condSrcMap, templates, params);
-  const srcMap = condSrcMap.merge(templatedMap);
+  const srcMap = applyTemplate(condSrcMap, templates, params);
 
   const preppedSrc = srcMap.dest;
   const parsed = parseWgslD(preppedSrc, srcMap);
