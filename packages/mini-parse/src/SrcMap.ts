@@ -74,14 +74,17 @@ export class SrcMap {
 
     const mappedEntries = other.entries.filter((e) => e.src === this.dest);
     if (mappedEntries.length === 0) {
-      console.error("other source map does not link to this one");
+      console.log("other source map does not link to this one");
+      // dlog({ this: this });
+      // dlog({ other });
       return other;
     }
     sortSrc(mappedEntries);
     const newEntries = mappedEntries.map((e) => {
-      const {src, position: srcStart}= destToSrc(e.srcStart, this.entries);
-      const {src:endSrc, position: srcEnd} = destToSrc(e.srcEnd, this.entries);
-      if (endSrc !== src) throw new Error("NYI, need to split")
+      const entries = this.entries;
+      const { src, position: srcStart } = destToSrc(e.srcStart, entries);
+      const { src: endSrc, position: srcEnd } = destToSrc(e.srcEnd, entries);
+      if (endSrc !== src) throw new Error("NYI, need to split");
       const newEntry: SrcMapEntry = {
         src,
         srcStart,
