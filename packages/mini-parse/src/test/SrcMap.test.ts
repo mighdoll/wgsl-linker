@@ -50,7 +50,6 @@ test("merge", () => {
   ]);
 
   const merged = map1.merge(map2);
-  dlog(merged.entries);
   expect(merged.entries).toMatchInlineSnapshot(`
     [
       {
