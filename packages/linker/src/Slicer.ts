@@ -50,7 +50,7 @@ export function sliceReplace(
   ): SlicingProgress {
     // update text with copy and replacement
     const copyText = src.slice(progress.srcPos, slice.start);
-    const copied = replaceOne(copyText, slice.end, progress);
+    const copied = replaceOne(copyText, slice.start, progress);
     const replaced = replaceOne(slice.replacement, slice.end, copied);
 
     return replaced;

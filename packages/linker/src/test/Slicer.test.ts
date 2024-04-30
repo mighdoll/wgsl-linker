@@ -13,7 +13,7 @@ test("slice middle", () => {
         "destEnd": 3,
         "destStart": 0,
         "src": "aaabbbc",
-        "srcEnd": 6,
+        "srcEnd": 3,
         "srcStart": 0,
       },
       {
@@ -21,7 +21,7 @@ test("slice middle", () => {
         "destStart": 3,
         "src": "aaabbbc",
         "srcEnd": 6,
-        "srcStart": 6,
+        "srcStart": 3,
       },
       {
         "destEnd": 5,
