@@ -48,6 +48,7 @@ export function sliceReplace(
     slice: SliceReplace,
     progress: SlicingProgress
   ): SlicingProgress {
+    // dlog({ slice });
     // update text with copy and replacement
     const copyText = src.slice(progress.srcPos, slice.start);
     const copied = replaceOne(copyText, slice.start, progress);
@@ -56,27 +57,32 @@ export function sliceReplace(
     return replaced;
   }
 
-  /** add text to the result and add a srcMap entry
+  /** add provided text to the result, advance src position, and add a srcMap entry
    * @return the accumulated progress */
   function replaceOne(
     replacement: string,
     newSrcPos: number,
     progress: SlicingProgress
   ): SlicingProgress {
-    if (!replacement) {
-      return progress;
-    }
-    const { srcPos, destPos, results, entries } = progress;
-    const newResults = results.concat(replacement);
+    const { destPos, entries } = progress;
     const newDestPos = destPos + replacement.length;
-    const newEntries = entries.concat({
-      src,
-      srcStart: srcPos,
-      srcEnd: newSrcPos,
-      destStart: destPos,
-      destEnd: newDestPos,
-    });
 
+    // new srcMap entry if there is a replacement text (otherwise there's nothing to map dest to src)
+    let newEntries = entries;
+    if (replacement) {
+      const { srcPos } = progress;
+      newEntries = entries.concat({
+        src,
+        srcStart: srcPos,
+        srcEnd: newSrcPos,
+        destStart: destPos,
+        destEnd: newDestPos,
+      });
+    }
+
+    // update results text and progress
+    const { results } = progress;
+    const newResults = replacement ? results.concat(replacement) : results;
     return {
       srcPos: newSrcPos,
       destPos: newDestPos,

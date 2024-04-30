@@ -82,6 +82,15 @@ test("slice one with start and end", () => {
   expect(srcMap.dest).eq("aBc");
 });
 
+test("slice with empty replacement", () => {
+  const src = "aaabbbc";
+
+  const slices = [{ start: 3, end: 6, replacement: "" }];
+  const srcMap = sliceReplace(src, slices);
+  validateDestCovered(srcMap);
+  expect(srcMap.dest).eq("aaac");
+});
+
 /** verify that the srcMap covers every part of the destination text */
 function validateDestCovered(srcMap: SrcMap): void {
   const { dest, entries } = srcMap;
