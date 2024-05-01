@@ -883,6 +883,5 @@ test("copy diagnostics to output", () => {
     diagnostic(off,derivative_uniformity);
   `;
   const linked = linkWgslTest(src);
-  console.log(`linked:\n${linked}`);
   expect(linked).toContain("diagnostic(off,derivative_uniformity);");
 });

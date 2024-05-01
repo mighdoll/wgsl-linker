@@ -1,6 +1,8 @@
+import { dlog } from "berry-pretty";
 import {
   AliasElem,
   FnElem,
+  GlobalDirectiveElem,
   StructElem,
   StructMemberElem,
   TypeRefElem,
@@ -18,6 +20,14 @@ import {
   traverseRefs,
 } from "./TraverseRefs.js";
 import { mapForward, partition, replaceWords } from "./Util.js";
+
+type DirectiveRef = {
+  kind: "dir";
+  expMod: TextModule;
+  elem: GlobalDirectiveElem;
+};
+
+type LoadableRef = TextRef | GeneratorRef | DirectiveRef;
 
 interface Rewriting {
   extParams: Record<string, string>;
@@ -40,16 +50,16 @@ export function linkWgslModule(
   const decls = new Set<string>();
   uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
-  // refs.map((r) => printRef(r, "link refs"));
   // mix the merge refs into the import/export refs
   const loadRefs = prepRefsMergeAndLoad(refs);
-  // refs.map((r) => printRef(r, "load refs"));
 
-  // loadRefs.map((r) => printRef(r, "load ref"));
+  // convert global directives into LoadableRefs
+  const directiveRefs = globalDirectiveRefs(srcModule);
 
   // extract export texts, rewriting via rename map and exp/imp args
+  const extractRefs = [...loadRefs, ...directiveRefs];
   const rewriting: Rewriting = { extParams: runtimeParams, registry };
-  return extractTexts(loadRefs, rewriting);
+  return extractTexts(extractRefs, rewriting);
 }
 
 /** find references to structs and fns we might import
@@ -203,8 +213,32 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   };
 }
 
+/** construct DirectiveRefs for from globalDirective elements 
+ * (so that we can use the standard extract path to copy them to the linked output) */
+function globalDirectiveRefs(srcModule: TextModule): DirectiveRef[] {
+  const directiveRefs = srcModule.globalDirectives.map((e) =>
+    toDirectiveRef(e, srcModule)
+  );
+  return directiveRefs;
+}
+
+/** convert a global directive element into a DirectiveRef */
+function toDirectiveRef(
+  elem: GlobalDirectiveElem,
+  expMod: TextModule
+): DirectiveRef {
+  return {
+    kind: "dir",
+    elem,
+    expMod,
+  };
+}
+
 // TODO what about renaming imported vars or other aliases
-function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
+function loadOtherElem(
+  ref: TextRef | DirectiveRef,
+  rewriting: Rewriting
+): string {
   const { expMod, elem } = ref;
   const typeRefs = (elem as VarElem | AliasElem).typeRefs ?? [];
   const slicing = typeRefSlices(typeRefs);
@@ -231,23 +265,28 @@ function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
 }
 
 /** load exported text for an import */
-function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
+function extractTexts(refs: LoadableRef[], rewriting: Rewriting): string {
   return refs
     .map((r) => {
       if (r.kind === "gen") {
         return loadGeneratedElem(r, rewriting);
       }
-      const elemKind = r.elem.kind;
-      if (elemKind === "fn") {
-        return loadFnText(r.elem, r, rewriting);
+      if (r.kind === "txt") {
+        const elemKind = r.elem.kind;
+        if (elemKind === "fn") {
+          return loadFnText(r.elem, r, rewriting);
+        }
+        if (elemKind === "struct") {
+          return loadStruct(r, rewriting);
+        }
+        if (elemKind === "var" || elemKind === "alias") {
+          return loadOtherElem(r, rewriting);
+        }
+        console.warn("can't extract. unexpected elem kind:", elemKind, r.elem);
       }
-      if (elemKind === "struct") {
-        return loadStruct(r, rewriting);
-      }
-      if (elemKind === "var" || elemKind === "alias") {
+      if (r.kind === "dir") {
         return loadOtherElem(r, rewriting);
       }
-      console.warn("can't extract unexpected elem kind", elemKind, r.elem);
     })
     .join("\n\n");
 }
@@ -338,10 +377,14 @@ function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
 }
 
 /** rewrite the src text according to module templating and exp/imp params */
-function applyExpImp(src: string, ref: TextRef, rewriting: Rewriting): string {
+function applyExpImp(
+  src: string,
+  ref: TextRef | DirectiveRef,
+  rewriting: Rewriting
+): string {
   const { extParams } = rewriting;
 
-  const replaces = refExpImp(ref, extParams);
+  const replaces = ref.kind === "txt" ? refExpImp(ref, extParams) : [];
   const params = expImpToParams(replaces, extParams);
   return replaceWords(src, params);
 }
