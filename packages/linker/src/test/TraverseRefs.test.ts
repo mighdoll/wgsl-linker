@@ -2,7 +2,7 @@ import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
-import { FoundRef, refName, TextRef, traverseRefs } from "../TraverseRefs.js";
+import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
 
 test("traverse a fn to struct ref", () => {
   const src = `
@@ -148,7 +148,6 @@ test("traverse importing from a local call fails", () => {
     fn bar(x:X) { } `;
 
   const { log } = traverseWithLog(src, module1, module2);
-
   expect(log.length).not.eq(0);
 });
 

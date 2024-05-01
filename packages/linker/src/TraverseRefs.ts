@@ -1,4 +1,5 @@
 import {
+  AliasElem,
   CallElem,
   ExportElem,
   ExtendsElem,
@@ -6,14 +7,14 @@ import {
   ImportElem,
   StructElem,
   TypeRefElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import {
   GeneratorExport,
   GeneratorModule,
   ModuleExport,
-  ModuleRegistry
+  ModuleRegistry,
 } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
@@ -97,12 +98,14 @@ export function traverseRefs(
 ): void {
   const { aliases, fns, structs, vars } = srcModule;
   const expMod = srcModule;
-  const srcRefs: TextRef[] = [...structs, ...vars, ...fns, ...aliases].map((elem) => ({
-    kind: "txt",
-    proposedName: elem.name,
-    expMod,
-    elem
-  }));
+  const srcRefs: TextRef[] = [...structs, ...vars, ...fns, ...aliases].map(
+    (elem) => ({
+      kind: "txt",
+      proposedName: elem.name,
+      expMod,
+      elem,
+    })
+  );
   // srcRefs.forEach(r => printRef(r, "traverseRefs.src"))
   if (!skipSrcRefs) srcRefs.forEach((ref) => fn(ref));
   if (!srcRefs.length) return;
@@ -190,11 +193,14 @@ function elemRefs(
   return [...fnRefs, ...tRefs, ...mergeRefs];
 }
 
-function elemTypeRefs(elem: FnElem | StructElem | VarElem | AliasElem): TypeRefElem[] {
+function elemTypeRefs(
+  elem: FnElem | StructElem | VarElem | AliasElem
+): TypeRefElem[] {
   let typeRefs: TypeRefElem[];
   if (elem.kind === "fn" || elem.kind === "var" || elem.kind === "alias") {
     typeRefs = elem.typeRefs;
-  } else { // struct
+  } else {
+    // struct
     typeRefs = elem.members?.flatMap((m) => m.typeRefs) || [];
   }
   const userTypeRefs = typeRefs.filter(
@@ -291,7 +297,7 @@ function importRef(
   const expInfo: ExportInfo = {
     fromImport,
     fromRef,
-    expImpArgs
+    expImpArgs,
   };
   if (expMod.kind === "text") {
     const exp = modExp.export as TextExport;
@@ -301,7 +307,7 @@ function importRef(
       expInfo,
       expMod,
       elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name
+      proposedName: fromImport.as ?? exp.ref.name,
     };
   } else if (expMod.kind === "generator") {
     const exp = modExp.export as GeneratorExport;
@@ -310,7 +316,7 @@ function importRef(
       expInfo,
       expMod,
       proposedName: fromImport.as ?? exp.name,
-      name: exp.name
+      name: exp.name,
     };
   }
 }
@@ -362,7 +368,7 @@ function importingRef(
   const expInfo: ExportInfo = {
     fromRef: srcRef,
     fromImport,
-    expImpArgs
+    expImpArgs,
   };
   if (modExp.kind === "text") {
     const exp = modExp.export;
@@ -372,7 +378,7 @@ function importingRef(
       expInfo,
       expMod: modExp.module as TextModule,
       elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name
+      proposedName: fromImport.as ?? exp.ref.name,
     };
   } else if (modExp.kind === "function") {
     const exp = modExp.export;
@@ -381,7 +387,7 @@ function importingRef(
       expInfo,
       expMod: modExp.module,
       proposedName: fromImport.as ?? exp.name,
-      name: exp.name
+      name: exp.name,
     };
   }
 
@@ -458,7 +464,7 @@ function localRef(name: string, mod: TextModule): TextRef | undefined {
       expMod: mod,
       elem: elem,
       proposedName: elem.name,
-      expInfo: undefined
+      expInfo: undefined,
     };
   }
 }

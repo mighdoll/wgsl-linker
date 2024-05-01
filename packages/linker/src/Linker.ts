@@ -1,12 +1,10 @@
 import {
-  AbstractElem,
   AliasElem,
-  CallElem,
   FnElem,
   StructElem,
   StructMemberElem,
   TypeRefElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
 import { ModuleRegistry } from "./ModuleRegistry.js";
@@ -17,7 +15,7 @@ import {
   GeneratorRef,
   TextRef,
   refName,
-  traverseRefs
+  traverseRefs,
 } from "./TraverseRefs.js";
 import { mapForward, partition, replaceWords } from "./Util.js";
 
@@ -42,8 +40,10 @@ export function linkWgslModule(
   const decls = new Set<string>();
   uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
+  // refs.map((r) => printRef(r, "link refs"));
   // mix the merge refs into the import/export refs
   const loadRefs = prepRefsMergeAndLoad(refs);
+  // refs.map((r) => printRef(r, "load refs"));
 
   // loadRefs.map((r) => printRef(r, "load ref"));
 
@@ -166,7 +166,7 @@ function combineMergeRefs(
   // combine the merge refs into the export refs on the same element
   const expRefs: TextRef[] = nonMergeRefs.map((ref) => ({
     ...ref,
-    mergeRefs: recursiveMerges(ref)
+    mergeRefs: recursiveMerges(ref),
   }));
 
   return expRefs;
@@ -199,7 +199,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   return {
     generatorRefs: gen,
     mergeRefs: merge,
-    nonMergeRefs: nonMerge
+    nonMergeRefs: nonMerge,
   };
 }
 
@@ -208,12 +208,7 @@ function loadOtherElem(ref: TextRef, rewriting: Rewriting): string {
   const { expMod, elem } = ref;
   const typeRefs = (elem as VarElem | AliasElem).typeRefs ?? [];
   const slicing = typeRefSlices(typeRefs);
-  const srcMap = sliceReplace( 
-    expMod.preppedSrc,
-    slicing,
-    elem.start,
-    elem.end
-  );
+  const srcMap = sliceReplace(expMod.preppedSrc, slicing, elem.start, elem.end);
   // LATER propogate srcMap
 
   return applyExpImp(srcMap.dest, ref, rewriting);
@@ -252,8 +247,7 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       if (elemKind === "var" || elemKind === "alias") {
         return loadOtherElem(r, rewriting);
       }
-      console.warn("can't extract unexpected elem kind", elemKind, r.elem); 
-
+      console.warn("can't extract unexpected elem kind", elemKind, r.elem);
     })
     .join("\n\n");
 }
@@ -344,11 +338,7 @@ function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
 }
 
 /** rewrite the src text according to module templating and exp/imp params */
-function applyExpImp(
-  src: string,
-  ref: TextRef,
-  rewriting: Rewriting
-): string {
+function applyExpImp(src: string, ref: TextRef, rewriting: Rewriting): string {
   const { extParams } = rewriting;
 
   const replaces = refExpImp(ref, extParams);
