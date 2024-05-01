@@ -875,7 +875,14 @@ test("copy alias to output", () => {
     alias MyType = u32;
   `;
   const linked = linkWgslTest(src);
-  console.log(`linked:\n${linked}`);
   expect(linked).toContain("alias MyType = u32;");
 });
 
+test("copy diagnostics to output", () => {
+  const src = `
+    diagnostic(off,derivative_uniformity);
+  `;
+  const linked = linkWgslTest(src);
+  console.log(`linked:\n${linked}`);
+  expect(linked).toContain("diagnostic(off,derivative_uniformity);");
+});
