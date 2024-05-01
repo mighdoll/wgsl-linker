@@ -10,6 +10,7 @@ export type AbstractElem =
   | ModuleElem
   | TemplateElem
   | FnElem
+  | GlobalDirectiveElem
   | TypeNameElem
   | FnNameElem
   | VarNameElem
@@ -120,4 +121,9 @@ export interface AliasElem extends AbstractElemBase {
   name: string;
   targetName: string;
   typeRefs: TypeRefElem[];
+}
+
+/** global directive (diagnostic, enable, requires) or const_assert */
+export interface GlobalDirectiveElem extends AbstractElemBase {
+  kind: "globalDirective";
 }
