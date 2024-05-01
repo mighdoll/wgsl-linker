@@ -211,7 +211,7 @@ export const globalAlias = seq(
   req(typeSpecifier).named("typeRefs"),
   req(";")
 ).map((r) => {
-  const e = makeElem<AliasElem>("alias", r, ["name"], ["typeRefs"]);
+  const e = makeElem<AliasElem>("alias", r, ["name", "typeRefs"]);
   r.app.state.push(e);
 });
 
