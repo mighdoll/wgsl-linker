@@ -706,15 +706,15 @@ test("#import using replace template and ext param", () => {
 test("#template in src", () => {
   const src = `
     #module main
-    #template replace
+    #template simple
     fn main() {
-      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      for (var step = 0; step < threads; step++) { 
       }
     }
   `;
   const registry = new ModuleRegistry({
     rawWgsl: [src],
-    templates: [replaceTemplate],
+    templates: [simpleTemplate],
   });
   const linked = registry.link("main", { threads: 128 });
   expect(linked).includes("step < 128");
