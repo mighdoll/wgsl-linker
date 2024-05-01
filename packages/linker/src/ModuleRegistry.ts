@@ -231,7 +231,7 @@ export class ModuleRegistry {
   }
 
   private addTextModule(module: TextModule): void {
-    this.textModules.push(module); // TODO dedupe?
+    this.textModules.push(module); 
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExport = {
         module,
