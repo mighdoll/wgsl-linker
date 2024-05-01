@@ -5,6 +5,7 @@ import {
   ExportElem,
   ExtendsElem,
   FnElem,
+  GlobalDirectiveElem,
   ImportElem,
   ModuleElem,
   StructElem,
@@ -15,7 +16,6 @@ import { processConditionals } from "./Conditionals.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
-import { dlog } from "berry-pretty";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -27,6 +27,7 @@ export interface TextModule {
   structs: StructElem[];
   imports: (ImportElem | ExtendsElem)[];
   aliases: AliasElem[];
+  globalDirectives: GlobalDirectiveElem[];
 
   /** name of the module. A synthetic name will be assigned if none is provided */
   name: string;
@@ -67,6 +68,10 @@ export function parseModule(
   const exports = findExports(parsed, srcMap);
   const fns = filterElems<FnElem>(parsed, "fn");
   const aliases = filterElems<AliasElem>(parsed, "alias");
+  const globalDirectives = filterElems<GlobalDirectiveElem>(
+    parsed,
+    "globalDirective"
+  );
   const imports = parsed.filter(
     (e) => e.kind === "import" || e.kind === "extends"
   ) as (ImportElem | ExtendsElem)[];
@@ -81,7 +86,16 @@ export function parseModule(
   const kind = "text";
   return {
     ...{ kind, src, srcMap, preppedSrc, fileName, name },
-    ...{ exports, fns, structs, vars, imports, template, aliases },
+    ...{
+      exports,
+      fns,
+      structs,
+      vars,
+      imports,
+      template,
+      aliases,
+      globalDirectives,
+    },
   };
 }
 

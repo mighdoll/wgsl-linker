@@ -55,6 +55,7 @@ exports[`simple fn export 1`] = `
       ],
     },
   ],
+  "globalDirectives": [],
   "imports": [],
   "kind": "text",
   "name": "module0",
@@ -126,6 +127,7 @@ exports[`simple fn import 1`] = `
       "typeRefs": [],
     },
   ],
+  "globalDirectives": [],
   "imports": [
     {
       "end": 19,
