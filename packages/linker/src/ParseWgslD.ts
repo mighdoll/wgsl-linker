@@ -26,6 +26,7 @@ import {
   CallElem,
   FnElem,
   FnNameElem,
+  GlobalDirectiveElem,
   StructElem,
   StructMemberElem,
   TypeNameElem,
@@ -58,7 +59,9 @@ const possibleTypeRef = Symbol("typeRef");
 
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
-  req(anyThrough(";"))
+  req(anyThrough(";")).map((r) =>
+    makeElem<GlobalDirectiveElem>("globalDirective", r)
+  )
 );
 
 /** parse an identifier into a TypeNameElem */
