@@ -233,7 +233,7 @@ function toDirectiveRef(
   };
 }
 
-// TODO what about renaming imported vars or other aliases
+// LATER rename imported vars or aliases
 function loadOtherElem(
   ref: TextRef | DirectiveRef,
   rewriting: Rewriting
