@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry, RegisterGenerator } from "../ModuleRegistry.js";
-import { replaceTemplate } from "../templates/Replacer.js";
 
 const fooGenerator: RegisterGenerator = {
   name: "foo",
@@ -115,7 +114,6 @@ test("external param applied to generator", () => {
 
   const registry = new ModuleRegistry({
     wgsl: { "./main": src },
-    templates: [replaceTemplate],
     generators: [gen]
   });
   const linked = registry.link("main", { workgroupThreads: 128 });
