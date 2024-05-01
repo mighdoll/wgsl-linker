@@ -686,20 +686,20 @@ test("#import using replace template and ext param", () => {
   `;
 
   const module1 = `
-    // #template replace
+    // #template simple
 
     // #export
     fn foo () {
-      for (var step = 0; step < 4; step++) { //#replace 4=threads
+      for (var step = 0; step < Threads; step++) { 
       }
     }
   `;
 
   const registry = new ModuleRegistry({
     rawWgsl: [module1, src],
-    templates: [replaceTemplate],
+    templates: [simpleTemplate],
   });
-  const linked = registry.link("main", { threads: 128 });
+  const linked = registry.link("main", { Threads: 128 });
   expect(linked).contains("step < 128");
 });
 
