@@ -38,25 +38,6 @@ exports[`parse @compute @workgroup_size(a, b, 1) before fn 1`] = `
 ]
 `;
 
-exports[`parse and ignore const_assert 1`] = `
-[
-  {
-    "calls": [],
-    "end": 42,
-    "kind": "fn",
-    "name": "main",
-    "nameElem": {
-      "end": 37,
-      "kind": "fnName",
-      "name": "main",
-      "start": 33,
-    },
-    "start": 30,
-    "typeRefs": [],
-  },
-]
-`;
-
 exports[`parse array alias 1`] = `
 [
   {
@@ -78,6 +59,30 @@ exports[`parse array alias 1`] = `
         "start": 21,
       },
     ],
+  },
+]
+`;
+
+exports[`parse const_assert 1`] = `
+[
+  {
+    "end": 24,
+    "kind": "globalDirective",
+    "start": 5,
+  },
+  {
+    "calls": [],
+    "end": 42,
+    "kind": "fn",
+    "name": "main",
+    "nameElem": {
+      "end": 37,
+      "kind": "fnName",
+      "name": "main",
+      "start": 33,
+    },
+    "start": 30,
+    "typeRefs": [],
   },
 ]
 `;
@@ -137,6 +142,11 @@ exports[`parse fn with calls 1`] = `
 
 exports[`parse global diagnostic 1`] = `
 [
+  {
+    "end": 43,
+    "kind": "globalDirective",
+    "start": 5,
+  },
   {
     "calls": [],
     "end": 61,

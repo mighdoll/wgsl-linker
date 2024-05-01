@@ -127,7 +127,7 @@ test("parse global diagnostic", () => {
   });
 });
 
-test("parse and ignore const_assert", () => {
+test("parse const_assert", () => {
   const src = `
     const_assert x < y;
 

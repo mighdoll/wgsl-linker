@@ -59,10 +59,11 @@ const possibleTypeRef = Symbol("typeRef");
 
 const globalDirectiveOrAssert = seq(
   or("diagnostic", "enable", "requires", "const_assert"),
-  req(anyThrough(";")).map((r) =>
-    makeElem<GlobalDirectiveElem>("globalDirective", r)
-  )
-);
+  req(anyThrough(";"))
+).map((r) => {
+  const e = makeElem<GlobalDirectiveElem>("globalDirective", r);
+  r.app.state.push(e); 
+});
 
 /** parse an identifier into a TypeNameElem */
 export const typeNameDecl = req(word.named("name")).map((r) => {
