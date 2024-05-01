@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AliasElem,
   FnElem,

@@ -53,6 +53,15 @@ export interface TextExport extends ExportElem {
 let unnamedModuleDex = 0;
 let unnamedFileDex = 0;
 
+export function preProcess(
+  src: string,
+  params: Record<string, any> = {},
+  templates: Map<string, ApplyTemplateFn> = new Map()
+): SrcMap {
+  const condSrcMap = processConditionals(src, params);
+  return applyTemplate(condSrcMap, templates, params);
+}
+
 export function parseModule(
   src: string,
   templates: Map<string, ApplyTemplateFn> = new Map(),
@@ -60,8 +69,7 @@ export function parseModule(
   params: Record<string, any> = {},
   defaultModuleName?: string
 ): TextModule {
-  const condSrcMap = processConditionals(src, params);
-  const srcMap = applyTemplate(condSrcMap, templates, params);
+  const srcMap = preProcess(src, params, templates);
 
   const preppedSrc = srcMap.dest;
   const parsed = parseWgslD(preppedSrc, srcMap);
