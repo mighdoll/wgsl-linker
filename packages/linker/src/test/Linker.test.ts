@@ -869,3 +869,13 @@ test("template on struct member", () => {
   const linked = registry.link("main", { POINT_TYPE: "vec2f" });
   expect(linked).includes("point: vec2f");
 });
+
+test("copy alias to output", () => {
+  const src = `
+    alias MyType = u32;
+  `;
+  const linked = linkWgslTest(src);
+  console.log(`linked:\n${linked}`);
+  expect(linked).toContain("alias MyType = u32;");
+});
+

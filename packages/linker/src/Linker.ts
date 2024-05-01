@@ -249,9 +249,11 @@ function extractTexts(refs: FoundRef[], rewriting: Rewriting): string {
       if (elemKind === "struct") {
         return loadStruct(r, rewriting);
       }
-      if (elemKind === "var") {
+      if (elemKind === "var" || elemKind === "alias") {
         return loadOtherElem(r, rewriting);
       }
+      console.warn("can't extract unexpected elem kind", elemKind, r.elem); 
+
     })
     .join("\n\n");
 }
