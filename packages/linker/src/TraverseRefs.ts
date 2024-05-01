@@ -66,12 +66,13 @@ export interface GeneratorRef extends FoundRefBase {
 export interface TextRef extends FoundRefBase {
   kind: "txt";
 
-  /** module containing the exported function */
+  /** module containing the referenced element */
   expMod: TextModule;
 
-  /** reference to the exported function or struct */
-  elem: FnElem | StructElem | VarElem;
+  /** referenced element */
+  elem: FnElem | StructElem | VarElem | AliasElem;
 
+  /** extra data if the referenced element is from another module */
   expInfo?: ExportInfo;
 
   /** refs to extends elements on this struct element
