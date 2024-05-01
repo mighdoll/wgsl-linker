@@ -310,22 +310,13 @@ function loadStruct(ref: TextRef, rewriting: Rewriting): string {
   return `struct ${name} {\n${membersText}\n}`;
 }
 
-// TODO use loadOtherElem?
 function loadMemberText(
   member: StructMemberElem,
   ref: TextRef,
   rewriting: Rewriting
 ): string {
-  const { expMod } = ref;
-  const slicing = typeRefSlices(member.typeRefs);
-  const srcMap = sliceReplace(
-    expMod.preppedSrc,
-    slicing,
-    member.start,
-    member.end
-  );
-
-  return applyExpImp(srcMap.dest, ref, rewriting);
+  const newRef = { ...ref, elem: member };
+  return loadOtherElem(newRef, rewriting);
 }
 
 /** get the export/import param map if appropriate for this ref */

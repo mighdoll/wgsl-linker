@@ -6,6 +6,7 @@ import {
   FnElem,
   ImportElem,
   StructElem,
+  StructMemberElem,
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
@@ -71,7 +72,7 @@ export interface TextRef extends FoundRefBase {
   expMod: TextModule;
 
   /** referenced element */
-  elem: FnElem | StructElem | VarElem | AliasElem;
+  elem: FnElem | StructElem | VarElem | AliasElem | StructMemberElem;
 
   /** extra data if the referenced element is from another module */
   expInfo?: ExportInfo;
@@ -194,14 +195,22 @@ function elemRefs(
 }
 
 function elemTypeRefs(
-  elem: FnElem | StructElem | VarElem | AliasElem
+  elem: FnElem | StructElem | VarElem | AliasElem | StructMemberElem
 ): TypeRefElem[] {
   let typeRefs: TypeRefElem[];
-  if (elem.kind === "fn" || elem.kind === "var" || elem.kind === "alias") {
+  const { kind } = elem;
+  if (
+    kind === "fn" ||
+    kind === "var" ||
+    kind === "alias" ||
+    kind === "member"
+  ) {
     typeRefs = elem.typeRefs;
-  } else {
-    // struct
+  } else if (kind === "struct") {
     typeRefs = elem.members?.flatMap((m) => m.typeRefs) || [];
+  } else {
+    console.error("unexpected kind", elem);
+    typeRefs = [];
   }
   const userTypeRefs = typeRefs.filter((ref) => !stdType(ref.name));
   return userTypeRefs;
