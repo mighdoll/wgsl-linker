@@ -86,24 +86,6 @@ function refFullName(ref: FoundRef): string {
   return ref.expMod.name + "." + refName(ref) + argsStr;
 }
 
-// export function printRef(r: FoundRef, msg?: string): void {
-//   const { kind, elem, rename } = r as TextRef;
-//   dlog(
-//     msg ?? "",
-//     {
-//       kind,
-//       rename,
-//     },
-//     elemToText("elem", elem)
-//   );
-// }
-
-export function elemToText(msg: string, elem?: AbstractElem): string {
-  if (!elem) return "";
-  const { kind, ref: link, name = "" } = elem as CallElem;
-  return `${msg}: {kind: ${kind}, name: ${name}, link: ${link !== undefined}}`;
-}
-
 /**
  * Calculate rename entries so that all the found top level elements
  * will have unique, non conflicting names.
