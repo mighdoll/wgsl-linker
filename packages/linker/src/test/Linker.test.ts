@@ -2,7 +2,6 @@ import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
-import { replaceTemplate } from "../templates/Replacer.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
 import { linkWgslTest } from "./TestUtil.js";
 
@@ -720,7 +719,7 @@ test("#template in src", () => {
   expect(linked).includes("step < 128");
 });
 
-test("#import using replace template and imp/exp param", () => {
+test("#import using simple template and imp/exp param", () => {
   const src = `
     // #module main
     // #import foo(128)
@@ -729,21 +728,23 @@ test("#import using replace template and imp/exp param", () => {
   `;
 
   const module1 = `
-    // #template replace
+    // #template simple
 
     // #export(threads)
     fn foo () {
       for (var step = 0; step < threads; step++) {
+        /* Foo */
       }
     }
   `;
 
   const registry = new ModuleRegistry({
     rawWgsl: [src, module1],
-    templates: [replaceTemplate],
+    templates: [simpleTemplate],
   });
-  const linked = registry.link("main");
+  const linked = registry.link("main", { Foo: "Bar"});
   expect(linked).contains("step < 128");
+  expect(linked).contains("/* Bar */");
 });
 
 test("#import using external param", () => {
@@ -755,8 +756,6 @@ test("#import using external param", () => {
   `;
 
   const module1 = `
-    // #template replace
-
     // #export(threads)
     fn foo () {
       for (var step = 0; step < threads; step++) { 
@@ -766,7 +765,6 @@ test("#import using external param", () => {
 
   const registry = new ModuleRegistry({
     rawWgsl: [src, module1],
-    templates: [replaceTemplate],
   });
   const linked = registry.link("main", { workgroupSize: 128 });
   expect(linked).contains("step < 128");
