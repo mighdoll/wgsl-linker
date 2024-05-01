@@ -135,6 +135,25 @@ exports[`parse fn with calls 1`] = `
 ]
 `;
 
+exports[`parse global diagnostic 1`] = `
+[
+  {
+    "calls": [],
+    "end": 61,
+    "kind": "fn",
+    "name": "main",
+    "nameElem": {
+      "end": 56,
+      "kind": "fnName",
+      "name": "main",
+      "start": 52,
+    },
+    "start": 49,
+    "typeRefs": [],
+  },
+]
+`;
+
 exports[`parse root level ;; 1`] = `[]`;
 
 exports[`parse simple alias 1`] = `

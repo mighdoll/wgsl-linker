@@ -1,4 +1,4 @@
-import { or, repeat, _withBaseLogger } from "mini-parse";
+import { _withBaseLogger, or, repeat } from "mini-parse";
 import { expectNoLogErr, logCatch } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
@@ -10,7 +10,7 @@ import {
   globalVar,
   parseWgslD,
   structDecl,
-  typeSpecifier
+  typeSpecifier,
 } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
 
@@ -115,7 +115,7 @@ test("parse @compute @workgroup_size(a, b, 1) before fn", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("parse and ignore global diagnostic", () => {
+test("parse global diagnostic", () => {
   const src = `
     diagnostic(off,derivative_uniformity);
 
