@@ -251,7 +251,7 @@ function runParser<T>(
 
   // check for infinite looping
   context._parseCount = _parseCount + 1;
-  // TODO counting tokens isn't so great to check for infinite looping. Possibly a count per parser per src position?
+  // LATER counting tokens isn't so great to check for infinite looping. Possibly a count per parser per src position?
   if (maxParseCount && _parseCount > maxParseCount) {
     srcLog(lexer.src, lexer.position(), "infinite loop? ", p.debugName);
     return null;

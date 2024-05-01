@@ -62,7 +62,7 @@ const globalDirectiveOrAssert = seq(
   req(anyThrough(";"))
 ).map((r) => {
   const e = makeElem<GlobalDirectiveElem>("globalDirective", r);
-  r.app.state.push(e); 
+  r.app.state.push(e);
 });
 
 /** parse an identifier into a TypeNameElem */
@@ -229,6 +229,7 @@ export function parseWgslD(
   src: string,
   srcMap?: SrcMap,
   params: Record<string, any> = {},
+  maxParseCount: number | undefined = undefined,
   grammar = root
 ): AbstractElem[] {
   const lexer = matchingLexer(src, mainTokens);
@@ -242,7 +243,7 @@ export function parseWgslD(
     lexer,
     app,
     srcMap,
-    maxParseCount: 50000,
+    maxParseCount,
   };
 
   grammar.parse(init);
