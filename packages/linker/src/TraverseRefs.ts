@@ -203,9 +203,7 @@ function elemTypeRefs(
     // struct
     typeRefs = elem.members?.flatMap((m) => m.typeRefs) || [];
   }
-  const userTypeRefs = typeRefs.filter(
-    (ref) => !stdType(ref.name) && ref.name !== elem.name // TODO is this needed? (recursion is not allowed in wgsl..)
-  );
+  const userTypeRefs = typeRefs.filter((ref) => !stdType(ref.name));
   return userTypeRefs;
 }
 

@@ -382,6 +382,7 @@ test("traverse skips built in fn and type", () => {
 });
 
 test("type inside fn with same name as fn", () => {
+  // this will fail wgsl compilation, but as long as it doesn't hang the linker, we're ok
   const src = `
     fn foo() {
       let a:foo;
@@ -389,8 +390,8 @@ test("type inside fn with same name as fn", () => {
     fn bar() {}
   `;
   const { refs, log } = traverseWithLog(src);
-  expect(refs).is.empty;
   expect(log).is.empty;
+  expect(refs).length(1);
 });
 
 test("call inside fn with same name as fn", () => {
