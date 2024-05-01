@@ -190,11 +190,11 @@ function elemRefs(
   return [...fnRefs, ...tRefs, ...mergeRefs];
 }
 
-function elemTypeRefs(elem: FnElem | StructElem | VarElem): TypeRefElem[] {
+function elemTypeRefs(elem: FnElem | StructElem | VarElem | AliasElem): TypeRefElem[] {
   let typeRefs: TypeRefElem[];
-  if (elem.kind === "fn" || elem.kind === "var") {
+  if (elem.kind === "fn" || elem.kind === "var" || elem.kind === "alias") {
     typeRefs = elem.typeRefs;
-  } else {
+  } else { // struct
     typeRefs = elem.members?.flatMap((m) => m.typeRefs) || [];
   }
   const userTypeRefs = typeRefs.filter(
