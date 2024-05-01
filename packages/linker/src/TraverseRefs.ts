@@ -95,9 +95,9 @@ export function traverseRefs(
   fn: (ref: FoundRef) => boolean,
   skipSrcRefs = false
 ): void {
-  const { fns, structs, vars } = srcModule;
+  const { aliases, fns, structs, vars } = srcModule;
   const expMod = srcModule;
-  const srcRefs: TextRef[] = [...structs, ...vars, ...fns].map((elem) => ({
+  const srcRefs: TextRef[] = [...structs, ...vars, ...fns, ...aliases].map((elem) => ({
     kind: "txt",
     proposedName: elem.name,
     expMod,
