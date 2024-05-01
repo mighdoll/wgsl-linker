@@ -18,7 +18,7 @@ import {
   refName,
   traverseRefs,
 } from "./TraverseRefs.js";
-import { mapForward, partition, replaceWords } from "./Util.js";
+import { partition, replaceWords } from "./Util.js";
 
 type DirectiveRef = {
   kind: "dir";
@@ -212,7 +212,7 @@ function partitionRefTypes(refs: FoundRef[]): RefTypes {
   };
 }
 
-/** construct DirectiveRefs for from globalDirective elements 
+/** construct DirectiveRefs for from globalDirective elements
  * (so that we can use the standard extract path to copy them to the linked output) */
 function globalDirectiveRefs(srcModule: TextModule): DirectiveRef[] {
   const directiveRefs = srcModule.globalDirectives.map((e) =>
@@ -256,8 +256,7 @@ function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
   const { extParams } = rewriting;
 
   const fnName = ref.rename ?? ref.proposedName ?? ref.name;
-  const expImpEntries = refExpImp(ref, extParams);
-  const params = expImpToParams(expImpEntries, extParams);
+  const params = refExpImp(ref, extParams);
 
   const text = genExp?.generate(fnName, params);
   return text;
@@ -333,9 +332,9 @@ function loadMemberText(
 function refExpImp(
   ref: FoundRef,
   extParams: Record<string, string>
-): [string, string][] {
+): Record<string, string> {
   const expImp = ref.expInfo?.expImpArgs ?? [];
-  return expImp.map(([exp, imp]) => {
+  const entries = expImp.map(([exp, imp]) => {
     if (imp.startsWith("ext.")) {
       const value = extParams[imp.slice(4)];
       if (value) return [exp, value];
@@ -344,6 +343,7 @@ function refExpImp(
     }
     return [exp, imp];
   });
+  return Object.fromEntries(entries);
 }
 
 function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
@@ -383,8 +383,7 @@ function applyExpImp(
 ): string {
   const { extParams } = rewriting;
 
-  const replaces = ref.kind === "txt" ? refExpImp(ref, extParams) : [];
-  const params = expImpToParams(replaces, extParams);
+  const params = ref.kind === "txt" ? refExpImp(ref, extParams) : {};
   return replaceWords(src, params);
 }
 
@@ -398,13 +397,4 @@ function typeRefSlices(typeRefs: TypeRefElem[]): SliceReplace[] {
     }
   });
   return slicing;
-}
-
-function expImpToParams(
-  expImpEntries: [string, string][],
-  extParams: Record<string, string>
-): Record<string, string> {
-  const expImp = Object.fromEntries(expImpEntries);
-  const expImpExt = mapForward(expImp, extParams);
-  return { ...expImpExt };
 }

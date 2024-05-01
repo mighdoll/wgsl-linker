@@ -792,10 +792,8 @@ test("#import twice with different params", () => {
   expect(linked).includes("fn foo() { /* A */ }");
 });
 
-test("external param applied to template", () => {
+test("external param w/o ext. prefix doesn't override imp/exp params", () => {
   const module1 = `
-    #template replace
-
     #export(threads)
     fn foo() {
       for (var step = 0; step < threads; step++) { 
@@ -812,10 +810,10 @@ test("external param applied to template", () => {
   `;
   const registry = new ModuleRegistry({
     rawWgsl: [module1, src],
-    templates: [replaceTemplate],
   });
   const linked = registry.link("main", { workgroupThreads: 128 });
-  expect(linked).includes("step < 128");
+  expect(linked).not.includes("step < 128");
+  expect(linked).includes("step < workgroupThreads");
 });
 
 test("warn on missing template", () => {

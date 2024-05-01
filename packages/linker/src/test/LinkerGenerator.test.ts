@@ -94,7 +94,7 @@ test("#import conficted code gen fn", () => {
 
 test("external param applied to generator", () => {
   const src = `
-    #import foo(workgroupThreads)
+    #import foo(ext.workgroupThreads)
 
     fn main() {
       foo();
