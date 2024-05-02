@@ -62,7 +62,7 @@ export function linkWgslModule(
 }
 
 /** find references to structs and fns we might import
- * (note that local functions are not listed unless they */
+ * (note that local functions are not listed unless they are referenced) */
 function findReferences(
   srcModule: TextModule,
   registry: ModuleRegistry
