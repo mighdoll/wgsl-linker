@@ -23,6 +23,8 @@ A simple demo of the **wgsl-linker** is available [on StackBlitz](https://stackb
     ```
     #import workgroupReduce(Histogram) as reduceHistogram
     ```
+  - You can import a function twice with different parameters.
+
 - **#if** &ensp; **#else** &ensp; **#endif** &emsp; _Compile differently depending on runtime variables_
 
   - Preprocessing works on full lines, similarly to languages like C.
@@ -54,7 +56,7 @@ A simple demo of the **wgsl-linker** is available [on StackBlitz](https://stackb
 
   - Choose different wgsl modules depending on runtime reported detected gpu features, or based on user application settings.
   - Keep integration into web development easy - no need to add any new steps into your build process or IDE.
-  - To enable runtime linking, **wgsl-linker** is small, currently about 10kb (compressed).
+  - To enable runtime linking, **wgsl-linker** is small, Currently about 10kb (compressed).
 
 - **Code generation**
   - Typically it's best to write static wgsl,
@@ -99,14 +101,11 @@ struct MyStruct {
 
 ### Main API
 
-`new ModuleRegistry({wgsl, templates?, generators?, conditions?})` - register wgsl files for later linking.
+`new ModuleRegistry({wgsl, templates?, generators?})` - register wgsl source, wgsl code generators, and wgsl template engines, for use later linking.
 
-- `conditions` - set variables for conditional compilation
-- `templates` - register string templating to that use additional text transformation.
-- `generators` - register code generating functions
-
-`registry.link("main", runtimeParams?)` - process wgsl extensions, merge in imports,
-producing a raw wgsl string suitable for WebGPU's `createShaderModule`.
+`registry.link("main", runtimeParams?)` - preprocess wgsl, apply templates, 
+merge imported code. 
+The result is a raw wgsl string suitable for WebGPU's `createShaderModule`.
 
 ### API Example
 
@@ -119,7 +118,7 @@ const wgsl = import.meta.glob("./shaders/*.wgsl", {
 });
 
 // register the linkable exports
-const registry = new ModuleRegistry({ wgsl, conditions: { DEBUG: true} });
+const registry = new ModuleRegistry({ wgsl });
 
 // link my main shader wgsl with imported modules,
 // using the provided variables for import parameters or string templates
@@ -187,17 +186,8 @@ of exported text in this module.
 The template function is passed any import parameters,
 and runs prior to #export parameter string replacement.
 
-- Two example template engines are published in `wgsl-linker/templates`:
-
-- `"simple"` - replaces strings with values provided by a runtime dictionary.
-- `"replacer"` - provides a **// #replace** directive for specifiying string
-  replacement in comments.
-  This allows for templating while keeping syntax compability with wgsl.
-  Replacements are of the form `srcText=runtimeVariable`.
-
-  ```
-  for (let i = 0; i < 4; i++) { // #replace "4"=workgroupSize
-  ```
+- One example template engine is published in `wgsl-linker/templates`
+- `#template simple` - replaces strings with values provided by a runtime dictionary.
 
 #### Module
 
@@ -226,35 +216,22 @@ You can also load `.wgsl` files individually with your favorite bundler:
 
 ### Known Limitations
 
-- fn/struct renaming currently uses text find and replace in the module,
-  so avoid aliasing global names for now. e.g. don't have a
-  `fn foo` and also a variable named `foo` in the same module.
-  In the future, replacing text replacement with a lightweight
-  wgsl parser should fix this. (This is underway)
-
-- Importing the same function twice with different parameters doesn't work yet.
-
 - Static typechecking is possible with some effort (e.g. put declaration
   statements for typechecking inside a clause that's removed by #if -
   visible for typechecking but removed before compilation). But
   extending `wgsl-analyzer` to typecheck imports would be much better.
 
-- wgsl global variables are not yet linked.
-
-- wgsl alias statements are not yet used in linking.
+- wgsl global variables, aliases, and wgsl directives from outside the main module 
+are not linked in to the final result.
 
 - non-ascii wgsl identifiers aren't yet supported.
 
 ### Future Work
 
-- Wrapping the linker into a command line tool to run the linker at build time
-  rather than at runtime would be useful in some situations when the
-  environment is static and code size is constrained.
-
 - It'd be fun to publish wgsl modules as esm modules aka glslify.
 
-- An internal mapping shows linker parsing errors in the original
-  source locations even if the source has been rewritten by **#if #else #endif**.
-  Wgsl compilation compile errors from the browser could also be mapped to
-  the original unliked source modules by passing a [Source Map](https://sourcemaps.info/spec.html)
-  to WebGPU's `createShaderModule()`.
+- The linker shows _linking errors_ in the original unlinked
+  source locations even if the source has been rewritten by preprocessing.
+  It would be nice to report WebGPU _shader compilation errors_
+  in the original unlinked sources as well by mapping WebGPU reported errors
+  through the linker's internal source maps.
