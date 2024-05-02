@@ -3,6 +3,10 @@
 exports[`traverse importing from a support fn 1`] = `
 [
   {
+    "args": undefined,
+    "name": "main",
+  },
+  {
     "args": [
       [
         "C",

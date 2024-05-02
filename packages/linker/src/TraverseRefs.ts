@@ -94,8 +94,7 @@ export interface TextRef extends FoundRefBase {
 export function traverseRefs(
   srcModule: TextModule,
   registry: ModuleRegistry,
-  fn: (ref: FoundRef) => boolean,
-  skipSrcRefs = false
+  fn: (ref: FoundRef) => boolean
 ): void {
   const { aliases, fns, structs, vars } = srcModule;
   const expMod = srcModule;
@@ -108,7 +107,7 @@ export function traverseRefs(
     })
   );
   // srcRefs.forEach(r => printRef(r, "traverseRefs.src"))
-  if (!skipSrcRefs) srcRefs.forEach((ref) => fn(ref));
+  srcRefs.forEach((ref) => fn(ref));
   if (!srcRefs.length) return;
 
   // recurse on the external refs from the src root elements
