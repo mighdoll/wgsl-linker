@@ -128,7 +128,7 @@ const code = registry.link("main", { WorkgroupSize: 128 });
 device.createShaderModule({ code });
 ```
 
-## Command Line Linking
+### Command Line Linking
 
 The linker is also packaged as a command line tool.
 See [wgsl-link](https://www.npmjs.com/package/wgsl-link).
