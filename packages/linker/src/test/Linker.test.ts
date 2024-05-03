@@ -904,3 +904,20 @@ test("traverse two calls to renamed fn", () => {
   expect(linked).includes( "conflicted0(0)");
   expect(linked).includes( "conflicted0(1)");
 });
+
+test("import twice with two as names", () => {
+  const src = `
+    #module main
+    #import foo as bar
+    #import foo as zap
+
+    fn main() { bar(); zap(); }
+    fn conflicted() { }
+  `;
+  const module1 = `
+    #export
+    fn foo() { }
+  `
+  const linked = linkWgslTest(src, module1);
+  expect(linked).includes( "fn main() { bar(); bar(); }");
+})
