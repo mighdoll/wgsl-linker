@@ -1,10 +1,29 @@
 ## wgsl-linker
 
-**wgsl-linker** enriches the wgsl shader language to support linking.
+**wgsl-linker** enriches the WGSL shader language to support linking code modules via #import and #export statements.
 Linking can be done entirely at runtime.
 
-The **wgsl-linker** also supports struct inheritance,
-conditional compilation, pluggable templating and code generation.
+For those in the JavaScript/Typescript world, think 'bundling'. 
+The **wgsl-linker** is a module bundler for WGSL.
+
+As with other programming languages, 
+module linking becomes useful when your WGSL code grows
+large enough to be split into separate reusable files (aka modules).
+Linking integrates the code modules together while solving for:
+* renaming - Two functions with the same name? 
+The linker will rename one of them, and all the calls to the renamed function.
+* deduplication - Two modules import the same function? You get only one copy.
+* recursion - Importing a function that references another import? You get all references, recursively.
+* dead code - Importing a function from a big module? 
+You get only that function and its references, not the whole file.
+
+In addition to linking, the **wgsl-linker** adds some other features useful 
+as your WGSL code scales in size and complexity:
+* struct inheritance
+* `#import` parameters for generic programming
+* conditional compilation `#if #else #endif`
+* templating for runtime code rewriting
+* transparent #imports from code generation
 
 A simple demo of the **wgsl-linker** is available [on StackBlitz](https://stackblitz.com/~/github.com/mighdoll/wgsl-linker-rand-example).
 
@@ -101,7 +120,7 @@ struct MyStruct {
 
 ### Main API
 
-`new ModuleRegistry({wgsl, templates?, generators?})` - register wgsl source, wgsl code generators, and wgsl template engines, for use later linking.
+`new ModuleRegistry({wgsl, templates?, generators?})` - register wgsl source, wgsl code generators, and wgsl template engines.
 
 `registry.link("main", runtimeParams?)` - preprocess wgsl, apply templates, 
 merge imported code. 
@@ -127,11 +146,6 @@ const code = registry.link("main", { WorkgroupSize: 128 });
 // pass the linked wgsl to WebGPU as normal
 device.createShaderModule({ code });
 ```
-
-### Command Line Linking
-
-The linker is also packaged as a command line tool.
-See [wgsl-link](https://www.npmjs.com/package/wgsl-link).
 
 ### WGSL Syntax extensions
 
@@ -201,7 +215,7 @@ future conflicts with other packages modules.
 You can simply put your wgsl modules in strings in your TypeScript/JavaScript source
 if you'd like.
 
-The easiest way to load all the `.wgsl` files at once is to use your
+For runtime linking, the easiest way to load all the `.wgsl` files at once is to use your
 bundler's glob import mechanism:
 
 - Vite: [import.meta.glob](https://vitejs.dev/guide/features#glob-import)
@@ -214,15 +228,34 @@ You can also load `.wgsl` files individually with your favorite bundler:
 - Webpack: [Source Assets](https://webpack.js.org/guides/asset-modules/).
 - Rollup: [rollup-plugin-string](https://github.com/TrySound/rollup-plugin-string)
 
+#### Command Line Linking
+
+The linker is also packaged as a command line tool if you'd like to link at build time
+rather than at runtime.
+
+By linking at build time, 
+you can save about 10kb of bundled code size
+and shave a few milliseconds of shader linking time.
+
+The main disadvantage of linking at build time is that you can't detect the runtime
+environment to customize the shader code for a particular GPU. 
+(You'll also need to complicate your build process slightly to support a wgsl linker stage before javascript bundling.) 
+
+If you want to get fancy for speed but aren't squeezed for size, 
+you could build time link and bundle for several common GPU configurations. 
+Then select the appropiate version or fallback at runtime.
+
+See [wgsl-link](https://www.npmjs.com/package/wgsl-link).
+
 ### Known Limitations
 
-- Static typechecking is possible with some effort (e.g. put declaration
-  statements for typechecking inside a clause that's removed by #if -
-  visible for typechecking but removed before compilation). But
-  extending `wgsl-analyzer` to typecheck imports would be much better.
+- Static typechecking is possible with some effort 
+  (typically by manualy adding placeholder declarations
+  inside an `#if typecheck` clause). 
+  But extending `wgsl-analyzer` to typecheck imports would be much better.
 
-- wgsl global variables, aliases, and wgsl directives from outside the main module 
-are not linked in to the final result.
+- wgsl global variables, aliases, and wgsl directives from outside 
+  the main module are not linked in to the final result.
 
 - non-ascii wgsl identifiers aren't yet supported.
 
@@ -230,8 +263,8 @@ are not linked in to the final result.
 
 - It'd be fun to publish wgsl modules as esm modules aka glslify.
 
-- The linker shows _linking errors_ in the original unlinked
+- The linker shows _linking errors_ from wgsl-linker in the original unlinked
   source locations even if the source has been rewritten by preprocessing.
-  It would be nice to report WebGPU _shader compilation errors_
-  in the original unlinked sources as well by mapping WebGPU reported errors
+  It would be nice to also report WebGPU _shader compilation errors_
+  in the original unlinked sources by mapping WebGPU reported errors
   through the linker's internal source maps.
