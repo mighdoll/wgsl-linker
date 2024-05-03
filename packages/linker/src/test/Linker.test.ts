@@ -881,3 +881,26 @@ test("copy diagnostics to output", () => {
   const linked = linkWgslTest(src);
   expect(linked).toContain("diagnostic(off,derivative_uniformity);");
 });
+
+test("traverse two calls to renamed fn", () => {
+  const src = `
+    #module main
+    #import foo
+
+    fn main() { foo(); }
+    fn conflicted() { }
+  `;
+  const module1 = `
+    #export
+    fn foo() {
+      conflicted(0);
+      conflicted(1);
+    }
+    fn conflicted(a:i32) {}
+  `
+  const linked = linkWgslTest(src, module1);
+  expect(linked).includes( "fn conflicted(");
+  expect(linked).includes( "conflicted()");
+  expect(linked).includes( "conflicted0(0)");
+  expect(linked).includes( "conflicted0(1)");
+});
