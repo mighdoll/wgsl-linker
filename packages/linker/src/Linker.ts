@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AliasElem,
   FnElem,
@@ -46,8 +47,6 @@ export function linkWgslModule(
   runtimeParams: Record<string, any> = {}
 ): string {
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
-  const decls = new Set<string>();
-  uniquify(refs, decls); // add rename fields to make struct and fn names unique at the top level
 
   // mix the merge refs into the import/export refs
   const loadRefs = prepRefsMergeAndLoad(refs);
@@ -61,25 +60,73 @@ export function linkWgslModule(
   return extractTexts(extractRefs, rewriting);
 }
 
-/** find references to structs and fns we might import
- * (note that local functions are not listed unless they are referenced) */
-function findReferences(
+/** Find references to structs and fns we might import into the linked result
+ * (note that local functions are not listed unless they are referenced)
+ *
+ * Adds rename links to the discovered references
+ */
+export function findReferences(
   srcModule: TextModule,
   registry: ModuleRegistry
 ): FoundRef[] {
-  const visited = new Set<string>();
-  const found: FoundRef[] = [];
+  const visited = new Map<string, string>();
+  const found: FoundRef[] = []; // reference to unique elements to add to the linked result
+  const rootNames = new Set<string>();
+
   traverseRefs(srcModule, registry, handleRef);
-
-  function handleRef(ref: FoundRef): boolean {
-    const fullName = refFullName(ref);
-    if (visited.has(fullName)) return false;
-
-    found.push(ref);
-    visited.add(fullName);
-    return true;
-  }
   return found;
+
+  /** 
+   * process one reference found by the reference traversal
+   * 
+   * set any renaming necessary for 'import as' or global uniqueness.
+   * 
+   * @returns true if the reference is new and so 
+    * the traverse should continue to recurse.
+  */
+  function handleRef(ref: FoundRef): boolean {
+    let continueTraverse = false;
+
+    const fullName = refFullName(ref);
+    let linkName = visited.get(fullName);
+    if (!linkName) {
+      linkName = uniquifyName(ref.proposedName, rootNames);
+      visited.set(fullName, linkName);
+      rootNames.add(linkName);
+      found.push(ref);
+      continueTraverse = true;
+    }
+
+    // mutate the rename field in the ref if appropriate
+    if (refName(ref) !== linkName) {
+      if (ref.rename) console.error("rename already?", ref.rename, linkName);
+      ref.rename = linkName;
+    }
+
+    return continueTraverse;
+  }
+}
+
+/**
+ * Calculate a unique name for a top level element like a struct or fn.
+ * @param proposedName 
+ * @param rootNames 
+ * @returns the unique name (which may be the proposed name if it's so far unique)
+ */
+function uniquifyName(
+  /** proposed name for this fn in the linked results (e.g. import as name) */
+  proposedName: string,
+  rootNames: Set<string>
+): string {
+  let renamed = proposedName;
+  let conflicts = 0;
+
+  // create a unique name
+  while (rootNames.has(renamed)) {
+    renamed = proposedName + conflicts++;
+  }
+
+  return renamed;
 }
 
 /**
@@ -93,52 +140,6 @@ function refFullName(ref: FoundRef): string {
   const impArgs = expImpArgs.map(([, arg]) => arg);
   const argsStr = "(" + impArgs.join(",") + ")";
   return ref.expMod.name + "." + refName(ref) + argsStr;
-}
-
-/**
- * Calculate rename entries so that all the found top level elements
- * will have unique, non conflicting names.
- *
- * @param declaredNames update global list of root declarations visible in the linked src
- */
-function uniquify(refs: FoundRef[], declaredNames: Set<string>): void {
-  /** number of conflicting names, used as a unique suffix for deconflicting */
-  let conflicts = 0;
-
-  /** Renames per module.
-   * In the importing module the key is the 'as' name, the value is the linked name
-   * In the export module the key is the export name, the value is the linked name
-   */
-
-  refs.forEach((r) => {
-    // name we'll actually use in the linked result
-    const linkName = uniquifyName(r.proposedName);
-
-    declaredNames.add(linkName);
-
-    // record rename for this import in the reference link
-    if (linkName !== refName(r)) {
-      if (r.rename) {
-        console.error("unexpected: rename already exists", r.rename, linkName);
-      }
-      r.rename = linkName;
-    }
-  });
-
-  function uniquifyName(
-    /** proposed name for this fn in the linked results (e.g. import as name) */
-    proposedName: string
-  ): string {
-    let renamed = proposedName;
-    if (declaredNames.has(proposedName)) {
-      // create a unique name
-      while (declaredNames.has(renamed)) {
-        renamed = renamed + conflicts++;
-      }
-    }
-
-    return renamed;
-  }
 }
 
 /**
