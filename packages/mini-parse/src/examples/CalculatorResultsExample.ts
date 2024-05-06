@@ -24,7 +24,7 @@ const value = or(
 
 export const power = seq(
   value.named("base"),
-  opt(seq("^", value.named("exp")))
+  opt(seq("^", value.named("exp"))) // TODO power
 ).map((r) => {
   const { base, exp } = r.named;
   return exp ? base[0] ** exp[0] : base[0];
