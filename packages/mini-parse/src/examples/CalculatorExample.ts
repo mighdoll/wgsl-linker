@@ -8,7 +8,7 @@ export const calcTokens = tokenMatcher({
   ws: /\s+/,
   mulDiv: matchOneOf("* /"),
   plusMinus: matchOneOf("+ -"),
-  symbol: matchOneOf("( ) ^")
+  symbol: matchOneOf("( ) ^"),
 });
 
 export const num       = kind(calcTokens.number); // prettier-ignore
@@ -25,11 +25,11 @@ let expr: Parser<any> = null as any; // help TS with forward reference
     Value   ← [0-9]+ / '(' Expr ')'
 */
 
-const value    = or(num, seq("(", fn(() => expr), ")")); // prettier-ignore
-const power    = seq(value, opt(seq("^", value))); // prettier-ignore
-const product  = seq(power, repeat(seq(mulDiv, power))); // prettier-ignore
-const sum      = seq(product, repeat(seq(plusMinus, product))); // prettier-ignore
-/* */ expr     = sum; // prettier-ignore
+const value     = or(num, seq("(", expr, ")")); // prettier-ignore
+const power:any = seq(value, opt(seq("^", () => power))); // prettier-ignore
+const product   = seq(power, repeat(seq(mulDiv, power))); // prettier-ignore
+const sum       = seq(product, repeat(seq(plusMinus, product))); // prettier-ignore
+/* */ expr      = sum; // prettier-ignore
 
 export const statement = repeat(expr);
 
@@ -39,7 +39,7 @@ if (tracing) {
     power,
     product,
     sum,
-    expr
+    expr,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
