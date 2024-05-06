@@ -23,7 +23,7 @@ export function srcTrace(
   logInternal(parserLog, src, pos, ...msgs);
 }
 
-export function resultLog<T>(result: ExtendedResult<T>, ...msgs: any[]): void {
+export function resultLog(result: ExtendedResult<any, any>, ...msgs: any[]): void {
   const { src, srcMap, start, end } = result;
   srcLog(srcMap ?? src, [start, end - 1], ...msgs);
 }
