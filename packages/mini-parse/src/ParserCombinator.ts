@@ -1,3 +1,4 @@
+import { T } from "vitest/dist/reporters-P7C2ytIv.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -44,7 +45,7 @@ export class ParseError extends Error {
 }
 
 /** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
-export type CombinatorArg<T, N extends NameRecord> =
+export type CombinatorArg<T, N extends NameRecord = NoNameRecord> =
   | Parser<T, N>
   | string
   | (() => Parser<T, N>);
@@ -160,6 +161,15 @@ export function or(...stages: CombinatorArg<any>[]): Parser<any> {
     }
     return null;
   });
+}
+
+type ParserResult<T> = T extends Parser<infer R, any> ? R : never;
+type ParserNameRecord<T> = T extends Parser<any, infer N> ? N : never;
+
+export function seq2<P extends Parser<any, NameRecord>[]> (
+  ...args:P
+): ParserResult<P> {
+  return null as any;
 }
 
 /** Parse a sequence of parsers

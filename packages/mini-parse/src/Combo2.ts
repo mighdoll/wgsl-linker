@@ -72,9 +72,17 @@ function seq<Ts extends Combo<any, Record<string, any>>[]>(
   return a as any;
 }
 
+function s2<Ts extends Combo<any, Record<string, any>>[]>(
+  ...a: Ts 
+):ExtractObject<Ts[number]> {
+  return null as any;
+}
+
+
 export function test(): void {
   const a = new Combo(1).named("A");
   const b = new Combo("foo").named("B");
+  const xx = s2(a,b);
 
   // const zz = ff(a,b);
   const av: number = a.value;
