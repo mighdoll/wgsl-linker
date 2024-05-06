@@ -62,8 +62,9 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 //  which is equivalent to what we want:
 //      {A:number, B:string, ...}
 
-function seq<Ts extends Array<Combo<any, Record<string, any>>>>(
-  ...a: Ts
+function seq<Ts extends Combo<any, Record<string, any>>[]>(
+  // ...a: Ts  // both variants work
+  ...a: [...Ts]
 ): Combo<
   { [key in keyof Ts]: ExtractValue<Ts[key]> },
   UnionToIntersection<ExtractObject<Ts[number]>>
