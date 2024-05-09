@@ -193,74 +193,27 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never;
 
-type ParserNameRecord<T> = T extends Parser<any, infer N> ? N : never;
-type AnyParser = Parser<any, NameRecord>;
-type InferRecord<T> = T extends Record<infer A, infer B> ? Record<A, B> : never;
-type InferRecord2<T> = T extends Record<infer A, any> ? Record<A, T[A]> : never;
-type InferRecord3<T> = { [A in keyof T]: T[A] };
+type InferRecord<T> = { [A in keyof T]: T[A] };
 
-type InferRecordKey<T> =
-  T extends Record<infer A, any> ? Record<A, any> : never;
-type InferRecordValue<T> =
-  T extends Record<any, infer A> ? Record<any, A> : never;
-
-// export function seq2<P extends CombinatorArg<any>[]>(
-//   ...args: P
-// ):
-//   UnionToIntersection<ParserNamesFromArg<P[number]>>
-//  {
-//   return null as any;
-// }
 
 type SeqValues<P extends Parser<any, Record<string, any>>[]> = {
   [key in keyof P]: ParserResultFromArg<P[key]>;
 };
 
-type SeqNames<P extends Parser<any, Record<string, any>>[]> = InferRecord3<
-  UnionToIntersection<ParserNamesFromArg<P[number]>>
->;
-
-type SeqValues2<P extends Parser2<any, Record<string, any>>[]> = {
-  [key in keyof P]: ParserResultFromArg<P[key]>;
-};
-
-type SeqNames2<P extends Parser2<any, Record<string, any>>[]> = InferRecord3<
+type SeqNames<P extends Parser<any, Record<string, any>>[]> = InferRecord<
   UnionToIntersection<ParserNamesFromArg<P[number]>>
 >;
 
 type VerifyRecord<T extends Record<string, any>> = T;
 
-// this works
-export function s3<P extends Parser<any, Record<string, any>>[]>(
-  ...args: P
-): VerifyRecord<SeqNames<P>> {
-  return 0 as any;
-}
 
-const x = s3(kind("foo").named("A"), kind("bar").named("B"));
-const v: { A: string; B: string } = x;
-
-class Parser2<V, N extends Record<string | symbol, any>> {
-  named<K extends string>(name: K): Parser2<V, N & { [key in K]: V }> {
-    return this as any;
-  }
-}
-
-export function seq2<P extends Parser2<any, any>[]>(
-  ...args: P
-): Parser2<SeqValues2<P>, SeqNames2<P>> {
-  return 0 as any;
-}
-
-const p2: Parser2<string, { FF: string }> = seq2(kind("foo").named("FF"));
-
-export function seq3<P extends Parser<any, NameRecord>[]>(
+export function seq<P extends Parser<any, NameRecord>[]>(
   ...args: P
 ): Parser<SeqValues<P>, SeqNames<P>> {
   return 0 as any;
 }
 
-const p3: Parser<[string], { FF: string[] }> = seq3(kind("foo").named("FF"));
+const p3: Parser<[string], { FF: string[] }> = seq(kind("foo").named("FF"));
 
 p3.map((r) => {
   r.named.FF;
@@ -282,63 +235,63 @@ o2.map((r) => {
   r.named.x; // should fail typechecking
 });
 
-/** Parse a sequence of parsers
- * @return an array of all parsed results, or null if any parser fails */
-export function seq<A = string>(a: CombinatorArg<A>): Parser<[A]>;
-export function seq<A = string, B = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>
-): Parser<[A, B]>;
-export function seq<A = string, B = string, C = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>
-): Parser<[A, B, C]>;
-export function seq<A = string, B = string, C = string, D = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>
-): Parser<[A, B, C, D]>;
-export function seq<A = string, B = string, C = string, D = string, E = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>,
-  e: CombinatorArg<E>
-): Parser<[A, B, C, D, E]>;
-export function seq<
-  A = string,
-  B = string,
-  C = string,
-  D = string,
-  E = string,
-  F = string,
->(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>,
-  e: CombinatorArg<E>,
-  f: CombinatorArg<F>
-): Parser<[A, B, C, D, E, F]>;
-export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
-export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
-  const parsers = stages.map(parserArg);
+// /** Parse a sequence of parsers
+//  * @return an array of all parsed results, or null if any parser fails */
+// export function seq<A = string>(a: CombinatorArg<A>): Parser<[A]>;
+// export function seq<A = string, B = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>
+// ): Parser<[A, B]>;
+// export function seq<A = string, B = string, C = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>
+// ): Parser<[A, B, C]>;
+// export function seq<A = string, B = string, C = string, D = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>
+// ): Parser<[A, B, C, D]>;
+// export function seq<A = string, B = string, C = string, D = string, E = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>,
+//   e: CombinatorArg<E>
+// ): Parser<[A, B, C, D, E]>;
+// export function seq<
+//   A = string,
+//   B = string,
+//   C = string,
+//   D = string,
+//   E = string,
+//   F = string,
+// >(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>,
+//   e: CombinatorArg<E>,
+//   f: CombinatorArg<F>
+// ): Parser<[A, B, C, D, E, F]>;
+// export function seq(...stages: CombinatorArg<any>[]): Parser<any[]>;
+// export function seq(...stages: CombinatorArg<any>[]): Parser<any[]> {
+//   const parsers = stages.map(parserArg);
 
-  return parser("seq", (ctx: ParserContext) => {
-    const values = [];
-    let namedResults = {};
-    for (const p of parsers) {
-      const result = p._run(ctx);
-      if (result === null) return null;
+//   return parser("seq", (ctx: ParserContext) => {
+//     const values = [];
+//     let namedResults = {};
+//     for (const p of parsers) {
+//       const result = p._run(ctx);
+//       if (result === null) return null;
 
-      namedResults = mergeNamed(namedResults, result.named);
-      values.push(result.value);
-    }
-    return { value: values, named: namedResults };
-  });
-}
+//       namedResults = mergeNamed(namedResults, result.named);
+//       values.push(result.value);
+//     }
+//     return { value: values, named: namedResults };
+//   });
+// }
 
 /** Try a parser.
  *
