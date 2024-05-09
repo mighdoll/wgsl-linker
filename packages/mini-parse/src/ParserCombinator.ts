@@ -118,10 +118,14 @@ export function seq<P extends (Parser<any, NameRecord> | string)[]>(
   return 0 as any;
 }
 
-const p3: Parser<[string], { FF: string[] }> = seq(kind("foo").named("FF"));
+const p3: Parser<[string, string], { FF: string[]; BB: string[] }> = seq(
+  kind("foo").named("FF"),
+  kind("bar").named("BB")
+);
 
 p3.map((r) => {
   r.named.FF;
+  r.named.BB;
   r.named.XX; // should fail typechecking
 });
 
