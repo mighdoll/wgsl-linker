@@ -1,4 +1,5 @@
-import { T } from "vitest/dist/reporters-P7C2ytIv.js";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -8,7 +9,6 @@ import {
   Parser,
   parser,
   ParserContext,
-  ParserResult,
   runExtended,
   simpleParser,
   tokenSkipSet,
@@ -152,25 +152,135 @@ export function or<
 ): Parser<A | B | C | D | E | F | G | H>;
 export function or(...stages: CombinatorArg<any>[]): Parser<any> {
   const parsers = stages.map(parserArg);
-  return parser("or", (state: ParserContext): ParserResult<any, any> | null => {
-    for (const p of parsers) {
-      const result = p._run(state);
-      if (result !== null) {
-        return result;
+  return parser(
+    "or",
+    (state: ParserContext): ParserResultFromArg<any, any> | null => {
+      for (const p of parsers) {
+        const result = p._run(state);
+        if (result !== null) {
+          return result;
+        }
       }
+      return null;
     }
-    return null;
-  });
+  );
 }
 
-type ParserResult<T> = T extends Parser<infer R, any> ? R : never;
-type ParserNameRecord<T> = T extends Parser<any, infer N> ? N : never;
+/** Result type returned by a parser
+ * @param A is a CombinatorArg. (Either a Parser, a function returning a Parser, or string.)
+ */
+type ParserResultFromArg<A> =
+  A extends Parser<infer R, any>
+    ? R
+    : A extends string
+      ? string
+      : A extends () => Parser<infer R, any>
+        ? R
+        : never;
 
-export function seq2<P extends Parser<any, NameRecord>[]> (
-  ...args:P
-): ParserResult<P> {
+type ParserNamesFromArg<A> =
+  A extends Parser<any, infer R>
+    ? R
+    : A extends string
+      ? NoNameRecord
+      : A extends () => Parser<any, infer R>
+        ? R
+        : never;
+
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
+  ? I
+  : never;
+
+type ParserNameRecord<T> = T extends Parser<any, infer N> ? N : never;
+type AnyParser = Parser<any, NameRecord>;
+type InferRecord<T> = T extends Record<infer A, infer B> ? Record<A, B> : never;
+type InferRecord2<T> = T extends Record<infer A, any> ? Record<A, T[A]> : never;
+type InferRecord3<T> = { [A in keyof T]: T[A] };
+
+type InferRecordKey<T> =
+  T extends Record<infer A, any> ? Record<A, any> : never;
+type InferRecordValue<T> =
+  T extends Record<any, infer A> ? Record<any, A> : never;
+
+// export function seq2<P extends CombinatorArg<any>[]>(
+//   ...args: P
+// ):
+//   UnionToIntersection<ParserNamesFromArg<P[number]>>
+//  {
+//   return null as any;
+// }
+
+type SeqValues<P extends Parser<any, Record<string, any>>[]> = {
+  [key in keyof P]: ParserResultFromArg<P[key]>;
+};
+
+type SeqNames<P extends Parser<any, Record<string, any>>[]> = InferRecord3<
+  UnionToIntersection<ParserNamesFromArg<P[number]>>
+>;
+
+type SeqValues2<P extends Parser2<any, Record<string, any>>[]> = {
+  [key in keyof P]: ParserResultFromArg<P[key]>;
+};
+
+type SeqNames2<P extends Parser2<any, Record<string, any>>[]> = InferRecord3<
+  UnionToIntersection<ParserNamesFromArg<P[number]>>
+>;
+
+type VerifyRecord<T extends Record<string, any>> = T;
+
+// this works
+export function s3<P extends Parser<any, Record<string, any>>[]>(
+  ...args: P
+): VerifyRecord<SeqNames<P>> {
+  return 0 as any;
+}
+
+const x = s3(kind("foo").named("A"), kind("bar").named("B"));
+const v: { A: string; B: string } = x;
+
+class Parser2<V, N extends Record<string | symbol, any>> {
+  named<K extends string>(name: K): Parser2<V, N & { [key in K]: V }> {
+    return this as any;
+  }
+}
+
+export function seq2<P extends Parser2<any, any>[]>(
+  ...args: P
+): Parser2<SeqValues2<P>, SeqNames2<P>> {
+  return 0 as any;
+}
+
+const p2: Parser2<string, { FF: string }> = seq2(kind("foo").named("FF"));
+
+export function seq3<P extends Parser<any, NameRecord>[]>(
+  ...args: P
+): Parser<SeqValues<P>, SeqNames<P>> {
+  return 0 as any;
+}
+
+const p3: Parser<[string], { FF: string[] }> = seq3(kind("foo").named("FF"));
+
+p3.map((r) => {
+  r.named.FF;
+  r.named.XX; // should fail typechecking
+});
+
+export function or2<P extends CombinatorArg<any>[]>(
+  ...args: P
+): Parser<
+  { [key in keyof P]: ParserResultFromArg<P[key]> },
+  ParserNamesFromArg<P[number]>
+> {
   return null as any;
 }
+
+const o2 = or2(() => kind("f")).named("FX");
+o2.map((r) => {
+  r.named.FX;
+  r.named.x; // should fail typechecking
+});
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
@@ -364,7 +474,7 @@ export function req<T, N extends NameRecord>(
       ctxLog(ctx, msg ?? `expected ${p.debugName}`);
       throw new ParseError();
     }
-    return result as ParserResult<T | string, N>; // TODO rm cast? 
+    return result as ParserResultFromArg<T | string, N>; // TODO rm cast?
   });
 }
 
@@ -390,7 +500,7 @@ export function withSep<T, N extends NameRecord>(
   sep: CombinatorArg<any, NameRecord>,
   p: Parser<T, N>,
   opts: WithSepOptions = {}
-): Parser<T[], N> { 
+): Parser<T[], N> {
   const elem = Symbol();
   const { trailing = true, requireOne = false } = opts;
   const first = requireOne ? p : opt(p);

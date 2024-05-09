@@ -59,7 +59,7 @@ export interface ParserContext<A = any> {
   srcMap?: SrcMap;
 }
 
-export type NameRecord = Record<string | symbol, any[]>;
+export type NameRecord = Record<string | symbol, any>;
 export type NoNameRecord = Record<string | symbol, never>;
 
 /** Result from a parser */
@@ -158,9 +158,9 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
    * note that named results are collected into an array,
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
-  named<K extends string | symbol>(name: K): Parser<T, N & { [key in K]: T }> {
+  named<K extends string | symbol>(name: K): Parser<T, N & { [key in K]: T[] }> {
     const p = this._cloneWith({ resultName: name });
-    return p as Parser<T, N & { [key in K]: T }>;
+    return p as Parser<T, N & { [key in K]: T[] }>;
   }
 
   /** record a name for debug tracing */

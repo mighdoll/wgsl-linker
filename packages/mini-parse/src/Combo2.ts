@@ -1,4 +1,7 @@
-class Combo<V, N> {
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+
+class Combo<V, N extends Record<string, any[]> = Record<string, never>> {
   constructor(value: V) {}
 
   named<K extends string>(name: K): Combo<V, N & { [key in K]: V }> {
@@ -62,39 +65,58 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 //  which is equivalent to what we want:
 //      {A:number, B:string, ...}
 
-function seq<Ts extends Combo<any, Record<string, any>>[]>(
-  // ...a: Ts  // both variants work
-  ...a: [...Ts]
+type InferRecord<T> = T extends Record<infer A, infer B> ? Record<A, B> : never;
+type InferRecord3<T> = { [A in keyof T]: T[A] };
+type InferRecord4<T> = { [A in keyof T]: T[A][] };
+
+// prettier-ignore
+type ArgsToNamed<Ts extends Combo<any, Record<string, any[]>>[]> = 
+  InferRecord4<
+    UnionToIntersection<
+      ExtractObject<Ts[number]>
+    >
+  >
+  ;
+
+type VerifyRecord<T extends Record<string, any>> = T;
+
+type ArgsToValues<Ts extends Combo<any, any>[]> = {
+  [key in keyof Ts]: ExtractValue<Ts[key]>;
+};
+
+// prettier-ignore
+function seq<Ts extends Combo<any, Record<string, any[]>>[]>(
+  ...a: Ts 
 ): Combo<
-  { [key in keyof Ts]: ExtractValue<Ts[key]> },
-  UnionToIntersection<ExtractObject<Ts[number]>>
-> {
+  ArgsToValues<Ts>, 
+  ArgsToNamed<Ts>> {
   return a as any;
 }
 
-function s2<Ts extends Combo<any, Record<string, any>>[]>(
-  ...a: Ts 
-):ExtractObject<Ts[number]> {
+// prettier-ignore
+function s2<Ts extends Record<string, any>[]>(
+  ...a: Ts
+): VerifyRecord<
+     InferRecord4<
+       UnionToIntersection<Ts[number]>
+     >
+   > {
   return null as any;
 }
 
+export function testS2(): void {
+  const a = { A: [1] };
+  const b = { B: ["foo"] };
+  const xx: { A: number[]; B: string[] } = s2(a, b);
+}
 
 export function test(): void {
   const a = new Combo(1).named("A");
   const b = new Combo("foo").named("B");
-  const xx = s2(a,b);
-
-  // const zz = ff(a,b);
-  const av: number = a.value;
-  const bv: string = b.value;
-
-  const ar: number = a.namedResult.A;
-  const br: string = b.namedResult.B;
-
   const s = seq(a, b);
 
   const sv: [number, string] = s.value;
-  const sn: { A: number; B: string } = s.namedResult;
+  const sn: { A: number[]; B: string[] } = s.namedResult;
 }
 
 // function ff<Ts extends Array<Combo<any, Record<string, any>>>>(
