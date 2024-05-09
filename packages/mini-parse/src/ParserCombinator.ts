@@ -128,32 +128,16 @@ export function or<P extends CombinatorArg2[]>(
  * If the parser fails, return false and don't advance the input. Returning false
  * indicates a successful parse, so combinators like seq() will succeed.
  */
-export function opt(arg: string): Parser<string | boolean>;
-export function opt<T, N extends NameRecord>(
-  p: Parser<T>
-): Parser<T | boolean, N>;
-export function opt<T, N extends NameRecord>(
-  arg: CombinatorArg<T, N>
-): Parser<T | string | undefined>;
-export function opt<T, N extends NameRecord>(
-  arg: CombinatorArg<T, N>
-): Parser<T | string | undefined> {
+export function opt<P extends CombinatorArg2>(
+  arg: P
+): ParserFromArg<P> | Parser<undefined, NoNameRecord> {
   const p = parserArg(arg);
-  return parser(
-    "opt",
-    (state: ParserContext): OptParserResult<T | string | undefined, N> => {
-      const result = p._run(state);
-      return result || { value: undefined, named: {} };
-    }
-  );
+  const result = parser("opt", (state: ParserContext) => {
+    const result = p._run(state);
+    return result || { value: undefined, named: {} };
+  });
+  return result as ParserFromArg<P> | Parser<undefined, NoNameRecord>;
 }
-
-type ArgResult<P extends CombinatorArg2> = P; 
-
-export function opt2<P extends CombinatorArg2>(arg:P):ArgResult<P> {
-  return null as any;
-}
-
 
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens */
