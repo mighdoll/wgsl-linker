@@ -103,19 +103,16 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 
 type InferRecord<T> = { [A in keyof T]: T[A] };
 
-
-type SeqValues<P extends Parser<any, Record<string, any>>[]> = {
+type SeqValues<P extends (Parser<any, Record<string, any>> | string)[]> = {
   [key in keyof P]: ParserResultFromArg<P[key]>;
 };
 
-type SeqNames<P extends Parser<any, Record<string, any>>[]> = InferRecord<
-  UnionToIntersection<ParserNamesFromArg<P[number]>>
->;
+type SeqNames<P extends (Parser<any, Record<string, any>> | string)[]> =
+  InferRecord<UnionToIntersection<ParserNamesFromArg<P[number]>>>;
 
 type VerifyRecord<T extends Record<string, any>> = T;
 
-
-export function seq<P extends Parser<any, NameRecord>[]>(
+export function seq<P extends (Parser<any, NameRecord> | string)[]>(
   ...args: P
 ): Parser<SeqValues<P>, SeqNames<P>> {
   return 0 as any;
@@ -219,7 +216,6 @@ export function or(...stages: CombinatorArg<any>[]): Parser<any> {
     }
   );
 }
-
 
 export function or2<P extends CombinatorArg<any>[]>(
   ...args: P
