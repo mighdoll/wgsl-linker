@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import {
+  CombinatorArg,
+  CombinatorArg2,
+  ParserFromArg,
+  ParserNamesFromArg,
+  ParserResultFromArg,
+  SeqNames,
+  SeqValues,
+} from "./CombinatorTypes.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
@@ -44,17 +53,6 @@ export class ParseError extends Error {
   }
 }
 
-export type CombinatorArg2 =
-  | Parser<any, NameRecord>
-  | string
-  | (() => Parser<any, NameRecord>);
-
-/** parser combinators like or() and seq() combine other parsers (strings are converted to kind() parsers) */
-export type CombinatorArg<T, N extends NameRecord = NoNameRecord> =
-  | Parser<T, N>
-  | string
-  | (() => Parser<T, N>);
-
 /** Parse for a particular kind of token,
  * @return the matching text */
 export function kind(kindStr: string): Parser<string> {
@@ -78,43 +76,6 @@ export function text(value: string): Parser<string, NoNameRecord> {
     }
   );
 }
-
-/** Result type returned by a parser
- * @param A is a CombinatorArg. (Either a Parser, a function returning a Parser, or string.)
- */
-type ParserResultFromArg<A> =
-  A extends Parser<infer R, any>
-    ? R
-    : A extends string
-      ? string
-      : A extends () => Parser<infer R, any>
-        ? R
-        : never;
-
-type ParserNamesFromArg<A> =
-  A extends Parser<any, infer R>
-    ? R
-    : A extends string
-      ? NoNameRecord
-      : A extends () => Parser<any, infer R>
-        ? R
-        : never;
-
-type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never;
-
-type InferRecord<T> = { [A in keyof T]: T[A] };
-
-type SeqValues<P extends CombinatorArg2[]> = {
-  [key in keyof P]: ParserResultFromArg<P[key]>;
-};
-
-type SeqNames<P extends CombinatorArg2[]> = InferRecord<
-  Intersection<ParserNamesFromArg<P[number]>>
->;
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
