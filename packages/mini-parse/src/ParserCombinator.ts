@@ -44,7 +44,12 @@ export class ParseError extends Error {
   }
 }
 
-/** parser combinators like or() and seq() combine other stages (strings are converted to kind() parsers) */
+export type CombinatorArg2 =
+  | Parser<any, NameRecord>
+  | string
+  | (() => Parser<any, NameRecord>);
+
+/** parser combinators like or() and seq() combine other parsers (strings are converted to kind() parsers) */
 export type CombinatorArg<T, N extends NameRecord = NoNameRecord> =
   | Parser<T, N>
   | string
@@ -103,16 +108,16 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 
 type InferRecord<T> = { [A in keyof T]: T[A] };
 
-type SeqValues<P extends (Parser<any, Record<string, any>> | string)[]> = {
+type SeqValues<P extends CombinatorArg2[]> = {
   [key in keyof P]: ParserResultFromArg<P[key]>;
 };
 
-type SeqNames<P extends (Parser<any, Record<string, any>> | string)[]> =
+type SeqNames<P extends CombinatorArg2[]> =
   InferRecord<UnionToIntersection<ParserNamesFromArg<P[number]>>>;
 
 type VerifyRecord<T extends Record<string, any>> = T;
 
-export function seq<P extends (Parser<any, NameRecord> | string)[]>(
+export function seq<P extends CombinatorArg2[]>(
   ...args: P
 ): Parser<SeqValues<P>, SeqNames<P>> {
   return 0 as any;
