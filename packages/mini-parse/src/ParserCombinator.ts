@@ -112,8 +112,9 @@ type SeqValues<P extends CombinatorArg2[]> = {
   [key in keyof P]: ParserResultFromArg<P[key]>;
 };
 
-type SeqNames<P extends CombinatorArg2[]> =
-  InferRecord<UnionToIntersection<ParserNamesFromArg<P[number]>>>;
+type SeqNames<P extends CombinatorArg2[]> = InferRecord<
+  UnionToIntersection<ParserNamesFromArg<P[number]>>
+>;
 
 type VerifyRecord<T extends Record<string, any>> = T;
 
@@ -123,14 +124,17 @@ export function seq<P extends CombinatorArg2[]>(
   return 0 as any;
 }
 
-const p3: Parser<[string, string], { FF: string[]; BB: string[] }> = seq(
-  kind("foo").named("FF"),
-  kind("bar").named("BB")
+const p3: Parser<
+  [string, string, string],
+  { FF: string[]; BB: string[]; ZZ: string[] }
+> = seq(kind("foo").named("FF"), kind("bar").named("BB"), () =>
+  kind("baz").named("ZZ")
 );
 
 p3.map((r) => {
   r.named.FF;
   r.named.BB;
+  r.named.ZZ;
   r.named.XX; // should fail typechecking
 });
 
