@@ -155,106 +155,127 @@ export function seq<P extends CombinatorArg2[]>(
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
-export function or<A = string>(a: CombinatorArg<A, N>): Parser<A>;
-export function or<A = string, B = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>
-): Parser<A | B>;
-export function or<A = string, B = string, C = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>
-): Parser<A | B | C>;
-export function or<A = string, B = string, C = string, D = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>
-): Parser<A | B | C | D>;
-export function or<A = string, B = string, C = string, D = string, E = string>(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>,
-  e: CombinatorArg<E>
-): Parser<A | B | C | D | E>;
-export function or<
-  A = string,
-  B = string,
-  C = string,
-  D = string,
-  E = string,
-  F = string,
->(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>,
-  e: CombinatorArg<E>,
-  f: CombinatorArg<F>
-): Parser<A | B | C | D | E | F>;
-export function or<
-  A = string,
-  B = string,
-  C = string,
-  D = string,
-  E = string,
-  F = string,
-  G = string,
->(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>,
-  e: CombinatorArg<E>,
-  f: CombinatorArg<F>,
-  g: CombinatorArg<G>
-): Parser<A | B | C | D | E | F | G>;
-export function or<
-  A = string,
-  B = string,
-  C = string,
-  D = string,
-  E = string,
-  F = string,
-  G = string,
-  H = string,
->(
-  a: CombinatorArg<A>,
-  b: CombinatorArg<B>,
-  c: CombinatorArg<C>,
-  d: CombinatorArg<D>,
-  e: CombinatorArg<E>,
-  f: CombinatorArg<F>,
-  g: CombinatorArg<G>,
-  h: CombinatorArg<H>
-): Parser<A | B | C | D | E | F | G | H>;
-export function or(...stages: CombinatorArg<any>[]): Parser<any> {
-  const parsers = stages.map(parserArg);
-  return parser(
-    "or",
-    (state: ParserContext): ParserResultFromArg<any, any> | null => {
-      for (const p of parsers) {
-        const result = p._run(state);
-        if (result !== null) {
-          return result;
-        }
-      }
-      return null;
-    }
-  );
-}
+// export function or<A = string>(a: CombinatorArg<A, N>): Parser<A>;
+// export function or<A = string, B = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>
+// ): Parser<A | B>;
+// export function or<A = string, B = string, C = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>
+// ): Parser<A | B | C>;
+// export function or<A = string, B = string, C = string, D = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>
+// ): Parser<A | B | C | D>;
+// export function or<A = string, B = string, C = string, D = string, E = string>(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>,
+//   e: CombinatorArg<E>
+// ): Parser<A | B | C | D | E>;
+// export function or<
+//   A = string,
+//   B = string,
+//   C = string,
+//   D = string,
+//   E = string,
+//   F = string,
+// >(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>,
+//   e: CombinatorArg<E>,
+//   f: CombinatorArg<F>
+// ): Parser<A | B | C | D | E | F>;
+// export function or<
+//   A = string,
+//   B = string,
+//   C = string,
+//   D = string,
+//   E = string,
+//   F = string,
+//   G = string,
+// >(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>,
+//   e: CombinatorArg<E>,
+//   f: CombinatorArg<F>,
+//   g: CombinatorArg<G>
+// ): Parser<A | B | C | D | E | F | G>;
+// export function or<
+//   A = string,
+//   B = string,
+//   C = string,
+//   D = string,
+//   E = string,
+//   F = string,
+//   G = string,
+//   H = string,
+// >(
+//   a: CombinatorArg<A>,
+//   b: CombinatorArg<B>,
+//   c: CombinatorArg<C>,
+//   d: CombinatorArg<D>,
+//   e: CombinatorArg<E>,
+//   f: CombinatorArg<F>,
+//   g: CombinatorArg<G>,
+//   h: CombinatorArg<H>
+// ): Parser<A | B | C | D | E | F | G | H>;
+// export function or(...stages: CombinatorArg<any>[]): Parser<any> {
+//   const parsers = stages.map(parserArg);
+//   return parser(
+//     "or",
+//     (state: ParserContext): ParserResultFromArg<any, any> | null => {
+//       for (const p of parsers) {
+//         const result = p._run(state);
+//         if (result !== null) {
+//           return result;
+//         }
+//       }
+//       return null;
+//     }
+//   );
+// }
 
-export function or2<P extends CombinatorArg<any>[]>(
+type OrValues<P extends CombinatorArg2[]> = ParserResultFromArg<P[number]>;
+type OrNames<P extends CombinatorArg2[]> = ParserNamesFromArg<P[number]>;
+
+// function orw<P extends CombinatorArg2[]>(...args: P): OrNames<P> {
+//   return null as any;
+// }
+// const o = orw(
+//   kind("f")
+//     .map((r) => 7)
+//     .named("ff"),
+//   "foo"
+// );
+
+export function or<P extends CombinatorArg2[]>(
   ...args: P
-): Parser<
-  { [key in keyof P]: ParserResultFromArg<P[key]> },
-  ParserNamesFromArg<P[number]>
-> {
-  return null as any;
+): Parser<OrValues<P>, OrNames<P>> {
+  const parsers = args.map(parserArg);
+  const result = parser("or", (state: ParserContext) => {
+    for (const p of parsers) {
+      const result = p._run(state);
+      if (result !== null) {
+        return result;
+      }
+    }
+    return null;
+  });
+
+  return result as Parser<OrValues<P>, OrNames<P>>;
 }
 
-// const o2 = or2(() => kind("f")).named("FX");
+// const o2 = or2(kind("f"), "foo").named("FX");
 // o2.map((r) => {
 //   r.named.FX;
 //   r.named.x; // should fail typechecking
