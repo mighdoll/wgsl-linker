@@ -121,22 +121,37 @@ type VerifyRecord<T extends Record<string, any>> = T;
 export function seq<P extends CombinatorArg2[]>(
   ...args: P
 ): Parser<SeqValues<P>, SeqNames<P>> {
-  return 0 as any;
+  const parsers = args.map(parserArg);
+
+  const result = parser("seq", (ctx: ParserContext) => {
+    const values = [];
+    let namedResults = {};
+    for (const p of parsers) {
+      const result = p._run(ctx);
+      if (result === null) return null;
+
+      namedResults = mergeNamed(namedResults, result.named);
+      values.push(result.value);
+    }
+    return { value: values, named: namedResults };
+  });
+
+  return result as Parser<SeqValues<P>, SeqNames<P>>;
 }
 
-const p3: Parser<
-  [string, string, string],
-  { FF: string[]; BB: string[]; ZZ: string[] }
-> = seq(kind("foo").named("FF"), kind("bar").named("BB"), () =>
-  kind("baz").named("ZZ")
-);
+// const p3: Parser<
+//   [string, string, string],
+//   { FF: string[]; BB: string[]; ZZ: string[] }
+// > = seq(kind("foo").named("FF"), kind("bar").named("BB"), () =>
+//   kind("baz").named("ZZ")
+// );
 
-p3.map((r) => {
-  r.named.FF;
-  r.named.BB;
-  r.named.ZZ;
-  r.named.XX; // should fail typechecking
-});
+// p3.map((r) => {
+//   r.named.FF;
+//   r.named.BB;
+//   r.named.ZZ;
+//   r.named.XX; // should fail typechecking
+// });
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
@@ -239,11 +254,11 @@ export function or2<P extends CombinatorArg<any>[]>(
   return null as any;
 }
 
-const o2 = or2(() => kind("f")).named("FX");
-o2.map((r) => {
-  r.named.FX;
-  r.named.x; // should fail typechecking
-});
+// const o2 = or2(() => kind("f")).named("FX");
+// o2.map((r) => {
+//   r.named.FX;
+//   r.named.x; // should fail typechecking
+// });
 
 // /** Parse a sequence of parsers
 //  * @return an array of all parsed results, or null if any parser fails */
