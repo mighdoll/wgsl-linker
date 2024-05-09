@@ -187,6 +187,13 @@ export function opt<T, N extends NameRecord>(
   );
 }
 
+type ArgResult<P extends CombinatorArg2> = P; 
+
+export function opt2<P extends CombinatorArg2>(arg:P):ArgResult<P> {
+  return null as any;
+}
+
+
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens */
 export function not<T>(stage: CombinatorArg<T>): Parser<true> {
