@@ -74,6 +74,60 @@ export function text(value: string): Parser<string, NoNameRecord> {
   );
 }
 
+/** Result type returned by a parser
+ * @param A is a CombinatorArg. (Either a Parser, a function returning a Parser, or string.)
+ */
+type ParserResultFromArg<A> =
+  A extends Parser<infer R, any>
+    ? R
+    : A extends string
+      ? string
+      : A extends () => Parser<infer R, any>
+        ? R
+        : never;
+
+type ParserNamesFromArg<A> =
+  A extends Parser<any, infer R>
+    ? R
+    : A extends string
+      ? NoNameRecord
+      : A extends () => Parser<any, infer R>
+        ? R
+        : never;
+
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
+  ? I
+  : never;
+
+type InferRecord<T> = { [A in keyof T]: T[A] };
+
+
+type SeqValues<P extends Parser<any, Record<string, any>>[]> = {
+  [key in keyof P]: ParserResultFromArg<P[key]>;
+};
+
+type SeqNames<P extends Parser<any, Record<string, any>>[]> = InferRecord<
+  UnionToIntersection<ParserNamesFromArg<P[number]>>
+>;
+
+type VerifyRecord<T extends Record<string, any>> = T;
+
+
+export function seq<P extends Parser<any, NameRecord>[]>(
+  ...args: P
+): Parser<SeqValues<P>, SeqNames<P>> {
+  return 0 as any;
+}
+
+const p3: Parser<[string], { FF: string[] }> = seq(kind("foo").named("FF"));
+
+p3.map((r) => {
+  r.named.FF;
+  r.named.XX; // should fail typechecking
+});
+
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
 export function or<A = string>(a: CombinatorArg<A, N>): Parser<A>;
@@ -166,59 +220,6 @@ export function or(...stages: CombinatorArg<any>[]): Parser<any> {
   );
 }
 
-/** Result type returned by a parser
- * @param A is a CombinatorArg. (Either a Parser, a function returning a Parser, or string.)
- */
-type ParserResultFromArg<A> =
-  A extends Parser<infer R, any>
-    ? R
-    : A extends string
-      ? string
-      : A extends () => Parser<infer R, any>
-        ? R
-        : never;
-
-type ParserNamesFromArg<A> =
-  A extends Parser<any, infer R>
-    ? R
-    : A extends string
-      ? NoNameRecord
-      : A extends () => Parser<any, infer R>
-        ? R
-        : never;
-
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never;
-
-type InferRecord<T> = { [A in keyof T]: T[A] };
-
-
-type SeqValues<P extends Parser<any, Record<string, any>>[]> = {
-  [key in keyof P]: ParserResultFromArg<P[key]>;
-};
-
-type SeqNames<P extends Parser<any, Record<string, any>>[]> = InferRecord<
-  UnionToIntersection<ParserNamesFromArg<P[number]>>
->;
-
-type VerifyRecord<T extends Record<string, any>> = T;
-
-
-export function seq<P extends Parser<any, NameRecord>[]>(
-  ...args: P
-): Parser<SeqValues<P>, SeqNames<P>> {
-  return 0 as any;
-}
-
-const p3: Parser<[string], { FF: string[] }> = seq(kind("foo").named("FF"));
-
-p3.map((r) => {
-  r.named.FF;
-  r.named.XX; // should fail typechecking
-});
 
 export function or2<P extends CombinatorArg<any>[]>(
   ...args: P
