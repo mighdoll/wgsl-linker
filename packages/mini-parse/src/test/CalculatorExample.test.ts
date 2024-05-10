@@ -7,7 +7,7 @@ import {
   sum
 } from "../examples/CalculatorResultsExample.js";
 import {
-  namedSum,
+  taggedSum,
   simpleSum,
   simpleTokens,
   sumResults
@@ -70,9 +70,9 @@ test("simple sum results ", () => {
   expect(results?.value).eq(15);
 });
 
-test("named sum results ", () => {
+test("tagged sum results ", () => {
   const lexer = matchingLexer("1 + 2 + 9", simpleTokens);
-  const results = namedSum.parse({ lexer });
+  const results = taggedSum.parse({ lexer });
   expect(results?.value).eq(12);
 });
 

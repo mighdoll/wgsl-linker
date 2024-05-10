@@ -33,7 +33,7 @@ import { Token, TokenMatcher } from "./TokenMatcher.js";
  * Each parser is a function that recognizes tokens produced by a lexer
  * and returns a result.
  *  Returning null indicate failure. Tokens are not consumed on failure.
- *  Users can also use the .named() method to tag results from a stage. Named results
+ *  Users can also use the .tag() method to tag results from a stage. Tagged results
  *    propagate up to containing parsers for convenience in selecting results.
  *
  * Built in parsers and combinators are available:

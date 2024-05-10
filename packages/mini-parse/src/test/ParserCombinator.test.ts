@@ -58,14 +58,14 @@ test("seq() handles two element match", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("named kind match", () => {
+test("tagged kind match", () => {
   const src = "foo";
   const p = kind(m.word).tag("nn");
   const { parsed } = testParse(p, src);
   expect(parsed?.tags.nn).deep.equals(["foo"]);
 });
 
-test("seq() with named result", () => {
+test("seq() with tagged result", () => {
   const src = "#import foo";
   const p = seq("#import", kind(m.word).tag("yo"));
   const { parsed } = testParse(p, src);
@@ -80,7 +80,7 @@ test("opt() makes failing match ok", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("repeat() to (1,2,3,4) via named", () => {
+test("repeat() to (1,2,3,4) via tag", () => {
   const src = "(1,2,3,4)";
   const wordNum = or(kind("word"), kind("digits")).tag("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));

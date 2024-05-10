@@ -20,7 +20,7 @@ export const sumResults = seq(int, or("+", "-"), int).map((r) => {
 
 const op = or("+", "-");
 
-export const namedSum = seq(
+export const taggedSum = seq(
   int,
   repeat(seq(op, int).tag("opRights")) // accumulate an array of [op, int] pairs
 ).map((r) => {
