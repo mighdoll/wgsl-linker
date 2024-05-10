@@ -111,8 +111,7 @@ export interface ParserArgs {
   preDisabled?: true;
 }
 
-interface ConstructArgs<T, N extends NameRecord>
-  extends ParserArgs {
+interface ConstructArgs<T, N extends NameRecord> extends ParserArgs {
   fn: ParseFn<T, N>;
 }
 

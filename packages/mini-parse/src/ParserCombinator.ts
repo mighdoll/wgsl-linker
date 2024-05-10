@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import {
   CombinatorArg,
   OrParser,
@@ -97,6 +95,16 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
   });
 
   return result as SeqParser<P>;
+}
+
+export function test(): void {
+  const a = seq(text("a").named("AA"));
+  const p = seq(seq(a));
+
+  p.map((r) => {
+    const s: string[] = r.named.AA;
+    console.log(s);
+  });
 }
 
 /** Try parsing with one or more parsers,
@@ -299,14 +307,11 @@ export function tokens<A extends CombinatorArg>(
   arg: A
 ): ParserFromArg<A> {
   const p = parserArg(arg);
-  return parser(
-    `tokens ${matcher._traceName}`,
-    (state: ParserContext) => {
-      return state.lexer.withMatcher(matcher, () => {
-        return p._run(state);
-      });
-    }
-  );
+  return parser(`tokens ${matcher._traceName}`, (state: ParserContext) => {
+    return state.lexer.withMatcher(matcher, () => {
+      return p._run(state);
+    });
+  });
 }
 
 /** return a parser that matches end of line, or end of file,

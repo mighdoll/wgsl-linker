@@ -1,3 +1,4 @@
+import { logCatch, testParse, testTokens } from "mini-parse/test-util";
 import { expect, test } from "vitest";
 import { Parser, disablePreParse, preParse, tokenSkipSet } from "../Parser.js";
 import {
@@ -15,7 +16,6 @@ import {
   text,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
-import { testParse, testTokens, logCatch } from "mini-parse/test-util";
 
 const m = testTokens;
 
