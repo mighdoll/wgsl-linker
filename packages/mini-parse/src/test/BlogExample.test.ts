@@ -48,11 +48,36 @@ test("parse fn foo() with annotation in grammar", () => {
   const result = fnDecl.parse({ lexer });
 
   if (result) {
-    const foundIdent = result.value[2];
-    expect(foundIdent).toBe("foo");
-    console.log(result.value);
+    const fnName = result.value[2];
+    expect(fnName).toBe("foo");
   }
-  console.log("bah");
+  expect(result).toBeDefined();
+});
+
+
+test("parse fn foo() with tagged results", () => {
+  const src = "fn foo()";
+
+  // lexer
+  const tokens = tokenMatcher({
+    ident: /[a-z]+/,
+    ws: /\s+/,
+    symbol: matchOneOf("( ) [ ] { } @ ; ,"),
+  });
+  const lexer = matchingLexer(src, tokens);
+
+  // parsers
+  const ident = kind(tokens.ident);
+  const annotation = opt(seq("@", ident).named("annotation"));
+  const fnDecl = seq(annotation, "fn", ident.named("fnName"), "(", ")");
+
+  // parsing and extracting result
+  const result = fnDecl.parse({ lexer });
+
+  if (result) {
+    const [fnName] = result.named.fnName;
+    expect(fnName).toBe("foo");
+  }
   expect(result).toBeDefined();
 });
 
