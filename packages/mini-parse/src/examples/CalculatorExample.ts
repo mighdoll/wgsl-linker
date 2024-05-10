@@ -1,5 +1,5 @@
 import { Parser, setTraceName } from "../Parser.js";
-import { fn, kind, opt, or, repeat, seq } from "../ParserCombinator.js";
+import { kind, opt, or, repeat, seq } from "../ParserCombinator.js";
 import { tracing } from "../ParserTracing.js";
 import { matchOneOf, tokenMatcher } from "../TokenMatcher.js";
 
