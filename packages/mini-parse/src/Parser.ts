@@ -247,7 +247,10 @@ export function simpleParser<T>(
 }
 
 /** modify the trace name of this parser */
-export function setTraceName(parser: Parser<any>, traceName: string): void {
+export function setTraceName(
+  parser: Parser<any, NameRecord>,
+  traceName: string
+): void {
   parser.tracingName = traceName;
 }
 
