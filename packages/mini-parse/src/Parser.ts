@@ -1,3 +1,4 @@
+import { Intersection } from "./CombinatorTypes.js";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import { srcLog } from "./ParserLogging.js";
@@ -158,7 +159,9 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
    * note that named results are collected into an array,
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
-  named<K extends string | symbol>(name: K): Parser<T, N & { [key in K]: T[] }> {
+  named<K extends string | symbol>(
+    name: K
+  ): Parser<T, N & { [key in K]: T[] }> {
     const p = this._cloneWith({ resultName: name });
     return p as Parser<T, N & { [key in K]: T[] }>;
   }
@@ -179,7 +182,9 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
   }
 
   /** switch next parser based on results */
-  toParser<U>(fn: ToParserFn<T, N, U>): Parser<T | U, N> {
+  toParser<U, V extends NameRecord>(
+    fn: ToParserFn<T, N, U, V>
+  ): Parser<T | U, N & V> {
     return toParser(this, fn);
   }
 
@@ -365,15 +370,15 @@ function map<T, N extends NameRecord, U>(
   });
 }
 
-type ToParserFn<T, N extends NameRecord, X> = (
+type ToParserFn<T, N extends NameRecord, X, Y extends NameRecord> = (
   results: ExtendedResult<T, N>
-) => Parser<X, N> | undefined;
+) => Parser<X, Y> | undefined;
 
-function toParser<T, N extends NameRecord, O>(
+function toParser<T, N extends NameRecord, O, Y extends NameRecord>(
   p: Parser<T, N>,
-  toParserFn: ToParserFn<T, N, O>
-): Parser<T | O, N> {
-  return parser("toParser", (ctx: ParserContext): OptParserResult<T | O, N> => {
+  toParserFn: ToParserFn<T, N, O, Y>
+): Parser<T | O, N & Y> {
+  return parser("toParser", (ctx: ParserContext) => {
     const extended = runExtended(ctx, p);
     if (!extended) return null;
 
@@ -386,7 +391,8 @@ function toParser<T, N extends NameRecord, O>(
 
     // run the parser returned by the supplied function
     const nextResult = newParser._run(ctx);
-    return nextResult;
+    // TODO merge names record from p to newParser
+    return nextResult as any; // TODO fix typing
   });
 }
 
