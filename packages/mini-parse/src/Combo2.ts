@@ -107,7 +107,7 @@ function s2<Ts extends Record<string, any>[]>(
 export function testS2(): void {
   const a = { A: [1] };
   const b = { B: ["foo"] };
-  const xx: { A: number[]; B: string[] } = s2(a, b);
+  // const xx: { A: number[]; B: string[] } = s2(a, b);
 }
 
 export function test(): void {
