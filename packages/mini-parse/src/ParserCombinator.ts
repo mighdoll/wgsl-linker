@@ -136,9 +136,9 @@ export function opt<P extends CombinatorArg>(
 
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens */
-export function not<T>(stage: CombinatorArgOld<T>): Parser<true> {
-  const p = parserArg(stage);
-  return parser("not", (state: ParserContext): OptParserResult<true> => {
+export function not(arg: CombinatorArg): Parser<true> {
+  const p = parserArg(arg);
+  return parser("not", (state: ParserContext) => {
     const pos = state.lexer.position();
     const result = p._run(state);
     if (!result) {
