@@ -22,7 +22,7 @@ import {
   tokenSkipSet,
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
-import { mergeNamed } from "./ParserUtil.js";
+import { mergeTags } from "./ParserUtil.js";
 import { Token, TokenMatcher } from "./TokenMatcher.js";
 
 /** Parsing Combinators
@@ -88,7 +88,7 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
       const result = p._run(ctx);
       if (result === null) return null;
 
-      namedResults = mergeNamed(namedResults, result.tags);
+      namedResults = mergeTags(namedResults, result.tags);
       values.push(result.value);
     }
     return { value: values, tags: namedResults };
@@ -223,7 +223,7 @@ function repeatWhileFilter<A extends CombinatorArg>(
       // continue acccumulating until we get a null or the filter tells us to stop
       if (result !== null && filterFn(result)) {
         values.push(result.value);
-        results = mergeNamed(results, result.tags);
+        results = mergeTags(results, result.tags);
       } else {
         // always return succcess
         const r = { value: values, named: results };

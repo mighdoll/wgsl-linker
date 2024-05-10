@@ -9,7 +9,7 @@ import {
   tracing,
   withTraceLogging,
 } from "./ParserTracing.js";
-import { mergeNamed } from "./ParserUtil.js";
+import { mergeTags } from "./ParserUtil.js";
 import { SrcMap } from "./SrcMap.js";
 
 export interface AppState<A> {
@@ -88,7 +88,7 @@ export type OptParserResult<T, N extends TagRecord> =
     ParserResult<T, N> 
   | null;
 
-/** Internal parsing functions return a value and also a set of named results from contained parser  */
+/** Internal parsing functions return a value and also a set of tagged results from contained parser  */
 type ParseFn<T, N extends TagRecord> = (
   context: ParserContext
 ) => OptParserResult<T, N>;
@@ -154,8 +154,8 @@ export class Parser<T, N extends TagRecord = NoTags> {
   /**
    * tag results with a name,
    *
-   * named results can be retrived with map(r => r.named.myName)
-   * note that named results are collected into an array,
+   * tagged results can be retrived with map(r => r.tags.myName)
+   * note that tagged results are collected into an array,
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
   tag<K extends string | symbol>(
@@ -259,7 +259,7 @@ export function setTraceName(
  * also:
  * . check for infinite loops
  * . log if tracing is enabled
- * . merge named results
+ * . merge tagged results
  * . backtrack on failure
  * . rollback context on failure
  */
@@ -312,15 +312,15 @@ function runParser<T, N extends TagRecord>(
       // parser succeded
       tracing && parserLog(`✓ ${p.tracingName}`);
       if (p.tagName && result.value !== undefined) {
-        // merge named result (if user set a name for this stage's result)
+        // merge tagged result (if user set a name for this stage's result)
         return {
           value: result.value,
-          tags: mergeNamed(result.tags, {
+          tags: mergeTags(result.tags, {
             [p.tagName]: [result.value],
           }),
         } as OptParserResult<T, N>;
       }
-      const r = { value: result.value, named: result.tags };
+      const r = { value: result.value, tags: result.tags };
       return r as OptParserResult<T, N>;
     }
   }

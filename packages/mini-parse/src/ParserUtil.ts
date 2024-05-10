@@ -1,5 +1,5 @@
 /** merge two objects containing arrays, arrays in liked named keys are concatenated */
-export function mergeNamed(
+export function mergeTags(
   a: Record<string | symbol, any[]>,
   b: Record<string | symbol, any[]>
 ): Record<string, any[]> {
