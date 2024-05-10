@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
-  CombinatorArgOld,
   CombinatorArg,
   OrParser,
   ParserFromArg,
@@ -127,11 +126,11 @@ export function opt<P extends CombinatorArg>(
   arg: P
 ): ParserFromArg<P> | Parser<undefined, NoNameRecord> {
   const p = parserArg(arg);
-  const result = parser("opt", (state: ParserContext) => {
+  const result = parser("opt", (state: ParserContext):any => { // TODO fix any
     const result = p._run(state);
     return result || { value: undefined, named: {} };
   });
-  return result as ParserFromArg<P> | Parser<undefined, NoNameRecord>;
+  return result as ParserFromArg<P> | Parser<undefined, NoNameRecord>; // TODO fix cast
 }
 
 /** return true if the provided parser _doesn't_ match
@@ -168,12 +167,11 @@ export function anyNot(arg: CombinatorArg): Parser<Token> {
 export function anyThrough<A extends CombinatorArg>(
   arg: A
 ): Parser<[...any, ParserResultFromArg<A>], ParserNamesFromArg<A>> {
-  // TODO fix any type
   const p = parserArg<A>(arg);
   const result = seq(repeat(anyNot(p)), p).traceName(
     `anyThrough ${p.debugName}`
   );
-  return result;
+  return result as any; // TODO fix any type
 }
 
 /** match zero or more instances of a parser */
@@ -292,10 +290,10 @@ export function withSep<T, N extends NameRecord>(
 }
 
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
-export function tokens<T, N extends NameRecord>(
+export function tokens<A extends CombinatorArg>(
   matcher: TokenMatcher,
-  arg: CombinatorArgOld<T, N>
-): Parser<T | string> {
+  arg: A
+): ParserFromArg<A> {
   const p = parserArg(arg);
   return parser(
     `tokens ${matcher._traceName}`,

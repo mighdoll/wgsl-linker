@@ -6,12 +6,6 @@ export type CombinatorArg =
   | string
   | (() => Parser<any, NameRecord>);
 
-// TODO remove
-export type CombinatorArgOld<T, N extends NameRecord = NoNameRecord> =
-  | Parser<T, N>
-  | string
-  | (() => Parser<T, N>);
-
 /** Parser corresponding to a CombinatorArg.
  * @param A CombinatorArg
  */
