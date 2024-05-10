@@ -60,7 +60,7 @@ export interface ParserContext<A = any> {
   srcMap?: SrcMap;
 }
 
-export type NameRecord = Record<string | symbol, any>; // TODO should this be any[]
+export type NameRecord = Record<string | symbol, any>; // TODO should this be any[]?
 export type NoNameRecord = Record<string | symbol, never>;
 
 /** Result from a parser */
@@ -72,7 +72,7 @@ export interface ParserResult<T, N extends NameRecord> {
   named: N;
 }
 
-export interface ExtendedResult<T, N extends NameRecord, A = any>
+export interface ExtendedResult<T, N extends NameRecord = NoNameRecord, A = any>
   extends ParserResult<T, N> {
   src: string;
   srcMap?: SrcMap;

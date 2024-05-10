@@ -8,6 +8,7 @@ import {
   makeEolf,
   matchingLexer,
   matchOneOf,
+  NameRecord,
   opt,
   or,
   Parser,
@@ -91,19 +92,23 @@ const line = tokenSkipSet(null, regularLine);
 
 const srcLines = seq(repeat(or(directiveLine, line)), eof());
 
-function skippingIfBody(r: ExtendedResult<unknown, ParseState>): boolean {
+function skippingIfBody(
+  r: ExtendedResult<unknown, NameRecord, ParseState>
+): boolean {
   const ifStack = r.app.state.ifStack as IfStackElem[];
   return !ifStack.every(({ truthy }) => truthy);
 }
 
 function pushIfState<T>(
-  r: ExtendedResult<T, ParseState>,
+  r: ExtendedResult<T, NameRecord, ParseState>,
   truthy: boolean
 ): void {
   r.app.state.ifStack.push({ truthy, pos: r });
 }
 
-function popIfState<T>(r: ExtendedResult<T, ParseState>): boolean | undefined {
+function popIfState<T>(
+  r: ExtendedResult<T, NameRecord, ParseState>
+): boolean | undefined {
   const ifStack = r.app.state.ifStack as IfStackElem[];
   const result = ifStack.pop();
   return result?.truthy;
