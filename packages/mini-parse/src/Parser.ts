@@ -68,7 +68,7 @@ export interface ParserResult<T, N extends TagRecord> {
   /** result from this stage */
   value: T;
 
-  /** named results from this stage and all child stages*/
+  /** tagged results from this stage and all child stages*/
   tags: N;
 }
 

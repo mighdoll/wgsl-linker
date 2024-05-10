@@ -55,9 +55,9 @@ export const wordNumArgs: Parser<string[]> = seq(
 ).map((r) => r.value[1]);
 
 /** create an AbstractElem from parse results
- * @param named keys in the named result to copy to
+ * @param named keys in the tags result to copy to
  *  like named fields in the abstract elem (as a single value)
- * @param namedArray keys in the named result to copy to
+ * @param namedArray keys in the tags result to copy to
  *  like named fields in the abstract elem (as an array)
  */
 export function makeElem<U extends AbstractElem>(
