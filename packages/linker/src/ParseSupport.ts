@@ -6,6 +6,8 @@ import {
   fn,
   kind,
   makeEolf,
+  NameRecord,
+  NoNameRecord,
   or,
   Parser,
   repeat,
@@ -60,17 +62,17 @@ export const wordNumArgs: Parser<string[]> = seq(
  */
 export function makeElem<U extends AbstractElem>(
   kind: U["kind"],
-  er: ExtendedResult<any>,
+  er: ExtendedResult<any, NameRecord>, 
   named: (keyof U)[] = [],
   namedArrays: (keyof U)[] = []
 ): U {
   const { start, end } = er;
-  const nv = mapIfDefined(named, er.named as NameRecord<U>, true);
-  const av = mapIfDefined(namedArrays, er.named as NameRecord<U>);
+  const nv = mapIfDefined(named, er.named as NameStrings<U>, true); // TODO let ts match names, avoid cast
+  const av = mapIfDefined(namedArrays, er.named as NameStrings<U>);
   return { kind, start, end, ...nv, ...av } as U;
 }
 
-type NameRecord<A> = Record<keyof A, string[]>;
+type NameStrings<A> = Record<keyof A, string[]>;
 
 function mapIfDefined<A>(
   keys: (keyof A)[],

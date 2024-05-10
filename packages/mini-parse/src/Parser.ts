@@ -60,7 +60,7 @@ export interface ParserContext<A = any> {
   srcMap?: SrcMap;
 }
 
-export type NameRecord = Record<string | symbol, any>;
+export type NameRecord = Record<string | symbol, any>; // TODO should this be any[]
 export type NoNameRecord = Record<string | symbol, never>;
 
 /** Result from a parser */
