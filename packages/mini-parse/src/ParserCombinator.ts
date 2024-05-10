@@ -4,11 +4,11 @@ import {
   CombinatorArg,
   OrParser,
   ParserFromArg,
+  ParserFromRepeatArg,
   ParserNamesFromArg,
   ParserResultFromArg,
   SeqParser,
   SeqValues,
-  ParserFromRepeatArg,
 } from "./CombinatorTypes.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
@@ -126,7 +126,8 @@ export function opt<P extends CombinatorArg>(
   arg: P
 ): ParserFromArg<P> | Parser<undefined, NoNameRecord> {
   const p = parserArg(arg);
-  const result = parser("opt", (state: ParserContext):any => { // TODO fix any
+  const result = parser("opt", (state: ParserContext): any => {
+    // TODO fix any
     const result = p._run(state);
     return result || { value: undefined, named: {} };
   });
@@ -203,10 +204,13 @@ function repeatWhileFilter<A extends CombinatorArg>(
 ): (ctx: ParserContext) => RepeatWhileResult<A> {
   const p = parserArg(arg);
   return (ctx: ParserContext): RepeatWhileResult<A> => {
-    const values: ParserNamesFromArg<A>[] = [];
+    const values: ParserResultFromArg<A>[] = [];
     let results = {};
     for (;;) {
-      const result = runExtended<T | string, any>(ctx, p);
+      const result = runExtended<ParserResultFromArg<A>, ParserNamesFromArg<A>>(
+        ctx,
+        p
+      );
 
       // continue acccumulating until we get a null or the filter tells us to stop
       if (result !== null && filterFn(result)) {
@@ -285,7 +289,7 @@ export function withSep<T, N extends NameRecord>(
   const last = trailing ? opt(sep) : yes();
 
   return seq(first.named(elem), repeat(seq(sep, p.named(elem))), last)
-    .map((r) => r.named[elem] as T[])
+    .map((r) => (r.named as any)[elem]) // TODO typing
     .traceName("withSep") as any; // TODO typing
 }
 
@@ -297,7 +301,7 @@ export function tokens<A extends CombinatorArg>(
   const p = parserArg(arg);
   return parser(
     `tokens ${matcher._traceName}`,
-    (state: ParserContext): OptParserResult<T | string, N> => {
+    (state: ParserContext) => {
       return state.lexer.withMatcher(matcher, () => {
         return p._run(state);
       });
