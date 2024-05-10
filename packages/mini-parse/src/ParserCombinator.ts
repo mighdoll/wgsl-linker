@@ -254,7 +254,7 @@ export function eof(): Parser<true> {
 
 /** if parsing fails, log an error and abort parsing */
 export function req<A extends CombinatorArg>(
-  arg: CombinatorArg,
+  arg: A,
   msg?: string
 ): ParserFromArg<A> {
   const p = parserArg(arg);
