@@ -3,11 +3,11 @@
 import {
   CombinatorArg,
   CombinatorArg2,
+  OrParser,
   ParserFromArg,
   ParserNamesFromArg,
   ParserResultFromArg,
-  SeqNames,
-  SeqValues,
+  SeqParser
 } from "./CombinatorTypes.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
@@ -16,8 +16,8 @@ import {
   NoNameRecord,
   OptParserResult,
   Parser,
-  parser,
   ParserContext,
+  parser,
   runExtended,
   simpleParser,
   tokenSkipSet,
@@ -79,9 +79,7 @@ export function text(value: string): Parser<string, NoNameRecord> {
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
-export function seq<P extends CombinatorArg2[]>(
-  ...args: P
-): Parser<SeqValues<P>, SeqNames<P>> {
+export function seq<P extends CombinatorArg2[]>(...args: P): SeqParser<P> {
   const parsers = args.map(parserArg);
 
   const result = parser("seq", (ctx: ParserContext) => {
@@ -97,17 +95,14 @@ export function seq<P extends CombinatorArg2[]>(
     return { value: values, named: namedResults };
   });
 
-  return result as Parser<SeqValues<P>, SeqNames<P>>;
+  return result as SeqParser<P>;
 }
-
-type OrValues<P extends CombinatorArg2[]> = ParserResultFromArg<P[number]>;
-type OrNames<P extends CombinatorArg2[]> = ParserNamesFromArg<P[number]>;
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
 export function or<P extends CombinatorArg2[]>(
   ...args: P
-): Parser<OrValues<P>, OrNames<P>> {
+): OrParser<P> {
   const parsers = args.map(parserArg);
   const result = parser("or", (state: ParserContext) => {
     for (const p of parsers) {
@@ -119,7 +114,7 @@ export function or<P extends CombinatorArg2[]>(
     return null;
   });
 
-  return result as Parser<OrValues<P>, OrNames<P>>;
+  return result as OrParser<P>;
 }
 
 /** Try a parser.
