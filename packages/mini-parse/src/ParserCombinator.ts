@@ -3,8 +3,8 @@ import {
   OrParser,
   ParserFromArg,
   ParserFromRepeatArg,
-  ParserNamesFromArg,
-  ParserResultFromArg,
+  TagsFromArg,
+  ResultFromArg,
   SeqParser,
   SeqValues,
 } from "./CombinatorTypes.js";
@@ -175,7 +175,7 @@ export function anyNot(arg: CombinatorArg): Parser<Token> {
 /** match everything until a terminator (and the terminator too) */
 export function anyThrough<A extends CombinatorArg>(
   arg: A
-): Parser<[...any, ParserResultFromArg<A>], ParserNamesFromArg<A>> {
+): Parser<[...any, ResultFromArg<A>], TagsFromArg<A>> {
   const p = parserArg<A>(arg);
   const result = seq(repeat(anyNot(p)), p).traceName(
     `anyThrough ${p.debugName}`
@@ -196,26 +196,26 @@ type ResultFilterFn<T> = (
 
 export function repeatWhile<A extends CombinatorArg>(
   arg: A,
-  filterFn: ResultFilterFn<ParserResultFromArg<A>>
+  filterFn: ResultFilterFn<ResultFromArg<A>>
 ): ParserFromRepeatArg<A> {
   return parser("repeatWhile", repeatWhileFilter(arg, filterFn));
 }
 
 type RepeatWhileResult<A extends CombinatorArg> = OptParserResult<
   SeqValues<A[]>,
-  ParserNamesFromArg<A>
+  TagsFromArg<A>
 >;
 
 function repeatWhileFilter<A extends CombinatorArg>(
   arg: A,
-  filterFn: ResultFilterFn<ParserResultFromArg<A>> = () => true
+  filterFn: ResultFilterFn<ResultFromArg<A>> = () => true
 ): (ctx: ParserContext) => RepeatWhileResult<A> {
   const p = parserArg(arg);
   return (ctx: ParserContext): RepeatWhileResult<A> => {
-    const values: ParserResultFromArg<A>[] = [];
+    const values: ResultFromArg<A>[] = [];
     let results = {};
     for (;;) {
-      const result = runExtended<ParserResultFromArg<A>, ParserNamesFromArg<A>>(
+      const result = runExtended<ResultFromArg<A>, TagsFromArg<A>>(
         ctx,
         p
       );

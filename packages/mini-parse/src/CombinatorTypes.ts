@@ -18,20 +18,20 @@ export type CombinatorArg =
  *      the corresponding parser is Parser<string, {n:number[]}>
 */
 export type ParserFromArg<A extends CombinatorArg> = Parser<
-  ParserResultFromArg<A>,
-  ParserNamesFromArg<A>
+  ResultFromArg<A>,
+  TagsFromArg<A>
 >;
 
 /** 
  * @return Parser corresponding to an array that repeats the same CombinatorArg. 
  */ 
 export type ParserFromRepeatArg<A extends CombinatorArg> = Parser<
-  ParserResultFromArg<A>[],
-  ParserNamesFromArg<A>
+  ResultFromArg<A>[],
+  TagsFromArg<A>
 >;
 
 /** Result value type returned by a parser specified by a CombinatorArg */
-export type ParserResultFromArg<A extends CombinatorArg> =
+export type ResultFromArg<A extends CombinatorArg> =
   A extends Parser<infer R, any>
     ? R
     : A extends string
@@ -41,7 +41,7 @@ export type ParserResultFromArg<A extends CombinatorArg> =
         : never;
 
 /** parser NameRecord returned by parser specified by a CombinatorArg */
-export type ParserNamesFromArg<A extends CombinatorArg> =
+export type TagsFromArg<A extends CombinatorArg> =
   A extends Parser<any, infer R>
     ? R
     : A extends string
@@ -90,11 +90,11 @@ export type SeqParser<P extends CombinatorArg[]> = Parser<
 >;
 
 export type SeqValues<P extends CombinatorArg[]> = {
-  [key in keyof P]: ParserResultFromArg<P[key]>;
+  [key in keyof P]: ResultFromArg<P[key]>;
 };
 
 type SeqNames<P extends CombinatorArg[]> = KeyedRecord<
-  Intersection<ParserNamesFromArg<P[number]>>
+  Intersection<TagsFromArg<P[number]>>
 >;
 
 export type OrParser<P extends CombinatorArg[]> = Parser<
@@ -102,5 +102,5 @@ export type OrParser<P extends CombinatorArg[]> = Parser<
   OrNames<P>
 >;
 
-type OrValues<P extends CombinatorArg[]> = ParserResultFromArg<P[number]>;
-type OrNames<P extends CombinatorArg[]> = ParserNamesFromArg<P[number]>;
+type OrValues<P extends CombinatorArg[]> = ResultFromArg<P[number]>;
+type OrNames<P extends CombinatorArg[]> = TagsFromArg<P[number]>;
