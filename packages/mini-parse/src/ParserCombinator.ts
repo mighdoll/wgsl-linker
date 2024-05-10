@@ -253,10 +253,10 @@ export function eof(): Parser<true> {
 }
 
 /** if parsing fails, log an error and abort parsing */
-export function req<T, N extends NameRecord>(
+export function req<A extends CombinatorArg>(
   arg: CombinatorArg,
   msg?: string
-): Parser<T | string, N> {
+): ParserFromArg<A> {
   const p = parserArg(arg);
   return parser("req", (ctx: ParserContext) => {
     const result = p._run(ctx);
