@@ -44,7 +44,7 @@ test("parse fn foo() with annotation in grammar", () => {
   const annotation = opt(seq("@", ident));
   const fnDecl = seq(annotation, "fn", ident, "(", ")");
 
-  // parsing and extracint result
+  // parsing and extracting result
   const result = fnDecl.parse({ lexer });
 
   if (result) {
