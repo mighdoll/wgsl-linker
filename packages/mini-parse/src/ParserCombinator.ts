@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
+  CombinatorArgOld,
   CombinatorArg,
-  CombinatorArg2,
   OrParser,
   ParserFromArg,
   ParserNamesFromArg,
@@ -79,7 +79,7 @@ export function text(value: string): Parser<string, NoNameRecord> {
 
 /** Parse a sequence of parsers
  * @return an array of all parsed results, or null if any parser fails */
-export function seq<P extends CombinatorArg2[]>(...args: P): SeqParser<P> {
+export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
   const parsers = args.map(parserArg);
 
   const result = parser("seq", (ctx: ParserContext) => {
@@ -100,7 +100,7 @@ export function seq<P extends CombinatorArg2[]>(...args: P): SeqParser<P> {
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
-export function or<P extends CombinatorArg2[]>(
+export function or<P extends CombinatorArg[]>(
   ...args: P
 ): OrParser<P> {
   const parsers = args.map(parserArg);
@@ -123,7 +123,7 @@ export function or<P extends CombinatorArg2[]>(
  * If the parser fails, return false and don't advance the input. Returning false
  * indicates a successful parse, so combinators like seq() will succeed.
  */
-export function opt<P extends CombinatorArg2>(
+export function opt<P extends CombinatorArg>(
   arg: P
 ): ParserFromArg<P> | Parser<undefined, NoNameRecord> {
   const p = parserArg(arg);
@@ -136,7 +136,7 @@ export function opt<P extends CombinatorArg2>(
 
 /** return true if the provided parser _doesn't_ match
  * does not consume any tokens */
-export function not<T>(stage: CombinatorArg<T>): Parser<true> {
+export function not<T>(stage: CombinatorArgOld<T>): Parser<true> {
   const p = parserArg(stage);
   return parser("not", (state: ParserContext): OptParserResult<true> => {
     const pos = state.lexer.position();
@@ -158,14 +158,14 @@ export function any(): Parser<Token> {
 }
 
 /** yield next token if the provided parser doesn't match */
-export function anyNot<T>(arg: CombinatorArg<T>): Parser<Token> {
+export function anyNot<T>(arg: CombinatorArgOld<T>): Parser<Token> {
   return seq(not(arg), any())
     .map((r) => r.value[1])
     .traceName("anyNot");
 }
 
 /** match everything until a terminator (and the terminator too) */
-export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
+export function anyThrough(arg: CombinatorArgOld<any>): Parser<any> {
   const p = parserArg(arg);
   return seq(repeat(anyNot(p)), p).traceName(`anyThrough ${p.debugName}`);
 }
@@ -173,7 +173,7 @@ export function anyThrough(arg: CombinatorArg<any>): Parser<any> {
 /** match zero or more instances of a parser */
 export function repeat(stage: string): Parser<string[]>;
 export function repeat<T>(stage: Parser<T>): Parser<T[]>;
-export function repeat<T>(stage: CombinatorArg<T>): Parser<T[] | string[]> {
+export function repeat<T>(stage: CombinatorArgOld<T>): Parser<T[] | string[]> {
   return parser("repeat", repeatWhileFilter(stage));
 }
 type ResultFilterFn<T> = (
@@ -181,7 +181,7 @@ type ResultFilterFn<T> = (
 ) => boolean | undefined;
 
 export function repeatWhile<T>(
-  arg: CombinatorArg<T>,
+  arg: CombinatorArgOld<T>,
   filterFn: ResultFilterFn<T>
 ): Parser<(T | string)[]> {
   return parser("repeatWhile", repeatWhileFilter(arg, filterFn));
@@ -189,7 +189,7 @@ export function repeatWhile<T>(
 
 // TODO we'd like to report a correct type for the merged named results
 function repeatWhileFilter<T, N extends NameRecord>(
-  arg: CombinatorArg<T, N>,
+  arg: CombinatorArgOld<T, N>,
   filterFn: ResultFilterFn<T> = () => true
 ): (ctx: ParserContext) => OptParserResult<T[] | string[], N> {
   const p = parserArg(arg);
@@ -232,7 +232,7 @@ export function eof(): Parser<true> {
 
 /** if parsing fails, log an error and abort parsing */
 export function req<T, N extends NameRecord>(
-  arg: CombinatorArg<T, N>,
+  arg: CombinatorArgOld<T, N>,
   msg?: string
 ): Parser<T | string, N> {
   const p = parserArg(arg);
@@ -265,7 +265,7 @@ export interface WithSepOptions {
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T, N extends NameRecord>(
-  sep: CombinatorArg<any, NameRecord>,
+  sep: CombinatorArgOld<any, NameRecord>,
   p: Parser<T, N>,
   opts: WithSepOptions = {}
 ): Parser<T[], N> {
@@ -282,7 +282,7 @@ export function withSep<T, N extends NameRecord>(
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
 export function tokens<T, N extends NameRecord>(
   matcher: TokenMatcher,
-  arg: CombinatorArg<T, N>
+  arg: CombinatorArgOld<T, N>
 ): Parser<T | string> {
   const p = parserArg(arg);
   return parser(
@@ -313,7 +313,7 @@ export function makeEolf(matcher: TokenMatcher, ws: string): Parser<any> {
 
 /** convert naked string arguments into text() parsers and functions into fn() parsers */
 export function parserArg<T, N extends NameRecord>(
-  arg: CombinatorArg<T, N>
+  arg: CombinatorArgOld<T, N>
 ): Parser<T, N> | Parser<string, NoNameRecord> {
   if (typeof arg === "string") {
     return text(arg) as Parser<string, NoNameRecord>;
