@@ -12,6 +12,19 @@ export type CombinatorArgOld<T, N extends NameRecord = NoNameRecord> =
   | string
   | (() => Parser<T, N>);
 
+/** Parser corresponding to a CombinatorArg.
+ * @param A CombinatorArg
+ */
+export type ParserFromArg<A extends CombinatorArg> = Parser<
+  ParserResultFromArg<A>,
+  ParserNamesFromArg<A>
+>;
+
+export type ParserFromRepeatArg<A extends CombinatorArg> = Parser<
+  ParserResultFromArg<A>[],
+  ParserNamesFromArg<A>
+>;
+
 /** Result value type returned by a parser specified by a CombinatorArg */
 export type ParserResultFromArg<A extends CombinatorArg> =
   A extends Parser<infer R, any>
@@ -32,13 +45,6 @@ export type ParserNamesFromArg<A extends CombinatorArg> =
         ? R
         : never;
 
-/** Parser corresponding to a CombinatorArg
- * @param A CombinatorArg
- */
-export type ParserFromArg<A extends CombinatorArg> = Parser<
-  ParserResultFromArg<A>,
-  ParserNamesFromArg<A>
->;
 
 /** Intersection of types.
  * @param U is normally a union type, e.g. A | B | C
@@ -68,7 +74,9 @@ export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
  */
 export type KeyedRecord<T> = { [A in keyof T]: T[A] };
 
-/** Parser return type for seq()
+/** Parser type returned by seq(), 
+ *    concatenates the argument result types into an array
+ *    and intersects the argument name records into a single keyed record.
  * @param P type of arguments to seq()
  */
 export type SeqParser<P extends CombinatorArg[]> = Parser<
@@ -76,7 +84,7 @@ export type SeqParser<P extends CombinatorArg[]> = Parser<
   SeqNames<P>
 >;
 
-type SeqValues<P extends CombinatorArg[]> = {
+export type SeqValues<P extends CombinatorArg[]> = {
   [key in keyof P]: ParserResultFromArg<P[key]>;
 };
 

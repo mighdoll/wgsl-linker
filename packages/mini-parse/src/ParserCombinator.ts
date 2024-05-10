@@ -7,7 +7,9 @@ import {
   ParserFromArg,
   ParserNamesFromArg,
   ParserResultFromArg,
-  SeqParser
+  SeqParser,
+  SeqValues,
+  ParserFromRepeatArg,
 } from "./CombinatorTypes.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
@@ -100,9 +102,7 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
 
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
-export function or<P extends CombinatorArg[]>(
-  ...args: P
-): OrParser<P> {
+export function or<P extends CombinatorArg[]>(...args: P): OrParser<P> {
   const parsers = args.map(parserArg);
   const result = parser("or", (state: ParserContext) => {
     for (const p of parsers) {
@@ -158,43 +158,54 @@ export function any(): Parser<Token> {
 }
 
 /** yield next token if the provided parser doesn't match */
-export function anyNot<T>(arg: CombinatorArgOld<T>): Parser<Token> {
+export function anyNot(arg: CombinatorArg): Parser<Token> {
   return seq(not(arg), any())
     .map((r) => r.value[1])
     .traceName("anyNot");
 }
 
 /** match everything until a terminator (and the terminator too) */
-export function anyThrough(arg: CombinatorArgOld<any>): Parser<any> {
-  const p = parserArg(arg);
-  return seq(repeat(anyNot(p)), p).traceName(`anyThrough ${p.debugName}`);
+export function anyThrough<A extends CombinatorArg>(
+  arg: A
+): Parser<[...any, ParserResultFromArg<A>], ParserNamesFromArg<A>> {
+  // TODO fix any type
+  const p = parserArg<A>(arg);
+  const result = seq(repeat(anyNot(p)), p).traceName(
+    `anyThrough ${p.debugName}`
+  );
+  return result;
 }
 
 /** match zero or more instances of a parser */
-export function repeat(stage: string): Parser<string[]>;
-export function repeat<T>(stage: Parser<T>): Parser<T[]>;
-export function repeat<T>(stage: CombinatorArgOld<T>): Parser<T[] | string[]> {
-  return parser("repeat", repeatWhileFilter(stage));
+export function repeat<A extends CombinatorArg>(
+  arg: A
+): ParserFromRepeatArg<A> {
+  return parser("repeat", repeatWhileFilter(arg));
 }
+
 type ResultFilterFn<T> = (
   result: ExtendedResult<T | string, any>
 ) => boolean | undefined;
 
-export function repeatWhile<T>(
-  arg: CombinatorArgOld<T>,
-  filterFn: ResultFilterFn<T>
-): Parser<(T | string)[]> {
+export function repeatWhile<A extends CombinatorArg>(
+  arg: A,
+  filterFn: ResultFilterFn<ParserResultFromArg<A>>
+): ParserFromRepeatArg<A> {
   return parser("repeatWhile", repeatWhileFilter(arg, filterFn));
 }
 
-// TODO we'd like to report a correct type for the merged named results
-function repeatWhileFilter<T, N extends NameRecord>(
-  arg: CombinatorArgOld<T, N>,
-  filterFn: ResultFilterFn<T> = () => true
-): (ctx: ParserContext) => OptParserResult<T[] | string[], N> {
+type RepeatWhileResult<A extends CombinatorArg> = OptParserResult<
+  SeqValues<A[]>,
+  ParserNamesFromArg<A>
+>;
+
+function repeatWhileFilter<A extends CombinatorArg>(
+  arg: A,
+  filterFn: ResultFilterFn<ParserResultFromArg<A>> = () => true
+): (ctx: ParserContext) => RepeatWhileResult<A> {
   const p = parserArg(arg);
-  return (ctx: ParserContext): OptParserResult<T[] | string[], N> => {
-    const values: (T | string)[] = [];
+  return (ctx: ParserContext): RepeatWhileResult<A> => {
+    const values: ParserNamesFromArg<A>[] = [];
     let results = {};
     for (;;) {
       const result = runExtended<T | string, any>(ctx, p);
@@ -206,13 +217,14 @@ function repeatWhileFilter<T, N extends NameRecord>(
       } else {
         // always return succcess
         const r = { value: values, named: results };
-        return r as OptParserResult<T[] | string[], N>; // TODO typing of better named results
+        return r as any; // TODO typing of better named results
       }
     }
   };
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
+// TODO drop this?
 export function fn<T, N extends NameRecord>(
   fn: () => Parser<T, N>
 ): Parser<T, N> {
@@ -232,17 +244,17 @@ export function eof(): Parser<true> {
 
 /** if parsing fails, log an error and abort parsing */
 export function req<T, N extends NameRecord>(
-  arg: CombinatorArgOld<T, N>,
+  arg: CombinatorArg,
   msg?: string
 ): Parser<T | string, N> {
   const p = parserArg(arg);
-  return parser("req", (ctx: ParserContext): OptParserResult<T | string, N> => {
+  return parser("req", (ctx: ParserContext) => {
     const result = p._run(ctx);
     if (result === null) {
       ctxLog(ctx, msg ?? `expected ${p.debugName}`);
       throw new ParseError();
     }
-    return result as ParserResultFromArg<T | string, N>; // TODO rm cast?
+    return result as any; // TODO rm cast?
   });
 }
 
@@ -265,7 +277,7 @@ export interface WithSepOptions {
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
 export function withSep<T, N extends NameRecord>(
-  sep: CombinatorArgOld<any, NameRecord>,
+  sep: CombinatorArg,
   p: Parser<T, N>,
   opts: WithSepOptions = {}
 ): Parser<T[], N> {
@@ -312,15 +324,11 @@ export function makeEolf(matcher: TokenMatcher, ws: string): Parser<any> {
 }
 
 /** convert naked string arguments into text() parsers and functions into fn() parsers */
-export function parserArg<T, N extends NameRecord>(
-  arg: CombinatorArgOld<T, N>
-): Parser<T, N> | Parser<string, NoNameRecord> {
+export function parserArg<A extends CombinatorArg>(arg: A): ParserFromArg<A> {
   if (typeof arg === "string") {
-    return text(arg) as Parser<string, NoNameRecord>;
+    return text(arg) as ParserFromArg<A>; // TODO fix cast
   } else if (arg instanceof Parser) {
-    return arg;
+    return arg as ParserFromArg<A>; // TODO fix cast
   }
-  // else arg:() => Parser<T, N>
-  const fnArg: () => Parser<T, N> = arg;
-  return fn(fnArg);
+  return fn(arg as () => ParserFromArg<A>); // TODO fix cast
 }
