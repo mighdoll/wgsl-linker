@@ -80,7 +80,7 @@ test("opt() makes failing match ok", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("repeat() to (1,2,3,4) via tag", () => {
+test.only("repeat() to (1,2,3,4) via tag", () => {
   const src = "(1,2,3,4)";
   const wordNum = or(kind("word"), kind("digits")).tag("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));

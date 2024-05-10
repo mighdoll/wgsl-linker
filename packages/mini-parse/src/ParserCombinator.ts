@@ -83,15 +83,15 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
 
   const result = parser("seq", (ctx: ParserContext) => {
     const values = [];
-    let namedResults = {};
+    let tagged = {};
     for (const p of parsers) {
       const result = p._run(ctx);
       if (result === null) return null;
 
-      namedResults = mergeTags(namedResults, result.tags);
+      tagged = mergeTags(tagged, result.tags);
       values.push(result.value);
     }
-    return { value: values, tags: namedResults };
+    return { value: values, tags: tagged };
   });
 
   return result as SeqParser<P>;
@@ -137,7 +137,7 @@ export function opt<P extends CombinatorArg>(
   const result = parser("opt", (state: ParserContext): any => {
     // TODO fix any
     const result = p._run(state);
-    return result || { value: undefined, named: {} };
+    return result || { value: undefined, tags: {} };
   });
   return result as ParserFromArg<P> | Parser<undefined, NoTags>; // TODO fix cast
 }
@@ -226,8 +226,8 @@ function repeatWhileFilter<A extends CombinatorArg>(
         results = mergeTags(results, result.tags);
       } else {
         // always return succcess
-        const r = { value: values, named: results };
-        return r as any; // TODO typing of better named results
+        const r = { value: values, tags: results };
+        return r as any; // TODO typing of better tagged results
       }
     }
   };

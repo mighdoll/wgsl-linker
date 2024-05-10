@@ -2,7 +2,7 @@
 
 exports[`blockComment parses /* comment */ 1`] = `
 {
-  "named": {},
+  "tags": {},
   "value": [
     "/*",
     [
