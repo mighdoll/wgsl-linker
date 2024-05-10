@@ -226,7 +226,7 @@ function repeatWhileFilter<A extends CombinatorArg>(
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
-// TODO drop this?
+// TODO make this private
 export function fn<T, N extends NameRecord>(
   fn: () => Parser<T, N>
 ): Parser<T, N> {
