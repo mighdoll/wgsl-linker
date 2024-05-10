@@ -426,7 +426,9 @@ export function preParse<T, N extends NameRecord>(
 
 /** disable a previously attached pre-parser,
  * e.g. to disable a comment preparser in a quoted string parser */
-export function disablePreParse<T>(parser: Parser<T>): Parser<T> {
+export function disablePreParse<T, N extends NameRecord>(
+  parser: Parser<T, N>
+): Parser<T, N> {
   return parser._cloneWith({ preDisabled: true });
 }
 
