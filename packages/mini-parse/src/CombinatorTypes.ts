@@ -6,14 +6,25 @@ export type CombinatorArg =
   | string
   | (() => Parser<any, NameRecord>);
 
-/** Parser corresponding to a CombinatorArg.
- * @param A CombinatorArg
- */
+/** 
+ * @return Parser corresponding to a single CombinatorArg. 
+ * 
+ * examples:
+ *    for combinator("some_string"), the argument is "some_string"
+ *      the Parser corresponding to "some_string" is Parser<string, NoNameRecord>
+ *    if the combinator argument is Parser<number[], {n:number[]}>
+ *      the corresponding parser is Parser<number[], {n:number[]}>
+ *    if the combinator argument is () => Parser<string, {n:number[]}>
+ *      the corresponding parser is Parser<string, {n:number[]}>
+*/
 export type ParserFromArg<A extends CombinatorArg> = Parser<
   ParserResultFromArg<A>,
   ParserNamesFromArg<A>
 >;
 
+/** 
+ * @return Parser corresponding to an array that repeats the same CombinatorArg. 
+ */ 
 export type ParserFromRepeatArg<A extends CombinatorArg> = Parser<
   ParserResultFromArg<A>[],
   ParserNamesFromArg<A>
