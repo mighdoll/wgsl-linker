@@ -43,8 +43,8 @@ const eolf = makeEolf(conditionalsTokens, conditionalsTokens.ws);
 const ifDirective: Parser<any> = seq(
   "#if",
   seq(
-    opt("!").named("invert"),
-    req(kind(conditionalsTokens.word).named("name")),
+    opt("!").tag("invert"),
+    req(kind(conditionalsTokens.word).tag("name")),
     eolf
   )
 ).map((r) => {

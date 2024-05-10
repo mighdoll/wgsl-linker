@@ -95,7 +95,7 @@ type ParseFn<T, N extends NameRecord> = (
 
 /** options for creating a core parser */
 export interface ParserArgs {
-  /** name to use for result in named results */
+  /** name to use for result in tagged results */
   resultName?: string | symbol;
 
   /** name to use for trace logging */
@@ -158,7 +158,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
    * note that named results are collected into an array,
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
-  named<K extends string | symbol>(
+  tag<K extends string | symbol>(
     name: K
   ): Parser<T, N & { [key in K]: T[] }> {
     const p = this._cloneWith({ resultName: name });

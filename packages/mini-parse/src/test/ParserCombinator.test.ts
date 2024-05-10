@@ -60,14 +60,14 @@ test("seq() handles two element match", () => {
 
 test("named kind match", () => {
   const src = "foo";
-  const p = kind(m.word).named("nn");
+  const p = kind(m.word).tag("nn");
   const { parsed } = testParse(p, src);
   expect(parsed?.named.nn).deep.equals(["foo"]);
 });
 
 test("seq() with named result", () => {
   const src = "#import foo";
-  const p = seq("#import", kind(m.word).named("yo"));
+  const p = seq("#import", kind(m.word).tag("yo"));
   const { parsed } = testParse(p, src);
   expect(parsed?.named.yo).deep.equals(["foo"]);
 });
@@ -82,7 +82,7 @@ test("opt() makes failing match ok", () => {
 
 test("repeat() to (1,2,3,4) via named", () => {
   const src = "(1,2,3,4)";
-  const wordNum = or(kind("word"), kind("digits")).named("wn");
+  const wordNum = or(kind("word"), kind("digits")).tag("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));
   const p = seq("(", params, ")");
   const { parsed } = testParse(p, src);
@@ -93,7 +93,7 @@ test("repeat() to (1,2,3,4) via named", () => {
 test("map()", () => {
   const src = "foo";
   const p = kind(m.word)
-    .named("word")
+    .tag("word")
     .map((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
   const { parsed } = testParse(p, src);
   expect(parsed?.value).equals("found");
@@ -101,9 +101,9 @@ test("map()", () => {
 
 test("toParser()", () => {
   const src = "foo !";
-  const bang = text("!").named("bang");
+  const bang = text("!").tag("bang");
   const p = kind("word")
-    .named("word")
+    .tag("word")
     .toParser(() => bang);
   const { parsed } = testParse(p, src);
   expect(parsed?.named.bang).deep.equals(["!"]);
@@ -131,7 +131,7 @@ test("recurse with fn()", () => {
     "{",
     repeat(
       or(
-        kind(m.word).named("word"),
+        kind(m.word).tag("word"),
         fn(() => p)
       )
     ),
@@ -193,7 +193,7 @@ test("disable preParse inside quote", () => {
         seq(
           opt(kind(m.ws)),
           "^", 
-          repeat(anyNot("^").named("contents")), 
+          repeat(anyNot("^").tag("contents")), 
           "^"
         )
       )

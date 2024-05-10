@@ -46,10 +46,10 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
 ): Parser<T> {
   const p = seq(
-    argsWord.named("name"),
-    opt(directiveArgs.named("args")),
-    opt(seq("as", argsWord.named("as"))),
-    opt(seq("from", fromWord.named("from")))
+    argsWord.tag("name"),
+    opt(directiveArgs.tag("args")),
+    opt(seq("as", argsWord.tag("as"))),
+    opt(seq("from", fromWord.tag("from")))
   ).map((r) => {
     // flatten 'args' by putting it with the other extracted names
     const named: (keyof T)[] = ["name", "from", "as", "args"];
@@ -64,14 +64,14 @@ const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
 
 export const importing = seq(
   "importing",
-  seq(importElemPhrase.named("importing")),
-  repeat(seq(",", importElemPhrase.named("importing")))
+  seq(importElemPhrase.tag("importing")),
+  repeat(seq(",", importElemPhrase.tag("importing")))
 );
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  seq(importElemPhrase.named("i"), eolf)
+  seq(importElemPhrase.tag("i"), eolf)
 ).map((r) => {
   const imp: ImportElem = r.named.i[0];
   imp.start = r.start; // use start of #import, not import phrase
@@ -82,7 +82,7 @@ const extendsSym = Symbol("extends");
 
 export const extendsDirective = seq(
   "#extends",
-  seq(extendsElemPhrase.named(extendsSym), eolf)
+  seq(extendsElemPhrase.tag(extendsSym), eolf)
 ).map((r) => {
   const imp: ExtendsElem = r.named[extendsSym][0];
   imp.start = r.start; // use start of #import, not import phrase
@@ -92,7 +92,7 @@ export const extendsDirective = seq(
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 export const exportDirective = seq(
   "#export",
-  seq(opt(directiveArgs.named("args")), opt(importing), eolf)
+  seq(opt(directiveArgs.tag("args")), opt(importing), eolf)
 ).map((r) => {
   // flatten 'args' by putting it with the other extracted names
   const e = makeElem<ExportElem>("export", r, ["args"], ["importing"]);
@@ -108,7 +108,7 @@ function oneArgDirective<T extends NamedElem>(
 ): Parser<void, NameRecord> {
   return seq(
     `#${elemKind}`,
-    tokens(moduleTokens, req(kind(moduleTokens.moduleName).named("name"))),
+    tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
     eolf
   ).map((r) => {
     const e = makeElem<T>(elemKind, r, ["name"]);

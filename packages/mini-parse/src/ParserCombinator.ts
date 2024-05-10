@@ -98,7 +98,7 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
 }
 
 export function test(): void {
-  const a = seq(text("a").named("AA"));
+  const a = seq(text("a").tag("AA"));
   const p = seq(seq(a));
 
   p.map((r) => {
@@ -296,7 +296,7 @@ export function withSep<T, N extends NameRecord>(
   const first = requireOne ? p : opt(p);
   const last = trailing ? opt(sep) : yes();
 
-  return seq(first.named(elem), repeat(seq(sep, p.named(elem))), last)
+  return seq(first.tag(elem), repeat(seq(sep, p.tag(elem))), last)
     .map((r) => (r.named as any)[elem]) // TODO typing
     .traceName("withSep") as any; // TODO typing
 }

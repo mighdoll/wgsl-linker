@@ -68,8 +68,8 @@ test("parse fn foo() with tagged results", () => {
 
   // parsers
   const ident = kind(tokens.ident);
-  const annotation = opt(seq("@", ident).named("annotation"));
-  const fnDecl = seq(annotation, "fn", ident.named("fnName"), "(", ")");
+  const annotation = opt(seq("@", ident).tag("annotation"));
+  const fnDecl = seq(annotation, "fn", ident.tag("fnName"), "(", ")");
 
   // parsing and extracting result
   const result = fnDecl.parse({ lexer });

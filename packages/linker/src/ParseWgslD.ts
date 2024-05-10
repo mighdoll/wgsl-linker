@@ -66,12 +66,12 @@ const globalDirectiveOrAssert = seq(
 });
 
 /** parse an identifier into a TypeNameElem */
-export const typeNameDecl = req(word.named("name")).map((r) => {
+export const typeNameDecl = req(word.tag("name")).map((r) => {
   return makeElem<TypeNameElem>("typeName", r, ["name"]);
 });
 
 /** parse an identifier into a TypeNameElem */
-export const fnNameDecl = req(word.named("name"), "missing fn name").map(
+export const fnNameDecl = req(word.tag("name"), "missing fn name").map(
   (r) => {
     return makeElem<FnNameElem>("fnName", r, ["name"]);
   }
@@ -81,7 +81,7 @@ export const fnNameDecl = req(word.named("name"), "missing fn name").map(
 export const template: Parser<any> = seq(
   "<",
   or(
-    word.named(possibleTypeRef), // only the first element of the template can be a type
+    word.tag(possibleTypeRef), // only the first element of the template can be a type
     fn(() => template)
   ),
   repeat(
@@ -95,7 +95,7 @@ export const template: Parser<any> = seq(
 
 /** find possible references to user structs in this type specifier and any templates */
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
-  word.named(possibleTypeRef),
+  word.tag(possibleTypeRef),
   opt(template)
 ).map((r) =>
   r.named[possibleTypeRef].map((name) => {
@@ -107,18 +107,18 @@ export const typeSpecifier: Parser<TypeRefElem[]> = seq(
 
 export const structMember = seq(
   optAttributes,
-  word.named("name"),
+  word.tag("name"),
   ":",
-  req(typeSpecifier.named("typeRefs"))
+  req(typeSpecifier.tag("typeRefs"))
 ).map((r) => {
   return makeElem<StructMemberElem>("member", r, ["name", "typeRefs"]);
 });
 
 export const structDecl = seq(
   "struct",
-  req(typeNameDecl).named("nameElem"),
+  req(typeNameDecl).tag("nameElem"),
   req("{"),
-  withSep(",", structMember).named("members"),
+  withSep(",", structMember).tag("members"),
   req("}")
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["members"]);
@@ -140,9 +140,9 @@ const callishKeyword = simpleParser("keyword", (ctx: ParserContext) => {
 
 export const fnCall = seq(
   word
-    .named("name")
+    .tag("name")
     .map((r) => makeElem<CallElem>("call", r, ["name"]))
-    .named("calls"), // we collect this in fnDecl, to attach to FnElem
+    .tag("calls"), // we collect this in fnDecl, to attach to FnElem
   "("
 );
 
@@ -150,7 +150,7 @@ export const fnCall = seq(
 const fnParam = seq(
   optAttributes,
   word,
-  opt(seq(":", req(typeSpecifier.named("typeRefs"))))
+  opt(seq(":", req(typeSpecifier.tag("typeRefs"))))
 );
 
 const fnParamList = seq(lParen, withSep(",", fnParam), rParen);
@@ -160,7 +160,7 @@ const variableDecl = seq(
   or("const", "var", "let", "override"), 
   word, 
   ":", 
-  req(typeSpecifier).named("typeRefs")
+  req(typeSpecifier).tag("typeRefs")
 );
 
 const block: Parser<any> = seq(
@@ -180,9 +180,9 @@ const block: Parser<any> = seq(
 export const fnDecl = seq(
   optAttributes,
   "fn",
-  req(fnNameDecl).named("nameElem"),
+  req(fnNameDecl).tag("nameElem"),
   req(fnParamList),
-  opt(seq("->", optAttributes, typeSpecifier.named("typeRefs"))),
+  opt(seq("->", optAttributes, typeSpecifier.tag("typeRefs"))),
   req(block)
 ).map((r) => {
   const e = makeElem<FnElem>("fn", r);
@@ -198,8 +198,8 @@ export const globalVar = seq(
   optAttributes,
   or("const", "override", "var"),
   opt(template),
-  word.named("name"),
-  opt(seq(":", req(typeSpecifier.named("typeRefs")))),
+  word.tag("name"),
+  opt(seq(":", req(typeSpecifier.tag("typeRefs")))),
   req(anyThrough(";"))
 ).map((r) => {
   const e = makeElem<VarElem>("var", r, ["name"]);
@@ -209,9 +209,9 @@ export const globalVar = seq(
 
 export const globalAlias = seq(
   "alias",
-  req(word.named("name")),
+  req(word.tag("name")),
   req("="),
-  req(typeSpecifier).named("typeRefs"),
+  req(typeSpecifier).tag("typeRefs"),
   req(";")
 ).map((r) => {
   const e = makeElem<AliasElem>("alias", r, ["name", "typeRefs"]);
