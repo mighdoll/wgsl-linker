@@ -88,10 +88,10 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
       const result = p._run(ctx);
       if (result === null) return null;
 
-      namedResults = mergeNamed(namedResults, result.named);
+      namedResults = mergeNamed(namedResults, result.tags);
       values.push(result.value);
     }
-    return { value: values, named: namedResults };
+    return { value: values, tags: namedResults };
   });
 
   return result as SeqParser<P>;
@@ -102,7 +102,7 @@ export function test(): void {
   const p = seq(seq(a));
 
   p.map((r) => {
-    const s: string[] = r.named.AA;
+    const s: string[] = r.tags.AA;
     console.log(s);
   });
 }
@@ -150,7 +150,7 @@ export function not(arg: CombinatorArg): Parser<true> {
     const pos = state.lexer.position();
     const result = p._run(state);
     if (!result) {
-      return { value: true, named: {} };
+      return { value: true, tags: {} };
     }
     state.lexer.position(pos);
     return null;
@@ -223,7 +223,7 @@ function repeatWhileFilter<A extends CombinatorArg>(
       // continue acccumulating until we get a null or the filter tells us to stop
       if (result !== null && filterFn(result)) {
         values.push(result.value);
-        results = mergeNamed(results, result.named);
+        results = mergeNamed(results, result.tags);
       } else {
         // always return succcess
         const r = { value: values, named: results };
@@ -297,7 +297,7 @@ export function withSep<T, N extends TagRecord>(
   const last = trailing ? opt(sep) : yes();
 
   return seq(first.tag(elem), repeat(seq(sep, p.tag(elem))), last)
-    .map((r) => (r.named as any)[elem]) // TODO typing
+    .map((r) => (r.tags as any)[elem]) // TODO typing
     .traceName("withSep") as any; // TODO typing
 }
 

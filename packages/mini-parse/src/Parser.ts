@@ -69,7 +69,7 @@ export interface ParserResult<T, N extends TagRecord> {
   value: T;
 
   /** named results from this stage and all child stages*/
-  named: N;
+  tags: N;
 }
 
 export interface ExtendedResult<T, N extends TagRecord = NoTags, A = any>
@@ -240,7 +240,7 @@ export function simpleParser<T>(
     const r = fn(ctx);
     if (r == null || r === undefined) return null;
 
-    return { value: r, named: {} };
+    return { value: r, tags: {} };
   };
 
   return parser(traceName, parserFn, true);
@@ -315,12 +315,12 @@ function runParser<T, N extends TagRecord>(
         // merge named result (if user set a name for this stage's result)
         return {
           value: result.value,
-          named: mergeNamed(result.named, {
+          tags: mergeNamed(result.tags, {
             [p.tagName]: [result.value],
           }),
         } as OptParserResult<T, N>;
       }
-      const r = { value: result.value, named: result.named };
+      const r = { value: result.value, named: result.tags };
       return r as OptParserResult<T, N>;
     }
   }
@@ -368,7 +368,7 @@ function map<T, N extends TagRecord, U>(
     const mappedValue = fn(extended);
     if (mappedValue === null) return null;
 
-    return { value: mappedValue, named: extended.named };
+    return { value: mappedValue, tags: extended.tags };
   });
 }
 

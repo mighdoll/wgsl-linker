@@ -49,8 +49,8 @@ const ifDirective: Parser<any> = seq(
   )
 ).map((r) => {
   // extract args
-  const ifArg = r.named["name"]?.[0] as string;
-  const invert = r.named["invert"]?.[0] === "!";
+  const ifArg = r.tags["name"]?.[0] as string;
+  const invert = r.tags["invert"]?.[0] === "!";
 
   // lookup whether #if arg is truthy or not in paramsa, and invert for ! prefix
   const { params } = r.app.state;

@@ -73,7 +73,7 @@ const importDirective = seq(
   "#import",
   seq(importElemPhrase.tag("i"), eolf)
 ).map((r) => {
-  const imp: ImportElem = r.named.i[0];
+  const imp: ImportElem = r.tags.i[0];
   imp.start = r.start; // use start of #import, not import phrase
   r.app.state.push(imp);
 });
@@ -84,7 +84,7 @@ export const extendsDirective = seq(
   "#extends",
   seq(extendsElemPhrase.tag(extendsSym), eolf)
 ).map((r) => {
-  const imp: ExtendsElem = r.named[extendsSym][0];
+  const imp: ExtendsElem = r.tags[extendsSym][0];
   imp.start = r.start; // use start of #import, not import phrase
   r.app.state.push(imp);
 });

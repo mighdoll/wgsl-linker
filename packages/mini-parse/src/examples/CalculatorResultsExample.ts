@@ -20,13 +20,13 @@ const value = or(
     fn(() => expr.tag("value")),
     ")"
   )
-).map((r) => r.named.value[0]);
+).map((r) => r.tags.value[0]);
 
 export const power = seq(
   value.tag("base"),
   opt(seq("^", value.tag("exp"))) // TODO power
 ).map((r) => {
-  const { base, exp } = r.named;
+  const { base, exp } = r.tags;
   return exp ? base[0] ** exp[0] : base[0];
 });
 
@@ -34,7 +34,7 @@ export const product = seq(
   power.tag("pow"),
   repeat(seq(mulDiv, power).tag("mulDiv"))
 ).map((r) => {
-  const { pow, mulDiv } = r.named;
+  const { pow, mulDiv } = r.tags;
   if (!mulDiv) return pow[0];
   const result = mulDiv.reduce((acc, opVal) => {
     const [op, val] = opVal;
@@ -47,7 +47,7 @@ export const sum = seq(
   product.tag("left"),
   repeat(seq(plusMinus, product).tag("sumOp"))
 ).map((r) => {
-  const { left, sumOp } = r.named;
+  const { left, sumOp } = r.tags;
   if (!sumOp) return left[0];
   return sumOp.reduce((acc, opVal) => {
     const [op, val] = opVal;

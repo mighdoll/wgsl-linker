@@ -62,14 +62,14 @@ test("named kind match", () => {
   const src = "foo";
   const p = kind(m.word).tag("nn");
   const { parsed } = testParse(p, src);
-  expect(parsed?.named.nn).deep.equals(["foo"]);
+  expect(parsed?.tags.nn).deep.equals(["foo"]);
 });
 
 test("seq() with named result", () => {
   const src = "#import foo";
   const p = seq("#import", kind(m.word).tag("yo"));
   const { parsed } = testParse(p, src);
-  expect(parsed?.named.yo).deep.equals(["foo"]);
+  expect(parsed?.tags.yo).deep.equals(["foo"]);
 });
 
 test("opt() makes failing match ok", () => {
@@ -87,14 +87,14 @@ test("repeat() to (1,2,3,4) via named", () => {
   const p = seq("(", params, ")");
   const { parsed } = testParse(p, src);
   expect(parsed).not.null;
-  expect(parsed?.named.wn).deep.equals(["1", "2", "3", "4"]);
+  expect(parsed?.tags.wn).deep.equals(["1", "2", "3", "4"]);
 });
 
 test("map()", () => {
   const src = "foo";
   const p = kind(m.word)
     .tag("word")
-    .map((r) => (r.named.word?.[0] === "foo" ? "found" : "missed"));
+    .map((r) => (r.tags.word?.[0] === "foo" ? "found" : "missed"));
   const { parsed } = testParse(p, src);
   expect(parsed?.value).equals("found");
 });
@@ -106,7 +106,7 @@ test("toParser()", () => {
     .tag("word")
     .toParser(() => bang);
   const { parsed } = testParse(p, src);
-  expect(parsed?.named.bang).deep.equals(["!"]);
+  expect(parsed?.tags.bang).deep.equals(["!"]);
 });
 
 test("not() success", () => {
@@ -137,7 +137,7 @@ test("recurse with fn()", () => {
     ),
     "}"
   );
-  const wrap = or(p).map((r) => r.app.state.push(r.named.word));
+  const wrap = or(p).map((r) => r.app.state.push(r.tags.word));
   const { appState: app } = testParse(wrap, src);
   expect(app[0]).deep.equals(["a", "b"]);
 });
@@ -198,7 +198,7 @@ test("disable preParse inside quote", () => {
         )
       )
     )
-    .map((r) => r.named.contents.map((tok) => tok.text).join(""))
+    .map((r) => r.tags.contents.map((tok) => tok.text).join(""))
     .traceName("quote");
 
   const p = preParse(comment, repeat(or(kind(m.word), quote)));

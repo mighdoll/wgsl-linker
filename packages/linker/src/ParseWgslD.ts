@@ -98,7 +98,7 @@ export const typeSpecifier: Parser<TypeRefElem[]> = seq(
   word.tag(possibleTypeRef),
   opt(template)
 ).map((r) =>
-  r.named[possibleTypeRef].map((name) => {
+  r.tags[possibleTypeRef].map((name) => {
     const e = makeElem<TypeRefElem>("typeRef", r);
     e.name = name;
     return e;
@@ -122,7 +122,7 @@ export const structDecl = seq(
   req("}")
 ).map((r) => {
   const e = makeElem<StructElem>("struct", r, ["members"]);
-  const nameElem = r.named.nameElem[0];
+  const nameElem = r.tags.nameElem[0];
   e.nameElem = nameElem;
   e.name = nameElem.name;
   r.app.state.push(e);
@@ -186,11 +186,11 @@ export const fnDecl = seq(
   req(block)
 ).map((r) => {
   const e = makeElem<FnElem>("fn", r);
-  const nameElem = r.named.nameElem[0];
+  const nameElem = r.tags.nameElem[0];
   e.nameElem = nameElem;
   e.name = nameElem.name;
-  e.calls = r.named.calls || [];
-  e.typeRefs = r.named.typeRefs?.flat() || [];
+  e.calls = r.tags.calls || [];
+  e.typeRefs = r.tags.typeRefs?.flat() || [];
   r.app.state.push(e);
 });
 
@@ -203,7 +203,7 @@ export const globalVar = seq(
   req(anyThrough(";"))
 ).map((r) => {
   const e = makeElem<VarElem>("var", r, ["name"]);
-  e.typeRefs = r.named.typeRefs?.flat() || [];
+  e.typeRefs = r.tags.typeRefs?.flat() || [];
   r.app.state.push(e);
 });
 

@@ -67,8 +67,8 @@ export function makeElem<U extends AbstractElem>(
   namedArrays: (keyof U)[] = []
 ): U {
   const { start, end } = er;
-  const nv = mapIfDefined(named, er.named as NameStrings<U>, true); // TODO let ts match names, avoid cast
-  const av = mapIfDefined(namedArrays, er.named as NameStrings<U>);
+  const nv = mapIfDefined(named, er.tags as NameStrings<U>, true); // TODO let ts match names, avoid cast
+  const av = mapIfDefined(namedArrays, er.tags as NameStrings<U>);
   return { kind, start, end, ...nv, ...av } as U;
 }
 

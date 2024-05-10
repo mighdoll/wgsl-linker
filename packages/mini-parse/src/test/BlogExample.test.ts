@@ -75,7 +75,7 @@ test("parse fn foo() with tagged results", () => {
   const result = fnDecl.parse({ lexer });
 
   if (result) {
-    const [fnName] = result.named.fnName;
+    const [fnName] = result.tags.fnName;
     expect(fnName).toBe("foo");
   }
   expect(result).toBeDefined();
