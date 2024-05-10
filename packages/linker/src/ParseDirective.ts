@@ -1,7 +1,7 @@
 import {
   anyThrough,
   kind,
-  NameRecord,
+  TagRecord,
   opt,
   or,
   Parser,
@@ -105,7 +105,7 @@ const templateDirective = oneArgDirective("template");
 
 function oneArgDirective<T extends NamedElem>(
   elemKind: T["kind"]
-): Parser<void, NameRecord> {
+): Parser<void, TagRecord> {
   return seq(
     `#${elemKind}`,
     tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
@@ -143,7 +143,7 @@ export const lineCommentOptDirective = seq(
 
 // enableTracing();
 if (tracing) {
-  const names: Record<string, Parser<unknown, NameRecord>> = {
+  const names: Record<string, Parser<unknown, TagRecord>> = {
     directiveArgs,
     importElemPhrase,
     extendsElemPhrase,

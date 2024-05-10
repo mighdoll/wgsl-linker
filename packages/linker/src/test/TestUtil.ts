@@ -1,11 +1,11 @@
-import { NameRecord, NoNameRecord, Parser } from "mini-parse";
+import { TagRecord, NoTags, Parser } from "mini-parse";
 import { testParse, TestParseResult } from "mini-parse/test-util";
 
 import { AbstractElem } from "../AbstractElems.js";
 import { mainTokens } from "../MatchWgslD.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 
-export function testAppParse<T, N extends NameRecord = NoNameRecord>(
+export function testAppParse<T, N extends TagRecord = NoTags>(
   parser: Parser<T, N>,
   src: string
 ): TestParseResult<T, N, AbstractElem> {

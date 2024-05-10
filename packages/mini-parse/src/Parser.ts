@@ -60,11 +60,11 @@ export interface ParserContext<A = any> {
   srcMap?: SrcMap;
 }
 
-export type NameRecord = Record<string | symbol, any>; // TODO should this be any[]?
-export type NoNameRecord = Record<string | symbol, never>;
+export type TagRecord = Record<string | symbol, any>; // TODO should this be any[]?
+export type NoTags = Record<string | symbol, never>;
 
 /** Result from a parser */
-export interface ParserResult<T, N extends NameRecord> {
+export interface ParserResult<T, N extends TagRecord> {
   /** result from this stage */
   value: T;
 
@@ -72,7 +72,7 @@ export interface ParserResult<T, N extends NameRecord> {
   named: N;
 }
 
-export interface ExtendedResult<T, N extends NameRecord = NoNameRecord, A = any>
+export interface ExtendedResult<T, N extends TagRecord = NoTags, A = any>
   extends ParserResult<T, N> {
   src: string;
   srcMap?: SrcMap;
@@ -84,19 +84,19 @@ export interface ExtendedResult<T, N extends NameRecord = NoNameRecord, A = any>
 
 /** parsers return null if they don't match */
 // prettier-ignore
-export type OptParserResult<T, N extends NameRecord> = 
+export type OptParserResult<T, N extends TagRecord> = 
     ParserResult<T, N> 
   | null;
 
 /** Internal parsing functions return a value and also a set of named results from contained parser  */
-type ParseFn<T, N extends NameRecord> = (
+type ParseFn<T, N extends TagRecord> = (
   context: ParserContext
 ) => OptParserResult<T, N>;
 
 /** options for creating a core parser */
 export interface ParserArgs {
   /** name to use for result in tagged results */
-  resultName?: string | symbol;
+  tag?: string | symbol;
 
   /** name to use for trace logging */
   traceName?: string;
@@ -111,14 +111,14 @@ export interface ParserArgs {
   preDisabled?: true;
 }
 
-interface ConstructArgs<T, N extends NameRecord> extends ParserArgs {
+interface ConstructArgs<T, N extends TagRecord> extends ParserArgs {
   fn: ParseFn<T, N>;
 }
 
 /** a composable parsing element */
-export class Parser<T, N extends NameRecord = NoNameRecord> {
+export class Parser<T, N extends TagRecord = NoTags> {
   tracingName: string | undefined;
-  namedResult: string | symbol | undefined;
+  tagName: string | symbol | undefined;
   traceOptions: TraceOptions | undefined;
   terminal: boolean | undefined;
   preDisabled: true | undefined;
@@ -126,7 +126,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
 
   constructor(args: ConstructArgs<T, N>) {
     this.tracingName = args.traceName;
-    this.namedResult = args.resultName;
+    this.tagName = args.tag;
     this.traceOptions = args.trace;
     this.terminal = args.terminal;
     this.preDisabled = args.preDisabled;
@@ -137,7 +137,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
   _cloneWith(p: Partial<ConstructArgs<T, N>>): Parser<T, N> {
     return new Parser({
       traceName: this.tracingName,
-      resultName: this.namedResult,
+      tag: this.tagName,
       trace: this.traceOptions,
       terminal: this.terminal,
       preDisabled: this.preDisabled,
@@ -161,7 +161,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
   tag<K extends string | symbol>(
     name: K
   ): Parser<T, N & { [key in K]: T[] }> {
-    const p = this._cloneWith({ resultName: name });
+    const p = this._cloneWith({ tag: name });
     return p as Parser<T, N & { [key in K]: T[] }>;
   }
 
@@ -181,7 +181,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
   }
 
   /** switch next parser based on results */
-  toParser<U, V extends NameRecord>(
+  toParser<U, V extends TagRecord>(
     fn: ToParserFn<T, N, U, V>
   ): Parser<T | U, N & V> {
     return toParser(this, fn);
@@ -214,7 +214,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
   }
 
   get debugName(): string {
-    return this.tracingName ?? this.namedResult?.toString() ?? "parser";
+    return this.tracingName ?? this.tagName?.toString() ?? "parser";
   }
 }
 
@@ -222,7 +222,7 @@ export class Parser<T, N extends NameRecord = NoNameRecord> {
  * @param fn the parser function
  * @param args static arguments provided by the user as the parser is constructed
  */
-export function parser<T, N extends NameRecord>(
+export function parser<T, N extends TagRecord>(
   traceName: string,
   fn: ParseFn<T, N>,
   terminal?: boolean
@@ -235,8 +235,8 @@ export function parser<T, N extends NameRecord>(
 export function simpleParser<T>(
   traceName: string,
   fn: (ctx: ParserContext) => T | null | undefined
-): Parser<T, NoNameRecord> {
-  const parserFn: ParseFn<T, NoNameRecord> = (ctx: ParserContext) => {
+): Parser<T, NoTags> {
+  const parserFn: ParseFn<T, NoTags> = (ctx: ParserContext) => {
     const r = fn(ctx);
     if (r == null || r === undefined) return null;
 
@@ -248,7 +248,7 @@ export function simpleParser<T>(
 
 /** modify the trace name of this parser */
 export function setTraceName(
-  parser: Parser<any, NameRecord>,
+  parser: Parser<any, TagRecord>,
   traceName: string
 ): void {
   parser.tracingName = traceName;
@@ -263,7 +263,7 @@ export function setTraceName(
  * . backtrack on failure
  * . rollback context on failure
  */
-function runParser<T, N extends NameRecord>(
+function runParser<T, N extends TagRecord>(
   p: Parser<T, N>,
   context: ParserContext
 ): OptParserResult<T, N> {
@@ -311,12 +311,12 @@ function runParser<T, N extends NameRecord>(
     } else {
       // parser succeded
       tracing && parserLog(`✓ ${p.tracingName}`);
-      if (p.namedResult && result.value !== undefined) {
+      if (p.tagName && result.value !== undefined) {
         // merge named result (if user set a name for this stage's result)
         return {
           value: result.value,
           named: mergeNamed(result.named, {
-            [p.namedResult]: [result.value],
+            [p.tagName]: [result.value],
           }),
         } as OptParserResult<T, N>;
       }
@@ -339,7 +339,7 @@ function execPreParsers(ctx: ParserContext): void {
 
     // exec each pre-parser until it fails
     let position: number;
-    let preResult: OptParserResult<unknown, NoNameRecord>;
+    let preResult: OptParserResult<unknown, NoTags>;
     do {
       position = lexer.position();
       if (failCache.has(position)) break;
@@ -352,12 +352,12 @@ function execPreParsers(ctx: ParserContext): void {
   });
 }
 
-type ParserMapFn<T, N extends NameRecord, U> = (
+type ParserMapFn<T, N extends TagRecord, U> = (
   results: ExtendedResult<T, N>
 ) => U | null;
 
 /** return a parser that maps the current results */
-function map<T, N extends NameRecord, U>(
+function map<T, N extends TagRecord, U>(
   p: Parser<T, N>,
   fn: ParserMapFn<T, N, U>
 ): Parser<U, N> {
@@ -372,11 +372,11 @@ function map<T, N extends NameRecord, U>(
   });
 }
 
-type ToParserFn<T, N extends NameRecord, X, Y extends NameRecord> = (
+type ToParserFn<T, N extends TagRecord, X, Y extends TagRecord> = (
   results: ExtendedResult<T, N>
 ) => Parser<X, Y> | undefined;
 
-function toParser<T, N extends NameRecord, O, Y extends NameRecord>(
+function toParser<T, N extends TagRecord, O, Y extends TagRecord>(
   p: Parser<T, N>,
   toParserFn: ToParserFn<T, N, O, Y>
 ): Parser<T | O, N & Y> {
@@ -402,7 +402,7 @@ const emptySet = new Set<string>();
 
 /** set which token kinds to ignore while executing this parser and its descendants.
  * If no parameters are provided, no tokens are ignored. */
-export function tokenSkipSet<T, N extends NameRecord>(
+export function tokenSkipSet<T, N extends TagRecord>(
   ignore: Set<string> | undefined | null,
   mainParser: Parser<T, N>
 ): Parser<T, N> {
@@ -416,7 +416,7 @@ export function tokenSkipSet<T, N extends NameRecord>(
 
 /** attach a pre-parser to try parsing before this parser runs.
  * (e.g. to recognize comments that can appear almost anywhere in the main grammar) */
-export function preParse<T, N extends NameRecord>(
+export function preParse<T, N extends TagRecord>(
   pre: Parser<unknown>,
   mainParser: Parser<T, N>
 ): Parser<T, N> {
@@ -428,14 +428,14 @@ export function preParse<T, N extends NameRecord>(
 
 /** disable a previously attached pre-parser,
  * e.g. to disable a comment preparser in a quoted string parser */
-export function disablePreParse<T, N extends NameRecord>(
+export function disablePreParse<T, N extends TagRecord>(
   parser: Parser<T, N>
 ): Parser<T, N> {
   return parser._cloneWith({ preDisabled: true });
 }
 
 /** run parser, return extended results to support map() or toParser() */
-export function runExtended<T, N extends NameRecord>(
+export function runExtended<T, N extends TagRecord>(
   ctx: ParserContext,
   p: Parser<T, N>
 ): ExtendedResult<T, N> | null {

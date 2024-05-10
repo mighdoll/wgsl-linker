@@ -1,4 +1,4 @@
-import { matchingLexer, matchOneOf, OptParserResult, Parser, TokenMatcher, tokenMatcher, _withBaseLogger, NameRecord, NoNameRecord } from "mini-parse";
+import { matchingLexer, matchOneOf, OptParserResult, Parser, TokenMatcher, tokenMatcher, _withBaseLogger, TagRecord, NoTags } from "mini-parse";
 import { expect } from "vitest";
 import { logCatch } from "./LogCatcher.js";
 
@@ -14,14 +14,14 @@ export const testTokens = tokenMatcher({
   ws: /\s+/,
 });
 
-export interface TestParseResult<T, N extends NameRecord = NoNameRecord, S = any> {
+export interface TestParseResult<T, N extends TagRecord = NoTags, S = any> {
   parsed: OptParserResult<T, N>;
   position: number;
   appState: S[];
 }
 
 /** utility for testing parsers */
-export function testParse<T, N extends NameRecord = NoNameRecord, S = any>(
+export function testParse<T, N extends TagRecord = NoTags, S = any>(
   p: Parser<T, N>,
   src: string,
   tokenMatcher: TokenMatcher = testTokens

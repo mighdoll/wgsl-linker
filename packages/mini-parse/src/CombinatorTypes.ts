@@ -1,10 +1,10 @@
-import { NameRecord, NoNameRecord, Parser } from "./Parser.js";
+import { TagRecord, NoTags, Parser } from "./Parser.js";
 
 /** parser combinators like or() and seq() combine other parsers (strings are converted to text() parsers) */
 export type CombinatorArg =
-  | Parser<any, NameRecord>
+  | Parser<any, TagRecord>
   | string
-  | (() => Parser<any, NameRecord>);
+  | (() => Parser<any, TagRecord>);
 
 /** 
  * @return Parser corresponding to a single CombinatorArg. 
@@ -45,7 +45,7 @@ export type ParserNamesFromArg<A extends CombinatorArg> =
   A extends Parser<any, infer R>
     ? R
     : A extends string
-      ? NoNameRecord
+      ? NoTags
       : A extends () => Parser<any, infer R>
         ? R
         : never;

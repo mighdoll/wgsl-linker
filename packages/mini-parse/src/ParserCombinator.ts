@@ -11,8 +11,8 @@ import {
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
-  NameRecord,
-  NoNameRecord,
+  TagRecord,
+  NoTags,
   OptParserResult,
   Parser,
   ParserContext,
@@ -66,7 +66,7 @@ export function kind(kindStr: string): Parser<string> {
 
 /** Parse for a token containing a text value
  * @return the kind of token that matched */
-export function text(value: string): Parser<string, NoNameRecord> {
+export function text(value: string): Parser<string, NoTags> {
   return simpleParser(
     `text ${quotedText(value)}'`,
     (state: ParserContext): string | null => {
@@ -132,14 +132,14 @@ export function or<P extends CombinatorArg[]>(...args: P): OrParser<P> {
  */
 export function opt<P extends CombinatorArg>(
   arg: P
-): ParserFromArg<P> | Parser<undefined, NoNameRecord> {
+): ParserFromArg<P> | Parser<undefined, NoTags> {
   const p = parserArg(arg);
   const result = parser("opt", (state: ParserContext): any => {
     // TODO fix any
     const result = p._run(state);
     return result || { value: undefined, named: {} };
   });
-  return result as ParserFromArg<P> | Parser<undefined, NoNameRecord>; // TODO fix cast
+  return result as ParserFromArg<P> | Parser<undefined, NoTags>; // TODO fix cast
 }
 
 /** return true if the provided parser _doesn't_ match
@@ -235,7 +235,7 @@ function repeatWhileFilter<A extends CombinatorArg>(
 
 /** A delayed parser definition, for making recursive parser definitions. */
 // TODO make this private
-export function fn<T, N extends NameRecord>(
+export function fn<T, N extends TagRecord>(
   fn: () => Parser<T, N>
 ): Parser<T, N> {
   return parser("fn", (state: ParserContext): OptParserResult<T, N> => {
@@ -286,7 +286,7 @@ export interface WithSepOptions {
 }
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
-export function withSep<T, N extends NameRecord>(
+export function withSep<T, N extends TagRecord>(
   sep: CombinatorArg,
   p: Parser<T, N>,
   opts: WithSepOptions = {}

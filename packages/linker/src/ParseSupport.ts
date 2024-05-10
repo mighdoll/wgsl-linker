@@ -6,8 +6,8 @@ import {
   fn,
   kind,
   makeEolf,
-  NameRecord,
-  NoNameRecord,
+  TagRecord,
+  NoTags,
   or,
   Parser,
   repeat,
@@ -62,7 +62,7 @@ export const wordNumArgs: Parser<string[]> = seq(
  */
 export function makeElem<U extends AbstractElem>(
   kind: U["kind"],
-  er: ExtendedResult<any, NameRecord>, 
+  er: ExtendedResult<any, TagRecord>, 
   named: (keyof U)[] = [],
   namedArrays: (keyof U)[] = []
 ): U {
