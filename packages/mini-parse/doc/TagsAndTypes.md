@@ -108,10 +108,75 @@ the grammar evolves over time.
 ### Tagging results
 
 Instead of indexing into results, 
-let's add a feature to the combinator library to make it easier
+let's add a `tag` feature to the combinator library to make it easier
 to identify the results we care about.
 
+```
+  const annotation = repeat(seq("@", ident).tag("annotated"));        // tag annotations
+  const fnDecl = seq(annotation, "fn", ident.tag("fnName"), "(", ")"); // tag fnName
+```
 
+Then we can collect the results by name, rather than by index. 
+No magic numbers, no maintenance problems when rearranging the grammar.
+
+While we're arranging for tagging, we'll have have the tagged values accumulate 
+into an array so we can collect multiples matches. 
+And we'll have the tagged values propogate up the
+and parse tree for easy collection.
+
+In this case, the potentially multiple annotations are collected into an array in
+the annotation parser under the tag "annotated". 
+The annotated tag results also propogate to the parent fnDecl parser too.
+
+```
+    const [fnName] = result.tags.fnName; 
+    const annotations: string[] = result.tags.annotated;
+```
+
+Tagging helps make extracting values from the parser more convenient and 
+maintainable. 
+
+We could have a type of `Record<string, any[]>` for the result tags. 
+That'll work.  
+
+But to make things really work well for the user, 
+we want to TypeScript to understand the tags.  
+If TypeScript understands the tags, autocomplete in the editor will be smart,
+and the compiler will catch typos in the tag names, 
+mistakes in object types, etc.
 
 ### TypeScript Types for tagged results
 
+Our goal is to be able to tag and accumulate results with TypeScript
+typing for the tags.
+
+Let's define a `TaggedResult` class containing a result and a tag record
+containing named results.
+
+We're going to want to fill in the `TBD` types.
+
+```
+  type TagRecord = Record<string, any[]>;
+
+  class TaggedResult<T, N extends TagRecord> {
+    constructor(value:T) { }
+    get result(): T { }
+    get tags(): N { }
+
+    /** return a new TaggedResult with tag name attached to the result */
+    tag(name: string): TaggedResult<T, TBD> { }
+  }
+
+  /** combine results into an array sequence and merge tag records */
+  function seq(...taggedResultOrString: TBD[]): TaggedResult<TBD, TBD> {}
+```
+
+If it 
+
+
+
+#### Infer type parameters with specifing them
+#### Intersecting types
+#### Conditional types 
+#### Encouraging keyed records
+#### Mapped tuple types

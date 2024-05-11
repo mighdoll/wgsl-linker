@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { matchOneOf, tokenMatcher } from "../TokenMatcher.js";
 import { matchingLexer } from "../MatchingLexer.js";
-import { kind, opt, seq } from "../ParserCombinator.js";
+import { kind, opt, repeat, seq } from "../ParserCombinator.js";
 
 test("parse fn foo()", () => {
   const src = "fn foo()";
@@ -54,9 +54,8 @@ test("parse fn foo() with annotation in grammar", () => {
   expect(result).toBeDefined();
 });
 
-
 test("parse fn foo() with tagged results", () => {
-  const src = "fn foo()";
+  const src = "@export fn foo()";
 
   // lexer
   const tokens = tokenMatcher({
@@ -68,16 +67,52 @@ test("parse fn foo() with tagged results", () => {
 
   // parsers
   const ident = kind(tokens.ident);
-  const annotation = opt(seq("@", ident).tag("annotation"));
+  const annotation = repeat(seq("@", ident.tag("annotation")));
   const fnDecl = seq(annotation, "fn", ident.tag("fnName"), "(", ")");
 
   // parsing and extracting result
   const result = fnDecl.parse({ lexer });
 
+  expect(result).toBeDefined();
   if (result) {
     const [fnName] = result.tags.fnName;
     expect(fnName).toBe("foo");
+    const annotations: string[] = result.tags.annotation;
+    expect(annotations).to.deep.eq(["export"]);
   }
-  expect(result).toBeDefined();
 });
 
+function NYI(): never {
+  throw new Error("NYI");
+}
+
+test("types example", () => {
+  type TBD = any;
+  type TagRecord = Record<string, any[]>;
+
+  class TaggedResult<T, N extends TagRecord> {
+    constructor(value:T) { }
+    tag(name: string): TBD { NYI(); }
+    get result(): T { return NYI(); }
+    get tags(): N { return NYI(); }
+  }
+
+  function seq(...taggedResultsOrString: TBD[]): TaggedResult<TBD, TBD> {
+    NYI();
+  }
+
+  const a = new TaggedResult(1).tag("A");
+  const b = new TaggedResult("bo");
+  const s = seq(a, b.tag("B"), "foo");
+
+
+});
+
+test("types solution", () => {
+  type TagRecord = Record<string, any[]>;
+  class TaggedResult<T, N extends TagRecord> {
+    tag<K extends string>(name: K): TaggedResult<T, N & { [key in K]: T[] }> {
+      NYI();
+    }
+  }
+});
