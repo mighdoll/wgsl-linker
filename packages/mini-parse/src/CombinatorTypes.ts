@@ -98,7 +98,7 @@ export type TagsFromArg<A extends CombinatorArg> =
  */
 export type SeqParser<P extends CombinatorArg[]> = Parser<
   SeqValues<P>,
-  SeqNames<P>
+  SeqTags<P>
 >;
 
 /**
@@ -112,7 +112,7 @@ export type SeqValues<P extends CombinatorArg[]> = {
   [key in keyof P]: ResultFromArg<P[key]>;
 };
 
-type SeqNames<P extends CombinatorArg[]> = KeyedRecord<
+type SeqTags<P extends CombinatorArg[]> = KeyedRecord<
   Intersection<TagsFromArg<P[number]>>
 >;
 
