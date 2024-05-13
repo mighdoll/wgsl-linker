@@ -82,8 +82,8 @@ test("parse fn foo() with tagged results", () => {
   }
 });
 
-function NYI(): never {
-  throw new Error("NYI");
+function NYI(): any{
+  return null as any;
 }
 
 test("types example", () => {
@@ -91,10 +91,16 @@ test("types example", () => {
   type TagRecord = Record<string, any[]>;
 
   class TaggedResult<T, N extends TagRecord> {
-    constructor(value:T) { }
-    tag(name: string): TBD { NYI(); }
-    get result(): T { return NYI(); }
-    get tags(): N { return NYI(); }
+    constructor(value: T) {}
+    tag(name: string): TBD {
+      NYI();
+    }
+    get result(): T {
+      return NYI();
+    }
+    get tags(): N {
+      return NYI();
+    }
   }
 
   function seq(...taggedResultsOrString: TBD[]): TaggedResult<TBD, TBD> {
@@ -104,15 +110,69 @@ test("types example", () => {
   const a = new TaggedResult(1).tag("A");
   const b = new TaggedResult("bo");
   const s = seq(a, b.tag("B"), "foo");
-
-
 });
 
 test("types solution", () => {
   type TagRecord = Record<string, any[]>;
-  class TaggedResult<T, N extends TagRecord> {
-    tag<K extends string>(name: K): TaggedResult<T, N & { [key in K]: T[] }> {
-      NYI();
+  class Tags<N extends TagRecord> {
+    addTag<K extends string, V>(
+      name: K,
+      value: V
+    ): Tags<N & { [key in K]: V[] }> {
+      return NYI();
     }
   }
+
+  type CombineArg = string | Tags<any>;
+  // function combine(...tags:CombineArg[]):Tags<TBD>
+});
+
+test("infer type parameter", () => {
+  // prettier-ignore
+  interface ThreeParams<A, B, C> { a: A; b: B; c: C; }
+
+  type InferB<T extends ThreeParams<any, any, any>> =
+    T extends ThreeParams<any, infer B, any> ? B : never;
+
+  type Hidden = ThreeParams<any, any, any>;
+
+  function makeThree<A, B, C>(a: A, b: B, c: C): ThreeParams<A, B, C> {
+    return { a, b, c };
+  }
+
+
+  function fooB<T extends Hidden>(a: T): InferB<T> {
+    return NYI();
+  }
+
+  function fooB_simple<B>(a: ThreeParams<any, B, any>): B {
+    return NYI();
+  }
+
+  function fooB_nope(a: Hidden): InferB<typeof a> {
+    return NYI();
+  }
+
+  function foo1<A, B, C, D, E, F>(
+    a: ThreeParams<A, B, C>,
+    b: ThreeParams<D, E, F>
+  ): B {
+    return NYI();
+  }
+
+  function fooM<A,B,C>(args: ThreeParams<any, any, any>[]): any {
+    return NYI();
+  }
+
+  /** return type is the second type parameter of the first argument */
+  function fooH<T extends Hidden>(...args: T[]): InferB<typeof args[0]> {
+    return NYI();
+  }
+
+  const p = makeThree("foo", 1, true);
+  const f: number = fooB(p);
+  const h = fooB_simple(p); // works too
+  const g = fooB_nope(p); // g is of type any, not what we want
+
+  const x = fooH(p)
 });
