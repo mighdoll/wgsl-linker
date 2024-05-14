@@ -4,23 +4,6 @@ The idea is to allow tagging elements in a grammar,
 so that users can reliably extract particular elements from a parse tree, 
 even a deeply nested parse tree.
 
-Let's say we construct a parser that recognizes the parts of a function 
-in a programming language source text. 
-Among other things, the parser identifies all of the internal 
-calls to other functions inside the parsed function body.
-We'll eventually want to extract these outgoing calls from the parsed results.
-
-So here's a parser:
-```
-const result = fnParser.parse(...); // parses the text of a function definition
-```
-
-We're going to invent a way to 'tag' the call elements,
-so we can extract the elements we care about by the 'call' tag:
-
-```
-const fnCalls: CallElem[] = result.tags.call;
-```
 
 ### Parser combinators
 
@@ -72,7 +55,7 @@ if (result) {
 ### Dangerous extraction
 
 But extracting the identifier by indexing to position
-1 in the results is dangerous from a maintenance point of view. 
+1 in the results isn't so great from a maintenance point of view. 
 If the grammar changes, the index will change, and our code will break.
 
 Let's say we update the grammar to allow for optional annotations, 
@@ -93,8 +76,9 @@ add any elements to the language.
 Or we might want to extract multiple similar values, from multiple places
 in the parsed results, futher complicating our value extraction.
 
-Indexing into the results works, but the maintenance risk grows if
-the grammar evolves over time.
+Indexing into the results works, but it's fragile. 
+And the maintenance risk grows if the language we're parsing
+evolves over time.
 
 ### Tagging results
 
@@ -102,8 +86,9 @@ Instead of indexing into results,
 let's add a `tag` feature to the combinator library to make it easier
 to identify the results we care about.
 
+It'll look something like this.
 ```
-  const annotation = repeat(seq("@", ident).tag("annotated"));        // tag annotations
+  const annotation = repeat(seq("@", ident).tag("annotated"));         // tag annotations
   const fnDecl = seq(annotation, "fn", ident.tag("fnName"), "(", ")"); // tag fnName
 ```
 
@@ -111,8 +96,10 @@ Then we can collect the results by name, rather than by index.
 No magic numbers, no maintenance problems when rearranging the grammar.
 
 While we're arranging for tagging, we'll have have the tagged values accumulate 
-into an array so we can collect multiples matches. 
-And we'll have the tagged values propogate up the
+into an array so we can collect multiple matches. 
+e.g. maybe there are multiple annotations in this case.
+
+To make it more useful we'll have the tagged values propogate up the
 and parse tree for easy collection.
 
 In this case, the potentially multiple annotations are collected into an array in
@@ -127,11 +114,29 @@ The annotated tag results also propogate to the parent fnDecl parser too.
 Tagging helps make extracting values from the parser more convenient and 
 maintainable. 
 
+### Typing Tagged Results
 We could have a type of `Record<string, any[]>` for the result tags. 
-That'll work.  
+That works, but is not as useful to the user as proper typing.
 
-But to make things really work well for the user, 
-we want to TypeScript to understand the tags.  
 If TypeScript understands the tags, autocomplete in the editor will be smart,
 and the compiler will catch typos in the tag names, 
 mistakes in object types, etc.
+
+Good typing for tags requires some non-trivial gymnastics with
+the TypeScript type system. 
+
+The basic idea is that every parser will have two type parameters, 
+one for a result of its parse, and one for the accumulated tags.
+
+Something like this
+```ts
+export type TagRecord = Record<string | symbol, any[]>; 
+class Parser<V, T extends TagRecord> {
+
+}
+```
+
+
+
+
+
