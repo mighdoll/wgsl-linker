@@ -106,7 +106,7 @@ export type SeqParser<P extends CombinatorArg[]> = Parser<
  * by CombinatorArgs.
  * 
  * Note that although looks like an object type given the {} syntax, it's not. 
- * As of TS 4.1, type mapping over keys of an array or tuple returns an array or tuple type, not an object type.
+ * As of TS 3.1, type mapping over keys of an array or tuple returns an array or tuple type, not an object type.
  */
 export type SeqValues<P extends CombinatorArg[]> = {
   [key in keyof P]: ResultFromArg<P[key]>;
