@@ -1,4 +1,3 @@
-import { Intersection } from "./CombinatorTypes.js";
 import { Lexer } from "./MatchingLexer.js";
 import { ParseError } from "./ParserCombinator.js";
 import { srcLog } from "./ParserLogging.js";
