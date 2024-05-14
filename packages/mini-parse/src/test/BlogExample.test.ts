@@ -1,7 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect, test } from "vitest";
 import { matchOneOf, tokenMatcher } from "../TokenMatcher.js";
 import { matchingLexer } from "../MatchingLexer.js";
 import { kind, opt, repeat, seq } from "../ParserCombinator.js";
+import {
+  CombinatorArg,
+  Intersection,
+  KeyedRecord,
+  SeqValues,
+} from "../CombinatorTypes.js";
+import { NoTags, Parser } from "../Parser.js";
 
 test("parse fn foo()", () => {
   const src = "fn foo()";
@@ -82,34 +90,31 @@ test("parse fn foo() with tagged results", () => {
   }
 });
 
-function NYI(): any{
+function NYI(): any {
   return null as any;
 }
 
 test("types example", () => {
-  type TBD = any;
-  type TagRecord = Record<string, any[]>;
-
-  class TaggedResult<T, N extends TagRecord> {
-    constructor(value: T) {}
-    tag(name: string): TBD {
-      NYI();
-    }
-    get result(): T {
-      return NYI();
-    }
-    get tags(): N {
-      return NYI();
-    }
-  }
-
-  function seq(...taggedResultsOrString: TBD[]): TaggedResult<TBD, TBD> {
-    NYI();
-  }
-
-  const a = new TaggedResult(1).tag("A");
-  const b = new TaggedResult("bo");
-  const s = seq(a, b.tag("B"), "foo");
+  // type TBD = any;
+  // type TagRecord = Record<string, any[]>;
+  // class TaggedResult<T, N extends TagRecord> {
+  //   constructor(value: T) {}
+  //   tag(name: string): TBD {
+  //     NYI();
+  //   }
+  //   get result(): T {
+  //     return NYI();
+  //   }
+  //   get tags(): N {
+  //     return NYI();
+  //   }
+  // }
+  // // function seq(...taggedResultsOrString: TBD[]): TaggedResult<TBD, TBD> {
+  // //   NYI();
+  // // }
+  // const a = new TaggedResult(1).tag("A");
+  // const b = new TaggedResult("bo");
+  // const s = seq(a, b.tag("B"), "foo");
 });
 
 test("types solution", () => {
@@ -140,7 +145,6 @@ test("infer type parameter", () => {
     return { a, b, c };
   }
 
-
   function fooB<T extends Hidden>(a: T): InferB<T> {
     return NYI();
   }
@@ -160,12 +164,12 @@ test("infer type parameter", () => {
     return NYI();
   }
 
-  function fooM<A,B,C>(args: ThreeParams<any, any, any>[]): any {
+  function fooM<A, B, C>(args: ThreeParams<any, any, any>[]): any {
     return NYI();
   }
 
   /** return type is the second type parameter of the first argument */
-  function fooH<T extends Hidden>(...args: T[]): InferB<typeof args[0]> {
+  function fooH<T extends Hidden>(...args: T[]): InferB<(typeof args)[0]> {
     return NYI();
   }
 
@@ -174,5 +178,108 @@ test("infer type parameter", () => {
   const h = fooB_simple(p); // works too
   const g = fooB_nope(p); // g is of type any, not what we want
 
-  const x = fooH(p)
+  const x = fooH(p);
+});
+
+test("extend a record", () => {
+  const a = { a: 1, b: "foo" };
+  const b = { ...a, c: true };
+
+  class Tags<N extends Record<string, any>> {
+    add<K extends string, V>(name: K, value: V): Tags<N & { [k in K]: V }> {
+      name;
+      value;
+      return {} as any;
+    }
+    read(): N {
+      return NYI();
+    }
+  }
+  const tags = new Tags().add("c", true);
+  const moreTags = tags.add("bar", "zap"); // add more fields
+  const record: { c: boolean; bar: string } = moreTags.read(); // properly typed result
+
+  b;
+  record;
+});
+
+test("mapped tuple type", () => {
+  type Wrapped<T extends string | number> = T extends string
+    ? { str: T }
+    : T extends number
+      ? { num: T }
+      : T;
+
+  // prettier-ignore
+  type WrapElems<T extends (string | number)[]> = 
+    { [key in keyof T]: Wrapped<T[key]> };
+
+  function wrapEm<T extends (string | number)[]>(...args: T): WrapElems<T> {
+    args;
+    return NYI();
+  }
+
+  const w: [{ num: number }, { str: string }] = wrapEm(1, "foo");
+
+  w;
+
+  // const xx = ["foo", "bar"];
+  // function ss<P extends CombinatorArg[]> (...args: P): SeqValues<P> {
+  //   return null as any;
+  // }
+
+  // const yy = ss("foo", "bar", null as unknown as Parser<number, any>);
+});
+
+// TODO requires recursive type
+test("remove type from tuple", () => {
+  const a = [1, "foo", true] as const;
+
+  type NotString<T> = T extends string ? never : T;
+  type Stringless<T extends any[]> = { [key in keyof T]: NotString<T[key]> };
+
+  function removeStrings<T extends any[]>(...args: T): Stringless<T> {
+    args;
+    return NYI();
+  }
+
+  const b = removeStrings(...a);
+});
+
+test("Recovering Record Key Names", () => {
+  type Elem = Record<string, any>;
+  type MapValues<E extends Elem[]> = { [key in keyof E]: E[key] };
+
+  function f<T extends Elem[]>(...a: T): Intersection<MapValues<T>> {
+    return a as any;
+  }
+
+  const y = f({ foo: 1 }, { bar: "z" });
+});
+
+// TODO why does this fail?
+test("Recovering Record Key Names with Parser", () => {
+  type TagRecord = Record<string | symbol, any>;
+  type CombinatorArg =
+    | Parser<any, TagRecord>
+    | string
+    | (() => Parser<any, TagRecord>);
+  type SeqParser<P extends CombinatorArg[]> = Parser<SeqValues<P>, SeqTags<P>>;
+  type TagsFromArg<A extends CombinatorArg> =
+    A extends Parser<any, infer R>
+      ? R
+      : A extends string
+        ? NoTags
+        : A extends () => Parser<any, infer R>
+          ? R
+          : never;
+  type SeqTags<P extends CombinatorArg[]> = KeyedRecord<
+    Intersection<TagsFromArg<P[number]>>
+  >;
+
+  function f<A extends CombinatorArg[]>(...args: A): SeqParser<A> {
+    return args as any;
+  }
+
+  const x = f(kind("word").tag("X"));
 });

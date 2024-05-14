@@ -20,7 +20,7 @@ export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
 
 /**
  * Define keys explictly for a Record type.
- * Sometimes TypeScript is tempted to return a generic Record
+ * Sometimes TypeScript is tempted to return a generic Record or unknown
  * rather than specific keys for a Record.
  *
  * e.g. the type {a: number, b: string} could be also be Record<string, number|string>
@@ -123,35 +123,3 @@ export type OrParser<P extends CombinatorArg[]> = Parser<
 
 type OrValues<P extends CombinatorArg[]> = ResultFromArg<P[number]>;
 type OrNames<P extends CombinatorArg[]> = TagsFromArg<P[number]>;
-
-
-// First Type param V to Combo:
-//    { [key in keyof Ts]: ExtractValue<Ts[key]> },
-//  This looks like an object type given the {} syntax. But it's not. As of TS 3.1,
-//  type mapping over keys of an array or tuple returns an array or tuple type, not an object type.
-//  Here's how it works:
-//
-//  [key in keyof Ts] is the indices of of Ts:
-//     0, 1, ...
-//  Ts[key] gets us the type of index corresponding Combo arg
-//     Ts[0] is Combo<number, {A:number}>
-//  ExtractValue gets just the first type parameter out of Combo
-//     ExtractValue<Ts[0]> is number
-//  So the resulting type mapping looks like this:
-//    {0:number, 1:string, ...}
-//  And because Ts is an array or tuple, Typescript interprets that as what we want:
-//    [number, string]
-//
-// Second type param N to Combo
-//    UnionToIntersection<ExtractObject<Ts[number]>>
-//
-//  Ts[number] is the type of the provided Combo arguments:
-//      Combo<number, {A:number}>, Combo<string, B:string>, ...
-//  Because this is covariant, ts combines the args into into a union:
-//      Combo<number, {A:number}> | Combo<string, B:string> | ...
-//  ExtractObject gets us the union of just the second combo type parameter
-//      {A:number} | {B:string} | ...
-//  UnionToIntersection converts the union to interexection
-//      {A:number} & {B:string} & ...
-//  which is equivalent to what we want:
-//      {A:number, B:string, ...}

@@ -120,26 +120,62 @@ TypesScript leaves the internal types as `any`.
   function fooB_nope(a: Hidden): InferParamB<Hidden> { }
 ```
 
-#### Extending a Record Type
+## Extending a Record Type Using a Mapped Type
+Let's say you're collecting fields into a Record type 
+and you want to add a field.
 
-```
-  class KeyValues<N extends Record<string, any>> {
-    add<K extends string, V>(name: K, value:V): Tags<N & { [key in K]: V[] }> 
+Here's an example of adding a field to record in a type safe way:
+
+```ts
+  // holds a Record
+  class Tags<N extends Record<string, any>> {
+    add<K extends string, V>(name: K, value:V): Tags<N & { [key in K]: V }>  { }
+    read(): N { }
   }
 ```
+
+Then you can use it like this.
+```ts
+  const tags = new Tags().add("c", true); 
+  const moreTags = tags.add("bar", "zap"); // add more fields
+  const record: { c: boolean; bar: string } = moreTags.read(); // properly typed result
+```
+
+There's two Typescript tricks involved in the typing of `add`. 
+
+First, we need a way to define the record for the newly added field.
+`{ [key in K]: V }` defines a mapped type, which maps over the fields
+in K to create a new record type. 
+[Mapped type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) 
+syntax like this is usually seen mapping over a Record type,
+but it turns out you can use it for a single string too.
+The `[x in U]` part of the syntax maps over a union type, 
+typically created by the 
+[`keyof`](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html#handbook-content) 
+type operator on a Record.
+In this case `K` is always a single type 
+but that still qualifies as a (lonely) union.
+
+Second, we need to combine the new record type with the existing record type.
+Here we use a single intersection step, 
+combining the existing record type `N` with the new record type.
+The resulting type `{c: boolean}` & `{bar: string}` is equivalent to
+`{c: boolean; bar: string}`, 
+and so we've successfully extended our Record.
 
 ## Intersecting to Build Type Safe Records
 Let's say we have two Record types `{a: string}` and `{b: number}`. 
 The type constructor below, `Intersection`, will combine 
 the two Record types like this: `{a: string} & {b: number}`, which
 is the same as `{a: string; b: number}`. 
-That's why `Intersection` is so handy for type safely constructing Record types 
+So `Intersection` is critical for type safely constructing Record types 
 from other Records.
 
 It's typical in type manipulation to find that you have a union type.
-Sometimes we'd want the union. A union of the records above would give us 
+A union of the records above would give us 
 the choice of either type: `{a: string} | {b: number}`.
-But for combining into a single Record, we want the intersection type.
+Sometimes we'd want the union. 
+But for combining into a single Record, we'd want the intersection.
 
 If you have a union type like `A | B | C`, 
 the following type constructor will turn the union into an intersection like `A & B & C`.
@@ -176,31 +212,55 @@ So if we have a function that takes an argument of type `A | B | C`,
 we could type safely replace it with a function 
 that takes an argument of `A & B & C`. 
 
-## Conditional Types to Decompose Union Types
-
-```
-export type ResultFromArg<A extends CombinatorArg> =
-  A extends Parser<infer R, any>
-    ? R
-    : A extends string
-      ? string
-      : A extends () => Parser<infer R, any>
-        ? R
-        : never;
-```
-
-## Recover Specific Record Key Names
-Sometimes you have a Record, 
+## Recovering Record Key Names
+Sometimes you're inferring a Record and TypeScript knows the keys and the value
+types but its own inference has made things more general or lost track
+of the keys..
 
 ```
 export type KeyedRecord<T> = { [A in keyof T]: T[A] };
 ```
 
-## Mapped tuple types
-This is clearly documented, but only 
+## Mapped Tuple Types
+There's a little trick for mapping over Tuple and Array types
+that isn't mentioned in the main documentation for TypeScript 
+[Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html).
 
+Let's say you want to convert an array of strings and numbers 
+to an array of objects with "str" and "num" fields.
+
+We can convert the type of one element using a conditional type:
+```ts
+  type Wrapped<T extends string | number> = T extends string
+    ? { str: T }
+    : T extends number
+      ? { num: T }
+      : T;
 ```
-export type SeqValues<P extends CombinatorArg[]> = {
-  [key in keyof P]: ResultFromArg<P[key]>;
-};
+
+
+Here's how we might define a function that does the wrapping:
+```ts
+  function wrapEm<T extends (string | number)[]>(...args: T): WrapElems<T> { }
 ```
+
+And here's the type constructor that maps the array from one type to another.
+
+```ts
+  type WrapElems<T extends (string | number)[]> = 
+    { [key in keyof T]: Wrapped<T[key]> };
+```
+* `T` is an array, and so the 
+[Mapped Type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) 
+type `{ [key in keyof T]: Wrapped<T[key]> }` is also an array.  
+It looks a little funny that you can make a an array or typle type with curly
+brace `{ }` notation, but it works.
+There is some documentation of this behavior in old TypeScript 
+[release notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-1.html).
+
+The result type is an array of objects with "str" and "num" fields, as expected:
+
+```ts
+  const w: [{ num: number }, { str: string }] = wrapEm(1, "foo");
+```
+
