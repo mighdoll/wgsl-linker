@@ -1,9 +1,6 @@
-### TypeScript type gymnastics for parser combinators.
+### Tagged Parser Combinators
 
-I've just added some fancy TypeScript types to a parser combinator library.
-conditional types, mapped tuple types, contravariance, 'infer', and more.
-
-Our goal is to create types that allow tagging elements in a grammar,
+The idea is to allow tagging elements in a grammar,
 so that users can reliably extract particular elements from a parse tree, 
 even a deeply nested parse tree.
 
@@ -18,17 +15,12 @@ So here's a parser:
 const result = fnParser.parse(...); // parses the text of a function definition
 ```
 
-We'll invent a way to 'tag' the call elements,
+We're going to invent a way to 'tag' the call elements,
 so we can extract the elements we care about by the 'call' tag:
 
 ```
 const fnCalls: CallElem[] = result.tags.call;
 ```
-
-Then we'll explore the mysteries of getting TypeScript to understand the tagged 
-to enable autocomplete 
-and type checking on the tagged results.
-
 
 ### Parser combinators
 
@@ -50,7 +42,7 @@ the provided string.
 So `fnDecl` is a parser that matches a string "fn" followed by
 an identifier, followed by a "(", followed by a ")".
 
-Here's a complete example. Runnable version.
+Here's a complete example. Runnable version TODO.
 
 ```ts
 const src = "fn foo()";
