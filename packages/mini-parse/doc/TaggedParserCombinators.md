@@ -21,7 +21,7 @@ const fnDecl = seq('fn', ident, '(', ')' );
 
 Here `seq` is a parser combinator function provided by the library. 
 `seq` returns a new parser that sequentially runs a series of provided parsers.
-`seq` handles string arguments by converting them into into parsers that match
+`seq` handles string arguments by converting them into parsers that match
 the provided string. 
 So `fnDecl` is a parser that matches a string "fn" followed by
 an identifier, followed by a "(", followed by a ")".
@@ -75,7 +75,7 @@ us vulnerable to restructuring of the parsers even if we don't
 add any elements to the source language. 
 
 Or we might want to extract multiple similar values, from multiple places
-in the parsed results, futher complicating our value extraction.
+in the parsed results, further complicating our value extraction.
 
 Indexing into the results works, but it's fragile. 
 And the maintenance risk grows if the language we're parsing
@@ -97,16 +97,16 @@ It'll look like this.
 
 Then we can collect the results by name, rather than by index. 
 
-While we're arranging for tagging, we'll have have the tagged values accumulate 
+While we're arranging for tagging, we'll have the tagged values accumulate 
 into an array so we can collect multiple matches. 
 e.g. maybe there are multiple annotations in this case.
 
-To make it more useful we'll have the tagged values propogate up the
+To make it more useful we'll have the tagged values propagate up the
 and parse tree for easy collection.
 
 In this case, the potentially multiple annotations are collected into an array in
 the annotation parser under the tag "annotated". 
-The annotated tag results also propogate to the parent fnDecl parser too.
+The annotated tag results also propagate to the parent fnDecl parser too.
 
 ```
     const [fnName] = result.tags.fnName; 
@@ -122,7 +122,7 @@ We could have a general type of `Record<string, any[]>` for the result tags.
 That works ok, but we can do better.
 
 It'll be more useful to the user of the library if TypeScript 
-undersands that our tags for particular parsers. 
+understands that our tags for particular parsers. 
 e.g. for `fnParser` the tags should be typed: `{ fnName: string[]; annotated: string[] }`. 
 If TypeScript understands the tags, autocomplete in the editor will be smart,
 and the compiler will catch typos in the tag names, 
@@ -147,7 +147,7 @@ class Parser<V, T extends TagRecord> {
 }
 ```
 
-And combinators will that compose parsers, will compose the TagRecord types too.
+And combinators that compose parsers will need compose the TagRecord types too.
 ```ts
 function seq(...parsers: Parser<any, any>[] ): Parser<???, ???> {}
 ```
