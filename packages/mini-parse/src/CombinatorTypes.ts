@@ -29,7 +29,7 @@ export type KeyedRecord<T> = { [A in keyof T]: T[A] };
  * @returns a Record type with the keys explictly defined, if possible.
  */
 export type AsRecordArray<T> =
-  T extends Record<string | symbol, any[]> ? { [A in keyof T]: T[A] } : never;
+  T extends Record<any, any[]> ? { [A in keyof T]: T[A] } : never;
 
 /**
  * This type describes the variations for parser combinator arguments.
