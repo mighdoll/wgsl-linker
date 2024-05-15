@@ -1,4 +1,4 @@
-import { TagRecord, NoTags, Parser } from "./Parser.js";
+import { NoTags, Parser, TagRecord } from "./Parser.js";
 
 /** Typescript types for parser combinators */
 
@@ -9,7 +9,7 @@ import { TagRecord, NoTags, Parser } from "./Parser.js";
  * Works by placing U into contraviant position, and then inferring its type.
  * See https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
  * and https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
- * 
+ *
  * (and wrapping things in conditional types with ? : never gives us a stage to place the inferencing)
  */
 export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
@@ -19,26 +19,25 @@ export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
   : never;
 
 /**
- * Define keys explictly for a Record type.
- * Sometimes TypeScript is tempted to return a generic Record or unknown
- * rather than specific keys for a Record.
- *
- * e.g. the type {a: number, b: string} could be also be Record<string, number|string>
- *
- * KeyedRecord will ask Typescript to return help the first version if possible..
- *
  * @param T a Record type
  * @returns a Record type with the keys explictly defined, if possible.
  */
 export type KeyedRecord<T> = { [A in keyof T]: T[A] };
 
-/** 
+/**
+ * @param T a Record type with array values
+ * @returns a Record type with the keys explictly defined, if possible.
+ */
+export type AsRecordArray<T> =
+  T extends Record<string | symbol, any[]> ? { [A in keyof T]: T[A] } : never;
+
+/**
  * This type describes the variations for parser combinator arguments.
- * 
- * Parser combinators seq(), or() and similiar combinators 
- * combine other parsers they take as function arguments. 
+ *
+ * Parser combinators seq(), or() and similiar combinators
+ * combine other parsers they take as function arguments.
  * Standard combinators also accept arguments that are nullary functions
- * returning a parser (for lazy initialization), 
+ * returning a parser (for lazy initialization),
  * or simple string arguments. Strings are later converted to text() parsers.
  */
 export type CombinatorArg =
@@ -46,9 +45,9 @@ export type CombinatorArg =
   | string
   | (() => Parser<any, TagRecord>);
 
-/** 
- * @return Parser corresponding to a single CombinatorArg. 
- * 
+/**
+ * @return Parser corresponding to a single CombinatorArg.
+ *
  * examples:
  *    for combinator("some_string"), the argument is "some_string"
  *      the Parser corresponding to "some_string" is Parser<string, NoNameRecord>
@@ -56,15 +55,15 @@ export type CombinatorArg =
  *      the corresponding parser is Parser<number[], {n:number[]}>
  *    if the combinator argument is () => Parser<string, {n:number[]}>
  *      the corresponding parser is Parser<string, {n:number[]}>
-*/
+ */
 export type ParserFromArg<A extends CombinatorArg> = Parser<
   ResultFromArg<A>,
   TagsFromArg<A>
 >;
 
-/** 
- * @return Parser corresponding to an array that repeats the same CombinatorArg. 
- */ 
+/**
+ * @return Parser corresponding to an array that repeats the same CombinatorArg.
+ */
 export type ParserFromRepeatArg<A extends CombinatorArg> = Parser<
   ResultFromArg<A>[],
   TagsFromArg<A>
@@ -80,18 +79,17 @@ export type ResultFromArg<A extends CombinatorArg> =
         ? R
         : never;
 
-/** parser NameRecord returned by parser specified by a CombinatorArg */
+/** parser tags type returned by parser specified by a CombinatorArg */
 export type TagsFromArg<A extends CombinatorArg> =
-  A extends Parser<any, infer R>
-    ? R
+  A extends Parser<any, infer T>
+    ? T
     : A extends string
       ? NoTags
-      : A extends () => Parser<any, infer R>
-        ? R
+      : A extends () => Parser<any, infer T>
+        ? T
         : never;
 
-
-/** Parser type returned by seq(), 
+/** Parser type returned by seq(),
  *    concatenates the argument result types into an array
  *    and intersects the argument name records into a single keyed record.
  * @param P type of arguments to seq()
@@ -104,15 +102,15 @@ export type SeqParser<P extends CombinatorArg[]> = Parser<
 /**
  * The type of an array of parsed result values from an array of parsers specified
  * by CombinatorArgs.
- * 
- * Note that although looks like an object type given the {} syntax, it's not. 
+ *
+ * Note that although looks like an object type given the {} syntax, it's not.
  * As of TS 3.1, type mapping over keys of an array or tuple returns an array or tuple type, not an object type.
  */
 export type SeqValues<P extends CombinatorArg[]> = {
   [key in keyof P]: ResultFromArg<P[key]>;
 };
 
-type SeqTags<P extends CombinatorArg[]> = KeyedRecord<
+type SeqTags<P extends CombinatorArg[]> = AsRecordArray<
   Intersection<TagsFromArg<P[number]>>
 >;
 

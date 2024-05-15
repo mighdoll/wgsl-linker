@@ -59,7 +59,7 @@ export interface ParserContext<A = any> {
   srcMap?: SrcMap;
 }
 
-export type TagRecord = Record<string | symbol, any>; // TODO should this be any[]?
+export type TagRecord = Record<string | symbol, any[]>;
 export type NoTags = Record<string | symbol, never>;
 
 /** Result from a parser */
@@ -157,9 +157,7 @@ export class Parser<T, N extends TagRecord = NoTags> {
    * note that tagged results are collected into an array,
    * multiple matches with the same name (even from different nested parsers) accumulate
    */
-  tag<K extends string | symbol>(
-    name: K
-  ): Parser<T, N & { [key in K]: T[] }> {
+  tag<K extends string | symbol>(name: K): Parser<T, N & { [key in K]: T[] }> {
     const p = this._cloneWith({ tag: name });
     return p as Parser<T, N & { [key in K]: T[] }>;
   }
