@@ -1,3 +1,14 @@
+Combining Records with TypeScript? 
+
+@Modderme123 gave me some tips last week. 
+I thought I'd write them up and share them with you too.
+
+* [Extending a Record Type Using a Mapped Type](#extending-a-record-type-using-a-mapped-type)
+* [Mapped Tuple Types](#mapped-tuple-types)
+* [Infer a Type Without Passing a Type Parameter](#infer-a-type-without-passing-a-type-parameter)
+* [Intersecting to Build Type Safe Records](#intersecting-to-build-type-safe-records)
+* [Recovering Record Types from Record Intersections](#recovering-record-types-from-record-intersections)
+
 ## Extending a Record Type Using a Mapped Type
 
 Let's say you're collecting fields into a Record type
@@ -49,7 +60,8 @@ There's a little trick for mapping over Tuple and Array types
 that isn't mentioned in the main documentation for TypeScript
 [Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html).
 
-Let's say you want to convert an array of strings and numbers
+#### Example
+Let's try to convert an array of strings and numbers
 to an array of objects with "str" and "num" fields.
 
 We can convert the type of one element using a conditional type:
@@ -68,7 +80,10 @@ Here's how we might define a function that does the wrapping:
 function wrapEm<T extends (string | number)[]>(...args: T): WrapElems<T> {}
 ```
 
-And here's the type constructor that maps the array from one type to another.
+#### Solution with Mappped Types
+And here's solution for this example. 
+The `WrapElems` type constructor maps one type of array to another type of array.
+(Or one type of tuple to another type of tuple.)
 
 ```ts
 type WrapElems<T extends (string | number)[]> = {
