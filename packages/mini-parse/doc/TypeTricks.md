@@ -21,7 +21,7 @@ const moreTags = tags.add("bar", "zap"); // add more fields
 const record: { c: boolean; bar: string } = moreTags.read(); // properly typed result
 ```
 
-There's two Typescript tricks involved in the typing of `add`.
+There are two Typescript tricks involved in the typing of `add`.
 
 First, we need a way to define the record for the newly added field.
 `{ [key in K]: V }` defines a mapped type, which maps over the fields
@@ -169,14 +169,14 @@ function fooB<T extends Hidden>(a: Hidden): InferParamB<Hidden> {}
 
 We've reduced the visible type parameters in the API here from three to one.
 If there were more function parameters, multiple function overloads,
-or more just type parameters, the simplification of having just
+or more just type parameters, the simplification factor would be even greater.
 
-And the infer type constructor can be handy in more complicated situations too.
+The infer type constructor can be handy in more complicated situations too.
 Here's an example with variable numbers of arguments.
 This example also uses the TypeScript
 [typeof](https://www.typescriptlang.org/docs/handbook/2/typeof-types.html) operator,
 which works to give you the type of a term as long as you're in a type context,
-e.g. between <>.
+e.g. between angle brackets < >.
 We can even index to pick out the type of the first argument of the args array.
 
 ```ts
@@ -188,20 +188,20 @@ By using 'infer' we can keep things simple on the side of the api that our calle
 and cleanly solve some complicated type problems on the inside.
 
 ##### Note: Still Need One Type Parameter
+Could we have zero type parameters rather than one? 
+No type parameters doesn't work as well.
+Here, TypesScript leaves the internal types as `any`.
 
-Note that we'll typically still need one type parameter:
+```ts
+// return type any, not so helpful
+function fooB_nope(a: Hidden): InferParamB<Hidden> {}
+```
+
+So we'll typically still need one type parameter:
 
 ```ts
 // return type is second type parameter of ThreeParams
 function fooB<T extends Hidden>(a: T): InferParamB<Hidden> {}
-```
-
-No type parameters doesn't work as well,
-TypesScript leaves the internal types as `any`.
-
-```ts
-// return type any
-function fooB_nope(a: Hidden): InferParamB<Hidden> {}
 ```
 
 ## Intersecting to Build Type Safe Records
@@ -209,25 +209,28 @@ function fooB_nope(a: Hidden): InferParamB<Hidden> {}
 Let's say we have two Record types `{a: string}` and `{b: number}`.
 The type constructor below, `Intersection`, will combine
 the two Record types like this: `{a: string} & {b: number}`, which
-is the same as `{a: string; b: number}`.
-So `Intersection` is critical for type safely constructing Record types
-from other Records.
+is almost the same as `{a: string; b: number}`. 
+(See [Recovering Record Types](#recovering-record-types-from-record-intersections) below.)
 
 It's typical in type manipulation to find that you have a union type.
 A union of the records above would give us
 the choice of either type: `{a: string} | {b: number}`.
 Sometimes we'd want the union.
 But for combining into a single Record, we'd want the intersection.
+If have the two Record types in hand, easiest is to use the `&` operator to combine them.
+
+But if we have an unspecified number of types, or a union type, 
+the following `Intersection` type constructor
+becomes helpful for type safely constructing Records. 
 
 If you have a union type like `A | B | C`,
-the following type constructor will turn the union into an intersection like `A & B & C`.
+the `Intersection` type constructor will turn the union into an intersection like `A & B & C`.
+
 
 ```ts
-export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never;
+type Intersection<U> = 
+  (U extends any ? (k: U) => void : never) 
+           extends (k: infer I) => void ? I : never;
 ```
 
 The trick is described here in the
@@ -254,12 +257,45 @@ So if we have a function that takes an argument of type `A | B | C`,
 we could type safely replace it with a function
 that takes an argument of `A & B & C`.
 
-## Recovering Record Key Names
+## Recovering Record Types from Record Intersections
 
-Sometimes you're inferring a Record and TypeScript knows the keys and the value
-types but its own inference has made things more general or lost track
-of the keys.. TODO
+TypeScript sometimes has trouble inferring the type of a `Record` type parameter
+after `Intersection`.
 
+```ts
+  type ARecord = Record<any, any>;
+  type Verify<T extends ARecord> = T;  // will fail to typecheck if T is not a Record
 ```
-export type KeyedRecord<T> = { [A in keyof T]: T[A] };
+
+Intersection typechecks sometimes.
+```ts
+  type SimpleIntersection<A extends ARecord, B extends ARecord> = Verify<A & B>;
+  type ConcreteIntersect = Verify<Intersection<{ a: 1} | { b: 2}>>;
+```
+
+But not always.
+```ts
+  type ParamIntersect<A extends ARecord> = Verify<Intersection<A>>; // fails to typecheck
+```
+
+#### Solution - Recover the Record Type
+The following will help recover the Record type after `Intersection`.
+
+For basic Record types, try this:
+```ts
+type AsRecord<T> = { [A in keyof T]: T[A] };
+```
+
+For Records with array values, try this:
+```ts
+type AsRecordArray<T> =
+  T extends Record<any, any[]> ? { [A in keyof T]: T[A] } : never;
+```
+
+Works!
+```ts
+  type ParamIntersect2<A extends ARecord> = Verify<AsRecord<Intersection<A>>>;
+
+  // success:
+  type Test1 = ParamIntersect2<{ a: 1} | { b: 2}>; // type Test1 = { a: 1; b: 2; }
 ```
