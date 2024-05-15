@@ -79,7 +79,7 @@ type WrapElems<T extends (string | number)[]> = {
 - `T` is an array, and so the
   [Mapped Type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
   type `{ [key in keyof T]: Wrapped<T[key]> }` is also an array.
-  It looks a little funny that you can make a an array or typle type with curly
+  It looks a little funny that you can make an array or tuple type with curly
   brace `{ }` notation, but it works.
   There is some documentation of this behavior in old TypeScript
   [release notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-1.html).
@@ -92,7 +92,7 @@ const w: [{ num: number }, { str: string }] = wrapEm(1, "foo");
 
 ## Infer a Type Without Passing a Type Parameter
 
-#### Explicit type parameters are staightforward
+#### Explicit type parameters are straightforward
 
 Let's say you have a type that takes several type parameters.
 
@@ -141,9 +141,9 @@ or if it's hard for TypeScript to figure out the types in advance?
 
 #### Solution: 'infer'
 
-One way around these problems to put a simpler, less parameterized type
+One way around these problems is to put a simpler, less parameterized type
 on the api. Then we'll use 'infer' to magically pull out the types
-we need but didn't specify as paremeters. Here's an example:
+we need but didn't specify as parameters. Here's an example:
 
 Create a type that hides the parameters from the external api:
 
@@ -189,8 +189,8 @@ and cleanly solve some complicated type problems on the inside.
 
 ##### Note: Still Need One Type Parameter
 Could we have zero type parameters rather than one? 
-No type parameters doesn't work as well.
-Here, TypesScript leaves the internal types as `any`.
+That doesn't work so well.
+Here, TypesScript leaves the internal types as `any`:
 
 ```ts
 // return type any, not so helpful
@@ -212,12 +212,13 @@ the two Record types like this: `{a: string} & {b: number}`, which
 is almost the same as `{a: string; b: number}`. 
 (See [Recovering Record Types](#recovering-record-types-from-record-intersections) below.)
 
-It's typical in type manipulation to find that you have a union type.
+It's typical in type manipulation to find that we have a union type.
 A union of the records above would give us
 the choice of either type: `{a: string} | {b: number}`.
 Sometimes we'd want the union.
 But for combining into a single Record, we'd want the intersection.
-If have the two Record types in hand, easiest is to use the `&` operator to combine them.
+If we have the two Record type parameters in hand, 
+easiest is to use the `&` operator to combine them.
 
 But if we have an unspecified number of types, or a union type, 
 the following `Intersection` type constructor
@@ -243,7 +244,7 @@ of the function parameter, it will be the intersection of the types in the union
 #### Why Function Argument Types Intersect
 
 Function arguments are normally contravariant -
-an alternate function that takes a more general function argument would be an type
+an alternate function that takes a more general function argument would be a type
 safe replacement.
 If we have a function that takes an insect and returns the number of legs,
 we could type safely substitute a function that takes any animal
