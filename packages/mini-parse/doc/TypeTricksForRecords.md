@@ -1,20 +1,25 @@
-Combining Records with TypeScript? 
+Combining Records in TypeScript? 
 
-@Modderme123 gave me some tips last week. 
+I needed to learn some TypeScript type tricks 
+for a [library](https://npmjs.com/package/mini-parse) that lets users
+combine add to Records, merge Records, manage arrays of Records, etc.
+[@Modderme123](TODO) gave me some TypeScript tips last week. 
 I thought I'd write them up and share them with you too.
 
-* [Extending a Record Type Using a Mapped Type](#extending-a-record-type-using-a-mapped-type)
-* [Mapped Tuple Types](#mapped-tuple-types)
-* [Infer a Type Without Passing a Type Parameter](#infer-a-type-without-passing-a-type-parameter)
-* [Intersecting to Build Type Safe Records](#intersecting-to-build-type-safe-records)
-* [Recovering Record Types from Record Intersections](#recovering-record-types-from-record-intersections)
+Here's five tricks, roughly in order of increasing trickiness:
+
+1. [Extending a Record Type Using a Mapped Type](#extending-a-record-type-using-a-mapped-type)
+1. [Mapped Tuple Types](#mapped-tuple-types)
+1. [Infer a Type Without Passing a Type Parameter](#infer-a-type-without-passing-a-type-parameter)
+1. [Intersecting to Build Type Safe Records](#intersecting-to-build-type-safe-records)
+1. [Recovering Record Types from Record Intersections](#recovering-record-types-from-record-intersections)
 
 ## Extending a Record Type Using a Mapped Type
 
 Let's say you're collecting fields into a Record type
 and you want to add a field.
 
-Here's an example of adding a field to record in a type safe way:
+Here's an example of adding a field to Record in a type safe way:
 
 ```ts
 // holds a set of tags, allows accumulating more tags
@@ -65,7 +70,9 @@ that isn't mentioned in the main documentation for TypeScript
 Let's try to convert an array of strings and numbers
 to an array of objects with "str" and "num" fields.
 
-We can convert the type of one element using a conditional type:
+We can convert the type of one element using a [conditional type](TODO).
+If `T` is a string, the type constructor will return `{str: T}`,
+and if `T` is a number, the type constructor will return `{num: T}`:
 
 ```ts
 type Wrapped<T extends string | number> = T extends string
@@ -81,10 +88,13 @@ Here's how we might define a function that does the wrapping:
 function wrapEm<T extends (string | number)[]>(...args: T): WrapElems<T> {}
 ```
 
+Now, to define `WrapElems`..
+
 #### Solution with Mappped Types
-And here's solution for this example. 
-The `WrapElems` type constructor maps one type of array to another type of array.
-(Or one type of tuple to another type of tuple.)
+
+Here's a `WrapElems` type constructor.
+It maps one type of array or tuple to another type of arrayor tuple,
+applying the `Wrapped` type conversion on each element.
 
 ```ts
 type WrapElems<T extends (string | number)[]> = {
@@ -205,12 +215,12 @@ and cleanly solve some complicated type problems on the inside.
 
 ##### Note: Still Need One Type Parameter
 Could we have zero type parameters rather than one? 
-That doesn't work so well.
+It would be nice to be simpler, but that doesn't work so well.
 Here, TypesScript leaves the internal types as `any`:
 
 ```ts
 // return type any, not so helpful
-function fooB_nope(a: Hidden): InferParamB<Hidden> {}
+function fooB_nope(a: Hidden): InferParamB<typeof a> {}
 ```
 
 So we'll typically still need one type parameter:
@@ -246,8 +256,10 @@ the `Intersection` type constructor will turn the union into an intersection lik
 
 ```ts
 type Intersection<U> = 
-  (U extends any ? (k: U) => void : never) 
-           extends (k: infer I) => void ? I : never;
+    (U extends any ? 
+      (k: U) => void : never) extends 
+      (k: infer I) => void ? 
+    I : never;
 ```
 
 The trick is described here in the
@@ -257,22 +269,57 @@ The key move is to place the source type `U` into contravariant position
 as a function parameter. Then when TypeScript infers the type
 of the function parameter, it will be the intersection of the types in the union.
 
-#### Why Function Argument Types Intersect
+#### Why Function Argument Types Intersect - Contravariance
 
-Function arguments are normally contravariant -
-an alternate function that takes a more general function argument would be a type
-safe replacement.
-If we have a function that takes an insect and returns the number of legs,
-we could type safely substitute a function that takes any animal
-and returns the number of legs.
+Types in a programming language are intended to define what 
+programmers can use (type) safely.
+What would be a type safe function to use where we expect
+function with a single listed type? e.g. if we expect `(a:Insect) => number`, 
+what functions are ok to use?
 
+Generally it'll be safe to use a function with an argument 
+can be a more general version of the argument.
+If we have a function that takes an Insect and returns the number of legs,
+we could type safely substitute a function that takes an Animal
+and returns the number of legs. 
+The more general function will count legs on insects along with all 
+the other animals it handles.
+So it'll be OK if our listed type (Insect)
+`extends` our candidate type (Animal). 
+
+Function arguments are little unusual in the direction of the `extends` relationship. 
+Usually we'll expect that candidate types `extend` the listed type, 
+but function arguments are different, 
+so they're called _contra_-variant.
+
+How does this contravariance apply to Records? 
 If we have a function that takes an argument of type: `{a:string} | {b:number}`,
-we could type safely use an alternate function
-that takes an argument of type: `{a:string, b:number}`
+we can type safely use an alternate function
+that takes an argument of type: `{a:string, b:number}`.
 
-So if we have a function that takes an argument of type `A | B | C`,
+If we have a function that takes an argument of type `A | B | C`,
 we could type safely replace it with a function
 that takes an argument of `A & B & C`.
+
+#### Intersection Uses a Contravariant Function Argument
+So that's how `Intersection` works on a provided type `U`.
+It invents a hypothetical function that uses `U` as a 
+function argument. Let's call the first function `f`.
+
+Then `Intersection` asks TypeScript to imagine 
+a second function that `extends` the the first hypothetical function
+with a function argument of type `I`.
+Let's call the second function `g`. 
+
+So `f extends g` - we wrote it that way. 
+And due to contravariance of function argumnets, 
+`I extends U`.
+We ask TypeScript to `infer` the type of `I`.
+
+If U is a union type, voila, TypeScript produces
+the intersection type. And if U is a union of Records,
+we end up with the intersection of Records, which is 
+usually close enough to be considered a single merged Record.
 
 ## Recovering Record Types from Record Intersections
 
@@ -284,13 +331,13 @@ after `Intersection`.
   type Verify<T extends ARecord> = T;  // will fail to typecheck if T is not a Record
 ```
 
-Intersection typechecks sometimes.
+`Intersection` typechecks sometimes:
 ```ts
   type SimpleIntersection<A extends ARecord, B extends ARecord> = Verify<A & B>;
   type ConcreteIntersect = Verify<Intersection<{ a: 1} | { b: 2}>>;
 ```
 
-But not always.
+But not always:
 ```ts
   type ParamIntersect<A extends ARecord> = Verify<Intersection<A>>; // fails to typecheck
 ```
