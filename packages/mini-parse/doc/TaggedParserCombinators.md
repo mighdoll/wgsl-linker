@@ -1,15 +1,39 @@
 [Mini-Parse]: https://npmjs.com/package/mini-parse
 ### Tagged Parser Combinators
 
-The idea is to allow tagging elements in a grammar
-so that users can reliably extract particular elements from a parse tree, 
-even a deeply nested parse tree.
+I added a **tag** feature to the [mini-parse] parser combinator library. 
+I haven't seen it before in other parser combinator libraries,
+so I thought you might be interested.
 
+Tagging elements in a grammar helps 
+users reliably extract particular elements from a parse tree, 
+even a deeply nested parse tree. 
 
-### Parser combinators
+If you've used a parser combinator library before, 
+you'll probably have run into the problem
+of extracting the values you want from the parse tree. 
+Typically, complex parser results are returned as arrays
+and nested arrays of values. 
+Selecting the value you want from the results by indexing
+into these arrays is feasible but fragile.
+As we'll see, tagging results makes extraction more convenient and maintainable.
+
+TypeScript typing for tags required some interesting
+tricks too, see: 
+[TypeScript Type Tricks For Records](TODO) for details.
+
+### Parser combinators review
 
 Parser combinators allow defining a grammar using
-a library of functions and methods in the host language.
+a library of functions and methods in TypeScript.
+Each parser is a TypeScript class 
+that represents a part of the grammar
+and is capable of parsing input and producing structured output.
+The library makes it easy to combine parsers into more complex parsers.
+Independent parsers are easy to test and reuse. 
+And implementation as a runtime TypeScript library 
+makes for lightweight integration of parsing into applications.
+
 Here's a small example.
 Say we want to parse function declarations like this: `fn foo()`. 
 With a parser combinator library like [mini-parse], 
@@ -55,7 +79,7 @@ if (result) {
 
 ### Dangerous extraction
 
-But extracting the identifier by indexing to position
+Extracting the results by indexing to position
 1 in the results isn't so great from a maintenance point of view. 
 If the grammar changes, the index will change, and our code will break.
 
@@ -73,13 +97,12 @@ we might be looking for elements deeper in the parse tree,
 requiring us to index multiple times `result.value[1][2][0]`, and leaving
 us vulnerable to restructuring of the parsers even if we don't
 add any elements to the source language. 
-
 Or we might want to extract multiple similar values, from multiple places
 in the parsed results, further complicating our value extraction.
 
 Indexing into the results works, but it's fragile. 
 And the maintenance risk grows if the language we're parsing
-evolves over time.
+evolves over time.  
 
 Let's fix that.
 
@@ -100,21 +123,21 @@ Then we can collect the results by name, rather than by index.
 While we're arranging for tagging, we'll have the tagged values accumulate 
 into an array so we can collect multiple matches. 
 e.g. maybe there are multiple annotations in this case.
-
-To make it more useful we'll have the tagged values propagate up the
+And we'll have the tagged values propagate up the
 and parse tree for easy collection.
 
 In this case, the potentially multiple annotations are collected into an array in
-the annotation parser under the tag "annotated". 
-The annotated tag results also propagate to the parent fnDecl parser too.
+the `annotation` parser under the tag `annotated`. 
+The `annotated` tag results also propagate to the parent `fnDecl` parser too.
 
 ```
     const [fnName] = result.tags.fnName; 
     const annotations: string[] = result.tags.annotated;
 ```
 
-Tagging helps make extracting values from the parser more convenient and 
-maintainable. 
+Saving tags in a combinator library isn't much work, and 
+tagging helps make extracting values from the parser more convenient and 
+maintainable for users of the library.
 No magic numbers, no maintenance problems when updating the grammar.
 
 ### Typing Tagged Results
