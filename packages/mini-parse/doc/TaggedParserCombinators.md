@@ -1,4 +1,6 @@
 [Mini-Parse]: https://npmjs.com/package/mini-parse
+[TypeScript Type Tricks For Records]: https://github.com/mighdoll/wgsl-linker/tree/main/packages/mini-parse/doc/TypeTricksForRecords.md
+
 ### Tagged Parser Combinators
 
 I added a **tag** feature to the [mini-parse] parser combinator library. 
@@ -20,7 +22,7 @@ As we'll see, tagging results makes extraction more convenient and maintainable.
 
 TypeScript typing for tags required some interesting
 tricks too, see: 
-[TypeScript Type Tricks For Records](TODO) for details.
+[TypeScript Type Tricks For Records] for details.
 
 ### Parser combinators review
 
@@ -176,4 +178,4 @@ function seq(...parsers: Parser<any, any>[] ): Parser<???, ???> {}
 ```
 
 The TypeScript challenge is to fill in those `???` types. 
-Read here 
+Read [TypeScript Type Tricks For Records] for details about the solution.
