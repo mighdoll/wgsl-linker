@@ -3,9 +3,10 @@
 
 ### Tagged Parser Combinators
 
-I added a **tag** feature to the [mini-parse] parser combinator library. 
-I haven't seen it before in other parser combinator libraries,
-so I thought you might be interested.
+I added a **tag** feature to the [mini-parse] parser combinator library,
+to name individual elements in the parse tree. 
+I haven't seen tags in other parser combinator libraries,
+but it's a pretty simple idea.
 
 Tagging elements in a grammar helps 
 users reliably extract particular elements from a parse tree, 
@@ -22,7 +23,7 @@ As we'll see, tagging results makes extraction more convenient and maintainable.
 
 TypeScript typing for tags required some interesting
 tricks too, see: 
-[TypeScript Type Tricks For Records] for details.
+[TypeScript Type Tricks For Records] for TypeScript details.
 
 ### Parser combinators review
 
@@ -178,4 +179,8 @@ function seq(...parsers: Parser<any, any>[] ): Parser<???, ???> {}
 ```
 
 The TypeScript challenge is to fill in those `???` types. 
-Read [TypeScript Type Tricks For Records] for details about the solution.
+Read [TypeScript Type Tricks For Records] for a detailed explanation 
+of the TypeScript tricks.
+See 
+[CombinatorTypes.ts](https://github.com/mighdoll/wgsl-linker/tree/main/packages/mini-parse/src/CombinatorTypes.ts) 
+for the implementation for [mini-parse].

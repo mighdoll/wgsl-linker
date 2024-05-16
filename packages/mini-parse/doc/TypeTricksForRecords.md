@@ -17,14 +17,15 @@ and you want to add a field.
 Here's an example of adding a field to record in a type safe way:
 
 ```ts
-// holds a Record
+// holds a set of tags, allows accumulating more tags
 class Tags<N extends Record<string, any>> {
+  // return a new Tags with the new tag added
   add<K extends string, V>(name: K, value: V): Tags<N & { [key in K]: V }> {}
   read(): N {}
 }
 ```
 
-Then you can use it like this.
+You can use `Tags` like as follows, and the result will be properly typed.
 
 ```ts
 const tags = new Tags().add("c", true);
