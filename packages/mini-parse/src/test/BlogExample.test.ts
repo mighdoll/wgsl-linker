@@ -475,7 +475,7 @@ test("test intersection", () => {
 
   type SimpleIntersection<A extends ARecord, B extends ARecord> = Verify<A & B>;
   type ConcreteIntersect = Verify<Intersection<{ a: 1} | { b: 2}>>;
-  type ParamIntersect<A extends ARecord> = Verify<Intersection<A>>; // fails to typecheck
+  // type ParamIntersect<A extends ARecord> = Verify<Intersection<A>>; // fails to typecheck
 
   type AsRecord<T> = { [A in keyof T]: T[A] };
   type ParamIntersect2<A extends ARecord> = Verify<AsRecord<Intersection<A>>>;
