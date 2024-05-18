@@ -6,8 +6,7 @@
 I added a **tag** feature to the [mini-parse] parser combinator library,
 to name individual elements in the parse tree. 
 I haven't seen tags in other parser combinator libraries,
-but it's a pretty simple idea.
-
+but it's surely been done - it's a pretty simple idea. 
 Tagging elements in a grammar helps 
 users reliably extract particular elements from a parse tree, 
 even a deeply nested parse tree. 
@@ -25,7 +24,7 @@ TypeScript typing for tags required some interesting
 tricks too, see: 
 [TypeScript Type Tricks For Records] for TypeScript details.
 
-### Parser combinators review
+### Parser combinators 
 
 Parser combinators allow defining a grammar using
 a library of functions and methods in TypeScript.
@@ -97,11 +96,12 @@ Now the result we want is at magic number #2 and the extraction code above won't
 
 In a more complicated case, 
 we might be looking for elements deeper in the parse tree, 
-requiring us to index multiple times `result.value[1][2][0]`, and leaving
+requiring us to index multiple times and leaving
 us vulnerable to restructuring of the parsers even if we don't
 add any elements to the source language. 
-Or we might want to extract multiple similar values, from multiple places
-in the parsed results, further complicating our value extraction.
+Or we might want to extract multiple similar values, 
+possibly from multiple places in the parsed results, 
+further complicating our value extraction.
 
 Indexing into the results works, but it's fragile. 
 And the maintenance risk grows if the language we're parsing
@@ -114,14 +114,13 @@ Let's fix that.
 Instead of indexing into results, 
 let's add a `tag` feature to the combinator library 
 to identify the results we care about.
+Then we can collect the results by name, rather than by index. 
 
 It'll look like this.
 ```
   const annotation = repeat(seq("@", ident).tag("annotated"));         // tag annotations
   const fnDecl = seq(annotation, "fn", ident.tag("fnName"), "(", ")"); // tag fnName
 ```
-
-Then we can collect the results by name, rather than by index. 
 
 While we're arranging for tagging, we'll have the tagged values accumulate 
 into an array so we can collect multiple matches. 
@@ -143,6 +142,8 @@ tagging helps make extracting values from the parser more convenient and
 maintainable for users of the library.
 No magic numbers, no maintenance problems when updating the grammar.
 
+Consider adding tags to your favorite Parser Combinator library too.
+
 ### Typing Tagged Results
 We could have a general type of `Record<string, any[]>` for the result tags. 
 That works ok, but we can do better.
@@ -155,11 +156,11 @@ and the compiler will catch typos in the tag names,
 mistakes in object types, etc.
 
 Good types for tags requires some tricky work with 
-the TypeScript type system. 
+the TypeScript type system, though. 
+Let's set up the problem here.
 
 The basic idea is that every parser will have two type parameters, 
-one for a result of its parse, and one for the accumulated tags.
-
+one for a result of its parse, and one for the accumulated tags. 
 Something like this:
 ```ts
 export type TagRecord = Record<string | symbol, any[]>; 
@@ -178,9 +179,9 @@ And combinators that compose parsers will need compose the TagRecord types too.
 function seq(...parsers: Parser<any, any>[] ): Parser<???, ???> {}
 ```
 
-The TypeScript challenge is to fill in those `???` types. 
-Read [TypeScript Type Tricks For Records] for a detailed explanation 
-of the TypeScript tricks.
-See 
+The challenge is to fill in those `???` types in TypeScript. 
+For a detailed explanation 
+of the TypeScript tricks read [TypeScript Type Tricks For Records].
+Or go straight for
 [CombinatorTypes.ts](https://github.com/mighdoll/wgsl-linker/tree/main/packages/mini-parse/src/CombinatorTypes.ts) 
 for the implementation for [mini-parse].
