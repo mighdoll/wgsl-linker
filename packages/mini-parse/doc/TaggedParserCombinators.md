@@ -3,10 +3,13 @@
 
 ### Tagged Parser Combinators
 
-I added a **tag** feature to the [mini-parse] parser combinator library,
+I added a little **tag** feature to the 
+[mini-parse] parser combinator library,
 to name individual elements in the parse tree. 
 I haven't seen tags in other parser combinator libraries,
-but it's surely been done - it's a pretty simple idea. 
+but it's probably not
+too hard to add to your favorite parsing library if it
+doesn't already use tags.
 Tagging elements in a grammar helps 
 users reliably extract particular elements from a parse tree, 
 even a deeply nested parse tree. 
@@ -20,24 +23,28 @@ Selecting the value you want from the results by indexing
 into these arrays is feasible but fragile.
 As we'll see, tagging results makes extraction more convenient and maintainable.
 
-TypeScript typing for tags required some interesting
-tricks too, see: 
-[TypeScript Type Tricks For Records] for TypeScript details.
+Perhaps the most interesting part of 
+building the **tag** feature involved TypeScript 
+type system tricks. See the 
+[Typing Tagged Results](#typing-tagged-results) section
+below for links to TypeScript details.
 
 ### Parser combinators 
 
 Parser combinators allow defining a grammar using
 a library of functions and methods in TypeScript.
-Each parser is a TypeScript class 
+Each parser is a TypeScript object
 that represents a part of the grammar
-and is capable of parsing input and producing structured output.
+and offers a `parse` method to read input text 
+and produce structured output.
 The library makes it easy to combine parsers into more complex parsers.
 Independent parsers are easy to test and reuse. 
 And implementation as a runtime TypeScript library 
 makes for lightweight integration of parsing into applications.
 
 Here's a small example.
-Say we want to parse function declarations like this: `fn foo()`. 
+Say we want to parse a programming language with 
+function declarations like this: `fn foo()`. 
 With a parser combinator library like [mini-parse], 
 you can define the grammar to parse simple function declarations as follows:
 
@@ -105,9 +112,7 @@ further complicating our value extraction.
 
 Indexing into the results works, but it's fragile. 
 And the maintenance risk grows if the language we're parsing
-evolves over time.  
-
-Let's fix that.
+evolves over time..
 
 ### Tagging results
 
