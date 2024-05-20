@@ -7,6 +7,7 @@ import {
   ResultFromArg,
   SeqParser,
   SeqValues,
+  AsRecordArray,
 } from "./CombinatorTypes.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
@@ -151,7 +152,7 @@ export function opt<P extends CombinatorArg>(
 
       // cast the undefined result here and recover type with the ascription above
       type PR = ParserResult<ResultFromArg<P>, TagsFromArg<P>>;
-      return result || (undefinedResult as PR); 
+      return result || (undefinedResult as PR);
     }
   );
   return result;
@@ -309,8 +310,11 @@ export function withSep<T, N extends TagRecord>(
   const last = trailing ? opt(sep) : yes();
 
   return seq(first.tag(elem), repeat(seq(sep, p.tag(elem))), last)
-    .map((r) => (r.tags as any)[elem]) // TODO typing
-    .traceName("withSep") as any; // TODO typing
+    .map((r) => {
+      const tags = r.tags as Record<symbol, T>;
+      return tags[elem];
+    })
+    .traceName("withSep") as any;
 }
 
 /** run a parser with a provided token matcher (i.e. use a temporary lexing mode) */
@@ -347,7 +351,7 @@ export function parserArg<A extends CombinatorArg>(arg: A): ParserFromArg<A> {
   if (typeof arg === "string") {
     return text(arg) as ParserFromArg<A>; // LATER fix cast
   } else if (arg instanceof Parser) {
-    return arg as Parser<ResultFromArg<A>, TagsFromArg<A>>; 
+    return arg as Parser<ResultFromArg<A>, TagsFromArg<A>>;
   }
-  return fn(arg as () => ParserFromArg<A>); 
+  return fn(arg as () => ParserFromArg<A>);
 }
