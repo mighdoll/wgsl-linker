@@ -1,14 +1,13 @@
+import { testParse } from "mini-parse/test-util";
 import { expect, test } from "vitest";
+import { matchingLexer } from "../MatchingLexer.js";
 import { calcTokens, statement } from "../examples/CalculatorExample.js";
 import {
-  taggedSum,
   simpleSum,
   simpleTokens,
-  sumResults
+  sumResults,
+  taggedSum
 } from "../examples/DocExamples.js";
-import { matchingLexer } from "../MatchingLexer.js";
-import { Parser } from "../Parser.js";
-import { testParse } from "mini-parse/test-util";
 
 test("parse 3 + 4", () => {
   const src = "3 + 4";
@@ -39,10 +38,3 @@ test("tagged sum results ", () => {
   const results = taggedSum.parse({ lexer });
   expect(results?.value).eq(12);
 });
-
-
-
-function calcTest(parser: Parser<number>, src: string): number | undefined {
-  const { parsed } = testParse(parser, src, calcTokens);
-  return parsed?.value;
-}
