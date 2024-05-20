@@ -272,7 +272,7 @@ export function req<A extends CombinatorArg>(
       ctxLog(ctx, msg ?? `expected ${p.debugName}`);
       throw new ParseError();
     }
-    return result as any; // TODO rm cast?
+    return result;
   });
 }
 
