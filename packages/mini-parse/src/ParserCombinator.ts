@@ -20,6 +20,7 @@ import {
   runExtended,
   simpleParser,
   tokenSkipSet,
+  ParserResult,
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
 import { mergeTags } from "./ParserUtil.js";
@@ -124,6 +125,12 @@ export function or<P extends CombinatorArg[]>(...args: P): OrParser<P> {
   return result as OrParser<P>;
 }
 
+const undefinedResult: ParserResult<undefined, NoTags> = {
+  value: undefined,
+  tags: {},
+};
+
+export type UndefinedParser = Parser<undefined, NoTags>;
 /** Try a parser.
  *
  * If the parse succeeds, return the result.
@@ -132,14 +139,22 @@ export function or<P extends CombinatorArg[]>(...args: P): OrParser<P> {
  */
 export function opt<P extends CombinatorArg>(
   arg: P
-): ParserFromArg<P> | Parser<undefined, NoTags> {
+): ParserFromArg<P> | UndefinedParser {
   const p = parserArg(arg);
-  const result = parser("opt", (state: ParserContext): any => {
-    // TODO fix any
-    const result = p._run(state);
-    return result || { value: undefined, tags: {} };
-  });
-  return result as ParserFromArg<P> | Parser<undefined, NoTags>; // TODO fix cast
+
+  const result: ParserFromArg<P> | UndefinedParser = parser(
+    "opt",
+    (state: ParserContext) => {
+      const result = p._run(state);
+      // If parsing fails, we return instead a success
+      // with 'undefined' as a value
+
+      // cast the undefined result here and recover type with the ascription above
+      type PR = ParserResult<ResultFromArg<P>, TagsFromArg<P>>;
+      return result || (undefinedResult as PR); 
+    }
+  );
+  return result;
 }
 
 /** return true if the provided parser _doesn't_ match
@@ -215,10 +230,7 @@ function repeatWhileFilter<A extends CombinatorArg>(
     const values: ResultFromArg<A>[] = [];
     let results = {};
     for (;;) {
-      const result = runExtended<ResultFromArg<A>, TagsFromArg<A>>(
-        ctx,
-        p
-      );
+      const result = runExtended<ResultFromArg<A>, TagsFromArg<A>>(ctx, p);
 
       // continue acccumulating until we get a null or the filter tells us to stop
       if (result !== null && filterFn(result)) {
