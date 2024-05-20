@@ -1,9 +1,10 @@
 Combining Records in TypeScript? 
 
-I needed to learn some TypeScript type tricks 
+I needed to learn some TypeScript type system tricks 
 for a [library](https://npmjs.com/package/mini-parse) that lets users
 combine add to Records, merge Records, manage arrays of Records, etc.
-[@Modderme123](TODO) gave me some TypeScript tips last week. 
+[@Modderme123](TODO) gave me some TypeScript tips 
+last week and
 I thought I'd write them up and share them with you too.
 
 Here's five tricks, roughly in order of increasing trickiness:
@@ -93,7 +94,7 @@ Now, to define `WrapElems`..
 #### Solution with Mappped Types
 
 Here's a `WrapElems` type constructor.
-It maps one type of array or tuple to another type of arrayor tuple,
+It maps one type of array or tuple to another type of array or tuple,
 applying the `Wrapped` type conversion on each element.
 
 ```ts
@@ -139,7 +140,8 @@ function makeThree<A, B, C>(a: A, b: B, c: C): ThreeParams<A, B, C> {
 }
 ```
 
-TypeScript will usually fill in the type parameters to save work for users of the api.
+TypeScript will usually fill in the type parameters to save work 
+for users of your api.
 
 ```ts
 const p = makeThree("foo", 1, true);
@@ -150,14 +152,16 @@ All good so far. Do that if it works.
 #### Explicit type parameters fail for more complicated cases
 
 But what if there are a whole lot of repeated type parameters,
-or a variable number of parameters,
-or if it's hard for TypeScript to figure out the types in advance?
+or a variable number of parameters? 
+Sometimes it's inconvenient or even impossible to write down type
+type parameters for every relevant type.
 
 ```ts
   // at best it's tedious to write out many functions with lots of parameters
-  function foo<A, B, C, D, E, F>(
+  function manyParams<A, B, C, D, E, F, G, H, I>(
     a: ThreeParams<A, B, C>,
-    b: ThreeParams<D, E, F>
+    b: ThreeParams<D, E, F>,
+    c: ThreeParams<G, H, I>
   ): B { }
 
   // and complicated cases like variable argument lists get tricky..
@@ -169,12 +173,12 @@ or if it's hard for TypeScript to figure out the types in advance?
 
 One way around these problems is to put a simpler, less parameterized type
 on the api. Then we'll use 'infer' to magically pull out the types
-we need but didn't specify as parameters. Here's an example:
+we need even though they're not specified as type parameters. Here's an example:
 
-Create a type that hides the parameters from the external api:
+Create a type that hides the parameters in the external api:
 
 ```ts
-type Hidden = ThreeParams<any, any, any>;
+type HiddenThree = ThreeParams<any, any, any>;
 ```
 
 And then we can use `infer` to figure out only the types we need on the inside.
@@ -190,14 +194,14 @@ type InferParamB<T extends ThreeParams<any, any, any>> =
 We'd use the new inferred type constructor like this:
 
 ```ts
-function fooB<T extends Hidden>(a: Hidden): InferParamB<Hidden> {}
+function fooB<T extends HiddenThree>(a: T): InferB<T> {}
 ```
 
 We've reduced the visible type parameters in the API here from three to one.
 If there were more function parameters, multiple function overloads,
 or more just type parameters, the simplification factor would be even greater.
 
-The infer type constructor can be handy in more complicated situations too.
+`infer` in a type constructor can be handy in more complicated situations too.
 Here's an example with variable numbers of arguments.
 This example also uses the TypeScript
 [typeof](https://www.typescriptlang.org/docs/handbook/2/typeof-types.html) operator,
@@ -206,11 +210,11 @@ e.g. between angle brackets < >.
 We can even index to pick out the type of the first argument of the args array.
 
 ```ts
-  // return type is the second type parameter of the first argument
-  function fooH<T extends Hidden>(...args: T[]): InferB<typeof args[0]> {
+  /** return type is the second type parameter of the first argument */
+  function fooH<T extends HiddenThree>(...args: T[]): InferB<(typeof args[0])> {
 ```
 
-By using 'infer' we can keep things simple on the side of the api that our caller uses,
+By using `infer` we can keep things simple on the side of the api that our caller uses,
 and cleanly solve some complicated type problems on the inside.
 
 ##### Note: Still Need One Type Parameter
@@ -219,15 +223,15 @@ It would be nice to be simpler, but that doesn't work so well.
 Here, TypesScript leaves the internal types as `any`:
 
 ```ts
-// return type any, not so helpful
-function fooB_nope(a: Hidden): InferParamB<typeof a> {}
+// returns type any, not so helpful
+function fooB_nope(a: HiddenThree): InferB<typeof a> {
 ```
 
 So we'll typically still need one type parameter:
 
 ```ts
 // return type is second type parameter of ThreeParams
-function fooB<T extends Hidden>(a: T): InferParamB<Hidden> {}
+function fooB<T extends HiddenThree>(a: T): InferB<T> { }
 ```
 
 ## Intersecting to Build Type Safe Records
@@ -317,7 +321,7 @@ And due to contravariance of function argumnets,
 We ask TypeScript to `infer` the type of `I`.
 
 If U is a union type, voila, TypeScript produces
-the intersection type. And if U is a union of Records,
+the intersection type. If U is a union of Records,
 we end up with the intersection of Records, which is 
 usually close enough to be considered a single merged Record.
 
@@ -345,18 +349,22 @@ But not always:
 #### Solution - Recover the Record Type
 The following will help recover the Record type after `Intersection`.
 
-For basic Record types, try this:
+For basic Record types, try this to conslidate the Record:
 ```ts
-type AsRecord<T> = { [A in keyof T]: T[A] };
+type AsRecord<T> = 
+  T extends Record<any, any> ? { [A in keyof T]: T[A] } : never;
 ```
 
-For Records with array values, try this:
+For Records with array values, here's a variant:
 ```ts
 type AsRecordArray<T> =
   T extends Record<any, any[]> ? { [A in keyof T]: T[A] } : never;
 ```
 
-Works!
+In both cases, deferring the Record type match until the extends clause
+seems to help TypeScript recognize the intersection type as a viable Record.
+
+And it works:
 ```ts
   type ParamIntersect2<A extends ARecord> = Verify<AsRecord<Intersection<A>>>;
 

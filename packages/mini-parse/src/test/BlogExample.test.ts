@@ -140,13 +140,13 @@ test("infer type parameter", () => {
   type InferB<T extends ThreeParams<any, any, any>> =
     T extends ThreeParams<any, infer B, any> ? B : never;
 
-  type Hidden = ThreeParams<any, any, any>;
+  type HiddenThree = ThreeParams<any, any, any>;
 
   function makeThree<A, B, C>(a: A, b: B, c: C): ThreeParams<A, B, C> {
     return { a, b, c };
   }
 
-  function fooB<T extends Hidden>(a: T): InferB<T> {
+  function fooB<T extends HiddenThree>(a: T): InferB<T> {
     return NYI();
   }
 
@@ -154,13 +154,14 @@ test("infer type parameter", () => {
     return NYI();
   }
 
-  function fooB_nope(a: Hidden): InferB<typeof a> {
+  function fooB_nope(a: HiddenThree): InferB<typeof a> {
     return NYI();
   }
 
-  function foo1<A, B, C, D, E, F>(
+  function manyParams<A, B, C, D, E, F, G, H, I>(
     a: ThreeParams<A, B, C>,
-    b: ThreeParams<D, E, F>
+    b: ThreeParams<D, E, F>,
+    c: ThreeParams<G, H, I>
   ): B {
     return NYI();
   }
@@ -170,7 +171,7 @@ test("infer type parameter", () => {
   }
 
   /** return type is the second type parameter of the first argument */
-  function fooH<T extends Hidden>(...args: T[]): InferB<(typeof args)[0]> {
+  function fooH<T extends HiddenThree>(...args: T[]): InferB<(typeof args[0])> {
     return NYI();
   }
 
@@ -439,7 +440,7 @@ test("test intersection", () => {
   type ConcreteIntersect = Verify<Intersection<{ a: 1 } | { b: 2 }>>;
   // type ParamIntersect<A extends ARecord> = Verify<Intersection<A>>; // fails to typecheck
 
-  type AsRecord<T> = { [A in keyof T]: T[A] };
+  type AsRecord<T> = T extends Record<any,any> ? { [A in keyof T]: T[A] } : never;
   type ParamIntersect2<A extends ARecord> = Verify<AsRecord<Intersection<A>>>;
 
   type Test1 = ParamIntersect2<{ a: 1 } | { b: 2 }>; // type Test1 = { a: 1; b: 2; }
