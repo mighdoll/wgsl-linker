@@ -345,9 +345,9 @@ export function makeEolf(matcher: TokenMatcher, ws: string): Parser<any> {
 /** convert naked string arguments into text() parsers and functions into fn() parsers */
 export function parserArg<A extends CombinatorArg>(arg: A): ParserFromArg<A> {
   if (typeof arg === "string") {
-    return text(arg) as unknown as ParserFromArg<A>; // TODO fix cast
+    return text(arg) as ParserFromArg<A>; // LATER fix cast
   } else if (arg instanceof Parser) {
-    return arg as ParserFromArg<A>; // TODO fix cast
+    return arg as Parser<ResultFromArg<A>, TagsFromArg<A>>; 
   }
-  return fn(arg as () => ParserFromArg<A>); // TODO fix cast
+  return fn(arg as () => ParserFromArg<A>); 
 }
