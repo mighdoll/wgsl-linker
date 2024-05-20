@@ -4,15 +4,14 @@
 ### Tagged Parser Combinators
 
 I added a little **tag** feature to the 
-[mini-parse] parser combinator library,
-to name individual elements in the parse tree. 
+[mini-parse] parser combinator library.
+Tagging elements in a grammar helps 
+users reliably extract particular elements from a parse tree, 
+even a deeply nested parse tree. 
 I haven't seen tags in other parser combinator libraries,
 but it's probably not
 too hard to add to your favorite parsing library if it
 doesn't already use tags.
-Tagging elements in a grammar helps 
-users reliably extract particular elements from a parse tree, 
-even a deeply nested parse tree. 
 
 If you've used a parser combinator library before, 
 you'll probably have run into the problem
