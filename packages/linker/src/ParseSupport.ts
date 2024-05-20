@@ -3,11 +3,9 @@ import {
   anyNot,
   disablePreParse,
   ExtendedResult,
-  fn,
   kind,
   makeEolf,
   TagRecord,
-  NoTags,
   or,
   Parser,
   repeat,
@@ -39,7 +37,7 @@ export const blockComment: Parser<any> = seq(
 );
 
 export const comment = or(
-  fn(() => lineCommentOptDirective),
+  () => lineCommentOptDirective,
   blockComment
 );
 

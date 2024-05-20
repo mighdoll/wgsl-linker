@@ -2,7 +2,6 @@ import {
   anyNot,
   anyThrough,
   eof,
-  fn,
   kind,
   matchingLexer,
   opt,
@@ -82,11 +81,11 @@ export const template: Parser<any> = seq(
   "<",
   or(
     word.tag(possibleTypeRef), // only the first element of the template can be a type
-    fn(() => template)
+    () => template
   ),
   repeat(
     or(
-      fn(() => template),
+      () => template,
       anyNot(">") // we don't care about the rest of the template
     )
   ),
@@ -169,7 +168,7 @@ const block: Parser<any> = seq(
     or(
       callishKeyword,
       fnCall,
-      fn(() => block),
+      () => block,
       variableDecl,
       anyNot("}")
     )

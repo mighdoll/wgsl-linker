@@ -4,7 +4,6 @@ import { Parser, disablePreParse, preParse, tokenSkipSet } from "../Parser.js";
 import {
   any,
   anyNot,
-  fn,
   kind,
   not,
   opt,
@@ -129,12 +128,7 @@ test("recurse with fn()", () => {
   const src = "{ a { b } }";
   const p: Parser<any> = seq(
     "{",
-    repeat(
-      or(
-        kind(m.word).tag("word"),
-        fn(() => p)
-      )
-    ),
+    repeat(or(kind(m.word).tag("word"), () => p)),
     "}"
   );
   const wrap = or(p).map((r) => r.app.state.push(r.tags.word));

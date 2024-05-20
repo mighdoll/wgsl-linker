@@ -251,16 +251,6 @@ function repeatWhileFilter<A extends CombinatorArg>(
   };
 }
 
-/** A delayed parser definition, for making recursive parser definitions. */
-// TODO make this private
-export function fn<T, N extends TagRecord>(
-  fn: () => Parser<T, N>
-): Parser<T, N> {
-  return parser("fn", (state: ParserContext): OptParserResult<T, N> => {
-    const stage = fn();
-    return stage._run(state);
-  });
-}
 
 /** yields true if parsing has reached the end of input */
 export function eof(): Parser<true> {
@@ -359,4 +349,14 @@ export function parserArg<A extends CombinatorArg>(arg: A): ParserFromArg<A> {
     return arg as Parser<ResultFromArg<A>, TagsFromArg<A>>;
   }
   return fn(arg as () => ParserFromArg<A>);
+}
+
+/** A delayed parser definition, for making recursive parser definitions. */
+function fn<T, N extends TagRecord>(
+  fn: () => Parser<T, N>
+): Parser<T, N> {
+  return parser("fn", (state: ParserContext): OptParserResult<T, N> => {
+    const stage = fn();
+    return stage._run(state);
+  });
 }

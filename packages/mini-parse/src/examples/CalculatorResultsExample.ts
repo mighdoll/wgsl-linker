@@ -1,5 +1,5 @@
 import { Parser, setTraceName } from "../Parser.js";
-import { fn, opt, or, repeat, seq } from "../ParserCombinator.js";
+import { opt, or, repeat, seq } from "../ParserCombinator.js";
 import { tracing } from "../ParserTracing.js";
 import { mulDiv, num, plusMinus } from "./CalculatorExample.js";
 
@@ -17,7 +17,7 @@ const value = or(
   num.map((r) => parseInt(r.value)).tag("value"),
   seq(
     "(",
-    fn(() => expr.tag("value")),
+    () => expr.tag("value"),
     ")"
   )
 ).map((r) => r.tags.value[0]);
