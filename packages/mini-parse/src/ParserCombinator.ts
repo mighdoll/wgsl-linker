@@ -197,11 +197,11 @@ export function anyThrough<A extends CombinatorArg>(
     `anyThrough ${p.debugName}`
   );
   type V = typeof result extends Parser<infer V, any> ? V : never;
-  return result as Parser<V, any>; 
+  return result as Parser<V, any>;
 
   // LATER TS not sure why this doesn't work
   // type T = TagsFromArg<A>;
-  // return result as Parser<V, T>; 
+  // return result as Parser<V, T>;
 }
 
 /** match zero or more instances of a parser */
@@ -244,13 +244,12 @@ function repeatWhileFilter<A extends CombinatorArg>(
         results = mergeTags(results, result.tags);
       } else {
         // always return succcess
-        const r = { value: values, tags: results };
-        return r as any; // TODO typing of better tagged results
+        const r = { value: values, tags: results as TagsFromArg<A> };
+        return r;
       }
     }
   };
 }
-
 
 /** yields true if parsing has reached the end of input */
 export function eof(): Parser<true> {
@@ -352,9 +351,7 @@ export function parserArg<A extends CombinatorArg>(arg: A): ParserFromArg<A> {
 }
 
 /** A delayed parser definition, for making recursive parser definitions. */
-function fn<T, N extends TagRecord>(
-  fn: () => Parser<T, N>
-): Parser<T, N> {
+function fn<T, N extends TagRecord>(fn: () => Parser<T, N>): Parser<T, N> {
   return parser("fn", (state: ParserContext): OptParserResult<T, N> => {
     const stage = fn();
     return stage._run(state);
