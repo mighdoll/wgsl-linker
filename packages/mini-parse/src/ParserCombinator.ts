@@ -196,7 +196,12 @@ export function anyThrough<A extends CombinatorArg>(
   const result = seq(repeat(anyNot(p)), p).traceName(
     `anyThrough ${p.debugName}`
   );
-  return result as any; // TODO fix any type
+  type V = typeof result extends Parser<infer V, any> ? V : never;
+  return result as Parser<V, any>; 
+
+  // LATER TS not sure why this doesn't work
+  // type T = TagsFromArg<A>;
+  // return result as Parser<V, T>; 
 }
 
 /** match zero or more instances of a parser */
