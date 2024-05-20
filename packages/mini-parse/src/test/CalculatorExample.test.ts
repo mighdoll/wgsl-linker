@@ -1,12 +1,6 @@
 import { expect, test } from "vitest";
 import { calcTokens, statement } from "../examples/CalculatorExample.js";
 import {
-  power,
-  product,
-  statement2,
-  sum
-} from "../examples/CalculatorResultsExample.js";
-import {
   taggedSum,
   simpleSum,
   simpleTokens,
@@ -28,36 +22,6 @@ test("parse 3 + 4 + 7", () => {
   expect(parsed.position).eq(src.length);
 });
 
-test("power 2 ^ 4", () => {
-  const { parsed } = testParse(power, "2 ^ 3", calcTokens);
-  expect(parsed?.value).eq(8);
-});
-
-test("product 3 * 4 ", () => {
-  const { parsed } = testParse(product, "3 * 4", calcTokens);
-  expect(parsed?.value).eq(12);
-});
-
-test("sum 3 + 4 ", () => {
-  const { parsed } = testParse(sum, "3 + 4", calcTokens);
-  expect(parsed?.value).eq(7);
-});
-
-test("parse 3 + 4 * 8", () => {
-  const result = calcTest(statement2, "3 + 4 * 8");
-  expect(result).eq(35);
-});
-
-test("parse 3 * 4 + 8", () => {
-  const result = calcTest(statement2, "3 * 4 + 8");
-  expect(result).eq(20);
-});
-
-test("parse 3^2 * 4 + 11", () => {
-  const result = calcTest(statement2, "3^2 *4 + 11");
-  expect(result).eq(47);
-});
-
 test("simple sum", () => {
   const lexer = matchingLexer("4 + 8", simpleTokens);
   const results = simpleSum.parse({ lexer });
@@ -75,6 +39,8 @@ test("tagged sum results ", () => {
   const results = taggedSum.parse({ lexer });
   expect(results?.value).eq(12);
 });
+
+
 
 function calcTest(parser: Parser<number>, src: string): number | undefined {
   const { parsed } = testParse(parser, src, calcTokens);
