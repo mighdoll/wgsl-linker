@@ -224,7 +224,7 @@ test("mapped tuple type", () => {
   const w: [{ num: number }, { str: string }] = wrapEm(1, "foo");
 });
 
-// TODO requires recursive type
+// LATER requires recursive type
 test("remove type from tuple", () => {
   const a = [1, "foo", true] as const;
 
