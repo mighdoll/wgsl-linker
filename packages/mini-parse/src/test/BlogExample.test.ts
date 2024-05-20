@@ -191,7 +191,7 @@ test("extend a record", () => {
     add<K extends string, V>(name: K, value: V): Tags<N & { [k in K]: V }> {
       name;
       value;
-      return {} as any;
+      return this as any;
     }
     read(): N {
       return NYI();
