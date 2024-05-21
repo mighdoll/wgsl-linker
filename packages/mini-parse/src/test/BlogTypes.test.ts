@@ -135,19 +135,21 @@ test("mapped tuple type", () => {
   const w: [{ num: number }, { str: string }] = wrapEm(1, "foo");
 });
 
-// LATER requires recursive type
-test("remove type from tuple", () => {
+test("remove type from tuple or array", () => {
   const a = [1, "foo", true] as const;
 
-  type NotString<T> = T extends string ? never : T;
-  type Stringless<T extends any[]> = { [key in keyof T]: NotString<T[key]> };
+  type Stringless<T extends any[]> = T extends [infer A, ...infer R]
+    ? A extends string
+      ? Stringless<R> // A is not a string, skip it
+      : [A, ...Stringless<R>] // A is a string, include it
+    : [];
 
   function removeStrings<T extends any[]>(...args: T): Stringless<T> {
     args;
     return NYI();
   }
 
-  const b = removeStrings(...a);
+  const b: [1, true] = removeStrings(...a); // works, type does not include "foo"
 });
 
 test("Recovering Record Key Names", () => {
