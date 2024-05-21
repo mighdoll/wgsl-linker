@@ -71,7 +71,8 @@ that isn't mentioned in the main documentation for TypeScript
 Let's try to convert an array of strings and numbers
 to an array of objects with "str" and "num" fields.
 
-We can convert the type of one element using a [conditional type](TODO).
+We can convert the type of one element using a 
+[conditional type](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html).
 If `T` is a string, the type constructor will return `{str: T}`,
 and if `T` is a number, the type constructor will return `{num: T}`:
 
