@@ -2,8 +2,8 @@ Combining Records in TypeScript?
 
 I needed to learn some TypeScript type system tricks 
 for a [library](https://npmjs.com/package/mini-parse) that lets users
-combine add to Records, merge Records, manage arrays of Records, etc.
-[@Modderme123](TODO) gave me some TypeScript tips 
+combine Records, merge Records, manage arrays of Records, etc.
+[@Modderme123](https://github.com/modderme123) gave me some TypeScript tips 
 last week and
 I thought I'd write them up and share them with you too.
 
