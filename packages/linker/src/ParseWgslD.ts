@@ -2,6 +2,7 @@ import {
   anyNot,
   anyThrough,
   eof,
+  ExtendedResult,
   kind,
   matchingLexer,
   opt,
@@ -17,20 +18,12 @@ import {
   simpleParser,
   SrcMap,
   tracing,
-  withSep,
+  withSep
 } from "mini-parse";
 import {
   AbstractElem,
-  AliasElem,
-  CallElem,
-  FnElem,
-  FnNameElem,
-  GlobalDirectiveElem,
-  StructElem,
-  StructMemberElem,
   TypeNameElem,
-  TypeRefElem,
-  VarElem,
+  TypeRefElem
 } from "./AbstractElems.js";
 import { mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
@@ -39,7 +32,7 @@ import {
   makeElem,
   unknown,
   word,
-  wordNumArgs
+  wordNumArgs,
 } from "./ParseSupport.js";
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
@@ -70,11 +63,9 @@ export const typeNameDecl = req(word.tag("name")).map((r) => {
 });
 
 /** parse an identifier into a TypeNameElem */
-export const fnNameDecl = req(word.tag("name"), "missing fn name").map(
-  (r) => {
-    return makeElem("fnName", r, ["name"]);
-  }
-);
+export const fnNameDecl = req(word.tag("name"), "missing fn name").map((r) => {
+  return makeElem("fnName", r, ["name"]);
+});
 
 /** find possible references to user types (structs) in this possibly nested template */
 export const template: Parser<any> = seq(
@@ -98,9 +89,9 @@ export const typeSpecifier: Parser<TypeRefElem[]> = seq(
   opt(template)
 ).map((r) =>
   r.tags[possibleTypeRef].map((name) => {
-    const e = makeElem("typeRef", r) as TypeRefElem; // TODO can we make this cast unnecessary by overloading makeElem to not return partial w/all tags specified?
+    const e = makeElem("typeRef", r as ExtendedResult<any>);
     e.name = name;
-    return e;
+    return e as Required<typeof e>;
   })
 );
 
@@ -162,6 +153,7 @@ const variableDecl = seq(
   req(typeSpecifier).tag("typeRefs")
 );
 
+// prettier-ignore
 const block: Parser<any> = seq(
   "{",
   repeat(
@@ -186,7 +178,7 @@ export const fnDecl = seq(
 ).map((r) => {
   const e = makeElem("fn", r);
   const nameElem = r.tags.nameElem[0];
-  e.nameElem = nameElem;
+  e.nameElem = nameElem as Required<typeof nameElem>;
   e.name = nameElem.name;
   e.calls = r.tags.calls || [];
   e.typeRefs = r.tags.typeRefs?.flat() || [];
