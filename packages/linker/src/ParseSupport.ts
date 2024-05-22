@@ -55,7 +55,7 @@ type ByKind<U, T> = U extends { kind: T } ? U : never;
 
 type TagsType<U extends AbstractElem> = Record<
   Exclude<keyof U, keyof AbstractElemBase>,
-  string[]
+  any[]
 >;
 
 /** create an AbstractElem from parse results
