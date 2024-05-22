@@ -14,9 +14,10 @@ import {
   seq,
   setTraceName,
   tracing,
-  withSep
+  withSep,
+  NoTags,
 } from "mini-parse";
-import { AbstractElem } from "./AbstractElems.js";
+import { AbstractElem, AbstractElemBase } from "./AbstractElems.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
 import { lineCommentOptDirective } from "./ParseDirective.js";
 
@@ -36,10 +37,7 @@ export const blockComment: Parser<any> = seq(
   req("*/")
 );
 
-export const comment = or(
-  () => lineCommentOptDirective,
-  blockComment
-);
+export const comment = or(() => lineCommentOptDirective, blockComment);
 
 export const eolf: Parser<any> = disablePreParse(
   makeEolf(argsTokens, argsTokens.ws)
@@ -58,9 +56,9 @@ export const wordNumArgs: Parser<string[]> = seq(
  * @param namedArray keys in the tags result to copy to
  *  like named fields in the abstract elem (as an array)
  */
-export function makeElem<U extends AbstractElem>(
+export function makeElemOrig<U extends AbstractElem>(
   kind: U["kind"],
-  er: ExtendedResult<any, TagRecord>, 
+  er: ExtendedResult<any, TagRecord>,
   named: (keyof U)[] = [],
   namedArrays: (keyof U)[] = []
 ): U {
@@ -70,16 +68,41 @@ export function makeElem<U extends AbstractElem>(
   return { kind, start, end, ...nv, ...av } as U;
 }
 
+type ByKind<U, T> = U extends { kind: T } ? U : never;
+
+type TagsType<U extends AbstractElem> = Record<
+  Exclude<keyof U, keyof AbstractElemBase>,
+  string[]
+>;
+
+export function makeElem<
+  U extends AbstractElem,
+  K extends U["kind"], // 'kind' of AbtractElem "fn"
+  E extends ByKind<U, K>, // FnElem
+  T extends TagsType<E>, // {name: string[]}
+>(
+  kind: K,
+  er: ExtendedResult<any, T>,
+  tags: (keyof T)[] = [],
+  tagArrays: (keyof T)[] = []
+): Partial<E> {
+  const { start, end } = er;
+
+  const nv = mapIfDefined(tags, er.tags, true);
+  const av = mapIfDefined(tagArrays, er.tags);
+  return { kind, start, end, ...nv, ...av } as Partial<E>;
+}
+
 type NameStrings<A> = Record<keyof A, string[]>;
 
 function mapIfDefined<A>(
   keys: (keyof A)[],
-  array: Record<keyof A, string[]>,
-  firstElem?: boolean
-): Partial<Record<keyof A, string>> {
+  array: Partial<Record<keyof A, string[]>>,
+  firstElemOnly?: boolean
+): Partial<Record<keyof A, string | string[]>> {
   const entries = keys.flatMap((k) => {
     const ak = array[k];
-    const v = firstElem ? ak?.[0] : ak;
+    const v = firstElemOnly ? ak?.[0] : ak;
 
     if (v === undefined) return [];
     else return [[k, v]];
@@ -92,7 +115,7 @@ if (tracing) {
   const names: Record<string, Parser<unknown>> = {
     skipBlockComment: blockComment,
     comment,
-    wordNumArgs
+    wordNumArgs,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
