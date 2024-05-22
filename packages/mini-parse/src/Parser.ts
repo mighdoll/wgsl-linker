@@ -59,7 +59,7 @@ export interface ParserContext<A = any> {
   srcMap?: SrcMap;
 }
 
-export type TagRecord = Record<string | symbol, any[]>;
+export type TagRecord = Record<string | symbol, any[] | undefined>;
 export type NoTags = Record<string | symbol, never>;
 
 /** Result from a parser */

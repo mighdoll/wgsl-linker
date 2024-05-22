@@ -50,23 +50,6 @@ export const wordNumArgs: Parser<string[]> = seq(
   req(")")
 ).map((r) => r.value[1]);
 
-/** create an AbstractElem from parse results
- * @param named keys in the tags result to copy to
- *  like named fields in the abstract elem (as a single value)
- * @param namedArray keys in the tags result to copy to
- *  like named fields in the abstract elem (as an array)
- */
-export function makeElemOrig<U extends AbstractElem>(
-  kind: U["kind"],
-  er: ExtendedResult<any, TagRecord>,
-  named: (keyof U)[] = [],
-  namedArrays: (keyof U)[] = []
-): U {
-  const { start, end } = er;
-  const nv = mapIfDefined(named, er.tags as NameStrings<U>, true); // TODO let ts match names, avoid cast
-  const av = mapIfDefined(namedArrays, er.tags as NameStrings<U>);
-  return { kind, start, end, ...nv, ...av } as U;
-}
 
 type ByKind<U, T> = U extends { kind: T } ? U : never;
 
@@ -75,6 +58,12 @@ type TagsType<U extends AbstractElem> = Record<
   string[]
 >;
 
+/** create an AbstractElem from parse results
+ * @param named keys in the tags result to copy to
+ *  like named fields in the abstract elem (as a single value)
+ * @param namedArray keys in the tags result to copy to
+ *  like named fields in the abstract elem (as an array)
+ */
 export function makeElem<
   U extends AbstractElem,
   K extends U["kind"], // 'kind' of AbtractElem "fn"
@@ -82,7 +71,7 @@ export function makeElem<
   T extends TagsType<E>, // {name: string[]}
 >(
   kind: K,
-  er: ExtendedResult<any, T>,
+  er: ExtendedResult<any, Partial<T>>,
   tags: (keyof T)[] = [],
   tagArrays: (keyof T)[] = []
 ): Partial<E> {
@@ -92,8 +81,6 @@ export function makeElem<
   const av = mapIfDefined(tagArrays, er.tags);
   return { kind, start, end, ...nv, ...av } as Partial<E>;
 }
-
-type NameStrings<A> = Record<keyof A, string[]>;
 
 function mapIfDefined<A>(
   keys: (keyof A)[],
