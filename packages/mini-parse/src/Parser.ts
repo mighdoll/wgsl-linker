@@ -108,6 +108,9 @@ export interface ParserArgs {
   terminal?: boolean;
 
   preDisabled?: true;
+
+  /** clear collected tags on return */
+  clearTags?: true;
 }
 
 interface ConstructArgs<T, N extends TagRecord> extends ParserArgs {
@@ -121,6 +124,7 @@ export class Parser<T, N extends TagRecord = NoTags> {
   traceOptions: TraceOptions | undefined;
   terminal: boolean | undefined;
   preDisabled: true | undefined;
+  clearTags: true | undefined;
   fn: ParseFn<T, N>;
 
   constructor(args: ConstructArgs<T, N>) {
@@ -129,6 +133,7 @@ export class Parser<T, N extends TagRecord = NoTags> {
     this.traceOptions = args.trace;
     this.terminal = args.terminal;
     this.preDisabled = args.preDisabled;
+    this.clearTags = args.clearTags;
     this.fn = args.fn;
   }
 
@@ -308,17 +313,19 @@ function runParser<T, N extends TagRecord>(
     } else {
       // parser succeded
       tracing && parserLog(`✓ ${p.tracingName}`);
-      if (p.tagName && result.value !== undefined) {
+      const value = result.value;
+      let tags;
+      if (p.clearTags) {
+        tags = {} as N;
+      } else if (p.tagName && result.value !== undefined) {
         // merge tagged result (if user set a name for this stage's result)
-        return {
-          value: result.value,
-          tags: mergeTags(result.tags, {
-            [p.tagName]: [result.value],
-          }),
-        } as OptParserResult<T, N>;
+        tags = mergeTags(result.tags, {
+          [p.tagName]: [result.value],
+        }) as N;
+      } else {
+        tags = result.tags;
       }
-      const r = { value: result.value, tags: result.tags };
-      return r as OptParserResult<T, N>;
+      return { value, tags };
     }
   }
 

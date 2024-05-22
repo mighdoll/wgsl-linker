@@ -351,9 +351,20 @@ export function parserArg<A extends CombinatorArg>(arg: A): ParserFromArg<A> {
 }
 
 /** A delayed parser definition, for making recursive parser definitions.  */
-export function fn<T, N extends TagRecord>(fn: () => Parser<T, N>): Parser<T, N> {
+export function fn<T, N extends TagRecord>(
+  fn: () => Parser<T, N>
+): Parser<T, N> {
   return parser("fn", (state: ParserContext): OptParserResult<T, N> => {
     const stage = fn();
     return stage._run(state);
   });
+}
+
+/** @return a parser that doesn't propagate any tags */
+export function clearTags<A extends CombinatorArg>(
+  arg: A
+): Parser<ResultFromArg<A>, NoTags> {
+  const p = parserArg(arg);
+  const clearParser = p._cloneWith({ clearTags: true });
+  return clearParser as Parser<ResultFromArg<A>, NoTags>;
 }

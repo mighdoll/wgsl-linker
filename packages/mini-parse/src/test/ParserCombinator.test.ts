@@ -1,9 +1,16 @@
 import { logCatch, testParse, testTokens } from "mini-parse/test-util";
 import { expect, test } from "vitest";
-import { Parser, disablePreParse, preParse, tokenSkipSet } from "../Parser.js";
+import {
+  NoTags,
+  Parser,
+  disablePreParse,
+  preParse,
+  tokenSkipSet,
+} from "../Parser.js";
 import {
   any,
   anyNot,
+  clearTags,
   kind,
   not,
   opt,
@@ -79,7 +86,7 @@ test("opt() makes failing match ok", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test.only("repeat() to (1,2,3,4) via tag", () => {
+test("repeat() to (1,2,3,4) via tag", () => {
   const src = "(1,2,3,4)";
   const wordNum = or(kind("word"), kind("digits")).tag("wn");
   const params = seq(opt(wordNum), opt(repeat(seq(",", wordNum))));
@@ -240,4 +247,23 @@ test("repeatWhile", () => {
   const src = "a a a a";
   const { parsed } = testParse(p, src);
   expect(parsed?.value).deep.eq(["a", "a"]);
+});
+
+test("clearTags", () => {
+  const p = kind(m.word).tag("w");
+  // w/o clearing tags
+  let taggedTags;
+  const tagged = p.map((r) => 
+    taggedTags = r.tags
+  );
+  testParse(tagged, "foo");
+
+  // w/ clearing tags
+  let clearedTags;
+  const c: Parser<string, NoTags> = clearTags(p); // verifies return type is correct
+  const cleared = c.map((r) => clearedTags = r.tags);
+  testParse(cleared, "foo");
+
+  expect(taggedTags).deep.eq({ w: ["foo"] });
+  expect(clearedTags).deep.eq({});
 });
