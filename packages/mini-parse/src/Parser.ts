@@ -311,7 +311,7 @@ function runParser<T, N extends TagRecord>(
       context.app.context = origAppContext;
       return null;
     } else {
-      // parser succeded
+      // parser succeeded
       tracing && parserLog(`✓ ${p.tracingName}`);
       const value = result.value;
       let tags;
