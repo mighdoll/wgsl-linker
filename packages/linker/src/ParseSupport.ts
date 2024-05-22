@@ -1,21 +1,19 @@
 import {
+  ExtendedResult,
+  Parser,
   any,
   anyNot,
   disablePreParse,
-  ExtendedResult,
   kind,
   makeEolf,
-  TagRecord,
   or,
-  Parser,
   repeat,
   req,
   resultLog,
   seq,
   setTraceName,
   tracing,
-  withSep,
-  NoTags,
+  withSep
 } from "mini-parse";
 import { AbstractElem, AbstractElemBase } from "./AbstractElems.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
@@ -49,7 +47,6 @@ export const wordNumArgs: Parser<string[]> = seq(
   withSep(",", wordNum),
   req(")")
 ).map((r) => r.value[1]);
-
 
 type ByKind<U, T> = U extends { kind: T } ? U : never;
 
