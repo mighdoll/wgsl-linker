@@ -332,7 +332,7 @@ Is **MiniParse** right for your project? Consider the alternatives:
   The simplicity makes parser combinators flexible and easy to adopt - you're using
   TypesScript for everything.
 
-  Parser combinators are interpreting rather than compiling the grammar in advance,
+  Parser combinators typically interpret rather than compiling the grammar in advance,
   so they're slower to run. But they're plenty fast enough for most purposes.
 
   In the Parser Combinator category, **MiniParse** has a few interesting features
