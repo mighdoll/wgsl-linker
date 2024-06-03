@@ -4,7 +4,8 @@
   "type": "commonjs",
   "scripts": {
     "prepublishOnly": "run-s build",
-    "build": "esbuild --bundle --platform=node --outfile=bin/wgsl-link src/main.ts"
+    "build": "esbuild --bundle --platform=node --outfile=bin/wgsl-link src/main.ts",
+    "test": "vitest"
   },
   "repository": "https://github.com/mighdoll/wgsl-linker/tree/main/packages/cli",
   "homepage": "https://github.com/mighdoll/wgsl-linker/tree/main/packages/cli#readme",
