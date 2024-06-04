@@ -2,7 +2,9 @@
   "name": "root",
   "type": "module",
   "scripts": {
-    "bump": "scripts/runTs bump --version"
+    "bump": "scripts/runTs bump --version",
+    "build:all": "pnpm --filter './packages/**' build",
+    "publish:all": "pnpm --filter './packages/**' publish"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
