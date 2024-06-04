@@ -1,29 +1,28 @@
 import {
+  Parser,
+  TagRecord,
   anyThrough,
   kind,
-  TagRecord,
   opt,
   or,
-  Parser,
   repeat,
   req,
   seq,
   setTraceName,
   tokens,
   tracing,
-  withSep
+  withSep,
 } from "mini-parse";
 import {
-  ExportElem,
   ExtendsElem,
   ImportElem,
-  NamedElem
+  NamedElem,
 } from "./AbstractElems.js";
 import {
   argsTokens,
   lineCommentTokens,
   mainTokens,
-  moduleTokens
+  moduleTokens,
 } from "./MatchWgslD.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 
@@ -53,7 +52,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
   ).map((r) => {
     // flatten 'args' by putting it with the other extracted names
     const named: (keyof T)[] = ["name", "from", "as", "args"];
-    return makeElem<T>(kind, r, named, []);
+    return makeElem(kind, r as any, named as any, []) as unknown as T;
   });
 
   return p;
@@ -95,7 +94,7 @@ export const exportDirective = seq(
   seq(opt(directiveArgs.tag("args")), opt(importing), eolf)
 ).map((r) => {
   // flatten 'args' by putting it with the other extracted names
-  const e = makeElem<ExportElem>("export", r, ["args"], ["importing"]);
+  const e = makeElem("export", r, ["args"], ["importing"]);
   r.app.state.push(e);
 });
 
@@ -111,7 +110,7 @@ function oneArgDirective<T extends NamedElem>(
     tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
     eolf
   ).map((r) => {
-    const e = makeElem<T>(elemKind, r, ["name"]);
+  const e = makeElem(elemKind, r, ["name"] as any); 
     r.app.state.push(e);
   });
 }
@@ -154,7 +153,7 @@ if (tracing) {
     lineCommentOptDirective,
     moduleDirective,
     templateDirective,
-    directive
+    directive,
   };
 
   Object.entries(names).forEach(([name, parser]) => {
