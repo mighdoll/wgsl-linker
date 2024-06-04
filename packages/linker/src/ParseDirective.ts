@@ -77,13 +77,13 @@ const importDirective = seq(
   r.app.state.push(imp);
 });
 
-const extendsSym = Symbol("extends");
+const extendsTag = "-extends-";
 
 export const extendsDirective = seq(
   "#extends",
-  seq(extendsElemPhrase.tag(extendsSym), eolf)
+  seq(extendsElemPhrase.tag(extendsTag), eolf)
 ).map((r) => {
-  const imp: ExtendsElem = r.tags[extendsSym][0];
+  const imp: ExtendsElem = r.tags[extendsTag][0];
   imp.start = r.start; // use start of #import, not import phrase
   r.app.state.push(imp);
 });
