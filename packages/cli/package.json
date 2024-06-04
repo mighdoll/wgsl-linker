@@ -1,6 +1,6 @@
 {
   "name": "wgsl-link",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "type": "commonjs",
   "scripts": {
     "prepublishOnly": "run-s build",
