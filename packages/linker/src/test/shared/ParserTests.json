@@ -1,7 +1,7 @@
 [
   {
     "name": "struct ref in <template> and initializer",
-    "src": "var x: vec2<MyStruct> = vec2(MyStruct(8), MyStruct(9));",
+    "src": ["var x: vec2<MyStruct> = vec2(MyStruct(8), MyStruct(9));"],
     "structReferences": [
       {
         "start": 12,
