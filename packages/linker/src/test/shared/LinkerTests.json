@@ -1,0 +1,10 @@
+[
+  {
+    "name": "simple fn import ts syntax",
+    "src": [
+      "import foo from bar;\nfn bar() {\n  foo();\n}",
+      "export fn foo() { let x = 1; }"
+    ],
+    "linked": "fn bar() {\n  foo();\n}\n\nfn foo() { let x = 1; }"
+  }
+]
