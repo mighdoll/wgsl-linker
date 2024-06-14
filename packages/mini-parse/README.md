@@ -1,4 +1,5 @@
-**MiniParse** is a small TypeScript parser combinator library with an efficient regex based lexer.
+**MiniParse** is a small TypeScript parser combinator library with an efficient
+regex based lexer.
 
 ## Parser Features
 
@@ -9,7 +10,8 @@
   IDE, test frameworks, etc.
 - **MiniParse** is a Parsing Expression Grammar (PEG) parser.
   Parsing is simple to understand, top down, using recursive descent with backtracking.
-- Parsers are modular - every grammar fragment is also a parser and can be tested and reused independently.
+- Parsers are modular - every grammar fragment is also a parser and can be tested
+  and reused independently.
 - Small code size makes **MiniParse** suitable for runtime embedding (< 4kb compressed).
 - Extensive debug tracing for use while developing grammars.
   (Tracing is automatically removed from production builds).
@@ -21,7 +23,8 @@
   or for mixed language parsing (e.g. html in jsx).
 - Stack parsers to parse things that can appear almost anywhere in your grammar.
   Handy for things like nested comments, semantic comments (jsdoc), or annotations.
-- Named accumulators make it easy to collect parsing results from deeply nested sub parsers.
+- Named accumulators make it easy to collect parsing results
+  from deeply nested sub parsers.
 - Mapped logging utilities are available for error reporting on preprocessed src.
 
 ## Parsing
@@ -51,7 +54,8 @@ More combinators are available and documented in [ParserCombinator.ts](./src/Par
 To any combinator that accepts a parser as an argument, you can pass:
 
 - another parser
-- a function that returns a parser - uses the returned parser, but calls the function lazily
+- a function that returns a parser - uses the returned parser, but calls
+  the function lazily
 - a string - a parser that accepts any token exactly matching the string
 
 ## Lexer
@@ -139,7 +143,7 @@ interface BinOpElem {
 
 export const sumElem = seq(int, or("+", "-"), int).map((r) => {
   const [a, op, b] = r.value;
-  const binOpElem:BinOpElem = {
+  const binOpElem: BinOpElem = {
     kind: "binOp",
     left: a,
     right: b,
@@ -147,7 +151,6 @@ export const sumElem = seq(int, or("+", "-"), int).map((r) => {
   };
   r.app.state.push(binOpElem);
 });
-
 ```
 
 ### Named Results
@@ -186,23 +189,23 @@ To print out the progress of parsing:
 1. Call `enableTracing()` to turn on the tracing facility (normally off and removed from prod builds)
 1. Call `.trace(opts?)` on any Parser. See `TraceOptions` for options controlling trace levels.
 1. Add application relevant trace names to any parser using `.traceName()` or `setTraceName()`.
-    - Use `.traceName()` on any parser to set the trace name for debugging.
-    - Alternately, you can use `setTraceName()` protected by a `tracing`
-      global and the javascript bundler will remove the code in production builds to save a few bytes.
+   - Use `.traceName()` on any parser to set the trace name for debugging.
+   - Alternately, you can use `setTraceName()` protected by a `tracing`
+     global and the javascript bundler will remove the code in production builds to save a few bytes.
 
-  ```ts
-  if (tracing) {
-    const names: Record<string, Parser<unknown>> = {
-      fnCall,
-      fnParam,
-      fnParamList,
-      fnDecl,
-    };
+```ts
+if (tracing) {
+  const names: Record<string, Parser<unknown>> = {
+    fnCall,
+    fnParam,
+    fnParamList,
+    fnDecl,
+  };
 
-    Object.entries(names).forEach(([name, parser]) => {
-      setTraceName(parser, name);
-    });
-  ```
+  Object.entries(names).forEach(([name, parser]) => {
+    setTraceName(parser, name);
+  });
+```
 
 ## Examples
 
@@ -222,7 +225,7 @@ For example, to parse a programming language with quotes,
 you'll probably want a different tokenizer for the text inside of quotes:
 
 ```ts
-const quote = seq('"', tokens(quoteTokens, repeat(nonQuote)), '"')
+const quote = seq('"', tokens(quoteTokens, repeat(nonQuote)), '"');
 ```
 
 ### .toParser()
@@ -255,23 +258,27 @@ in the grammar, e.g. to disable comment skipping inside quotes.
 Save preparsing for special situations.
 If the pervasive elements are easy to find and can be skipped,
 then adding a few token types to skip in the lexer is simpler and faster.
-That's typically the approach for white space.  
+That's typically the approach for white space.
 
 ### app.context
 
 There are two application specific objects that are passed to every parser:
 `state` and `context`.
-`app.state`, as mentioned above, is handy for accumulating application results of successful parses.
+`app.state`, as mentioned above, is handy for accumulating application
+results of successful parses.
 
 `app.context` is useful to store ephemeral application state discovered
 during parsing.
-Like `app.state`, `app.context` is just for applications - **MiniParse** doesn't use it
+Like `app.state`, `app.context` is just for applications -
+**MiniParse** doesn't use it
 and applications can read and write it using the `.map()` method on any parser.
-But unlike `app.state` **MiniParse** will reset `app.context` when a sub-parser fails and backtracks.
+But unlike `app.state` **MiniParse** will reset `app.context`
+when a sub-parser fails and backtracks.
 `app.context` is passed to child parsers, but doesn't accumulate to parent parsers.
 
 An example of using `app.context` is for parsing nested `#ifdef` `#endif` clauses.
-`app.context` is a good place to store the stack of active/inactive states discovered while
+`app.context` is a good place to store
+the stack of active/inactive states discovered while
 parsing.
 
 ### Left recursion
@@ -284,18 +291,20 @@ See the block comment example or the calculator example.
 
 ## Future Work
 
-PEG parsers like MiniParse can be sped up using a memoization algorithm called packrat parsing.
+PEG parsers like MiniParse can be sped up using a memoization algorithm called
+packrat parsing.
 
 [Tratt](https://tratt.net/laurie/research/pubs/html/tratt__direct_left_recursive_parsing_expression_grammars/)
 describes a technique to allow some left recursive rules, based on
-[Warth](https://tinlizzie.org/VPRIPapers/tr2007002_packrat.pdf)'s proposal for left recursion
-with packrat parsing.
-[Rossum](https://medium.com/@gvanrossum_83706/left-recursive-peg-grammars-65dab3c580e1) also
-has pursued this approach for Python.
+[Warth](https://tinlizzie.org/VPRIPapers/tr2007002_packrat.pdf)'s proposal
+for left recursion with packrat parsing.
+[Rossum](https://medium.com/@gvanrossum_83706/left-recursive-peg-grammars-65dab3c580e1)
+also has pursued this approach for Python.
 But per Tratt, note that the resulting parse order is not as predictable, and there
 are issues with rules that are simultaneously left and right recursive.
 
-Allowing a regex as a parser argument would be convenient to avoid the need for a separate lexer in some cases.
+Allowing a regex as a parser argument would be convenient to avoid
+the need for a separate lexer in some cases.
 
 ## Choosing a Parsing Approach
 
@@ -304,8 +313,8 @@ Is **MiniParse** right for your project? Consider the alternatives:
 - **Full Custom Parser** - _maximum speed and ultimate malleability, lots of work._
 
   For maximum speed and control, write a dedicated parser directly in Typescript.
-  This is the most effort, but if you're writing a production compiler and need to squeeze
-  every millisecond, it's worth it.
+  This is the most effort, but if you're writing a production compiler and need
+  to squeeze every millisecond, it's worth it.
   Otherwise use a parser generator tool suite or a parser combinator library.
 
 - **Parser Generator** - _high speed, some work to adopt._
@@ -325,8 +334,10 @@ Is **MiniParse** right for your project? Consider the alternatives:
   with different tradeoffs, but all have evolved robust features to classic parsing
   problems of error recovery, left recursion, producing parse results, tracing, etc.
 
-  Parser generators are typically more complicated to adopt than parser combinator libraries,
-  less flexible, require a separate build step, and they're more code than typical parser combinators.
+  Parser generators are typically more complicated to adopt
+  than parser combinator libraries,
+  less flexible, require a separate build step,
+  and they're more code than typical parser combinators.
   But for demanding parsing jobs, the complexity of a parser generator tool is
   easily worth the investment.
 
