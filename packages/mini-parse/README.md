@@ -338,7 +338,9 @@ Is **MiniParse** right for your project? Consider the alternatives:
   [Nearley](https://nearley.js.org/),
   [Lezer](https://lezer.codemirror.net/),
   [Antlr](https://www.antlr.org/),
-  or perhaps [Ohm](https://ohmjs.org/).
+  [Chevrotain](https://chevrotain.io/docs/),
+  [Tree-sitter](https://tree-sitter.github.io/tree-sitter/),
+  or [Ohm](https://ohmjs.org/).
   Each parser generator has its own textual format to describe the grammar. The library
   compiles into an execution format before parsing.
   Each of the above libraries uses a different base algorithm (Earley, GLR, LL, Packrat)
@@ -356,7 +358,7 @@ Is **MiniParse** right for your project? Consider the alternatives:
 
   Parser combinators define a grammar by mixing simple TypeScript functions
   provided by the library or written by the user (aka combinator functions).
-  Execution of the grammar involves simply running these functions.
+  Execution of the grammar normally means simply running these functions.
   The simplicity makes parser combinators flexible and easy to adopt - you're using
   TypesScript for everything.
 
