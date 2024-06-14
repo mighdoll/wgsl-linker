@@ -49,6 +49,7 @@ The example above uses the combinators:
 More combinators are available and documented in [ParserCombinator.ts](./src/ParserCombinator.ts)
 
 To any combinator that accepts a parser as an argument, you can pass:
+
 - another parser
 - a function that returns a parser - uses the returned parser, but calls the function lazily
 - a string - a parser that accepts any token exactly matching the string
@@ -92,18 +93,21 @@ const result = simpleSum.parse({ lexer });
 The result will contain the combined results of the parsers, in this case `["3", "+", "4"]`.
 
 ### Selecting Parsing Results
-Typically, it's convenient to use `.map()` to select the relevant parts from a successful parse 
-and do a bit of format conversion. 
+
+Typically, it's convenient to use `.map()` to select the relevant parts from a successful parse
+and do a bit of format conversion.
 
 This parser will return a number rather than a string:
-```
+
+```ts
 const int = num.map((r) => parseInt(r.value));
 ```
 
 Here's an example that even does some computation, and returns a numeric sum or difference
 of the whole expression.
 It parses the same text as `simpleSum` above, but converts to numbers and then adds or subtracts.
-```
+
+```ts
 // return the numeric sum, rather than a sequence of strings
 export const sumResults = seq(int, or("+", "-"), int).map((r) => {
   const [a, op, b] = r.value;
@@ -111,15 +115,16 @@ export const sumResults = seq(int, or("+", "-"), int).map((r) => {
 });
 ```
 
-Note that `.map()` is only called on successful parses of the mapped expression, 
-if the expression fails, the parser will backtrack and try any alternatives in the grammar 
+Note that `.map()` is only called on successful parses of the mapped expression,
+if the expression fails, the parser will backtrack and try any alternatives in the grammar
 and `.map()` will not be called on the failed part of the parse.
 
-### App State 
+### App State
+
 For larger parsers, you'll typically convert the parsed text into an intermediate form, sometimes
 called an [Abstract Syntax Tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
 
-`.parse()` allows you to pass an application specific data structure that's visible in `.map()` 
+`.parse()` allows you to pass an application specific data structure that's visible in `.map()`
 for convenience in building the abstract syntax tree with each successfully parsed element.
 
 ```ts
@@ -149,7 +154,7 @@ export const sumElem = seq(int, or("+", "-"), int).map((r) => {
 
 For complicated nested or repeating parsers,
 it's convenient to assign names to particular results of interest.
-You can use a `Symbol` or a string to name a result using the `.named()` 
+You can use a `Symbol` or a string to name a result using the `.named()`
 method on all parsers.
 Multiple results with the same name are accumulated into an array.
 
@@ -171,17 +176,19 @@ export const namedSum = seq(
 ```
 
 ## Debug Tracing
+
 For debugging your grammar, it's useful to debug your grammar in pieces.
 One of the nice features of parser combinators is that every part of the grammar is
 independently testable.
 
-To print out the progress of parsing: 
+To print out the progress of parsing:
+
 1. Call `enableTracing()` to turn on the tracing facility (normally off and removed from prod builds)
 1. Call `.trace(opts?)` on any Parser. See `TraceOptions` for options controlling trace levels.
 1. Add application relevant trace names to any parser using `.traceName()` or `setTraceName()`.
-  * Use `.traceName()` on any parser to set the trace name for debugging.
-  * Alternately, you can use `setTraceName()` protected by a `tracing`
-    global and the javascript bundler will remove the code in production builds to save a few bytes.
+    - Use `.traceName()` on any parser to set the trace name for debugging.
+    - Alternately, you can use `setTraceName()` protected by a `tracing`
+      global and the javascript bundler will remove the code in production builds to save a few bytes.
 
   ```ts
   if (tracing) {
@@ -205,13 +212,13 @@ To print out the progress of parsing:
 
 [WGSL-D](../linker/src/ParseWgslD.ts) parsing selected parts of the WebGPU [WGSL](https://www.w3.org/TR/WGSL/#grammar-recursive-descent) shader language along with `#import` and `#export` extensions.
 
-
 ## Special Situations
 
 ### tokens() combinator
-Sometimes it's nice to let the grammar choose a different tokenizer 
-to parse different sections of the source text. 
-For example, to parse a programming language with quotes, 
+
+Sometimes it's nice to let the grammar choose a different tokenizer
+to parse different sections of the source text.
+For example, to parse a programming language with quotes,
 you'll probably want a different tokenizer for the text inside of quotes:
 
 ```ts
@@ -235,7 +242,7 @@ it'd be awkward to mention those elements at every possible position in the gram
 Examples include nested block comments, comments containing semantic info, etc.
 
 To handle pervasive elements, **MiniParse** offers an unusual feature called preparsing
-that allows you to stack parsers. First the pre-parser will run, 
+that allows you to stack parsers. First the pre-parser will run,
 and if it fails to match at the current position, then the main parser will run.
 
 ```ts
@@ -246,26 +253,26 @@ Multiple preparsers can be attached. Preparsing can also be temporarily disabled
 in the grammar, e.g. to disable comment skipping inside quotes.
 
 Save preparsing for special situations.
-If the pervasive elements are easy to find and can be skipped, 
+If the pervasive elements are easy to find and can be skipped,
 then adding a few token types to skip in the lexer is simpler and faster.
 That's typically the approach for white space.  
 
 ### app.context
 
-There are two application specific objects that are passed to every parser: 
-`state` and `context`. 
+There are two application specific objects that are passed to every parser:
+`state` and `context`.
 `app.state`, as mentioned above, is handy for accumulating application results of successful parses.
 
 `app.context` is useful to store ephemeral application state discovered
-during parsing. 
+during parsing.
 Like `app.state`, `app.context` is just for applications - **MiniParse** doesn't use it
 and applications can read and write it using the `.map()` method on any parser.
-But unlike `app.state` **MiniParse** will reset `app.context` when a sub-parser fails and backtracks. 
+But unlike `app.state` **MiniParse** will reset `app.context` when a sub-parser fails and backtracks.
 `app.context` is passed to child parsers, but doesn't accumulate to parent parsers.
 
-An example of using `app.context` is for parsing nested `#ifdef` `#endif` clauses. 
+An example of using `app.context` is for parsing nested `#ifdef` `#endif` clauses.
 `app.context` is a good place to store the stack of active/inactive states discovered while
-parsing. 
+parsing.
 
 ### Left recursion
 
@@ -274,7 +281,6 @@ In the parser combinator setting, it's obvious why - a function calling itself
 in its first statement is going to recurse forever.
 Best to write the grammar so that recursion is in the middle or at the end.
 See the block comment example or the calculator example.
-
 
 ## Future Work
 
@@ -295,14 +301,14 @@ Allowing a regex as a parser argument would be convenient to avoid the need for 
 
 Is **MiniParse** right for your project? Consider the alternatives:
 
-* **Full Custom Parser** - _maximum speed and ultimate malleability, lots of work._
+- **Full Custom Parser** - _maximum speed and ultimate malleability, lots of work._
 
   For maximum speed and control, write a dedicated parser directly in Typescript.
   This is the most effort, but if you're writing a production compiler and need to squeeze
   every millisecond, it's worth it.
   Otherwise use a parser generator tool suite or a parser combinator library.
 
-* **Parser Generator** - _high speed, some work to adopt._
+- **Parser Generator** - _high speed, some work to adopt._
 
   Parser generators statically analyze and precompile a grammar description language.
   These mature tools can be a bit big, but there's lots of documentation,
@@ -324,7 +330,7 @@ Is **MiniParse** right for your project? Consider the alternatives:
   But for demanding parsing jobs, the complexity of a parser generator tool is
   easily worth the investment.
 
-* **Parser Combinators** - _lower speed, most flexibility, lightweight adoption._
+- **Parser Combinators** - _lower speed, most flexibility, lightweight adoption._
 
   Parser combinators define a grammar by mixing simple TypeScript functions
   provided by the library or written by the user (aka combinator functions).
