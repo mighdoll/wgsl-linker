@@ -81,10 +81,10 @@ const text = "3 + 4";
 const lexer = matchingLexer(text, simpleTokens);
 ```
 
-By default, the lexer will skip over whitespace tokens that you designate with the name 'ws'.
-You can configure whether and which tokens to skip statically by passing the set of
-names skip when you construct the `matchingLexer`, or dynamically while parsing
-by using the `tokensIgnore()` combinator.
+By default, the lexer will skip over whitespace tokens that you designate with
+the name 'ws'. You can configure whether and which tokens to skip statically by
+passing the set of names skip when you construct the `matchingLexer`, or
+dynamically while parsing by using the `tokensIgnore()` combinator.
 
 ## Running the Parser
 
@@ -94,12 +94,13 @@ To run a parser, just give it a lexer attached to your source text.
 const result = simpleSum.parse({ lexer });
 ```
 
-The result will contain the combined results of the parsers, in this case `["3", "+", "4"]`.
+The result will contain the combined results of the parsers, in this case
+`["3", "+", "4"]`.
 
 ### Selecting Parsing Results
 
-Typically, it's convenient to use `.map()` to select the relevant parts from a successful parse
-and do a bit of format conversion.
+Typically, it's convenient to use `.map()` to select the relevant parts from a
+successful parse and do a bit of format conversion.
 
 This parser will return a number rather than a string:
 
@@ -107,9 +108,9 @@ This parser will return a number rather than a string:
 const int = num.map((r) => parseInt(r.value));
 ```
 
-Here's an example that even does some computation, and returns a numeric sum or difference
-of the whole expression.
-It parses the same text as `simpleSum` above, but converts to numbers and then adds or subtracts.
+Here's an example that even does some computation, and returns a numeric sum or
+difference of the whole expression. It parses the same text as `simpleSum`
+above, but converts to numbers and then adds or subtracts.
 
 ```ts
 // return the numeric sum, rather than a sequence of strings
@@ -120,16 +121,18 @@ export const sumResults = seq(int, or("+", "-"), int).map((r) => {
 ```
 
 Note that `.map()` is only called on successful parses of the mapped expression,
-if the expression fails, the parser will backtrack and try any alternatives in the grammar
-and `.map()` will not be called on the failed part of the parse.
+if the expression fails, the parser will backtrack and try any alternatives in
+the grammar and `.map()` will not be called on the failed part of the parse.
 
 ### App State
 
-For larger parsers, you'll typically convert the parsed text into an intermediate form, sometimes
-called an [Abstract Syntax Tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
+For larger parsers, you'll typically convert the parsed text into an
+intermediate form, sometimes called an
+[Abstract Syntax Tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
 
-`.parse()` allows you to pass an application specific data structure that's visible in `.map()`
-for convenience in building the abstract syntax tree with each successfully parsed element.
+`.parse()` allows you to pass an application specific data structure that's
+visible in `.map()` for convenience in building the abstract syntax tree with
+each successfully parsed element.
 
 ```ts
 type ASTElem = BinOpElem;
@@ -180,18 +183,22 @@ export const namedSum = seq(
 
 ## Debug Tracing
 
-For debugging your grammar, it's useful to debug your grammar in pieces.
-One of the nice features of parser combinators is that every part of the grammar is
+For debugging your grammar, it's useful to debug your grammar in pieces. One of
+the nice features of parser combinators is that every part of the grammar is
 independently testable.
 
 To print out the progress of parsing:
 
-1. Call `enableTracing()` to turn on the tracing facility (normally off and removed from prod builds)
-1. Call `.trace(opts?)` on any Parser. See `TraceOptions` for options controlling trace levels.
-1. Add application relevant trace names to any parser using `.traceName()` or `setTraceName()`.
+1. Call `enableTracing()` to turn on the tracing facility (normally off and
+   removed from prod builds)
+1. Call `.trace(opts?)` on any Parser. See `TraceOptions` for options
+   controlling trace levels.
+1. Add application relevant trace names to any parser using `.traceName()` or
+   `setTraceName()`.
    - Use `.traceName()` on any parser to set the trace name for debugging.
-   - Alternately, you can use `setTraceName()` protected by a `tracing`
-     global and the javascript bundler will remove the code in production builds to save a few bytes.
+   - Alternately, you can use `setTraceName()` protected by a `tracing` global
+     and the javascript bundler will remove the code in production builds to
+     save a few bytes.
 
 ```ts
 if (tracing) {
@@ -209,11 +216,15 @@ if (tracing) {
 
 ## Examples
 
-[Calculator](./src/examples/CalculatorExample.ts) - classic PEG style parser in **MiniParse** syntax.
+[Calculator](./src/examples/CalculatorExample.ts) - classic PEG style parser in
+**MiniParse** syntax.
 
-[Calculator with Results](./src/examples/CalculatorResultsExample.ts) calculator example parser with inline calculation of results.
+[Calculator with Results](./src/examples/CalculatorResultsExample.ts) calculator
+example parser with inline calculation of results.
 
-[WGSL-D](../linker/src/ParseWgslD.ts) parsing selected parts of the WebGPU [WGSL](https://www.w3.org/TR/WGSL/#grammar-recursive-descent) shader language along with `#import` and `#export` extensions.
+[WGSL-D](../linker/src/ParseWgslD.ts) parsing selected parts of the WebGPU
+[WGSL](https://www.w3.org/TR/WGSL/#grammar-recursive-descent) shader language
+along with `#import` and `#export` extensions.
 
 ## Special Situations
 
