@@ -1,12 +1,13 @@
-# Shared WGSL Texts for Testing
+# WGSL Examples for Testing
 
-This package contains wgsl source texts to verify WGSL parsing
-and linking.
+This package contains wgsl source texts useful
+to verify WGSL parsing and linking.
 
-## WGSL Texts
+## WGSL and Linking Extended WGSL
 
-The source texts are an shared as an array of JSON / TypeScript
-objects in the format described in
+The source texts are an shared as an array of objects
+in both JSON and TypeScript format.
+The format is described in:
 [TestSchema.ts](./src/test-cases/TestSchema.ts)
 
 JSON version:
@@ -15,17 +16,18 @@ JSON version:
 TypeScript version:
 [ImportTests.ts](./src/test-cases/ImportTests.ts)
 
-## Add Texts in TypeScript
+## Add Examples in TypeScript
 
-Write tests in TypeScript rather than JSON.
-(TypeScript is a little more convenient to author than JSON -
-There's no need to quote keys, multiline strings are allowed.)
+Author new examples in TypeScript.
+TypeScript is similar to JSON but a little more convenient.
+In TypeScript,
+there's no need to quote keys and multiline strings are allowed.
 
 ### Convert TypeScript Tests to JSON
 
-A tool is available to convert the TypeScript version of the
+A tool is available to convert the TypeScript objects to JSON.
 
-#### Install dependencies and build the tool:
+#### Install dependencies and build the tool
 
 ```sh
 pnpm install
