@@ -12,7 +12,7 @@ export function relativePath(
 
 export function dirname(path: string): string {
   const lastSlash = path.lastIndexOf("/");
-  if (lastSlash === -1) return path;
+  if (lastSlash === -1) return ".";
   return path.slice(0, lastSlash);
 }
 
