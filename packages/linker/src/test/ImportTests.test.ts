@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { linkerTests as importTests } from "./shared/ImportTests.js";
+import { importTests as importTests } from "../../../shared-tests/src/test-cases/ImportTests.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { trimSrc } from "./shared/StringUtil.js";
 
