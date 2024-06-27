@@ -1,0 +1,9 @@
+[
+  {
+    "name": "#import foo",
+    "src": {
+      "./main.wgsl": "\n          #import foo from ./bar\n          fn main() {\n            foo();\n          }\n       ",
+      "./bar.wgsl": "\n          #export \n          fn foo() { }\n       "
+    }
+  }
+]
