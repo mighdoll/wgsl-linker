@@ -13,11 +13,7 @@ import {
   tracing,
   withSep,
 } from "mini-parse";
-import {
-  ExtendsElem,
-  ImportElem,
-  NamedElem,
-} from "./AbstractElems.js";
+import { ExtendsElem, ImportElem, NamedElem } from "./AbstractElems.js";
 import {
   argsTokens,
   lineCommentTokens,
@@ -32,7 +28,7 @@ const argsWord = kind(argsTokens.arg);
 const fromWord = or(argsWord, kind(argsTokens.relPath));
 
 // prettier-ignore
-/** ( <a> <,b>* )  with optional comments interspersed, does not span lines */
+/** ( <a> <,b>* ) */
 export const directiveArgs: Parser<string[]> = 
   seq(
     "(", 
@@ -40,7 +36,7 @@ export const directiveArgs: Parser<string[]> =
     req(")")
   ).map((r) => r.value[1]);
 
-/** foo <(A,B)> <as boo> <from bar>  EOL */
+/** foo <(A,B)> <as boo> <from bar> */
 function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
 ): Parser<T> {
@@ -60,12 +56,6 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
 
 const importElemPhrase = importPhrase<ImportElem>("import");
 const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
-
-export const importing = seq(
-  "importing",
-  seq(importElemPhrase.tag("importing")),
-  repeat(seq(",", importElemPhrase.tag("importing")))
-);
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
@@ -87,6 +77,12 @@ export const extendsDirective = seq(
   imp.start = r.start; // use start of #import, not import phrase
   r.app.state.push(imp);
 });
+
+export const importing = seq(
+  "importing",
+  seq(importElemPhrase.tag("importing")),
+  repeat(seq(",", importElemPhrase.tag("importing")))
+);
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 export const exportDirective = seq(
@@ -110,7 +106,7 @@ function oneArgDirective<T extends NamedElem>(
     tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
     eolf
   ).map((r) => {
-  const e = makeElem(elemKind, r, ["name"] as any); 
+    const e = makeElem(elemKind, r, ["name"] as any);
     r.app.state.push(e);
   });
 }
