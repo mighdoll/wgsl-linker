@@ -126,6 +126,7 @@ export class ModuleRegistry {
     return linkWgslModule(rootModule, this, runtimeParams);
   }
 
+  /** parse cached wgsl files and register them as modules */
   _parseSrc(runtimeParams: Record<string, any> = {}): void {
     this.textModules = [];
     this.wgslSrc.forEach((src, fileName) => {
@@ -231,7 +232,7 @@ export class ModuleRegistry {
   }
 
   private addTextModule(module: TextModule): void {
-    this.textModules.push(module); 
+    this.textModules.push(module);
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExport = {
         module,
