@@ -70,7 +70,7 @@ export const importing = seq(
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   "#import",
-  seq(importElemPhrase.tag("i"), eolf)
+  seq(importElemPhrase.tag("i"), opt(";"), eolf)
 ).map((r) => {
   const imp: ImportElem = r.tags.i[0];
   imp.start = r.start; // use start of #import, not import phrase

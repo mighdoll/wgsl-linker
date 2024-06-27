@@ -5,7 +5,7 @@ export const importTests: WgslTestSrc[] = [
     name: "#import foo",
     src: {
       "./main.wgsl": `
-          #import foo from ./bar
+          #import foo from ./bar;
           fn main() {
             foo();
           }
