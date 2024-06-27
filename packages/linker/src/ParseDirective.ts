@@ -59,7 +59,7 @@ const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
-  "#import",
+  or("#import", "import"),
   seq(importElemPhrase.tag("i"), opt(";"), eolf)
 ).map((r) => {
   const imp: ImportElem = r.tags.i[0];
