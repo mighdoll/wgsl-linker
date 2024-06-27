@@ -10,7 +10,7 @@ interface LinkExpectation {
 }
 
 const expectations: Record<string, LinkExpectation> = {
-  "#import foo": {
+  "import { foo } from \"./bar\";": {
     linked: `
       fn main() {
         foo();

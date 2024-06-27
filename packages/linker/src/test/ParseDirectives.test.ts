@@ -7,7 +7,7 @@ import { argsTokens } from "../MatchWgslD.js";
 import {
   directive,
   importing,
-  lineCommentOptDirective
+  lineCommentOptDirective,
 } from "../ParseDirective.js";
 import { parseWgslD } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
@@ -125,4 +125,11 @@ test("parse import relpath", () => {
   const appState = parseWgslD(src);
   const importElem = appState[0] as ImportElem;
   expect(importElem.from).eq("./util");
+});
+
+test('parse import { foo } from "./bar"', () => {
+  const src = 'import { foo } from "./bar"';
+  const appState = parseWgslD(src);
+  const importElem = appState[0] as ImportElem;
+  expect(importElem.from).eq("./bar");
 });

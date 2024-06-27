@@ -2,10 +2,10 @@ import { WgslTestSrc } from "./TestSchema.js";
 
 export const importTests: WgslTestSrc[] = [
   {
-    name: "#import foo",
+    name: `import { foo } from "./bar";`,
     src: {
       "./main.wgsl": `
-          import { foo } from ./bar;
+          import { foo } from "./bar";
           fn main() {
             foo();
           }

@@ -36,6 +36,14 @@ export const directiveArgs: Parser<string[]> =
     req(")")
   ).map((r) => r.value[1]);
 
+const fromClause = seq(
+  "from",
+  or(
+    fromWord.tag("from"), 
+    seq('"', fromWord.tag("from"), '"'),
+  )
+);
+
 /** foo <(A,B)> <as boo> <from bar> */
 function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
@@ -44,7 +52,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
     or(argsWord.tag("name"), seq("{", argsWord.tag("name"), "}")),
     opt(directiveArgs.tag("args")),
     opt(seq("as", argsWord.tag("as"))),
-    opt(seq("from", fromWord.tag("from")))
+    opt(fromClause)
   ).map((r) => {
     // flatten 'args' by putting it with the other extracted names
     const named: (keyof T)[] = ["name", "from", "as", "args"];
