@@ -10,6 +10,7 @@ const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
   ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 const symbol = matchOneOf(symbolSet);
+const quote = /["']/;
 
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
@@ -19,6 +20,7 @@ export const mainTokens = tokenMatcher(
     word: /[a-zA-Z_]\w*/, // LATER consider making this 'ident' per wgsl spec (incl. non-ascii)   word,
     digits: /(?:0x)?[\d.]+[iuf]?/, // LATER parse more wgsl number variants
     symbol,
+    quote,
     ws: /\s+/
   },
   "main"
@@ -47,6 +49,7 @@ export const lineCommentTokens = tokenMatcher(
 export const argsTokens = tokenMatcher(
   {
     directive,
+    quote,
     relPath: /[.][/\w._-]+/,
     arg: /[\w._-]+/,
     symbol,
