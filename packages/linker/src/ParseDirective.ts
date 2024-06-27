@@ -86,7 +86,7 @@ export const importing = seq(
 
 /** #export <foo> <(a,b)> <importing bar(a) <zap(b)>* > EOL */
 export const exportDirective = seq(
-  "#export",
+  or("#export", "export"),
   seq(opt(directiveArgs.tag("args")), opt(importing), eolf)
 ).map((r) => {
   // flatten 'args' by putting it with the other extracted names
