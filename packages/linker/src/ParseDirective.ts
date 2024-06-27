@@ -45,7 +45,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
 ): Parser<T> {
   const p = seq(
-    argsWord.tag("name"),
+    or(argsWord.tag("name"), seq("{", argsWord.tag("name"), "}")),
     opt(directiveArgs.tag("args")),
     opt(seq("as", argsWord.tag("as"))),
     opt(seq("from", fromWord.tag("from")))
