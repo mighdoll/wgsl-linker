@@ -1,5 +1,5 @@
-/** trimm off leading indent and leading blank lines */
-export function trimIndent(src: string): string {
+/** trim off leading indent and leading blank lines */
+export function trimSrc(src: string): string {
   const rawLines = src.split("\n");
   const noLeading = dropWhile(rawLines, (l) => l.trim() === ""); // skip leading blank lines
   const lines = dropRightWhile(noLeading , (l) => l.trim() === ""); // skip trailing blank lines
