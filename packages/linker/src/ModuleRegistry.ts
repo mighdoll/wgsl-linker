@@ -188,13 +188,13 @@ export class ModuleRegistry {
   getModuleExport(
     requesting: TextModule,
     exportName: string,
-    moduleName?: string
+    moduleSpecifier?: string // either a module name or a relative path
   ): ModuleExport | undefined {
     const exports = this.exports.get(exportName);
     if (!exports) {
       return undefined;
-    } else if (moduleName?.startsWith(".")) {
-      const searchName = relativePath(requesting.fileName, moduleName);
+    } else if (moduleSpecifier?.startsWith(".")) {
+      const searchName = relativePath(requesting.fileName, moduleSpecifier);
       const baseSearch = noSuffix(searchName);
 
       return exports.find((e) => {
@@ -203,8 +203,8 @@ export class ModuleRegistry {
         if (fileName === searchName) return true;
         if (baseSearch === noSuffix(fileName)) return true;
       });
-    } else if (moduleName) {
-      return exports.find((e) => e.module.name === moduleName);
+    } else if (moduleSpecifier) {
+      return exports.find((e) => e.module.name === moduleSpecifier);
     } else if (exports.length === 1) {
       return exports[0];
     } else {
