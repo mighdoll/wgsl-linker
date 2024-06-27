@@ -121,7 +121,7 @@ function printDiff(modulePath: string, src: string, linked: string): void {
 
 function printDetails(modulePath: string, registry: ModuleRegistry): void {
   console.log(modulePath, ":");
-  const m = registry.findModule(modulePath)!;
+  const m = registry.findTextModule(modulePath)!;
   m.fns.forEach((f) => {
     console.log(`  fn ${f.name}`);
     const calls = f.calls.map((c) => c.name).join("  ");
@@ -136,7 +136,7 @@ function printDetails(modulePath: string, registry: ModuleRegistry): void {
     console.log(`  struct ${s.name}`);
     const members = (s.members ?? []).map((m) => m.name).join("  ");
     console.log(`    members: ${members}`);
-    printTypeRefs(s);
+    s.members.map(m => printTypeRefs(m));
   });
   console.log();
 }
