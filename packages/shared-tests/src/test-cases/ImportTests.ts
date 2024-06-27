@@ -11,8 +11,7 @@ export const importTests: WgslTestSrc[] = [
           }
        `,
       "./bar.wgsl": `
-          export 
-          fn foo() { }
+          export fn foo() { }
        `,
     },
   },
