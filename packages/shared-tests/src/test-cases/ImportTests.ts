@@ -15,6 +15,22 @@ export const importTests: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `import { foo, boo } from "./bar";`,
+    src: {
+      "./main.wgsl": `
+          import { foo, boo } from "./bar";
+          fn main() {
+            foo();
+            boo();
+          }
+       `,
+      "./bar.wgsl": `
+          export fn foo() { }
+          export fn boo() { }
+       `,
+    },
+  },
 ];
 
 export default importTests;
