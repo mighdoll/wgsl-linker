@@ -83,6 +83,9 @@ export interface ExportElem extends AbstractElemBase {
   importing?: ImportElem[];
 }
 
+// LATER consider modeling import elems as containing multiple clauses 
+// instead of overlapping ImportElems 
+
 export interface ImportElem extends AbstractElemBase {
   kind: "import";
   name: string;
