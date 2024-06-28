@@ -13,7 +13,7 @@ import {
   seq,
   setTraceName,
   tracing,
-  withSep
+  withSep,
 } from "mini-parse";
 import { AbstractElem, AbstractElemBase } from "./AbstractElems.js";
 import { argsTokens, mainTokens } from "./MatchWgslD.js";
