@@ -1,4 +1,4 @@
-import { tokens, _withBaseLogger } from "mini-parse";
+import { _withBaseLogger, tokens } from "mini-parse";
 import { logCatch, testParse } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
@@ -131,5 +131,12 @@ test('parse import { foo } from "./bar"', () => {
   const src = 'import { foo } from "./bar"';
   const appState = parseWgslD(src);
   const importElem = appState[0] as ImportElem;
+
   expect(importElem.from).eq("./bar");
+});
+
+test('import { foo, bar } from "./bar"', (ctx) => {
+  const appState = parseWgslD(ctx.task.name);
+  const importElem = appState[0] as ImportElem;
+  // expect(importElem.from).eq("./bar");
 });

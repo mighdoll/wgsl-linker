@@ -38,25 +38,49 @@ export const directiveArgs: Parser<string[]> =
 
 const fromClause = seq(
   "from",
-  or(
-    fromWord.tag("from"), 
-    seq('"', fromWord.tag("from"), '"'),
-  )
+  or(fromWord.tag("from"), seq('"', fromWord.tag("from"), '"'))
 );
 
-/** foo <(A,B)> <as boo> <from bar> */
+interface ImportClause {
+  name: string;
+  as?: string;
+  args?: string[];
+}
+
+// prettier-ignore
+/** foo <(A,B)> <as bar> */
+const importClause = seq(
+  argsWord.tag("name"),
+  opt(directiveArgs.tag("args")),
+  opt(seq("as", argsWord.tag("as")))
+).map(r =>
+  ({ name: r.tags.name[0],
+    as: r.tags.as?.[0],
+    args: r.tags.args?.[0],
+  }) as ImportClause
+).tag("importClause");
+
+// const importList = withSep(",", importClause);
+const importList = importClause;
+
+// prettier-ignore
+const bracketedImportClause = or(
+  importList, 
+  seq("{", importList, "}")
+);
+
+/** <{> foo <,zip> <(A,B)> <as boo> <}> <from bar> */
 function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
-): Parser<T> {
-  const p = seq(
-    or(argsWord.tag("name"), seq("{", argsWord.tag("name"), "}")),
-    opt(directiveArgs.tag("args")),
-    opt(seq("as", argsWord.tag("as"))),
-    opt(fromClause)
-  ).map((r) => {
-    // flatten 'args' by putting it with the other extracted names
-    const named: (keyof T)[] = ["name", "from", "as", "args"];
-    return makeElem(kind, r as any, named as any, []) as unknown as T;
+): Parser<T[]> {
+  const p = seq(bracketedImportClause, opt(fromClause)).map((r) => {
+    const from = r.tags.from?.[0];
+    return r.tags.importClause.map((impClause) => {
+      const elem = makeElem(kind, r as any, [], []) as unknown as T;
+      copyDefinedProps(impClause, ["name", "as", "args"], elem);
+      if (from) elem.from = from;
+      return elem;
+    });
   });
 
   return p;
@@ -68,22 +92,22 @@ const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
   or("#import", "import"),
-  seq(importElemPhrase.tag("i"), opt(";"), eolf)
+  seq(importElemPhrase.tag("imp"), opt(";"), eolf)
 ).map((r) => {
-  const imp: ImportElem = r.tags.i[0];
-  imp.start = r.start; // use start of #import, not import phrase
-  r.app.state.push(imp);
+  r.tags.imp[0].forEach((imp) => {
+    imp.start = r.start; // use start of #import, not import phrase
+    r.app.state.push(imp);
+  });
 });
-
-const extendsTag = "-extends-";
 
 export const extendsDirective = seq(
   "#extends",
-  seq(extendsElemPhrase.tag(extendsTag), eolf)
+  seq(extendsElemPhrase.tag("extends"), eolf)
 ).map((r) => {
-  const imp: ExtendsElem = r.tags[extendsTag][0];
-  imp.start = r.start; // use start of #import, not import phrase
-  r.app.state.push(imp);
+  r.tags.extends[0].map((ext) => {
+    ext.start = r.start; // use start of #extends, not import phrase
+    r.app.state.push(ext);
+  });
 });
 
 export const importing = seq(
@@ -97,8 +121,7 @@ export const exportDirective = seq(
   or("#export", "export"),
   seq(opt(directiveArgs.tag("args")), opt(importing), opt(eolf))
 ).map((r) => {
-  // flatten 'args' by putting it with the other extracted names
-  const e = makeElem("export", r, ["args"], ["importing"]);
+  const e = makeElem("export", r, ["args", "importing"]);
   r.app.state.push(e);
 });
 
@@ -148,6 +171,10 @@ export const lineCommentOptDirective = seq(
 if (tracing) {
   const names: Record<string, Parser<unknown, TagRecord>> = {
     directiveArgs,
+    fromClause,
+    importClause,
+    importList,
+    bracketedImportClause,
     importElemPhrase,
     extendsElemPhrase,
     importing,
@@ -162,5 +189,15 @@ if (tracing) {
 
   Object.entries(names).forEach(([name, parser]) => {
     setTraceName(parser, name);
+  });
+}
+
+function copyDefinedProps<S extends Record<string, any>>(
+  src: S,
+  keys: (keyof S)[],
+  dest: any
+): void {
+  keys.forEach((k) => {
+    if (src[k] !== undefined) dest[k] = src[k];
   });
 }
