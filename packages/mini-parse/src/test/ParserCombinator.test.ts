@@ -20,6 +20,7 @@ import {
   req,
   seq,
   text,
+  withSep,
 } from "../ParserCombinator.js";
 import { _withBaseLogger, enableTracing } from "../ParserTracing.js";
 
@@ -253,17 +254,22 @@ test("clearTags", () => {
   const p = kind(m.word).tag("w");
   // w/o clearing tags
   let taggedTags;
-  const tagged = p.map((r) => 
-    taggedTags = r.tags
-  );
+  const tagged = p.map((r) => (taggedTags = r.tags));
   testParse(tagged, "foo");
 
   // w/ clearing tags
   let clearedTags;
   const c: Parser<string, NoTags> = clearTags(p); // verifies return type is correct
-  const cleared = c.map((r) => clearedTags = r.tags);
+  const cleared = c.map((r) => (clearedTags = r.tags));
   testParse(cleared, "foo");
 
   expect(taggedTags).deep.eq({ w: ["foo"] });
   expect(clearedTags).deep.eq({});
+});
+
+test("withSep", () => {
+  const src = "a, b, c";
+  const p = withSep(",", kind(m.word).tag("w"));
+  const x = testParse(p, src);
+  expect(x.parsed?.tags).deep.eq({ w: ["a", "b", "c"] });
 });

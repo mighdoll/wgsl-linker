@@ -3,25 +3,24 @@ import {
   OrParser,
   ParserFromArg,
   ParserFromRepeatArg,
-  TagsFromArg,
   ResultFromArg,
   SeqParser,
   SeqValues,
-  AsRecordArray,
+  TagsFromArg,
 } from "./CombinatorTypes.js";
 import { quotedText } from "./MatchingLexer.js";
 import {
   ExtendedResult,
-  TagRecord,
   NoTags,
   OptParserResult,
   Parser,
   ParserContext,
+  ParserResult,
+  TagRecord,
   parser,
   runExtended,
   simpleParser,
   tokenSkipSet,
-  ParserResult,
 } from "./Parser.js";
 import { ctxLog } from "./ParserLogging.js";
 import { mergeTags } from "./ParserUtil.js";
@@ -298,15 +297,16 @@ export function withSep<T, N extends TagRecord>(
   p: Parser<T, N>,
   opts: WithSepOptions = {}
 ): Parser<T[], N> {
-  const elem = Symbol();
+  const pTagged = or(p).tag("_sepTag");
   const { trailing = true, requireOne = false } = opts;
-  const first = requireOne ? p : opt(p);
+  const first = requireOne ? pTagged : opt(pTagged);
   const last = trailing ? opt(sep) : yes();
 
-  return seq(first.tag(elem), repeat(seq(sep, p.tag(elem))), last)
+  return seq(first, repeat(seq(sep, pTagged)), last)
     .map((r) => {
-      const tags = r.tags as Record<symbol, T>;
-      return tags[elem];
+      const result = r.tags._sepTag;
+      delete r.tags._sepTag;
+      return result;
     })
     .traceName("withSep") as any;
 }
