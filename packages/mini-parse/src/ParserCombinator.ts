@@ -223,17 +223,17 @@ function repeatWhileFilter<A extends CombinatorArg>(
   const p = parserArg(arg);
   return (ctx: ParserContext): RepeatWhileResult<A> => {
     const values: ResultFromArg<A>[] = [];
-    let results = {};
+    let tags = {};
     for (;;) {
       const result = runExtended<ResultFromArg<A>, TagsFromArg<A>>(ctx, p);
 
       // continue acccumulating until we get a null or the filter tells us to stop
       if (result !== null && filterFn(result)) {
         values.push(result.value);
-        results = mergeTags(results, result.tags);
+        tags = mergeTags(tags, result.tags);
       } else {
         // always return succcess
-        const r = { value: values, tags: results as TagsFromArg<A> };
+        const r = { value: values, tags: tags as TagsFromArg<A> };
         return r;
       }
     }
@@ -287,8 +287,8 @@ export function withSep<T, N extends TagRecord>(
   p: Parser<T, N>,
   opts: WithSepOptions = {}
 ): Parser<T[], N> {
-  const pTagged = or(p).tag("_sepTag");
   const { trailing = true, requireOne = false } = opts;
+  const pTagged = or(p).tag("_sepTag");
   const first = requireOne ? pTagged : opt(pTagged);
   const last = trailing ? opt(sep) : yes();
 
