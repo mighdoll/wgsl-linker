@@ -98,16 +98,6 @@ export function seq<P extends CombinatorArg[]>(...args: P): SeqParser<P> {
   return result as SeqParser<P>;
 }
 
-export function test(): void {
-  const a = seq(text("a").tag("AA"));
-  const p = seq(seq(a));
-
-  p.map((r) => {
-    const s: string[] = r.tags.AA;
-    console.log(s);
-  });
-}
-
 /** Try parsing with one or more parsers,
  *  @return the first successful parse */
 export function or<P extends CombinatorArg[]>(...args: P): OrParser<P> {
