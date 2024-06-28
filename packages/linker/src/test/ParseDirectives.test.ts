@@ -127,9 +127,8 @@ test("parse import relpath", () => {
   expect(importElem.from).eq("./util");
 });
 
-test('parse import { foo } from "./bar"', () => {
-  const src = 'import { foo } from "./bar"';
-  const appState = parseWgslD(src);
+test('import { foo } from "./bar"', (ctx) => {
+  const appState = parseWgslD(ctx.task.name);
   const importElem = appState[0] as ImportElem;
 
   expect(importElem.from).eq("./bar");
@@ -137,6 +136,9 @@ test('parse import { foo } from "./bar"', () => {
 
 test('import { foo, bar } from "./bar"', (ctx) => {
   const appState = parseWgslD(ctx.task.name);
-  const importElem = appState[0] as ImportElem;
-  // expect(importElem.from).eq("./bar");
+  const imports = appState.filter((e) => e.kind === "import") as ImportElem[];
+  expect(imports).length(2);
+  imports.forEach((importElem) => {
+    expect(importElem.from).eq("./bar");
+  });
 });

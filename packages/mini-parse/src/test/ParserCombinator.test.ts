@@ -270,6 +270,6 @@ test("clearTags", () => {
 test("withSep", () => {
   const src = "a, b, c";
   const p = withSep(",", kind(m.word).tag("w"));
-  const x = testParse(p, src);
-  expect(x.parsed?.tags).deep.eq({ w: ["a", "b", "c"] });
+  const result = testParse(p, src);
+  expect(result.parsed?.tags).deep.eq({ w: ["a", "b", "c"] });
 });

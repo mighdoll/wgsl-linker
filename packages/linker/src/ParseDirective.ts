@@ -60,8 +60,7 @@ const importClause = seq(
   }) as ImportClause
 ).tag("importClause");
 
-// const importList = withSep(",", importClause);
-const importList = importClause;
+const importList = withSep(",", importClause, { requireOne: true });
 
 // prettier-ignore
 const bracketedImportClause = or(

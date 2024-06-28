@@ -7,13 +7,11 @@ exports[`importing parses importing bar(A) fog(B) 1`] = `
       "args": [
         "A",
       ],
-      "end": 17,
+      "end": 25,
       "kind": "import",
       "name": "bar",
       "start": 11,
     },
-  ],
-  [
     {
       "args": [
         "B",
@@ -21,7 +19,7 @@ exports[`importing parses importing bar(A) fog(B) 1`] = `
       "end": 25,
       "kind": "import",
       "name": "fog",
-      "start": 19,
+      "start": 11,
     },
   ],
 ]

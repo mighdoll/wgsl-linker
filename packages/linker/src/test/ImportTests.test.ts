@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { importTests as importTests } from "../../../shared-tests/src/test-cases/ImportTests.js";
+import { importTests } from "../../../shared-tests/src/test-cases/ImportTests.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { trimSrc } from "./shared/StringUtil.js";
 
@@ -32,7 +32,9 @@ test(`import { foo, boo } from "./bar";`, (ctx) => {
         foo();
         boo();
       }
+
       fn foo() { }
+
       fn boo() { }
     `,
   });
@@ -58,6 +60,8 @@ function linkTest(name: string, expectation: LinkExpectation): void {
 
   if (linked !== undefined) {
     const expectTrimmed = trimSrc(linked);
+    console.log(result)
+    console.log(expectTrimmed)
     expect(result).eq(expectTrimmed);
   }
   if (includes !== undefined) {
