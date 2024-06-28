@@ -9,8 +9,11 @@ interface LinkExpectation {
   linked?: string;
 }
 
-const expectations: Record<string, LinkExpectation> = {
-  "import { foo } from \"./bar\";": {
+// wgsl example src, indexed by name
+const examplesByName = new Map(importTests.map((t) => [t.name, t.src]));
+
+test('import { foo } from "./bar";', (ctx) => {
+  linkTest(ctx.task.name, {
     linked: `
       fn main() {
         foo();
@@ -18,37 +21,53 @@ const expectations: Record<string, LinkExpectation> = {
 
       fn foo() { }
     `,
-  },
-};
-
-importTests.forEach((t) => {
-  test(t.name, () => {
-    const expectation = expectations[t.name];
-    if (!expectation) {
-      throw new Error(`No expectation found for test "${t.name}"`);
-    }
-    const { includes, excludes, linked } = expectation;
-    const srcs = Object.entries(t.src).map(([name, wgsl]) => {
-      const trimmedSrc = trimSrc(wgsl);
-      return [name, trimmedSrc] as [string, string];
-    });
-    const main = srcs[0][0];
-    const wgsl = Object.fromEntries(srcs);
-    const registry = new ModuleRegistry({ wgsl });
-    const result = registry.link(main);
-    if (linked !== undefined) {
-      const expectTrimmed = trimSrc(linked);
-      expect(result).eq(expectTrimmed);
-    }
-    if (includes !== undefined) {
-      includes.forEach((inc) => {
-        expect(result).includes(inc);
-      });
-    }
-    if (excludes !== undefined) {
-      excludes.forEach((exc) => {
-        expect(result).not.includes(exc);
-      });
-    }
   });
 });
+
+    
+test(`import { foo, boo } from "./bar";`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() {
+        foo();
+        boo();
+      }
+      fn foo() { }
+      fn boo() { }
+    `,
+  });
+});
+
+
+
+function linkTest(name: string, expectation: LinkExpectation): void {
+  const exampleSrc = examplesByName.get(name);
+  if (!exampleSrc) {
+    throw new Error(`Skipping test "${name}"\nNo example found.`);
+  }
+  const srcs = Object.entries(exampleSrc).map(([name, wgsl]) => {
+    const trimmedSrc = trimSrc(wgsl);
+    return [name, trimmedSrc] as [string, string];
+  });
+  const main = srcs[0][0];
+  const wgsl = Object.fromEntries(srcs);
+  const registry = new ModuleRegistry({ wgsl });
+  const result = registry.link(main);
+
+  const { linked, includes, excludes } = expectation;
+
+  if (linked !== undefined) {
+    const expectTrimmed = trimSrc(linked);
+    expect(result).eq(expectTrimmed);
+  }
+  if (includes !== undefined) {
+    includes.forEach((inc) => {
+      expect(result).includes(inc);
+    });
+  }
+  if (excludes !== undefined) {
+    excludes.forEach((exc) => {
+      expect(result).not.includes(exc);
+    });
+  }
+}
