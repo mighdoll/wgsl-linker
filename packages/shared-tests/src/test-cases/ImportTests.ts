@@ -31,6 +31,23 @@ export const importTests: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `import foo, boo from ./bar`,
+    notes: "optional braces, quote marks, and semicolon",
+    src: {
+      "./main.wgsl": `
+          import foo, boo from ./bar
+          fn main() {
+            foo();
+            boo();
+          }
+       `,
+      "./bar.wgsl": `
+          export fn foo() { }
+          export fn boo() { }
+       `,
+    },
+  },
 ];
 
 export default importTests;

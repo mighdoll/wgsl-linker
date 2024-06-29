@@ -24,7 +24,6 @@ test('import { foo } from "./bar";', (ctx) => {
   });
 });
 
-    
 test(`import { foo, boo } from "./bar";`, (ctx) => {
   linkTest(ctx.task.name, {
     linked: `
@@ -40,7 +39,20 @@ test(`import { foo, boo } from "./bar";`, (ctx) => {
   });
 });
 
+test(`import foo, boo from ./bar`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() {
+        foo();
+        boo();
+      }
 
+      fn foo() { }
+
+      fn boo() { }
+    `,
+  });
+});
 
 function linkTest(name: string, expectation: LinkExpectation): void {
   const exampleSrc = examplesByName.get(name);
@@ -60,8 +72,8 @@ function linkTest(name: string, expectation: LinkExpectation): void {
 
   if (linked !== undefined) {
     const expectTrimmed = trimSrc(linked);
-    console.log(result)
-    console.log(expectTrimmed)
+    console.log(result);
+    console.log(expectTrimmed);
     expect(result).eq(expectTrimmed);
   }
   if (includes !== undefined) {
