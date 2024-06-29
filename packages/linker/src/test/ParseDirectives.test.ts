@@ -100,6 +100,25 @@ test("parse #extends", () => {
   `);
 });
 
+test("parse extends", () => {
+  const src = `extends Foo(a,b) as Bar from baz`;
+  const appState = parseWgslD(src);
+  expect(appState[0]).toMatchInlineSnapshot(`
+    {
+      "args": [
+        "a",
+        "b",
+      ],
+      "as": "Bar",
+      "end": 32,
+      "from": "baz",
+      "kind": "extends",
+      "name": "Foo",
+      "start": 0,
+    }
+  `);
+});
+
 test("parse #module foo.bar.ca", () => {
   const src = `#module foo.bar.ca`;
   const appState = parseWgslD(src);

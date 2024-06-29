@@ -100,7 +100,7 @@ const importDirective = seq(
 });
 
 export const extendsDirective = seq(
-  "#extends",
+  or("#extends", "extends"),
   seq(extendsElemPhrase.tag("extends"), eolf)
 ).map((r) => {
   r.tags.extends[0].map((ext) => {
