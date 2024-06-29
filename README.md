@@ -183,32 +183,32 @@ an export with parameters.
 
 #### Extends
 
-`#extends` is roughly equivalent to TypeScript `extends` with an `import`'ed struct.
+`extends` is roughly equivalent to TypeScript `extends` with an `import`'ed struct.
 
-Use `#extends` to merge fields into your struct from a struct that has been tagged for
-`#export` in another module.
+Use `extends` to merge fields into your struct from a struct that has been tagged for
+`export` in another module.
 
-`#extends` clauses should be placed immediately before a struct.
+`extends` clauses should be placed immediately before a struct.
 
-`#extends name` import fields from the named struct, exported from any registere module.
+`extends name` import fields from the named struct, exported from any registere module.
 
-`#extends name from moduleName` import fields, selected by module and export name.
+`extends name from moduleName` import fields, selected by module and export name.
 
-Multiple `#extends` clauses may be attached to the same struct.
+Multiple `extends` clauses may be attached to the same struct.
 
 #### Template
 
-`#template name` specify a template function for additional processing
+`template name` specify a template function for additional processing
 of exported text in this module.
 The template function is passed any import parameters,
-and runs prior to #export parameter string replacement.
+and runs prior to `export` parameter string replacement.
 
 * One example template engine is published in `wgsl-linker/templates`
-* `#template simple` - replaces strings with values provided by a runtime dictionary.
+* `template simple` - replaces strings with values provided by a runtime dictionary.
 
 #### Module
 
-`#module package.name` declare a name for the module.
+`module package.name` declare a name for the module.
 Module names are arbitrary. It's a good practice to use
 your npm package name as a prefix to avoid potential
 future conflicts with other packages modules.
