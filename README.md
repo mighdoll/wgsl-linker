@@ -255,7 +255,8 @@ See [wgsl-link](https://www.npmjs.com/package/wgsl-link).
 * Static typechecking is possible with some effort
   (typically by manualy adding placeholder declarations
   inside an `#if typecheck` clause).
-  But extending `wgsl-analyzer` to typecheck imports would be much better.
+  But extending `wgsl-analyzer` or `vscode-wgsl`
+  to typecheck imports would be much better.
 
 * wgsl global variables, aliases, and wgsl directives from outside
   the main module are not linked in to the final result.
@@ -276,3 +277,8 @@ See [wgsl-link](https://www.npmjs.com/package/wgsl-link).
   (compilation errors refer to the linked wgsl text instead).
   We could use the linker's internal source maps
   to fix that.
+
+* Rework import/export parameter syntax to look more
+  like TypeScript generics.
+  
+* Rework extends syntax to be more TypeScript like.
