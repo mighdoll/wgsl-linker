@@ -132,7 +132,7 @@ function oneArgDirective<T extends NamedElem>(
   elemKind: T["kind"]
 ): Parser<void, TagRecord> {
   return seq(
-    `#${elemKind}`,
+    or(`#${elemKind}`, elemKind),
     tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
     eolf
   ).map((r) => {
