@@ -72,8 +72,6 @@ function linkTest(name: string, expectation: LinkExpectation): void {
 
   if (linked !== undefined) {
     const expectTrimmed = trimSrc(linked);
-    console.log(result);
-    console.log(expectTrimmed);
     expect(result).eq(expectTrimmed);
   }
   if (includes !== undefined) {
