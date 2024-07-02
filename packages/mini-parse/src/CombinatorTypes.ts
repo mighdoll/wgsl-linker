@@ -13,7 +13,7 @@ import { NoTags, Parser, TagRecord } from "./Parser.js";
  * (and wrapping things in conditional types with ? : never gives us a stage to place the inferencing)
  */
 export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
+  k: infer I extends U
 ) => void
   ? I
   : never;
@@ -23,13 +23,6 @@ export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (
  * @returns a Record type with the keys explictly defined, if possible.
  */
 export type KeyedRecord<T> = { [A in keyof T]: T[A] };
-
-/**
- * @param T a Record type with array values
- * @returns a Record type with the keys explictly defined, if possible.
- */
-export type AsRecordArray<T> =
-  T extends Record<any, any[]> ? { [A in keyof T]: T[A] } : never;
 
 /**
  * This type describes the variations for parser combinator arguments.
@@ -110,9 +103,9 @@ export type SeqValues<P extends CombinatorArg[]> = {
   [key in keyof P]: ResultFromArg<P[key]>;
 };
 
-type SeqTags<P extends CombinatorArg[]> = AsRecordArray<
+type SeqTags<P extends CombinatorArg[]> = 
   Intersection<TagsFromArg<P[number]>>
->;
+;
 
 export type OrParser<P extends CombinatorArg[]> = Parser<
   OrValues<P>,

@@ -136,7 +136,7 @@ function oneArgDirective<T extends NamedElem>(
     tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
     eolf
   ).map((r) => {
-    const e = makeElem(elemKind, r, ["name"] as any);
+    const e = makeElem(elemKind, r as any, ["name"] as any);
     r.app.state.push(e);
   });
 }
