@@ -103,9 +103,7 @@ export type SeqValues<P extends CombinatorArg[]> = {
   [key in keyof P]: ResultFromArg<P[key]>;
 };
 
-type SeqTags<P extends CombinatorArg[]> = 
-  Intersection<TagsFromArg<P[number]>>
-;
+type SeqTags<P extends CombinatorArg[]> = Intersection<TagsFromArg<P[number]>>;
 
 export type OrParser<P extends CombinatorArg[]> = Parser<
   OrValues<P>,
