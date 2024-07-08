@@ -282,13 +282,14 @@ export interface WithSepOptions {
 }
 
 /** match an optional series of elements separated by a delimiter (e.g. a comma) */
-export function withSep<T, N extends TagRecord>(
+export function withSep<P extends CombinatorArg>(
   sep: CombinatorArg,
-  p: Parser<T, N>,
+  p: P,
   opts: WithSepOptions = {}
-): Parser<T[], N> {
+): Parser<ResultFromArg<P>[], TagsFromArg<P>> {
   const { trailing = true, requireOne = false } = opts;
-  const pTagged = or(p).tag("_sepTag");
+  const parser = parserArg(p);
+  const pTagged = or(parser).tag("_sepTag");
   const first = requireOne ? pTagged : opt(pTagged);
   const last = trailing ? opt(sep) : yes();
 
