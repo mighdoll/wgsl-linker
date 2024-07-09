@@ -12,35 +12,14 @@ import {
   tracing,
   withSep,
 } from "mini-parse";
+import {
+  ImportTree,
+  SegmentList,
+  SimpleSegment,
+  Wildcard_,
+} from "./ImportTree.js";
 import { argsTokens } from "./MatchWgslD.js";
-import { dlog, dlogOpt } from "berry-pretty";
-import { AbstractElemBase } from "./AbstractElems.js";
 import { makeElem } from "./ParseSupport.js";
-
-type PathSegment = SimpleSegment | Wildcard | ImportTree | SegmentList;
-
-export class ImportTree {
-  constructor(public segments: PathSegment[]) {}
-}
-
-export interface TreeImportElem extends AbstractElemBase {
-  kind: "treeImport";
-  imports: ImportTree;
-  from: string;
-}
-
-class SimpleSegment {
-  constructor(
-    public name: string,
-    public as?: string
-  ) {}
-}
-
-class SegmentList {
-  constructor(public list: PathSegment[]) {}
-}
-
-class Wildcard {}
 
 const argsWord = kind(argsTokens.arg);
 
@@ -53,7 +32,7 @@ const simpleSegment = clearTags(
   )
 );
 
-const wildCard = text("*").map(() => Wildcard);
+const wildCard = text("*").map(() => Wildcard_);
 
 const segmentList = clearTags(
   seq("{", withSep(",", () => or(importTree, wildCard)).tag("list"), "}").map(
@@ -75,6 +54,9 @@ importTree = seq(simpleSegment, pathExtension).map((r) => {
   return new ImportTree(r.value.flat());
 });
 
+/** parse a Rust style wgsl import statement.
+ * The syntax is like 'use' in Rust.
+ * 'self' references are not currenlty supported. */
 export const rustImport = seq(
   or("#import", "import"), // bevy uses #import, but std says import
   importTree.tag("imports"),

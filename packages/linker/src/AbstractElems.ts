@@ -1,6 +1,6 @@
 /** Structures for the abstract syntax tree constructed by the parser. */
 
-import { TreeImportElem } from "./RustDirective.js";
+import { ImportTree } from "./ImportTree.js";
 import { FoundRef } from "./TraverseRefs.js";
 
 export type AbstractElem =
@@ -95,6 +95,13 @@ export interface ImportElem extends AbstractElemBase {
   as?: string;
   from?: string;
 }
+
+export interface TreeImportElem extends AbstractElemBase {
+  kind: "treeImport";
+  imports: ImportTree;
+  from: string;
+}
+
 
 export interface ExtendsElem extends Omit<ImportElem, "kind"> {
   kind: "extends";
