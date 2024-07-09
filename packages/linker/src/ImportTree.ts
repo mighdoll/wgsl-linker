@@ -16,6 +16,7 @@ export class SegmentList {
   constructor(public list: PathSegment[]) {}
 }
 
-export class Wildcard {}
-
-export const Wildcard_ = new Wildcard();
+export class Wildcard {
+  public static _ = new Wildcard();
+  wildcard = "*"; // to identify this object in debug logging
+}

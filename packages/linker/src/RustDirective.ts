@@ -16,7 +16,7 @@ import {
   ImportTree,
   SegmentList,
   SimpleSegment,
-  Wildcard_,
+  Wildcard,
 } from "./ImportTree.js";
 import { argsTokens } from "./MatchWgslD.js";
 import { makeElem } from "./ParseSupport.js";
@@ -32,7 +32,7 @@ const simpleSegment = clearTags(
   )
 );
 
-const wildCard = text("*").map(() => Wildcard_);
+const wildCard = text("*").map(() => Wildcard._);
 
 const segmentList = clearTags(
   seq("{", withSep(",", () => or(importTree, wildCard)).tag("list"), "}").map(
