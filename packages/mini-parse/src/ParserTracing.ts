@@ -1,4 +1,4 @@
-import { ParserContext } from "./Parser.js";
+import { Parser, ParserContext, setTraceName } from "./Parser.js";
 
 export let tracing = false;
 
@@ -6,6 +6,16 @@ export let tracing = false;
 export function enableTracing(): void {
   tracing = true;
 }
+
+/** mutate the provided to set their trace names (if tracing is enabled) */
+export function setTraceNames(parsers: Record<string, Parser<any, any>>): void {
+  if (tracing) {
+    Object.entries(parsers).forEach(([name, parser]) => {
+      setTraceName(parser, name);
+    });
+  }
+}
+
 
 /** base logger. (can be overriden to a capturing logger for tests) */
 export let logger = console.log;
