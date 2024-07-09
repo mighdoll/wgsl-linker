@@ -8,7 +8,7 @@ import {
   repeat,
   req,
   seq,
-  setTraceName,
+  setTraceNames,
   tokens,
   tracing,
   withSep,
@@ -69,7 +69,8 @@ const bracketedImportClause = or(
   seq("{", importList, "}")
 );
 
-/** <{> foo <,zip> <(A,B)> <as boo> <}> <from bar> */
+/** <{> foo <,zip> <(A,B)> <as boo> <}> <from bar>
+ * @returns array of ImportElem or ExtendsElem elements */
 function importPhrase<T extends ImportElem | ExtendsElem>(
   kind: T["kind"]
 ): Parser<T[]> {
@@ -88,6 +89,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
 
 const importElemPhrase = importPhrase<ImportElem>("import");
 const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
+if (tracing) setTraceNames({ importElemPhrase, extendsElemPhrase });
 
 /** #import foo <(a,b)> <as boo> <from bar>  EOL */
 const importDirective = seq(
@@ -168,9 +170,8 @@ export const lineCommentOptDirective = seq(
   or(directive, skipToEol)
 );
 
-// enableTracing();
 if (tracing) {
-  const names: Record<string, Parser<unknown, TagRecord>> = {
+  setTraceNames({
     directiveArgs,
     fromClause,
     importClause,
@@ -186,10 +187,6 @@ if (tracing) {
     moduleDirective,
     templateDirective,
     directive,
-  };
-
-  Object.entries(names).forEach(([name, parser]) => {
-    setTraceName(parser, name);
   });
 }
 
