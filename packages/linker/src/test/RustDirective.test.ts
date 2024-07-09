@@ -7,6 +7,36 @@ import { dlogOpt } from "berry-pretty";
 
 const testRustImport = tokens(argsTokens, rustImport);
 
+test("import a::b::c", (ctx) => {
+  const { appState } = testAppParse(testRustImport, ctx.task.name);
+  expect(appState).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 14,
+        "imports": ImportTree {
+          "segments": [
+            SimpleSegment {
+              "as": undefined,
+              "name": "a",
+            },
+            SimpleSegment {
+              "as": undefined,
+              "name": "b",
+            },
+            SimpleSegment {
+              "as": undefined,
+              "name": "c",
+            },
+          ],
+        },
+        "kind": "treeImport",
+        "start": 0,
+      },
+    ]
+  `);
+});
+
+//    0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 test("import my::lighting::pbr;", (ctx) => {
   const { appState } = testAppParse(testRustImport, ctx.task.name);
   expect(appState).toMatchInlineSnapshot(`
@@ -201,7 +231,7 @@ test("import my::lighting::{ pbr as lights }", (ctx) => {
         "start": 0,
       },
     ]
-  `)
+  `);
 });
 
 test("import a::*", (ctx) => {
@@ -225,7 +255,7 @@ test("import a::*", (ctx) => {
         "start": 0,
       },
     ]
-  `)
+  `);
 });
 
 test("import a::{b, c}::*", (ctx) => {
@@ -269,5 +299,51 @@ test("import a::{b, c}::*", (ctx) => {
         "start": 0,
       },
     ]
-  `)
+  `);
+});
+
+test("multiline import", () => {
+  const src = `import a::
+        {b, c}::*;`;
+  const { appState } = testAppParse(testRustImport, src);
+  expect(appState).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 29,
+        "imports": ImportTree {
+          "segments": [
+            SimpleSegment {
+              "as": undefined,
+              "name": "a",
+            },
+            SegmentList {
+              "list": [
+                ImportTree {
+                  "segments": [
+                    SimpleSegment {
+                      "as": undefined,
+                      "name": "b",
+                    },
+                  ],
+                },
+                ImportTree {
+                  "segments": [
+                    SimpleSegment {
+                      "as": undefined,
+                      "name": "c",
+                    },
+                  ],
+                },
+              ],
+            },
+            Wildcard {
+              "wildcard": "*",
+            },
+          ],
+        },
+        "kind": "treeImport",
+        "start": 0,
+      },
+    ]
+  `);
 });

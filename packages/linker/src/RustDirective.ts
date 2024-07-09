@@ -9,6 +9,7 @@ import {
   seq,
   setTraceName,
   text,
+  tokens,
   tracing,
   withSep,
 } from "mini-parse";
@@ -18,16 +19,16 @@ import {
   SimpleSegment,
   Wildcard,
 } from "./ImportTree.js";
-import { argsTokens } from "./MatchWgslD.js";
+import { treeImportTokens } from "./MatchWgslD.js";
 import { makeElem } from "./ParseSupport.js";
 
-const argsWord = kind(argsTokens.arg);
+const word = kind(treeImportTokens.word);
 
 // forward reference (for mutual recursion)
 let importTree: Parser<any, any> = null as any;
 
 const simpleSegment = clearTags(
-  seq(argsWord.tag("segment"), opt(seq("as", argsWord.tag("as")))).map(
+  seq(word.tag("segment"), opt(seq("as", word.tag("as")))).map(
     (r) => new SimpleSegment(r.tags.segment[0], r.tags.as?.[0])
   )
 );
@@ -57,15 +58,18 @@ importTree = seq(simpleSegment, pathExtension).map((r) => {
 /** parse a Rust style wgsl import statement.
  * The syntax is like 'use' in Rust.
  * 'self' references are not currenlty supported. */
-export const rustImport = seq(
-  or("#import", "import"), // bevy uses #import, but std says import
-  importTree.tag("imports"),
-  opt(";")
-).map((r) => {
-  const e = makeElem("treeImport", r, ["imports", "from"]);
+export const rustImport = tokens(
+  treeImportTokens,
+  seq(
+    or("#import", "import"), // bevy uses #import, but std says import
+    importTree.tag("imports"),
+    opt(";")
+  ).map((r) => {
+    const e = makeElem("treeImport", r, ["imports", "from"]);
 
-  r.app.state.push(e);
-});
+    r.app.state.push(e);
+  })
+);
 
 // enableTracing();
 if (tracing) {

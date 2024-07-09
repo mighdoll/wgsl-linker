@@ -62,7 +62,7 @@ export const argsTokens = tokenMatcher(
   "argsTokens"
 );
 
-const treeImportSymbolSet = ":: { } , ( ) _ .";
+const treeImportSymbolSet = ":: { } , ( ) _ . ; *";
 const importSymbol = matchOneOf(treeImportSymbolSet);
 
 export const treeImportTokens = tokenMatcher({
