@@ -1,5 +1,23 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`import a 1`] = `
+[
+  {
+    "end": 8,
+    "imports": ImportTree {
+      "segments": [
+        SimpleSegment {
+          "as": undefined,
+          "name": "a",
+        },
+      ],
+    },
+    "kind": "treeImport",
+    "start": 0,
+  },
+]
+`;
+
 exports[`import a::* 1`] = `
 [
   {
