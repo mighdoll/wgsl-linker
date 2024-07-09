@@ -36,7 +36,7 @@ test("import my::lighting::pbr;", (ctx) => {
 });
 
 test("import my::lighting::{ pbr };", (ctx) => {
-  const { parsed, appState } = testAppParse(testRustImport, ctx.task.name);
+  const { appState } = testAppParse(testRustImport, ctx.task.name);
   expect(appState).toMatchInlineSnapshot(`
     [
       {
@@ -73,7 +73,7 @@ test("import my::lighting::{ pbr };", (ctx) => {
 });
 
 test(`import my::lighting::{ pbr, jelly };`, (ctx) => {
-  const { parsed, appState } = testAppParse(testRustImport, ctx.task.name);
+  const { appState } = testAppParse(testRustImport, ctx.task.name);
   expect(appState).toMatchInlineSnapshot(`
     [
       {
@@ -164,4 +164,41 @@ test("import my::lighting::{ pbr, jelly::jam };", (ctx) => {
       },
     ]
   `);
+});
+
+test("import my::lighting::{ pbr as lights }", (ctx) => {
+  const { appState } = testAppParse(testRustImport, ctx.task.name);
+  expect(appState).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 38,
+        "imports": ImportTree {
+          "segments": [
+            SimpleSegment {
+              "as": undefined,
+              "name": "my",
+            },
+            SimpleSegment {
+              "as": undefined,
+              "name": "lighting",
+            },
+            SegmentList {
+              "list": [
+                ImportTree {
+                  "segments": [
+                    SimpleSegment {
+                      "as": "lights",
+                      "name": "pbr",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        "kind": "treeImport",
+        "start": 0,
+      },
+    ]
+  `)
 });
