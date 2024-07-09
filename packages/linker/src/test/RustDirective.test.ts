@@ -3,6 +3,7 @@ import { expect, test } from "vitest";
 import { argsTokens } from "../MatchWgslD.js";
 import { rustImport } from "../RustDirective.js";
 import { testAppParse } from "./TestUtil.js";
+import { dlogOpt } from "berry-pretty";
 
 const testRustImport = tokens(argsTokens, rustImport);
 
@@ -193,6 +194,74 @@ test("import my::lighting::{ pbr as lights }", (ctx) => {
                   ],
                 },
               ],
+            },
+          ],
+        },
+        "kind": "treeImport",
+        "start": 0,
+      },
+    ]
+  `)
+});
+
+test("import a::*", (ctx) => {
+  const { appState } = testAppParse(testRustImport, ctx.task.name);
+  expect(appState).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 11,
+        "imports": ImportTree {
+          "segments": [
+            SimpleSegment {
+              "as": undefined,
+              "name": "a",
+            },
+            Wildcard {
+              "wildcard": "*",
+            },
+          ],
+        },
+        "kind": "treeImport",
+        "start": 0,
+      },
+    ]
+  `)
+});
+
+test("import a::{b, c}::*", (ctx) => {
+  const { appState } = testAppParse(testRustImport, ctx.task.name);
+  expect(appState).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 19,
+        "imports": ImportTree {
+          "segments": [
+            SimpleSegment {
+              "as": undefined,
+              "name": "a",
+            },
+            SegmentList {
+              "list": [
+                ImportTree {
+                  "segments": [
+                    SimpleSegment {
+                      "as": undefined,
+                      "name": "b",
+                    },
+                  ],
+                },
+                ImportTree {
+                  "segments": [
+                    SimpleSegment {
+                      "as": undefined,
+                      "name": "c",
+                    },
+                  ],
+                },
+              ],
+            },
+            Wildcard {
+              "wildcard": "*",
             },
           ],
         },
