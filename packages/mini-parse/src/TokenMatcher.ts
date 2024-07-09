@@ -151,6 +151,6 @@ export function escapeRegex(s: string): string {
  */
 export function matchOneOf(syms: string): RegExp {
   const symbolList = syms.split(" ").sort((a, b) => b.length - a.length);
-  const escaped = symbolList.map(escapeRegex);
+  const escaped = symbolList.filter(s => s).map(escapeRegex);
   return new RegExp(escaped.join("|"));
 }
