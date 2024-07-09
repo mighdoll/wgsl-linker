@@ -1,5 +1,6 @@
+import { CombinatorArg, ParserFromArg } from "./CombinatorTypes.js";
 import { Lexer } from "./MatchingLexer.js";
-import { ParseError } from "./ParserCombinator.js";
+import { ParseError, parserArg } from "./ParserCombinator.js";
 import { srcLog } from "./ParserLogging.js";
 import {
   parserLog,
@@ -438,9 +439,10 @@ export function preParse<T, N extends TagRecord>(
 
 /** disable a previously attached pre-parser,
  * e.g. to disable a comment preparser in a quoted string parser */
-export function disablePreParse<T, N extends TagRecord>(
-  parser: Parser<T, N>
-): Parser<T, N> {
+export function disablePreParse<A extends CombinatorArg>(
+  arg: A
+): ParserFromArg<A> {
+  const parser = parserArg(arg);
   return parser._cloneWith({ preDisabled: true });
 }
 
