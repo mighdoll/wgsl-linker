@@ -7,9 +7,9 @@
     "publish:all": "pnpm --filter './packages/**' publish"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
+    "@types/node": "^20.14.10",
     "@types/yargs": "^17.0.32",
-    "esbuild": "^0.20.2",
+    "esbuild": "^0.23.0",
     "fast-glob": "^3.3.2",
     "yargs": "^17.7.2"
   }
