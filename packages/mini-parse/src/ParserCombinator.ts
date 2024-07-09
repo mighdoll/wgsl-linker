@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   CombinatorArg,
   OrParser,
@@ -346,6 +347,10 @@ export function fn<T, N extends TagRecord>(
   fn: () => Parser<T, N>
 ): Parser<T, N> {
   return parser("fn", (state: ParserContext): OptParserResult<T, N> => {
+    if (!fn) {
+      const deepName = state._debugNames.join(".");
+      throw new Error(`fn parser called before definition: ${deepName}`);
+    }
     const stage = fn();
     return stage._run(state);
   });

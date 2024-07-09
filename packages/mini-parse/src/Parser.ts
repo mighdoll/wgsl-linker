@@ -57,6 +57,8 @@ export interface ParserContext<A = any> {
   _preCacheFails: Map<Parser<unknown>, Set<number>>;
 
   srcMap?: SrcMap;
+
+  _debugNames: string[];
 }
 
 export type TagRecord = Record<string | symbol, any[] | undefined>;
@@ -206,6 +208,7 @@ export class Parser<T, N extends TagRecord = NoTags> {
         _parseCount: 0,
         _preCacheFails: new Map(),
         maxParseCount,
+        _debugNames: [this.debugName],
       });
     } catch (e) {
       if (!(e instanceof ParseError)) {
@@ -290,6 +293,7 @@ function runParser<T, N extends TagRecord>(
   );
 
   function runInContext(tContext: ParserContext): OptParserResult<T, N> {
+    tContext._debugNames.push(p.debugName);
     const traceSuccessOnly = tContext._trace?.successOnly;
     if (!p.terminal && tracing && !traceSuccessOnly)
       parserLog(`..${p.tracingName}`);
@@ -302,6 +306,8 @@ function runParser<T, N extends TagRecord>(
 
     // run the parser function for this stage
     const result = p.fn(tContext);
+
+    tContext._debugNames.pop();
 
     if (result === null || result === undefined) {
       // parser failed
