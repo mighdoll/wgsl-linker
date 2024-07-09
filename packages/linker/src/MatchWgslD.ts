@@ -8,21 +8,23 @@ export const notDirective = /[^#\n]+/;
 
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
-  ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= << " +
-  "::"; // :: added for rust syntax
+  ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
 const symbol = matchOneOf(symbolSet);
 const quote = /["']/;
+
+const word = /[a-zA-Z_]\w*/; // LATER consider making this 'ident' per wgsl spec (incl. non-ascii)
+const digits = /(?:0x)?[\d.]+[iuf]?/; // LATER parse more wgsl number variants
 
 /** matching tokens at wgsl root level */
 export const mainTokens = tokenMatcher(
   {
     directive,
     attr: /@[a-zA-Z_]\w*/,
-    word: /[a-zA-Z_]\w*/, // LATER consider making this 'ident' per wgsl spec (incl. non-ascii)   word,
-    digits: /(?:0x)?[\d.]+[iuf]?/, // LATER parse more wgsl number variants
+    word,
+    digits,
     symbol,
     quote,
-    ws: /\s+/
+    ws: /\s+/,
   },
   "main"
 );
@@ -30,7 +32,7 @@ export const mainTokens = tokenMatcher(
 export const moduleTokens = tokenMatcher(
   {
     ws: /\s+/,
-    moduleName: /[a-zA-Z_][\w./-]*/
+    moduleName: /[a-zA-Z_][\w./-]*/,
   },
   "moduleName"
 );
@@ -41,7 +43,7 @@ export const lineCommentTokens = tokenMatcher(
     directive,
     ws: /[ \t]+/, // note ws must be before notDirective
     notDirective,
-    eol
+    eol,
   },
   "lineComment"
 );
@@ -55,7 +57,19 @@ export const argsTokens = tokenMatcher(
     arg: /[\w._-]+/,
     symbol,
     ws: /[ \t]+/, // don't include \n, so we can find eol separately
-    eol
+    eol,
   },
   "argsTokens"
 );
+
+const treeImportSymbolSet = ":: { } , ( ) _ .";
+const importSymbol = matchOneOf(treeImportSymbolSet);
+
+export const treeImportTokens = tokenMatcher({
+  directive,
+  quote,
+  ws: /\s+/,
+  importSymbol,
+  word,
+  digits
+});
