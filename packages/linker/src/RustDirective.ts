@@ -1,7 +1,7 @@
 import {
   Parser,
   TagRecord,
-  clearTags,
+  withTags,
   kind,
   opt,
   or,
@@ -27,7 +27,7 @@ const word = kind(treeImportTokens.word);
 // forward reference (for mutual recursion)
 let importTree: Parser<any, any> = null as any;
 
-const simpleSegment = clearTags(
+const simpleSegment = withTags(
   seq(word.tag("segment"), opt(seq("as", word.tag("as")))).map(
     (r) => new SimpleSegment(r.tags.segment[0], r.tags.as?.[0])
   )
@@ -35,7 +35,7 @@ const simpleSegment = clearTags(
 
 const wildCard = text("*").map(() => Wildcard._);
 
-const segmentList = clearTags(
+const segmentList = withTags(
   seq("{", withSep(",", () => or(importTree, wildCard)).tag("list"), "}").map(
     (r) => {
       return new SegmentList(r.tags.list.flat());
@@ -45,7 +45,7 @@ const segmentList = clearTags(
 
 const pathSegment = or(simpleSegment, wildCard, segmentList);
 
-const pathExtension = clearTags(
+const pathExtension = withTags(
   repeat(seq("::", pathSegment.tag("segments"))).map((r) => {
     return r.tags.segments || [];
   })

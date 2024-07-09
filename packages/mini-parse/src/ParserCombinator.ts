@@ -358,7 +358,7 @@ export function fn<T, N extends TagRecord>(
 
 
 /** @return a parser that doesn't propagate any tags */
-export function clearTags<A extends CombinatorArg>( // TODO rename to withTags
+export function withTags<A extends CombinatorArg>( 
   arg: A
 ): Parser<ResultFromArg<A>, NoTags> {
   const p = parserArg(arg);

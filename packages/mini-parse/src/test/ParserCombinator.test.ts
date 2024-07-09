@@ -10,7 +10,7 @@ import {
 import {
   any,
   anyNot,
-  clearTags,
+  withTags,
   kind,
   not,
   opt,
@@ -259,7 +259,7 @@ test("clearTags", () => {
 
   // w/ clearing tags
   let clearedTags;
-  const c: Parser<string, NoTags> = clearTags(p); // verifies return type is correct
+  const c: Parser<string, NoTags> = withTags(p); // verifies return type is correct
   const cleared = c.map((r) => (clearedTags = r.tags));
   testParse(cleared, "foo");
 
