@@ -1,10 +1,12 @@
 /** Structures for the abstract syntax tree constructed by the parser. */
 
+import { TreeImportElem } from "./RustDirective.js";
 import { FoundRef } from "./TraverseRefs.js";
 
 export type AbstractElem =
   | AliasElem
   | ImportElem
+  | TreeImportElem
   | ExtendsElem
   | ExportElem
   | ModuleElem

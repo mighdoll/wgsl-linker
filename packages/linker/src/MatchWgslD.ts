@@ -8,7 +8,8 @@ export const notDirective = /[^#\n]+/;
 
 const symbolSet =
   "& && -> @ / ! [ ] { } : , = == != > >= < << <= % - -- " + // '>>' elided for template parsing, e.g. vec2<vec2<u8>>
-  ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= <<";
+  ". + ++ | || ( ) ; * ~ ^ // /* */ += -= *= /= %= &= |= ^= >>= <<= << " +
+  "::"; // :: added for rust syntax
 const symbol = matchOneOf(symbolSet);
 const quote = /["']/;
 
