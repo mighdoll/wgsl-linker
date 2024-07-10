@@ -3,6 +3,8 @@ import { parseModule } from "../ParseModule.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
 import { logCatch } from "mini-parse/test-util";
 import { _withBaseLogger } from "mini-parse";
+import { dlog } from "berry-pretty";
+import { ImportElem } from "../AbstractElems.js";
 
 test("simple fn export", () => {
   const src = `
@@ -23,7 +25,7 @@ test("simple fn import", () => {
   `;
   const module = parseModule(src);
   expect(module.imports.length).toBe(1);
-  expect(module.imports[0].name).toBe("foo");
+  expect((module.imports[0] as ImportElem).name).toBe("foo");
   expect(module).toMatchSnapshot();
 });
 
@@ -138,4 +140,14 @@ test("parse error shows correct line after #ifdef and simple #template", () => {
         fn () { } // oops   Ln 8
           ^"
   `);
+});
+
+test("import rust style", () => {
+  const src = `
+    import my::foo
+
+    fn bar() { foo(); }
+  `;
+  const module = parseModule(src);
+  expect(module.imports).toMatchSnapshot();
 });

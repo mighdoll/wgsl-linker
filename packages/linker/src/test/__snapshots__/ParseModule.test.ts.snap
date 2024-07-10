@@ -1,5 +1,27 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`import rust style 1`] = `
+[
+  {
+    "end": 19,
+    "imports": ImportTree {
+      "segments": [
+        SimpleSegment {
+          "as": undefined,
+          "name": "my",
+        },
+        SimpleSegment {
+          "as": undefined,
+          "name": "foo",
+        },
+      ],
+    },
+    "kind": "treeImport",
+    "start": 5,
+  },
+]
+`;
+
 exports[`simple fn export 1`] = `
 {
   "aliases": [],

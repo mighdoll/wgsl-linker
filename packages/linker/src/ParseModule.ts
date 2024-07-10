@@ -10,6 +10,7 @@ import {
   ModuleElem,
   StructElem,
   TemplateElem,
+  TreeImportElem,
   VarElem,
 } from "./AbstractElems.js";
 import { processConditionals } from "./Conditionals.js";
@@ -25,7 +26,7 @@ export interface TextModule {
   fns: FnElem[];
   vars: VarElem[];
   structs: StructElem[];
-  imports: (ImportElem | ExtendsElem)[];
+  imports: (ImportElem | ExtendsElem | TreeImportElem)[];
   aliases: AliasElem[];
   globalDirectives: GlobalDirectiveElem[];
 
@@ -81,8 +82,8 @@ export function parseModule(
     "globalDirective"
   );
   const imports = parsed.filter(
-    (e) => e.kind === "import" || e.kind === "extends"
-  ) as (ImportElem | ExtendsElem)[];
+    (e) => e.kind === "import" || e.kind === "extends" || e.kind === "treeImport"
+  ) as (ImportElem | ExtendsElem | TreeImportElem)[];
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];
