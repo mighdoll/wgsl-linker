@@ -237,8 +237,9 @@ function elemRef(
   const { name } = elem;
   if (importArgRef(srcRef, name)) return [];
 
+  const tradImports = mod.imports as (ImportElem| ExtendsElem)[];
   const foundRef =
-    importRef(srcRef, name, mod, registry) ??
+    importRef(srcRef, name, mod, tradImports, registry) ??
     importingRef(srcRef, name, mod, registry) ??
     localRef(name, mod);
 
@@ -267,7 +268,8 @@ function extendsRefs(
   const merges = elem.extendsElems;
   if (!merges) return [];
   return merges.flatMap((merge) => {
-    const foundRef = importRef(srcRef, merge.name, mod, registry);
+    const tradImports = mod.imports as (ImportElem| ExtendsElem)[];
+    const foundRef = importRef(srcRef, merge.name, mod, tradImports, registry);
     if (foundRef) return [foundRef];
 
     moduleLog(srcRef.expMod, merge.start, `import merge reference not found`);
@@ -288,9 +290,10 @@ function importRef(
   fromRef: FoundRef,
   name: string,
   impMod: TextModule,
+  imports: (ImportElem | ExtendsElem)[],
   registry: ModuleRegistry
 ): TextRef | GeneratorRef | undefined {
-  const fromImport = impMod.imports.find((imp) => importName(imp) == name);
+  const fromImport = imports.find((imp) => importName(imp) == name);
   const modExp = matchingExport(fromImport, impMod, registry);
   if (!modExp || !fromImport) return;
   const expMod = modExp.module;
