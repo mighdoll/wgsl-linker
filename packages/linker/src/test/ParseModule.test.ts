@@ -1,10 +1,9 @@
+import { _withBaseLogger } from "mini-parse";
+import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
+import { ImportElem } from "../AbstractElems.js";
 import { parseModule } from "../ParseModule.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
-import { logCatch } from "mini-parse/test-util";
-import { _withBaseLogger } from "mini-parse";
-import { dlog } from "berry-pretty";
-import { ImportElem } from "../AbstractElems.js";
 
 test("simple fn export", () => {
   const src = `
