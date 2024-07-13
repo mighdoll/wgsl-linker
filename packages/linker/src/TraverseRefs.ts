@@ -86,7 +86,7 @@ export interface TextRef extends FoundRefBase {
  * Recursively walk through all imported references starting from a src module, calling
  * a function with each struct/fn reference found.
  *
- * Note that the reference graph may have multiple reference to the same src element.
+ * Note that the reference graph may have multiple references to the same src element.
  * Return false in the provided filter fn to avoid recursing into the node.
  * Currently the linker will recurse through the the same node multiple times
  * to handle varied import parameters.
