@@ -99,7 +99,6 @@ export interface ImportElem extends AbstractElemBase {
 export interface TreeImportElem extends AbstractElemBase {
   kind: "treeImport";
   imports: ImportTree;
-  from: string;
 }
 
 

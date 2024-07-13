@@ -21,6 +21,7 @@ import {
 } from "./ImportTree.js";
 import { treeImportTokens } from "./MatchWgslD.js";
 import { makeElem } from "./ParseSupport.js";
+import { TreeImportElem } from "./AbstractElems.js";
 
 const word = kind(treeImportTokens.word);
 
@@ -65,7 +66,7 @@ export const rustImport = tokens(
     importTree.tag("imports"),
     opt(";")
   ).map((r) => {
-    const e = makeElem("treeImport", r, ["imports", "from"]);
+    const e = makeElem("treeImport", r, ["imports"]) as TreeImportElem;
 
     r.app.state.push(e);
   })
