@@ -2,6 +2,8 @@ import { SrcMap } from "mini-parse";
 import { linkWgslModule } from "./Linker.js";
 import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
+import { multiKeySet } from "./Util.js";
+import { dlog } from "berry-pretty";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -44,7 +46,7 @@ export type ModuleExport = TextModuleExport | GeneratorModuleExport;
 
 export interface TextModuleExport {
   module: TextModule;
-  export: TextExport;
+  export: TextExport; // TODO rename, export is a reserved word
   kind: "text";
 }
 
@@ -92,6 +94,13 @@ export interface RegistryParams {
 export class ModuleRegistry {
   // map from export names to a map of module names to exports
   private exports = new Map<string, ModuleExport[]>();
+
+  // map from module path with / separators, to module
+  private moduleMap = new Map<string, TextModule | GeneratorModule>();
+
+  // map from module path (with / separators), to map of exports by local name
+  private exportsMap = new Map<string, Map<string, ModuleExport>>();
+
   private templates = new Map<string, ApplyTemplateFn>();
   private textModules: TextModule[] = [];
   private wgslSrc = new Map<string, string>();
@@ -130,6 +139,7 @@ export class ModuleRegistry {
   _parseSrc(runtimeParams: Record<string, any> = {}): void {
     this.textModules = [];
     this.wgslSrc.forEach((src, fileName) => {
+      
       this.registerOneModule(src, runtimeParams, fileName);
     });
   }
@@ -215,13 +225,32 @@ export class ModuleRegistry {
       );
     }
   }
+  
+  moduleByPath(pathSegments: string[]): TextModule | GeneratorModule | undefined {
+    return this.moduleMap.get(pathSegments.join("/"));
+  }
+
+  getModuleExport2(
+    importingModule: TextModule,
+    pathSegments: string[]
+  ): ModuleExport | undefined {
+    if (pathSegments[0] === ".") {
+      // TODO relative path
+    } else {
+      const modulePath = pathSegments.slice(0, -1).join("/");
+      const expName = pathSegments[pathSegments.length - 1];
+      const module = this.findTextModule(modulePath); // TODO also find generator modules
+      const exp = module?.exports.find((e) => e.ref.name === expName);
+      if (exp) {
+        return { module, export: exp } as TextModuleExport;
+      }
+    }
+  }
 
   findTextModule(searchName: string): TextModule | undefined {
     const moduleNameMatch = this.textModules.find(
       (m) => m.name === searchName || m.fileName === searchName
     );
-    // dlog({searchName, moduleNameMatch:moduleNameMatch?.name})
-    // dlog({textModules:this.textModules.map(m => m.name)})
     if (moduleNameMatch) return moduleNameMatch;
 
     const baseSearch = normalize(searchName);
@@ -233,6 +262,7 @@ export class ModuleRegistry {
 
   private addTextModule(module: TextModule): void {
     this.textModules.push(module);
+    this.moduleMap.set(module.name, module);
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExport = {
         module,
@@ -240,6 +270,7 @@ export class ModuleRegistry {
         kind: "text",
       };
       this.addModuleExport(moduleExport);
+      multiKeySet(this.exportsMap, module.name, e.ref.name, moduleExport);
     });
   }
 
