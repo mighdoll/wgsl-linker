@@ -46,7 +46,7 @@ export type ModuleExport = TextModuleExport | GeneratorModuleExport;
 
 export interface TextModuleExport {
   module: TextModule;
-  export: TextExport; // TODO rename, export is a reserved word
+  exp: TextExport; 
   kind: "text";
 }
 
@@ -58,7 +58,7 @@ export interface GeneratorModule {
 
 export interface GeneratorModuleExport {
   module: GeneratorModule;
-  export: GeneratorExport;
+  exp: GeneratorExport;
   kind: "function";
 }
 
@@ -178,7 +178,7 @@ export class ModuleRegistry {
     };
     const moduleExport: GeneratorModuleExport = {
       module,
-      export: exp,
+      exp: exp,
       kind: "function",
     };
     this.addModuleExport(moduleExport);
@@ -242,7 +242,7 @@ export class ModuleRegistry {
       const module = this.findTextModule(modulePath); // TODO also find generator modules
       const exp = module?.exports.find((e) => e.ref.name === expName);
       if (exp) {
-        return { module, export: exp } as TextModuleExport;
+        return { module, exp: exp } as TextModuleExport;
       }
     }
   }
@@ -266,7 +266,7 @@ export class ModuleRegistry {
     module.exports.forEach((e) => {
       const moduleExport: TextModuleExport = {
         module,
-        export: e,
+        exp: e,
         kind: "text",
       };
       this.addModuleExport(moduleExport);
@@ -287,8 +287,8 @@ export class ModuleRegistry {
 
 function exportName(moduleExport: ModuleExport): string {
   if (moduleExport.kind === "text") {
-    return moduleExport.export.ref.name;
+    return moduleExport.exp.ref.name;
   } else {
-    return moduleExport.export.name;
+    return moduleExport.exp.name;
   }
 }

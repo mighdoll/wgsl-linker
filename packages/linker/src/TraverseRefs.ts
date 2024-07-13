@@ -301,7 +301,7 @@ function importRef(
     impMod,
     fromImport,
     expMod,
-    modExp.export
+    modExp.exp
   );
   const expInfo: ExportInfo = {
     fromImport,
@@ -309,7 +309,7 @@ function importRef(
     expImpArgs,
   };
   if (expMod.kind === "text") {
-    const exp = modExp.export as TextExport;
+    const exp = modExp.exp as TextExport;
 
     return {
       kind: "txt",
@@ -319,7 +319,7 @@ function importRef(
       proposedName: fromImport.as ?? exp.ref.name,
     };
   } else if (expMod.kind === "generator") {
-    const exp = modExp.export as GeneratorExport;
+    const exp = modExp.exp as GeneratorExport;
     return {
       kind: "gen",
       expInfo,
@@ -373,14 +373,14 @@ function importingRef(
     return;
   }
 
-  const expImpArgs = importingArgs(fromImport, modExp.export, srcRef);
+  const expImpArgs = importingArgs(fromImport, modExp.exp, srcRef);
   const expInfo: ExportInfo = {
     fromRef: srcRef,
     fromImport,
     expImpArgs,
   };
   if (modExp.kind === "text") {
-    const exp = modExp.export;
+    const exp = modExp.exp;
 
     return {
       kind: "txt",
@@ -390,7 +390,7 @@ function importingRef(
       proposedName: fromImport.as ?? exp.ref.name,
     };
   } else if (modExp.kind === "function") {
-    const exp = modExp.export;
+    const exp = modExp.exp;
     return {
       kind: "gen",
       expInfo,

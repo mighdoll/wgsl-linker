@@ -38,7 +38,7 @@ function resolvedEntryToString(
   exp: ResolvedExport
 ): string {
   if (exp instanceof ResolvedExportElement) {
-    const exportName = (exp.expMod.export as TextExport).ref.name;
+    const exportName = (exp.expMod.exp as TextExport).ref.name;
     return `impExp: ${importPath.join("/")} -> ${exp.expMod.module.name}/${exportName}`;
   } else {
     return `impMod: ${importPath.join("/")} -> ${exp.exportPath.join("/")}`;

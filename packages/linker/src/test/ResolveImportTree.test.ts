@@ -35,7 +35,7 @@ test("simple tree", () => {
   ];
   expect(imp).to.deep.eq(["bar", "foo"]);
   expect(exp.expMod.module.name).eq("bar");
-  expect((exp.expMod.export as TextExport).ref.name).eq("foo");
+  expect((exp.expMod.exp as TextExport).ref.name).eq("foo");
 });
 
 test.skip("tree with path segment list");
