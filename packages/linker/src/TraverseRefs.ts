@@ -8,7 +8,7 @@ import {
   StructElem,
   StructMemberElem,
   TypeRefElem,
-  VarElem,
+  VarElem
 } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import {
@@ -96,7 +96,7 @@ export function traverseRefs(
   registry: ModuleRegistry,
   fn: (ref: FoundRef) => boolean
 ): void {
-  const { aliases, fns, structs, vars } = srcModule;
+  const { aliases, fns, structs, vars, imports } = srcModule;
   const expMod = srcModule;
   const srcRefs: TextRef[] = [...structs, ...vars, ...fns, ...aliases].map(
     (elem) => ({
