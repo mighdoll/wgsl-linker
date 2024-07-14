@@ -12,8 +12,8 @@ test("moduleByPath", () => {
       `,
     },
   });
-  registry._parseSrc();
-  const m = registry.moduleByPath(["bar"]);
+  const parsed = registry.parsed();
+  const m = parsed.moduleByPath(["bar"]);
   expect(m?.name).eq("bar");
 });
 
@@ -32,10 +32,10 @@ test("getModuleExport", () => {
         `,
     },
   });
-  registry._parseSrc();
-  const impMod = registry.moduleByPath(["main"]) as TextModule;
+  const parsed = registry.parsed();
+  const impMod = parsed.moduleByPath(["main"]) as TextModule;
 
-  const m = registry.getModuleExport2(impMod, [
+  const m = parsed.getModuleExport2(impMod, [
     "bar",
     "foo",
   ]) as TextModuleExport;

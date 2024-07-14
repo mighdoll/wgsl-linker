@@ -15,8 +15,8 @@ import {
   GeneratorExport,
   GeneratorModule,
   ModuleExport,
-  ModuleRegistry,
 } from "./ModuleRegistry.js";
+import { ParsedModules } from "./ParsedModules.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
 
@@ -93,7 +93,7 @@ export interface TextRef extends FoundRefBase {
  */
 export function traverseRefs(
   srcModule: TextModule,
-  registry: ModuleRegistry,
+  registry: ParsedModules,
   fn: (ref: FoundRef) => boolean
 ): void {
   const { aliases, fns, structs, vars, imports } = srcModule;
@@ -128,7 +128,7 @@ export function traverseRefs(
  */
 function recursiveRefs(
   refs: FoundRef[],
-  registry: ModuleRegistry,
+  registry: ParsedModules,
   fn: (ref: FoundRef) => boolean
 ): void {
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
@@ -175,7 +175,7 @@ function textRef(ref: FoundRef): ref is TextRef {
 function elemRefs(
   srcRef: TextRef,
   mod: TextModule,
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): FoundRef[] {
   const { elem } = srcRef;
   let fnRefs: FoundRef[] = [];
@@ -221,7 +221,7 @@ function elemChildrenRefs(
   srcRef: TextRef,
   children: (CallElem | TypeRefElem)[],
   mod: TextModule,
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): FoundRef[] {
   return children.flatMap((elem) => elemRef(elem, srcRef, mod, registry));
 }
@@ -232,7 +232,7 @@ function elemRef(
   elem: CallElem | TypeRefElem,
   srcRef: TextRef,
   mod: TextModule,
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): FoundRef[] {
   const { name } = elem;
   if (importArgRef(srcRef, name)) return [];
@@ -263,7 +263,7 @@ function extendsRefs(
   srcRef: TextRef,
   elem: StructElem,
   mod: TextModule,
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): FoundRef[] {
   const merges = elem.extendsElems;
   if (!merges) return [];
@@ -291,7 +291,7 @@ function importRef(
   name: string,
   impMod: TextModule,
   imports: (ImportElem | ExtendsElem)[],
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): TextRef | GeneratorRef | undefined {
   const fromImport = imports.find((imp) => importName(imp) == name);
   const modExp = matchingExport(fromImport, impMod, registry);
@@ -352,7 +352,7 @@ function importingRef(
   srcRef: FoundRef,
   name: string,
   impMod: TextModule,
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): TextRef | GeneratorRef | undefined {
   let fromImport: ImportElem | undefined;
 
@@ -452,7 +452,7 @@ function isDefined<T>(a: T | undefined): asserts a is T {
 function matchingExport(
   imp: ImportElem | ExtendsElem | undefined,
   mod: TextModule,
-  registry: ModuleRegistry
+  registry: ParsedModules 
 ): ModuleExport | undefined {
   if (!imp) return;
 

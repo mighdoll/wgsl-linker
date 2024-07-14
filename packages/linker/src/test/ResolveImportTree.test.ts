@@ -7,6 +7,7 @@ import {
   resolvedToString,
   resolveImports,
 } from "../ResolveImportTree.js";
+import { parsed } from "yargs";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -23,11 +24,11 @@ test("simple tree", () => {
         `,
     },
   });
-  registry._parseSrc();
-  const impMod = registry.moduleByPath(["main"]) as TextModule;
+  const parsedModules = registry.parsed()
+  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
 
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
-  const resolved = resolveImports(impMod, treeImports, registry);
+  const resolved = resolveImports(impMod, treeImports, parsedModules);
   expect(resolved.size).eq(1);
   const [imp, exp] = resolved.entries().next().value as [
     string[],

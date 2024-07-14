@@ -4,6 +4,7 @@ import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
 import { multiKeySet } from "./Util.js";
 import { dlog } from "berry-pretty";
+import { ParsedModules } from "./ParsedModules.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -79,9 +80,6 @@ export interface RegistryParams {
 
   /** code generation functions */
   generators?: RegisterGenerator[];
-
-  /** values for #if condition processing */
-  conditions?: Record<string, any>;
 }
 
 /**
@@ -92,18 +90,10 @@ export interface RegistryParams {
  * #import statements and generate a complete wgsl shader.
  */
 export class ModuleRegistry {
-  // map from export names to a map of module names to exports
-  private exports = new Map<string, ModuleExport[]>();
 
-  // map from module path with / separators, to module
-  private moduleMap = new Map<string, TextModule | GeneratorModule>();
-
-  // map from module path (with / separators), to map of exports by local name
-  private exportsMap = new Map<string, Map<string, ModuleExport>>();
-
-  private templates = new Map<string, ApplyTemplateFn>();
-  private textModules: TextModule[] = [];
-  private wgslSrc = new Map<string, string>();
+  templates = new Map<string, ApplyTemplateFn>();
+  wgslSrc = new Map<string, string>();
+  generators = new Map<string, GeneratorModule>();
 
   constructor(args?: RegistryParams) {
     if (!args) return;
@@ -125,23 +115,11 @@ export class ModuleRegistry {
    *  template values, and code generation parameters
    */
   link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
-    this._parseSrc(runtimeParams);
-    const rootModule = this.findTextModule(moduleName);
-    if (!rootModule) {
-      console.error("no module found for ", moduleName);
-      return "";
-    }
-
-    return linkWgslModule(rootModule, this, runtimeParams);
+    return this.parsed(runtimeParams).link(moduleName);
   }
-
-  /** parse cached wgsl files and register them as modules */
-  _parseSrc(runtimeParams: Record<string, any> = {}): void {
-    this.textModules = [];
-    this.wgslSrc.forEach((src, fileName) => {
-      
-      this.registerOneModule(src, runtimeParams, fileName);
-    });
+  
+  parsed(runtimeParams: Record<string, any> = {}): ParsedModules {
+    return new ParsedModules(this, runtimeParams);
   }
 
   addModuleSrc(src: string, fileName?: string): void {
@@ -150,18 +128,6 @@ export class ModuleRegistry {
     } else {
       this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
     }
-  }
-
-  /** register one module's exports  */
-  private registerOneModule(
-    src: string,
-    params: Record<string, any> = {},
-    fileName: string,
-    moduleName?: string
-  ): void {
-    const newFileName = fileName && normalize(fileName);
-    const m = parseModule(src, this.templates, newFileName, params, moduleName);
-    this.addTextModule(m);
   }
 
   /** register a function that generates code on demand */
@@ -176,12 +142,8 @@ export class ModuleRegistry {
       name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
       exports: [exp],
     };
-    const moduleExport: GeneratorModuleExport = {
-      module,
-      exp: exp,
-      kind: "function",
-    };
-    this.addModuleExport(moduleExport);
+    
+    this.generators.set(module.name, module)
   }
 
   /** register a template processor  */
@@ -194,101 +156,4 @@ export class ModuleRegistry {
     return this.templates.get(name);
   }
 
-  /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
-  getModuleExport(
-    requesting: TextModule,
-    exportName: string,
-    moduleSpecifier?: string // either a module name or a relative path
-  ): ModuleExport | undefined {
-    const exports = this.exports.get(exportName);
-    if (!exports) {
-      return undefined;
-    } else if (moduleSpecifier?.startsWith(".")) {
-      const searchName = relativePath(requesting.fileName, moduleSpecifier);
-      const baseSearch = noSuffix(searchName);
-
-      return exports.find((e) => {
-        const fileName = (e.module as TextModule).fileName;
-        if (!fileName) return false;
-        if (fileName === searchName) return true;
-        if (baseSearch === noSuffix(fileName)) return true;
-      });
-    } else if (moduleSpecifier) {
-      return exports.find((e) => e.module.name === moduleSpecifier);
-    } else if (exports.length === 1) {
-      return exports[0];
-    } else {
-      const moduleNames = exports.map((e) => e.module.name).join(", ");
-      console.warn(
-        `Multiple modules export "${exportName}". (${moduleNames}) ` +
-          `Use "#import ${exportName} from <moduleName>" to select which one import`
-      );
-    }
-  }
-  
-  moduleByPath(pathSegments: string[]): TextModule | GeneratorModule | undefined {
-    return this.moduleMap.get(pathSegments.join("/"));
-  }
-
-  getModuleExport2(
-    importingModule: TextModule,
-    pathSegments: string[]
-  ): ModuleExport | undefined {
-    if (pathSegments[0] === ".") {
-      // TODO relative path
-    } else {
-      const modulePath = pathSegments.slice(0, -1).join("/");
-      const expName = pathSegments[pathSegments.length - 1];
-      const module = this.findTextModule(modulePath); // TODO also find generator modules
-      const exp = module?.exports.find((e) => e.ref.name === expName);
-      if (exp) {
-        return { module, exp: exp } as TextModuleExport;
-      }
-    }
-  }
-
-  findTextModule(searchName: string): TextModule | undefined {
-    const moduleNameMatch = this.textModules.find(
-      (m) => m.name === searchName || m.fileName === searchName
-    );
-    if (moduleNameMatch) return moduleNameMatch;
-
-    const baseSearch = normalize(searchName);
-    const pathMatch = this.textModules.find(
-      (m) => m.fileName === baseSearch || noSuffix(m.fileName) === baseSearch
-    );
-    if (pathMatch) return pathMatch;
-  }
-
-  private addTextModule(module: TextModule): void {
-    this.textModules.push(module);
-    this.moduleMap.set(module.name, module);
-    module.exports.forEach((e) => {
-      const moduleExport: TextModuleExport = {
-        module,
-        exp: e,
-        kind: "text",
-      };
-      this.addModuleExport(moduleExport);
-      multiKeySet(this.exportsMap, module.name, e.ref.name, moduleExport);
-    });
-  }
-
-  private addModuleExport(moduleExport: ModuleExport): void {
-    const expName = exportName(moduleExport);
-    const existing = this.exports.get(expName);
-    if (existing) {
-      existing.push(moduleExport);
-    } else {
-      this.exports.set(expName, [moduleExport]);
-    }
-  }
-}
-
-function exportName(moduleExport: ModuleExport): string {
-  if (moduleExport.kind === "text") {
-    return moduleExport.exp.ref.name;
-  } else {
-    return moduleExport.exp.name;
-  }
 }

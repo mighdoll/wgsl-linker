@@ -10,6 +10,7 @@ import {
 import { ModuleExport, ModuleRegistry } from "./ModuleRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { dlog } from "berry-pretty";
+import { ParsedModules } from "./ParsedModules.js";
 
 export type ResolvedMap = Map<string[], ResolvedExport>;
 export type ResolvedExport = ExportPath | ResolvedExportElement;
@@ -87,7 +88,7 @@ class ImportToExportPath {
 export function resolveImports(
   importingModule: TextModule,
   imports: TreeImportElem[],
-  registry: ModuleRegistry
+  registry: ParsedModules 
 ): ResolvedMap {
   const entries = imports.flatMap((imp) =>
     resolveTreeImport(importingModule, imp, registry)
@@ -105,7 +106,7 @@ export function resolveImports(
 function resolveTreeImport(
   importingModule: TextModule,
   imp: TreeImportElem,
-  registry: ModuleRegistry
+  registry: ParsedModules
 ): ResolvedEntry[] {
   return recursiveResolve([], [], imp.imports.segments);
 
