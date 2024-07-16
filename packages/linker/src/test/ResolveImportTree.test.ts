@@ -1,13 +1,7 @@
-import { dlog } from "berry-pretty";
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import {
-  ResolvedExportElement,
-  resolvedToString,
-  resolveImports,
-} from "../ResolveImportTree.js";
-import { parsed } from "yargs";
+import { ResolvedExportElement, resolveImports } from "../ResolveImportTree.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -24,7 +18,7 @@ test("simple tree", () => {
         `,
     },
   });
-  const parsedModules = registry.parsed()
+  const parsedModules = registry.parsed();
   const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
 
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
