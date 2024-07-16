@@ -23,14 +23,12 @@ test("simple tree", () => {
 
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolved = resolveImports(impMod, treeImports, parsedModules);
-  expect(resolved.size).eq(1);
-  const [imp, exp] = resolved.entries().next().value as [
-    string[],
-    ResolvedExportElement,
-  ];
-  expect(imp).to.deep.eq(["bar", "foo"]);
-  expect(exp.expMod.module.name).eq("bar");
-  expect((exp.expMod.exp as TextExport).ref.name).eq("foo");
+  expect(resolved.pathsMap).empty;
+  expect(resolved.exportMap.size).eq(1);
+  const [impPath, modExp] = [...resolved.exportMap.entries()][0]
+  expect(impPath).to.deep.eq(["bar", "foo"]);
+  expect(modExp.module.name).eq("bar");
+  expect((modExp.exp as TextExport).ref.name).eq("foo");
 });
 
 test.skip("tree with path segment list");
