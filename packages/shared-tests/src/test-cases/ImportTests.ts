@@ -58,6 +58,7 @@ export const importTests: WgslTestSrc[] = [
          fn main() { foo(); }
        `,
       "./bar.wgsl": `
+          module bar
           export fn foo() { }
        `,
     },
