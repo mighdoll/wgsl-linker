@@ -48,6 +48,20 @@ export const importTests: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `import bar::foo`,
+    notes: "simple rust style import",
+    src: {
+      "./main.wgsl": `
+         import bar::foo;
+         module main
+         fn main() { foo(); }
+       `,
+      "./bar.wgsl": `
+          export fn foo() { }
+       `,
+    },
+  },
 ];
 
 export default importTests;
