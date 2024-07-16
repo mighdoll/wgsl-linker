@@ -1,7 +1,8 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { resolveImports } from "../ResolveImportTree.js";
+import { matchImport, resolveImports } from "../ResolveImportTree.js";
+import { dlog } from "berry-pretty";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -29,6 +30,31 @@ test("simple tree", () => {
   expect(impPath).to.deep.eq(["bar", "foo"]);
   expect(modExp.module.name).eq("bar");
   expect((modExp.exp as TextExport).ref.name).eq("foo");
+});
+
+test("simple matchImport", () => {
+  const registry = new ModuleRegistry({
+    wgsl: {
+      "main.wgsl": `
+         import bar::foo;
+         module main
+         fn main() { foo(); }
+      `,
+      "bar.wgsl": `
+         module bar
+
+         export fn foo() { }
+        `,
+    },
+  });
+  const parsedModules = registry.parsed();
+  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
+  const resolveMap = resolveImports(impMod, treeImports, parsedModules);
+  const found = matchImport("bar::foo", resolveMap);
+  expect(found).toBeDefined();
+  expect(found?.module.name).eq("bar");
+  expect((found?.exp as TextExport).ref.name).eq("foo");
 });
 
 test.skip("tree with path segment list");

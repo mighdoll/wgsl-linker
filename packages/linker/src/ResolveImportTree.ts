@@ -9,28 +9,14 @@ import {
 } from "./ImportTree.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { ParsedModules } from "./ParsedModules.js";
-import { TextExport, TextModule } from "./ParseModule.js";
+import { TextModule } from "./ParseModule.js";
+import exp from "constants";
 
 export interface ResolveMap {
   // map from import path to resolved export
   exportMap: Map<string[], ModuleExport>;
   // map from import path to export path
   pathsMap: Map<string[], string[]>;
-}
-
-export type ResolvedExport = ExportPath | ResolvedExportElement;
-
-/** import path mapped to an exported element in a module in the registry. */
-export class ResolvedExportElement {
-  constructor(public expMod: ModuleExport) {}
-}
-
-/** import path mapped to an export path.
- * note that the export path is not validated, it may not correspond to the
- * path of an actual module in the registry.
- */
-export class ExportPath {
-  constructor(public exportPath: string[]) {}
 }
 
 /* we could be bringing two different things into scope when we import mymod::foo
@@ -153,11 +139,29 @@ function resolveTreeImport(
   }
 }
 
+/** resolve an import to an export using the resolveMap */
 export function matchImport(
   importPath: string,
   resolveMap: ResolveMap
-): ResolvedExport | undefined {
-  // const importSegments = importPath.includes("::") ? importPath.split("::") : importPath.split(".");
+): ModuleExport | undefined {
+  const importSegments = importPath.includes("::")
+    ? importPath.split("::")
+    : importPath.split(".");
+  dlog({ importSegments });
+  for (const [segments, exp] of resolveMap.exportMap.entries()) {
+    dlog({segments})
+    if (arrayEquals(segments, importSegments)) {
+      return exp;
+    }
+  }
+  // for (const [segments, exp] of resolveMap.pathsMap.entries()) {
+  //   dlog({segments})
+  //   if (arrayEquals(segments, importSegments)) {
+  //     return exp;
+  //   }
+  // }
+
+
   // [...resolveMap.entries()].filter(([pathSegments, exp]) => {
   //   imp
 
@@ -167,4 +171,8 @@ export function matchImport(
   //   return resolved.get(match);
   // }
   return undefined;
+}
+
+function arrayEquals(a: any[], b: any[]): boolean {
+  return a.length === b.length && a.every((val, index) => val === b[index]);
 }
