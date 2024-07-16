@@ -10,7 +10,6 @@ import {
 import { ModuleExport } from "./ModuleRegistry.js";
 import { ParsedModules } from "./ParsedModules.js";
 import { TextModule } from "./ParseModule.js";
-import exp from "constants";
 
 export interface ResolveMap {
   // map from import path to resolved export
@@ -139,7 +138,11 @@ function resolveTreeImport(
   }
 }
 
-/** resolve an import to an export using the resolveMap */
+/** resolve an import to an export using the resolveMap
+ * @param importPath the reference to the import, e.g. "foo::bar" from
+ *    import pkg::foo
+ *    fn () { foo::bar(); }
+ */
 export function matchImport(
   importPath: string,
   resolveMap: ResolveMap
@@ -147,30 +150,34 @@ export function matchImport(
   const importSegments = importPath.includes("::")
     ? importPath.split("::")
     : importPath.split(".");
-  dlog({ importSegments });
-  for (const [segments, exp] of resolveMap.exportMap.entries()) {
-    dlog({segments})
-    if (arrayEquals(segments, importSegments)) {
+
+  // match case where import path points directly to an export entry
+  const fullPathMatch = matchFullExport(importSegments, resolveMap);
+  if (fullPathMatch) {
+    return fullPathMatch;
+  }
+
+  // match case where import path extends an path entry (TODO testme)
+  for (const [, partialExpPath] of resolveMap.pathsMap.entries()) {
+    const combinedImpPath = [...partialExpPath, ...importSegments];
+    const combinedMatch = matchFullExport(combinedImpPath, resolveMap);
+    if (combinedMatch) {
+      return combinedMatch;
+    }
+  }
+
+  return undefined;
+}
+
+function matchFullExport(
+  impSegments: string[],
+  resolveMap: ResolveMap
+): ModuleExport | undefined {
+  for (const [fullImpPath, exp] of resolveMap.exportMap.entries()) {
+    if (arrayEquals(fullImpPath, impSegments)) {
       return exp;
     }
   }
-  // for (const [segments, exp] of resolveMap.pathsMap.entries()) {
-  //   dlog({segments})
-  //   if (arrayEquals(segments, importSegments)) {
-  //     return exp;
-  //   }
-  // }
-
-
-  // [...resolveMap.entries()].filter(([pathSegments, exp]) => {
-  //   imp
-
-  // });
-  // const match = keys.find((imp) => importPathMatches(imp, importPath));
-  // if (match) {
-  //   return resolved.get(match);
-  // }
-  return undefined;
 }
 
 function arrayEquals(a: any[], b: any[]): boolean {
