@@ -1,10 +1,7 @@
 import { SrcMap } from "mini-parse";
-import { linkWgslModule } from "./Linker.js";
-import { parseModule, TextExport, TextModule } from "./ParseModule.js";
-import { normalize, noSuffix, relativePath } from "./PathUtil.js";
-import { multiKeySet } from "./Util.js";
-import { dlog } from "berry-pretty";
 import { ParsedModules } from "./ParsedModules.js";
+import { TextExport, TextModule } from "./ParseModule.js";
+import { normalize } from "./PathUtil.js";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -118,16 +115,9 @@ export class ModuleRegistry {
     return this.parsed(runtimeParams).link(moduleName);
   }
   
+  /** Parse the text modules in the registry */
   parsed(runtimeParams: Record<string, any> = {}): ParsedModules {
     return new ParsedModules(this, runtimeParams);
-  }
-
-  addModuleSrc(src: string, fileName?: string): void {
-    if (fileName) {
-      this.wgslSrc.set(normalize(fileName), src);
-    } else {
-      this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
-    }
   }
 
   /** register a function that generates code on demand */
@@ -151,9 +141,11 @@ export class ModuleRegistry {
     templates.forEach((t) => this.templates.set(t.name, t.apply));
   }
 
-  /** fetch a template processor */
-  getTemplate(name: string): ApplyTemplateFn | undefined {
-    return this.templates.get(name);
+  private addModuleSrc(src: string, fileName?: string): void {
+    if (fileName) {
+      this.wgslSrc.set(normalize(fileName), src);
+    } else {
+      this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
+    }
   }
-
 }
