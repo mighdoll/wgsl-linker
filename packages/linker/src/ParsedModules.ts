@@ -24,16 +24,16 @@ export class ParsedModules {
   // map from export names to a map of module names to exports
   private exports = new Map<string, ModuleExport[]>(); // TODO drop this
 
-  /** parse cached wgsl files and register them as modules */
+  /** parse wgsl files from cached in a mdule registry and register them as modules */
   constructor(
     public registry: ModuleRegistry,
     public conditions: Record<string, any> = {}
   ) {
     this.textModules = [];
     this.registry.wgslSrc.forEach((src, fileName) => {
-      this.registerOneModule(src, conditions, fileName);
+      this.parseOneModule(src, conditions, fileName);
     });
-    this.registerGenerators();
+    this.recordGenerators();
   }
 
   link(moduleName: string): string {
@@ -44,8 +44,8 @@ export class ParsedModules {
     return linkWgslModule(module, this, this.conditions);
   }
 
-  /** register one module's exports  */
-  private registerOneModule(
+  /** parse one module, register exports for later searching */
+  private parseOneModule(
     src: string,
     params: Record<string, any> = {},
     fileName: string,
@@ -117,6 +117,7 @@ export class ParsedModules {
     }
   }
 
+  /** find a text module by module name or file name */
   findTextModule(searchName: string): TextModule | undefined {
     const moduleNameMatch = this.textModules.find(
       (m) => m.name === searchName || m.fileName === searchName
@@ -131,7 +132,7 @@ export class ParsedModules {
   }
 
   // TODO just register modules, drop exports based index
-  private registerGenerators(): void {
+  private recordGenerators(): void {
     this.registry.generators.forEach((g) => {
       const moduleExport: GeneratorModuleExport = {
         module: g,
