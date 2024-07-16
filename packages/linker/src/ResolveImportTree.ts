@@ -11,9 +11,6 @@ import { ModuleExport } from "./ModuleRegistry.js";
 import { ParsedModules } from "./ParsedModules.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 
-// TODO record two maps, one of resolved export elements,
-// and one of referenced paths
-
 export interface ResolveMap {
   // map from import path to resolved export
   exportMap: Map<string[], ModuleExport>;
@@ -21,7 +18,6 @@ export interface ResolveMap {
   pathsMap: Map<string[], string[]>;
 }
 
-export type ResolvedMap = Map<string[], ResolvedExport>;
 export type ResolvedExport = ExportPath | ResolvedExportElement;
 
 /** import path mapped to an exported element in a module in the registry. */
@@ -35,26 +31,6 @@ export class ResolvedExportElement {
  */
 export class ExportPath {
   constructor(public exportPath: string[]) {}
-}
-
-/** debug utility for logging */
-export function resolvedToString(resolved: ResolvedMap): string {
-  return [...resolved.entries()]
-    .map(([imp, exp]) => resolvedEntryToString(imp, exp))
-    .join("\n");
-}
-
-/** debug logging utility */
-function resolvedEntryToString(
-  importPath: string[],
-  exp: ResolvedExport
-): string {
-  if (exp instanceof ResolvedExportElement) {
-    const exportName = (exp.expMod.exp as TextExport).ref.name;
-    return `impExp: ${importPath.join("/")} -> ${exp.expMod.module.name}/${exportName}`;
-  } else {
-    return `impMod: ${importPath.join("/")} -> ${exp.exportPath.join("/")}`;
-  }
 }
 
 /* we could be bringing two different things into scope when we import mymod::foo
@@ -179,7 +155,7 @@ function resolveTreeImport(
 
 export function matchImport(
   importPath: string,
-  resolveMap: ResolvedMap
+  resolveMap: ResolveMap
 ): ResolvedExport | undefined {
   // const importSegments = importPath.includes("::") ? importPath.split("::") : importPath.split(".");
   // [...resolveMap.entries()].filter(([pathSegments, exp]) => {
