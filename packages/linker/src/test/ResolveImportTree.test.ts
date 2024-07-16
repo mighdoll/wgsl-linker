@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { ResolvedExportElement, resolveImports } from "../ResolveImportTree.js";
+import { resolveImports } from "../ResolveImportTree.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -25,7 +25,7 @@ test("simple tree", () => {
   const resolved = resolveImports(impMod, treeImports, parsedModules);
   expect(resolved.pathsMap).empty;
   expect(resolved.exportMap.size).eq(1);
-  const [impPath, modExp] = [...resolved.exportMap.entries()][0]
+  const [impPath, modExp] = [...resolved.exportMap.entries()][0];
   expect(impPath).to.deep.eq(["bar", "foo"]);
   expect(modExp.module.name).eq("bar");
   expect((modExp.exp as TextExport).ref.name).eq("foo");
