@@ -1,9 +1,5 @@
-import { SrcMap } from "mini-parse";
+import { TreeImportElem } from "./AbstractElems.js";
 import { linkWgslModule } from "./Linker.js";
-import { parseModule, TextExport, TextModule } from "./ParseModule.js";
-import { normalize, noSuffix, relativePath } from "./PathUtil.js";
-import { multiKeySet } from "./Util.js";
-import { dlog } from "berry-pretty";
 import {
   GeneratorModule,
   GeneratorModuleExport,
@@ -11,6 +7,10 @@ import {
   ModuleRegistry,
   TextModuleExport,
 } from "./ModuleRegistry.js";
+import { parseModule, TextModule } from "./ParseModule.js";
+import { normalize, noSuffix, relativePath } from "./PathUtil.js";
+import { resolveImports, ResolveMap } from "./ResolveImportTree.js";
+import { multiKeySet } from "./Util.js";
 
 export class ParsedModules {
   // map from module path with / separators, to module
@@ -100,12 +100,23 @@ export class ParsedModules {
     return this.moduleMap.get(pathSegments.join("/"));
   }
 
+  importResolveMap(importingModule: TextModule): ResolveMap {
+    const treeImports: TreeImportElem[] = importingModule.imports.filter(
+      (i) => i.kind === "treeImport"
+    ); // TODO drop filter when we drop other import kinds
+
+    // TODO cache
+    return resolveImports(importingModule, treeImports, this);
+  }
+
+  /** @return a ModuleExport if the provided pathSegments
+   * reference an export in a registered module */
   getModuleExport2(
     importingModule: TextModule,
     pathSegments: string[]
   ): ModuleExport | undefined {
     if (pathSegments[0] === ".") {
-      // TODO relative path
+      // TODO handle relative path
     } else {
       const modulePath = pathSegments.slice(0, -1).join("/");
       const expName = pathSegments[pathSegments.length - 1];
