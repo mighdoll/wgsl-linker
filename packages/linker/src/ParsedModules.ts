@@ -12,7 +12,8 @@ import { normalize, noSuffix, relativePath } from "./PathUtil.js";
 import { resolveImports, ResolveMap } from "./ResolveImportTree.js";
 import { multiKeySet } from "./Util.js";
 
-export class ParsedModules {
+// TODO rename class, perhaps ParsedRegistry
+export class ParsedModules { 
   // map from module path with / separators, to module
   private moduleMap = new Map<string, TextModule | GeneratorModule>();
 

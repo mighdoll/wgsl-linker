@@ -1,8 +1,9 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { matchImport, resolveImports } from "../ResolveImportTree.js";
+import { logResolveMap, matchImport, resolveImports } from "../ResolveImportTree.js";
 import { dlog } from "berry-pretty";
+import path from "path";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -23,22 +24,56 @@ test("simple tree", () => {
   const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
 
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
-  const resolved = resolveImports(impMod, treeImports, parsedModules);
-  expect(resolved.pathsMap).empty;
-  expect(resolved.exportMap.size).eq(1);
-  const [impPath, modExp] = [...resolved.exportMap.entries()][0];
-  expect(impPath).to.deep.eq(["bar", "foo"]);
+  const resolveMap = resolveImports(impMod, treeImports, parsedModules);
+
+  expect(resolveMap.exportMap.size).eq(1);
+  const [impPath, modExp] = [...resolveMap.exportMap.entries()][0];
+  expect(impPath).eq("bar/foo");
   expect(modExp.module.name).eq("bar");
   expect((modExp.exp as TextExport).ref.name).eq("foo");
+
+  const pathMapEntries = [...resolveMap.pathsMap.entries()];
+  expect(pathMapEntries.length).eq(1);
+  const [impSegments, expSegments] = pathMapEntries[0];
+  expect(impSegments).deep.eq(["bar", "foo"]);
+  expect(expSegments).deep.eq(["bar", "foo"]);
 });
 
-test("simple matchImport", () => {
+
+test("matchImport simple completing path", () => {
   const registry = new ModuleRegistry({
     wgsl: {
       "main.wgsl": `
          import bar::foo;
+
          module main
          fn main() { foo(); }
+      `,
+      "bar.wgsl": `
+         module bar
+
+         export fn foo() { }
+        `,
+    },
+  });
+  const parsedModules = registry.parsed();
+  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
+  const resolveMap = resolveImports(impMod, treeImports, parsedModules);
+
+  const found = matchImport("foo", resolveMap);
+  expect(found).toBeDefined();
+  expect(found?.module.name).eq("bar");
+  expect((found?.exp as TextExport).ref.name).eq("foo");
+});
+
+test.skip("matchImport bar::foo()", () => {
+  const registry = new ModuleRegistry({
+    wgsl: {
+      "main.wgsl": `
+         import bar;
+         module main
+         fn main() { bar::foo(); }
       `,
       "bar.wgsl": `
          module bar

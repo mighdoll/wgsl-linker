@@ -9,12 +9,13 @@ import {
 } from "./ImportTree.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { ParsedModules } from "./ParsedModules.js";
-import { TextModule } from "./ParseModule.js";
+import { TextExport, TextModule } from "./ParseModule.js";
+import { overlapTail } from "./Util.js";
 
 export interface ResolveMap {
-  // map from import path to resolved export
-  exportMap: Map<string[], ModuleExport>;
-  // map from import path to export path
+  // map from export path string to resolved export
+  exportMap: Map<string, ModuleExport>;
+  // map from caller path to exporter path
   pathsMap: Map<string[], string[]>;
 }
 
@@ -57,7 +58,7 @@ class ImportToExportPath {
  *    import pkg::a as b      // pkg::b -> pkg::a     map import path to export path
  *    fn foo() { b::bar(); }  // can now resolve to exported element pkg::a::bar
  */
-export function resolveImports(
+export function resolveImports( // TODO rename to resolutionMap
   importingModule: TextModule,
   imports: TreeImportElem[],
   registry: ParsedModules
@@ -66,12 +67,12 @@ export function resolveImports(
     resolveTreeImport(importingModule, imp, registry)
   );
 
-  const exportEntries: [string[], ModuleExport][] = [];
+  const exportEntries: [string, ModuleExport][] = [];
   const pathEntries: [string[], string[]][] = [];
 
   resolveEntries.forEach((e) => {
     if (e instanceof ImportToExport) {
-      exportEntries.push([e.importPath, e.expMod]);
+      exportEntries.push([e.importPath.join("/"), e.expMod]);
     } else {
       pathEntries.push([e.importPath, e.exportPath]);
     }
@@ -83,6 +84,10 @@ export function resolveImports(
   };
 }
 
+function last<T>(arr: T[]): T {
+  return arr[arr.length - 1];
+}
+
 function resolveTreeImport(
   importingModule: TextModule,
   imp: TreeImportElem,
@@ -90,6 +95,7 @@ function resolveTreeImport(
 ): ResolvedEntry[] {
   return recursiveResolve([], [], imp.imports.segments);
 
+  /** recurse through segments of path, producing  */
   function recursiveResolve(
     resolvedImportPath: string[],
     resolvedExportPath: string[],
@@ -106,15 +112,7 @@ function resolveTreeImport(
         // we're in the middle of the path so keep recursing
         return recursiveResolve(impPath, expPath, rest);
       } else {
-        // try and resolve as an exported element
-        const expMod = registry.getModuleExport2(importingModule, expPath);
-        if (expMod) {
-          // dlog("resolved to Export", { impPath, expPath });
-          return [new ImportToExport(impPath, expMod)];
-        }
-        // otherwise return as a module path
-        dlog("resolved to Module Path", { impPath, expPath });
-        return [new ImportToExportPath(impPath, expPath)];
+        return resolveFullPath(impPath, expPath);
       }
     }
     if (segment instanceof SegmentList) {
@@ -136,50 +134,108 @@ function resolveTreeImport(
     console.error("unknown segment type", segment); // should be impossible
     return [];
   }
-}
 
+  function resolveFullPath(
+    impPath: string[],
+    expPath: string[]
+  ): ResolvedEntry[] {
+    // try and resolve as an exported element
+    const expMod = registry.getModuleExport2(importingModule, expPath);
+    if (expMod) {
+      return [
+        new ImportToExport(impPath, expMod),
+        new ImportToExportPath(impPath, expPath),
+      ];
+    }
+    // otherwise return as a module path
+    dlog("resolved to Module Path", { impPath, expPath });
+    return [new ImportToExportPath(impPath, expPath)];
+  }
+}
 /** resolve an import to an export using the resolveMap
- * @param importPath the reference to the import, e.g. "foo::bar" from
+ * @param callPath the reference to the import, e.g. "foo::bar" from
  *    import pkg::foo
  *    fn () { foo::bar(); }
+ *
+ * Cases: all of these find export path pkg/foo
+ *   foo() -> import pkg::foo,
+ *   bar() -> import pkg::foo as bar
+ *   pkg::foo()  -> import pkg
+ *   pkg::foo()  -> import pkg::foo
+ *   npkg::foo() -> import pkg as npkg
+ *   npkg.foo()  -> import pkg as npkg
  */
 export function matchImport(
-  importPath: string,
+  callPath: string,
   resolveMap: ResolveMap
 ): ModuleExport | undefined {
-  const importSegments = importPath.includes("::")
-    ? importPath.split("::")
-    : importPath.split(".");
+  const importSegments = callPath.includes("::")
+    ? callPath.split("::")
+    : callPath.split(".");
 
-  // match case where import path points directly to an export entry
-  const fullPathMatch = matchFullExport(importSegments, resolveMap);
-  if (fullPathMatch) {
-    return fullPathMatch;
+  const expPath = impToExportPath(importSegments, resolveMap);
+  if (expPath) {
+    const exp = resolveMap.exportMap.get(expPath);
+    if (exp) {
+      return exp;
+    } 
   }
 
-  // match case where import path extends an path entry (TODO testme)
-  for (const [, partialExpPath] of resolveMap.pathsMap.entries()) {
-    const combinedImpPath = [...partialExpPath, ...importSegments];
-    const combinedMatch = matchFullExport(combinedImpPath, resolveMap);
-    if (combinedMatch) {
-      return combinedMatch;
+  return undefined;
+}
+
+function impToExportPath(
+  impSegments: string[],
+  resolveMap: ResolveMap
+): string | undefined {
+  const { pathsMap } = resolveMap;
+  for (const [imp, exp] of pathsMap.entries()) {
+    const impTail = overlapTail(imp, impSegments);
+    if (impTail) {
+      console.assert(imp.length === exp.length);
+      const combined = [...exp, ...impTail];
+      return combined.join("/");
     }
   }
 
   return undefined;
 }
 
-function matchFullExport(
-  impSegments: string[],
-  resolveMap: ResolveMap
-): ModuleExport | undefined {
-  for (const [fullImpPath, exp] of resolveMap.exportMap.entries()) {
-    if (arrayEquals(fullImpPath, impSegments)) {
-      return exp;
-    }
-  }
+export function logResolveMap(resolveMap: ResolveMap): void {
+  const expMap = [...resolveMap.exportMap.entries()].map(([imp, exp]) => {
+    return `${imp} -> ${exp.module.name}/${(exp.exp as TextExport).ref.name}`;
+  });
+  const pathMap = [...resolveMap.pathsMap.entries()].map(([imp, exp]) => {
+    return `${imp.join("/")} -> ${exp.join("/")}`;
+  });
+  dlog({ expMap, pathMap });
 }
 
-function arrayEquals(a: any[], b: any[]): boolean {
-  return a.length === b.length && a.every((val, index) => val === b[index]);
-}
+// function matchFullExport(
+//   impSegments: string[],
+//   resolveMap: ResolveMap
+// ): ModuleExport | undefined {
+//   for (const [fullImpPath, exp] of resolveMap.exportMap.entries()) {
+//     if (arrayEquals(fullImpPath, impSegments)) {
+//       return exp;
+//     }
+//   }
+// }
+
+// // match case where import path extends an path entry (TODO testme)
+// for (const [, partialExpPath] of resolveMap.pathsMap.entries()) {
+//   const combinedImpPath = [...partialExpPath, ...importSegments];
+//   dlog({combinedImpPath})
+//   const combinedMatch = matchFullExport(combinedImpPath, resolveMap);
+//   if (combinedMatch) {
+//     return combinedMatch;
+//   }
+// }
+
+// // match case where import points directly to an export entry
+// if (importSegments.length === 1) {
+//   const modExp = resolveMap.exportMap.get(importSegments[0]);
+//   if (modExp) {
+//     return modExp;
+//   }
+// }
