@@ -1,3 +1,5 @@
+import { dlog } from "berry-pretty";
+
 export function multiKeySet<A, B, V>(
   m: Map<A, Map<B, V>>,
   a: A,
@@ -82,4 +84,34 @@ export function mapForward(
 /** return the last element of an array or undefined */
 export function last<T>(a: T[]): T | undefined {
   return a[a.length - 1];
+}
+
+/**
+ * Overlap two arrays, returning their combination if they overlap.
+ *
+ * If a suffix of a equals the prefix of b, return
+ * the combined array a, b (with the overlap removed from b).
+ *
+ * Otherwise, return undefined;
+ */
+export function overlap<T>(a: T[], b: T[]): T[] | undefined {
+  let overlapSize = Math.min(a.length, b.length);
+
+  while (overlapSize > 0) {
+    const suffix = a.slice(-overlapSize);
+    const prefix = b.slice(0, overlapSize); 
+    if (arrayEquals(suffix, prefix)) {
+      break;
+    } else {
+      overlapSize--;
+    }
+  }
+
+  if (overlapSize) {
+    return [...a, ...b.slice(overlapSize)];
+  }
+}
+
+function arrayEquals(a: any[], b: any[]): boolean {
+  return a.length === b.length && a.every((val, index) => val === b[index]);
 }
