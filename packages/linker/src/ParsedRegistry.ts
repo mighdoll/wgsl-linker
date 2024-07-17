@@ -9,7 +9,7 @@ import {
 } from "./ModuleRegistry.js";
 import { parseModule, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
-import { resolveImports, ResolveMap } from "./ResolveImportTree.js";
+import { importResolutionMap, ResolveMap } from "./ImportResolutionMap.js";
 import { multiKeySet } from "./Util.js";
 
 export class ParsedRegistry { 
@@ -106,7 +106,7 @@ export class ParsedRegistry {
     ); // TODO drop filter when we drop other import kinds
 
     // TODO cache
-    return resolveImports(importingModule, treeImports, this);
+    return importResolutionMap(importingModule, treeImports, this);
   }
 
   /** @return a ModuleExport if the provided pathSegments

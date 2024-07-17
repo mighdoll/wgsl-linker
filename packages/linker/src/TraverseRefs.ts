@@ -21,7 +21,7 @@ import {
 import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
-import { matchImport } from "./ResolveImportTree.js";
+import { matchImport } from "./ImportResolutionMap.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 

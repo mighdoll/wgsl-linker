@@ -58,7 +58,7 @@ class ImportToExportPath {
  *    import pkg::a as b      // pkg::b -> pkg::a     map import path to export path
  *    fn foo() { b::bar(); }  // can now resolve to exported element pkg::a::bar
  */
-export function resolveImports( // TODO rename to resolutionMap
+export function importResolutionMap( 
   importingModule: TextModule,
   imports: TreeImportElem[],
   registry: ParsedRegistry

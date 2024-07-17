@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { matchImport, resolveImports } from "../ResolveImportTree.js";
+import { matchImport, importResolutionMap } from "../ImportResolutionMap.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -22,7 +22,7 @@ test("simple tree", () => {
   const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
 
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
-  const resolveMap = resolveImports(impMod, treeImports, parsedModules);
+  const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
 
   expect(resolveMap.exportMap.size).eq(1);
   const [impPath, modExp] = [...resolveMap.exportMap.entries()][0];
@@ -57,7 +57,7 @@ test("matchImport simple completing path", () => {
   const parsedModules = registry.parsed();
   const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
-  const resolveMap = resolveImports(impMod, treeImports, parsedModules);
+  const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
 
   const found = matchImport("foo", resolveMap);
   expect(found).toBeDefined();
@@ -83,7 +83,7 @@ test.skip("matchImport bar::foo()", () => {
   const parsedModules = registry.parsed();
   const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
-  const resolveMap = resolveImports(impMod, treeImports, parsedModules);
+  const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
   const found = matchImport("bar::foo", resolveMap);
   expect(found).toBeDefined();
   expect(found?.module.name).eq("bar");
