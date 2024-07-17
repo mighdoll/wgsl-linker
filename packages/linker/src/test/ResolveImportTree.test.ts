@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { matchImport, importResolutionMap } from "../ImportResolutionMap.js";
+import { resolveImport, importResolutionMap } from "../ImportResolutionMap.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -59,7 +59,7 @@ test("matchImport simple completing path", () => {
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
 
-  const found = matchImport("foo", resolveMap);
+  const found = resolveImport("foo", resolveMap);
   expect(found).toBeDefined();
   expect(found?.module.name).eq("bar");
   expect((found?.exp as TextExport).ref.name).eq("foo");
@@ -84,7 +84,7 @@ test("matchImport bar::foo()", () => {
   const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
-  const found = matchImport("bar::foo", resolveMap);
+  const found = resolveImport("bar::foo", resolveMap);
   expect(found).toBeDefined();
   expect(found?.module.name).eq("bar");
   expect((found?.exp as TextExport).ref.name).eq("foo");

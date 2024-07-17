@@ -161,7 +161,7 @@ function resolveTreeImport(
  *   npkg::foo() -> import pkg as npkg
  *   npkg.foo()  -> import pkg as npkg
  */
-export function matchImport(
+export function resolveImport(
   callPath: string,
   resolveMap: ResolveMap
 ): ModuleExport | undefined {

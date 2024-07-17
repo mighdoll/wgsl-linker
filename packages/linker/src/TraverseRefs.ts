@@ -21,7 +21,7 @@ import {
 import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
-import { matchImport } from "./ImportResolutionMap.js";
+import { resolveImport } from "./ImportResolutionMap.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 
@@ -297,7 +297,7 @@ function importRef(
   registry: ParsedRegistry
 ): TextRef | GeneratorRef | undefined {
   const resolveMap = registry.importResolveMap(impMod);
-  const modExp = matchImport(name, resolveMap);
+  const modExp = resolveImport(name, resolveMap);
   const fromImport = imports[0]; // TODO implement
   if (modExp && fromImport) {
     const expMod = modExp.module;
