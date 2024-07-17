@@ -140,6 +140,58 @@ exports[`parse fn with calls 1`] = `
 ]
 `;
 
+exports[`parse foo.bar();  1`] = `
+[
+  {
+    "calls": [
+      {
+        "end": 19,
+        "kind": "call",
+        "name": "foo.bar",
+        "start": 12,
+      },
+    ],
+    "end": 24,
+    "kind": "fn",
+    "name": "main",
+    "nameElem": {
+      "end": 7,
+      "kind": "fnName",
+      "name": "main",
+      "start": 3,
+    },
+    "start": 0,
+    "typeRefs": [],
+  },
+]
+`;
+
+exports[`parse foo::bar();  1`] = `
+[
+  {
+    "calls": [
+      {
+        "end": 20,
+        "kind": "call",
+        "name": "foo::bar",
+        "start": 12,
+      },
+    ],
+    "end": 25,
+    "kind": "fn",
+    "name": "main",
+    "nameElem": {
+      "end": 7,
+      "kind": "fnName",
+      "name": "main",
+      "start": 3,
+    },
+    "start": 0,
+    "typeRefs": [],
+  },
+]
+`;
+
 exports[`parse global diagnostic 1`] = `
 [
   {

@@ -12,6 +12,7 @@ const symbolSet =
 const symbol = matchOneOf(symbolSet);
 const quote = /["']/;
 
+const longIdent = /[a-zA-Z_][\w.:]*/; // identifier that can include module path
 const word = /[a-zA-Z_]\w*/; // LATER consider making this 'ident' per wgsl spec (incl. non-ascii)
 const digits = /(?:0x)?[\d.]+[iuf]?/; // LATER parse more wgsl number variants
 
@@ -27,6 +28,17 @@ export const mainTokens = tokenMatcher(
     ws: /\s+/,
   },
   "main"
+);
+
+export const identTokens = tokenMatcher(
+  {
+    longIdent,
+    ws: /\s+/,
+    symbol,
+    digits,
+    quote
+  },
+  "longIdent"
 );
 
 export const moduleTokens = tokenMatcher(
@@ -71,5 +83,5 @@ export const treeImportTokens = tokenMatcher({
   ws: /\s+/,
   importSymbol,
   word,
-  digits
+  digits,
 });

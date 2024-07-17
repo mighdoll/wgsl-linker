@@ -13,6 +13,7 @@ import {
   typeSpecifier,
 } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
+import { dlog } from "berry-pretty";
 
 function testParseWgsl(src: string): AbstractElem[] {
   return parseWgslD(src, undefined, {}, 500);
@@ -315,4 +316,16 @@ test("parse fn with attributes and suffix comma", () => {
     expect(first.kind).eq("fn");
     expect(first.name).eq("main");
   });
+});
+
+test("parse foo::bar(); ", () => {
+  const src = "fn main() { foo::bar(); }";
+  const parsed = testParseWgsl(src);
+  expect(parsed).toMatchSnapshot();
+});
+
+test("parse foo.bar(); ", () => {
+  const src = "fn main() { foo.bar(); }";
+  const parsed = testParseWgsl(src);
+  expect(parsed).toMatchSnapshot();
 });

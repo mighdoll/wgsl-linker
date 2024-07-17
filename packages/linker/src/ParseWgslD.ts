@@ -17,15 +17,12 @@ import {
   setTraceName,
   simpleParser,
   SrcMap,
+  tokens,
   tracing,
-  withSep
+  withSep,
 } from "mini-parse";
-import {
-  AbstractElem,
-  TypeNameElem,
-  TypeRefElem
-} from "./AbstractElems.js";
-import { mainTokens } from "./MatchWgslD.js";
+import { AbstractElem, TypeNameElem, TypeRefElem } from "./AbstractElems.js";
+import { identTokens, mainTokens } from "./MatchWgslD.js";
 import { directive } from "./ParseDirective.js";
 import {
   comment,
@@ -128,12 +125,17 @@ const callishKeyword = simpleParser("keyword", (ctx: ParserContext) => {
   }
 });
 
-export const fnCall = seq(
-  word
-    .tag("name")
-    .map((r) => makeElem("call", r, ["name"]))
-    .tag("calls"), // we collect this in fnDecl, to attach to FnElem
-  "("
+const longIdent = kind(identTokens.longIdent);
+
+export const fnCall = tokens(
+  identTokens,
+  seq(
+    longIdent
+      .tag("name")
+      .map((r) => makeElem("call", r, ["name"]))
+      .tag("calls"), // we collect this in fnDecl, to attach to FnElem
+    "("
+  )
 );
 
 // prettier-ignore
