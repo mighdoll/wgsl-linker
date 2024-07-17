@@ -9,7 +9,7 @@ import {
 } from "./ImportTree.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { ParsedModules } from "./ParsedModules.js";
-import { TextExport, TextModule } from "./ParseModule.js";
+import { TextModule } from "./ParseModule.js";
 import { overlapTail } from "./Util.js";
 
 export interface ResolveMap {
@@ -82,10 +82,6 @@ export function resolveImports( // TODO rename to resolutionMap
     exportMap: new Map(exportEntries),
     pathsMap: new Map(pathEntries),
   };
-}
-
-function last<T>(arr: T[]): T {
-  return arr[arr.length - 1];
 }
 
 function resolveTreeImport(
@@ -201,41 +197,12 @@ function impToExportPath(
   return undefined;
 }
 
-export function logResolveMap(resolveMap: ResolveMap): void {
-  const expMap = [...resolveMap.exportMap.entries()].map(([imp, exp]) => {
-    return `${imp} -> ${exp.module.name}/${(exp.exp as TextExport).ref.name}`;
-  });
-  const pathMap = [...resolveMap.pathsMap.entries()].map(([imp, exp]) => {
-    return `${imp.join("/")} -> ${exp.join("/")}`;
-  });
-  dlog({ expMap, pathMap });
-}
-
-// function matchFullExport(
-//   impSegments: string[],
-//   resolveMap: ResolveMap
-// ): ModuleExport | undefined {
-//   for (const [fullImpPath, exp] of resolveMap.exportMap.entries()) {
-//     if (arrayEquals(fullImpPath, impSegments)) {
-//       return exp;
-//     }
-//   }
-// }
-
-// // match case where import path extends an path entry (TODO testme)
-// for (const [, partialExpPath] of resolveMap.pathsMap.entries()) {
-//   const combinedImpPath = [...partialExpPath, ...importSegments];
-//   dlog({combinedImpPath})
-//   const combinedMatch = matchFullExport(combinedImpPath, resolveMap);
-//   if (combinedMatch) {
-//     return combinedMatch;
-//   }
-// }
-
-// // match case where import points directly to an export entry
-// if (importSegments.length === 1) {
-//   const modExp = resolveMap.exportMap.get(importSegments[0]);
-//   if (modExp) {
-//     return modExp;
-//   }
+// export function logResolveMap(resolveMap: ResolveMap): void {
+//   const expMap = [...resolveMap.exportMap.entries()].map(([imp, exp]) => {
+//     return `${imp} -> ${exp.module.name}/${(exp.exp as TextExport).ref.name}`;
+//   });
+//   const pathMap = [...resolveMap.pathsMap.entries()].map(([imp, exp]) => {
+//     return `${imp.join("/")} -> ${exp.join("/")}`;
+//   });
+//   dlog({ expMap, pathMap });
 // }

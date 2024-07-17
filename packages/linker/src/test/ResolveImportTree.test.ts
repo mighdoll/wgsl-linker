@@ -1,9 +1,7 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { logResolveMap, matchImport, resolveImports } from "../ResolveImportTree.js";
-import { dlog } from "berry-pretty";
-import path from "path";
+import { matchImport, resolveImports } from "../ResolveImportTree.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
