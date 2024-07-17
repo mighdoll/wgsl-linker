@@ -9,7 +9,7 @@ import {
 } from "./ImportTree.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { ParsedRegistry } from "./ParsedRegistry.js";
-import { TextModule } from "./ParseModule.js";
+import { TextExport, TextModule } from "./ParseModule.js";
 import { overlapTail } from "./Util.js";
 
 export interface ResolveMap {
@@ -58,7 +58,7 @@ class ImportToExportPath {
  *    import pkg::a as b      // pkg::b -> pkg::a     map import path to export path
  *    fn foo() { b::bar(); }  // can now resolve to exported element pkg::a::bar
  */
-export function importResolutionMap( 
+export function importResolutionMap(
   importingModule: TextModule,
   imports: TreeImportElem[],
   registry: ParsedRegistry
@@ -174,7 +174,7 @@ export function matchImport(
     const exp = resolveMap.exportMap.get(expPath);
     if (exp) {
       return exp;
-    } 
+    }
   }
 
   return undefined;

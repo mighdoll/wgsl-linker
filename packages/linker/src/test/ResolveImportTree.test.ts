@@ -65,11 +65,11 @@ test("matchImport simple completing path", () => {
   expect((found?.exp as TextExport).ref.name).eq("foo");
 });
 
-test.skip("matchImport bar::foo()", () => {
+test("matchImport bar::foo()", () => {
   const registry = new ModuleRegistry({
     wgsl: {
       "main.wgsl": `
-         import bar;
+         import bar::foo;
          module main
          fn main() { bar::foo(); }
       `,
