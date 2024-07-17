@@ -8,7 +8,7 @@ import {
   Wildcard,
 } from "./ImportTree.js";
 import { ModuleExport } from "./ModuleRegistry.js";
-import { ParsedModules } from "./ParsedModules.js";
+import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 import { overlapTail } from "./Util.js";
 
@@ -61,7 +61,7 @@ class ImportToExportPath {
 export function resolveImports( // TODO rename to resolutionMap
   importingModule: TextModule,
   imports: TreeImportElem[],
-  registry: ParsedModules
+  registry: ParsedRegistry
 ): ResolveMap {
   const resolveEntries = imports.flatMap((imp) =>
     resolveTreeImport(importingModule, imp, registry)
@@ -87,7 +87,7 @@ export function resolveImports( // TODO rename to resolutionMap
 function resolveTreeImport(
   importingModule: TextModule,
   imp: TreeImportElem,
-  registry: ParsedModules
+  registry: ParsedRegistry
 ): ResolvedEntry[] {
   return recursiveResolve([], [], imp.imports.segments);
 

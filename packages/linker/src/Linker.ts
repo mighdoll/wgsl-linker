@@ -20,7 +20,7 @@ import {
   traverseRefs,
 } from "./TraverseRefs.js";
 import { partition, replaceWords } from "./Util.js";
-import { ParsedModules } from "./ParsedModules.js";
+import { ParsedRegistry } from "./ParsedRegistry.js";
 
 type DirectiveRef = {
   kind: "dir";
@@ -32,7 +32,7 @@ type LoadableRef = TextRef | GeneratorRef | DirectiveRef;
 
 interface Rewriting {
   extParams: Record<string, string>;
-  registry: ParsedModules;
+  registry: ParsedRegistry;
 }
 
 /**
@@ -44,7 +44,7 @@ interface Rewriting {
  */
 export function linkWgslModule(
   srcModule: TextModule,
-  registry: ParsedModules,
+  registry: ParsedRegistry,
   runtimeParams: Record<string, any> = {}
 ): string {
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
@@ -68,7 +68,7 @@ export function linkWgslModule(
  */
 export function findReferences(
   srcModule: TextModule,
-  registry: ParsedModules 
+  registry: ParsedRegistry 
 ): FoundRef[] {
   const visited = new Map<string, string>();
   const found: FoundRef[] = []; // reference to unique elements to add to the linked result

@@ -1,5 +1,5 @@
 import { SrcMap } from "mini-parse";
-import { ParsedModules } from "./ParsedModules.js";
+import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { normalize } from "./PathUtil.js";
 
@@ -116,8 +116,8 @@ export class ModuleRegistry {
   }
   
   /** Parse the text modules in the registry */
-  parsed(runtimeParams: Record<string, any> = {}): ParsedModules {
-    return new ParsedModules(this, runtimeParams);
+  parsed(runtimeParams: Record<string, any> = {}): ParsedRegistry {
+    return new ParsedRegistry(this, runtimeParams);
   }
 
   /** register a function that generates code on demand */
