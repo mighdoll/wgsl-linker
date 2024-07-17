@@ -28,6 +28,24 @@ test("traverse a fn to struct ref", () => {
   expect(exp.elem.name).eq("AStruct");
 });
 
+test("traverse simple rust style import", () => {
+  const main = `
+    import bar::foo;
+    module main
+    fn main() { foo(); }
+  `;
+  const bar = `
+    module bar
+    export fn foo() { }
+  `;
+  const refs = traverseTest(main, bar);
+  const exp = refs[1] as TextRef;
+  expect(exp.kind).eq("txt");
+  expect(exp.elem.kind).eq("fn");
+  expect(exp.elem.name).eq("foo");
+});
+
+
 test("traverse nested import with params and support fn", () => {
   const src = `
     // #import foo(u32)
@@ -475,6 +493,9 @@ function traverseWithLog(
   return { refs, log: logged() };
 }
 
+/** run traverseRefs on the provided wgsl source strings
+ * the first module is treated as the root
+*/
 function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const moduleFiles = Object.fromEntries(
     modules.map((m, i) => [`moduleFile${i}`, m])

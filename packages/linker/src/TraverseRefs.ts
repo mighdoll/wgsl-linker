@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AliasElem,
   CallElem,
@@ -7,8 +8,9 @@ import {
   ImportElem,
   StructElem,
   StructMemberElem,
+  TreeImportElem,
   TypeRefElem,
-  VarElem
+  VarElem,
 } from "./AbstractElems.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import {
@@ -19,6 +21,7 @@ import {
 import { ParsedModules } from "./ParsedModules.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
+import { matchImport } from "./ResolveImportTree.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 
@@ -38,7 +41,7 @@ export interface ExportInfo {
   fromRef: FoundRef;
 
   /** import or extends elem that resolved to this export */
-  fromImport: ImportElem | ExtendsElem;
+  fromImport: ImportElem | ExtendsElem | TreeImportElem;
 
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
@@ -237,7 +240,7 @@ function elemRef(
   const { name } = elem;
   if (importArgRef(srcRef, name)) return [];
 
-  const tradImports = mod.imports as (ImportElem| ExtendsElem)[];
+  const tradImports = mod.imports as (ImportElem | ExtendsElem)[];
   const foundRef =
     importRef(srcRef, name, mod, tradImports, registry) ??
     importingRef(srcRef, name, mod, registry) ??
@@ -268,7 +271,7 @@ function extendsRefs(
   const merges = elem.extendsElems;
   if (!merges) return [];
   return merges.flatMap((merge) => {
-    const tradImports = mod.imports as (ImportElem| ExtendsElem)[];
+    const tradImports = mod.imports as (ImportElem | ExtendsElem)[];
     const foundRef = importRef(srcRef, merge.name, mod, tradImports, registry);
     if (foundRef) return [foundRef];
 
@@ -293,40 +296,78 @@ function importRef(
   imports: (ImportElem | ExtendsElem)[],
   registry: ParsedModules
 ): TextRef | GeneratorRef | undefined {
-  const fromImport = imports.find((imp) => importName(imp) == name);
-  const modExp = matchingExport(fromImport, impMod, registry);
-  if (!modExp || !fromImport) return;
-  const expMod = modExp.module;
-  const expImpArgs = matchImportExportArgs(
-    impMod,
-    fromImport,
-    expMod,
-    modExp.exp
-  );
-  const expInfo: ExportInfo = {
-    fromImport,
-    fromRef,
-    expImpArgs,
-  };
-  if (expMod.kind === "text") {
-    const exp = modExp.exp as TextExport;
+  const resolveMap = registry.importResolveMap(impMod);
+  const modExp = matchImport(name, resolveMap);
+  const fromImport = imports[0]; // TODO implement
+  if (modExp && fromImport) {
+    const expMod = modExp.module;
+    const expImpArgs = [] as [string, string][]; // TODO implement
+    const expInfo: ExportInfo = {
+      fromImport,
+      fromRef,
+      expImpArgs,
+    };
+    if (expMod.kind === "text") {
+      const exp = modExp.exp as TextExport;
 
-    return {
-      kind: "txt",
-      expInfo,
+      return {
+        kind: "txt",
+        expInfo,
+        expMod,
+        elem: exp.ref,
+        proposedName: fromImport.as ?? exp.ref.name,
+      };
+    } else if (expMod.kind === "generator") {
+      const exp = modExp.exp as GeneratorExport;
+      return {
+        kind: "gen",
+        expInfo,
+        expMod,
+        proposedName: fromImport.as ?? exp.name,
+        name: exp.name,
+      };
+    }
+  } else {
+    return oldStyleImports(); 
+  }
+
+  function oldStyleImports (): TextRef | GeneratorRef | undefined {
+    // TODO
+    const fromImport = imports.find((imp) => importName(imp) == name);
+    const modExp = matchingExport(fromImport, impMod, registry);
+    if (!modExp || !fromImport) return;
+    const expMod = modExp.module;
+    const expImpArgs = matchImportExportArgs(
+      impMod,
+      fromImport,
       expMod,
-      elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name,
+      modExp.exp
+    );
+    const expInfo: ExportInfo = {
+      fromImport,
+      fromRef,
+      expImpArgs,
     };
-  } else if (expMod.kind === "generator") {
-    const exp = modExp.exp as GeneratorExport;
-    return {
-      kind: "gen",
-      expInfo,
-      expMod,
-      proposedName: fromImport.as ?? exp.name,
-      name: exp.name,
-    };
+    if (expMod.kind === "text") {
+      const exp = modExp.exp as TextExport;
+
+      return {
+        kind: "txt",
+        expInfo,
+        expMod,
+        elem: exp.ref,
+        proposedName: fromImport.as ?? exp.ref.name,
+      };
+    } else if (expMod.kind === "generator") {
+      const exp = modExp.exp as GeneratorExport;
+      return {
+        kind: "gen",
+        expInfo,
+        expMod,
+        proposedName: fromImport.as ?? exp.name,
+        name: exp.name,
+      };
+    }
   }
 }
 
@@ -452,7 +493,7 @@ function isDefined<T>(a: T | undefined): asserts a is T {
 function matchingExport(
   imp: ImportElem | ExtendsElem | undefined,
   mod: TextModule,
-  registry: ParsedModules 
+  registry: ParsedModules
 ): ModuleExport | undefined {
   if (!imp) return;
 
