@@ -34,6 +34,8 @@ import {
 
 /** parser that recognizes key parts of WGSL and also directives like #import */
 
+const longIdent = kind(identTokens.longIdent);
+
 // prettier gets confused if we leave the quoted parens inline so make consts for them here
 const lParen = "(";
 const rParen = ")";
@@ -82,7 +84,7 @@ export const template: Parser<any> = seq(
 
 /** find possible references to user structs in this type specifier and any templates */
 export const typeSpecifier: Parser<TypeRefElem[]> = seq(
-  word.tag(possibleTypeRef),
+  tokens(identTokens, longIdent.tag(possibleTypeRef)),
   opt(template)
 ).map((r) =>
   r.tags[possibleTypeRef].map((name) => {
@@ -125,7 +127,6 @@ const callishKeyword = simpleParser("keyword", (ctx: ParserContext) => {
   }
 });
 
-const longIdent = kind(identTokens.longIdent);
 
 export const fnCall = tokens(
   identTokens,

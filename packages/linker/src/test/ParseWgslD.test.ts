@@ -329,3 +329,16 @@ test("parse foo.bar(); ", () => {
   const parsed = testParseWgsl(src);
   expect(parsed).toMatchSnapshot();
 });
+
+
+test("parse let x: foo::bar; ", () => {
+  const src = "fn main() { let x: foo::bar = 1; }";
+  const parsed = testParseWgsl(src);
+  expect(parsed).toMatchSnapshot();
+});
+
+test("parse let x: foo.bar; ", () => {
+  const src = "fn main() { let x: foo.bar = 1; }";
+  const parsed = testParseWgsl(src);
+  expect(parsed).toMatchSnapshot();
+});

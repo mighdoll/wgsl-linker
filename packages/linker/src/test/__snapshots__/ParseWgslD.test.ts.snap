@@ -216,6 +216,58 @@ exports[`parse global diagnostic 1`] = `
 ]
 `;
 
+exports[`parse let x: foo.bar;  1`] = `
+[
+  {
+    "calls": [],
+    "end": 33,
+    "kind": "fn",
+    "name": "main",
+    "nameElem": {
+      "end": 7,
+      "kind": "fnName",
+      "name": "main",
+      "start": 3,
+    },
+    "start": 0,
+    "typeRefs": [
+      {
+        "end": 26,
+        "kind": "typeRef",
+        "name": "foo.bar",
+        "start": 19,
+      },
+    ],
+  },
+]
+`;
+
+exports[`parse let x: foo::bar;  1`] = `
+[
+  {
+    "calls": [],
+    "end": 34,
+    "kind": "fn",
+    "name": "main",
+    "nameElem": {
+      "end": 7,
+      "kind": "fnName",
+      "name": "main",
+      "start": 3,
+    },
+    "start": 0,
+    "typeRefs": [
+      {
+        "end": 27,
+        "kind": "typeRef",
+        "name": "foo::bar",
+        "start": 19,
+      },
+    ],
+  },
+]
+`;
+
 exports[`parse root level ;; 1`] = `[]`;
 
 exports[`parse simple alias 1`] = `
