@@ -87,14 +87,10 @@ export function last<T>(a: T[]): T | undefined {
 }
 
 /**
- * Overlap two arrays, returning their combination if they overlap.
- *
- * If a suffix of a equals the prefix of b, return
- * the combined array a, b (with the overlap removed from b).
- *
- * Otherwise, return undefined;
+ * Overlap two arrays, returning the tail of b if a is a prefix of b.
+ * Otherwise, return undefined.
  */
-export function overlap<T>(a: T[], b: T[]): T[] | undefined {
+export function overlapTail<T>(a: T[], b: T[]): T[] | undefined {
   let overlapSize = Math.min(a.length, b.length);
 
   while (overlapSize > 0) {
@@ -108,7 +104,7 @@ export function overlap<T>(a: T[], b: T[]): T[] | undefined {
   }
 
   if (overlapSize) {
-    return [...a, ...b.slice(overlapSize)];
+    return b.slice(overlapSize);
   }
 }
 
