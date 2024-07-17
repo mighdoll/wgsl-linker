@@ -57,9 +57,8 @@ test(`import foo, boo from ./bar`, (ctx) => {
 test(`import bar::foo`, (ctx) => {
   linkTest(ctx.task.name, {
     linked: `
-      fn main() {
-        foo();
-      }
+      fn main() { foo(); }
+
       fn foo() { }
     `,
   });
