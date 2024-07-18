@@ -40,7 +40,7 @@ export interface ExportInfo {
   /** reference that led us to find this ref */
   fromRef: FoundRef;
 
-  /** import or extends elem that resolved to this export */
+  /** import or extends elem that resolved to this export (so we can later separate out extends) */
   fromImport: ImportElem | ExtendsElem | TreeImportElem;
 
   /** mapping from export arguments to import arguments

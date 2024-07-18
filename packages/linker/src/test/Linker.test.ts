@@ -678,16 +678,16 @@ test("ext params don't replace override", () => {
 
 test("#import using replace template and ext param", () => {
   const src = `
-    // #module main
-    // #import foo
+    #module main
+    #import foo
 
     fn main() { foo(); }
   `;
 
   const module1 = `
-    // #template simple
+    #template simple
 
-    // #export
+    #export
     fn foo () {
       for (var step = 0; step < Threads; step++) { 
       }
@@ -721,16 +721,16 @@ test("#template in src", () => {
 
 test("#import using simple template and imp/exp param", () => {
   const src = `
-    // #module main
-    // #import foo(128)
+    #module main
+    #import foo(128)
 
     fn main() { foo(); }
   `;
 
   const module1 = `
-    // #template simple
+    #template simple
 
-    // #export(threads)
+    #export(threads)
     fn foo () {
       for (var step = 0; step < threads; step++) {
         /* Foo */
