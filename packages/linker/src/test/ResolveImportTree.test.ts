@@ -2,6 +2,11 @@ import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
 import { importResolutionMap } from "../ImportResolutionMap.js";
+import {
+  exportsToStrings,
+  logResolveMap,
+  pathsToStrings,
+} from "../LogResolveMap.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -37,7 +42,36 @@ test("simple tree", () => {
   expect(expSegments).deep.eq(["bar", "foo"]);
 });
 
+test("tree with path segment list", () => {
+  const registry = new ModuleRegistry({
+    wgsl: {
+      "main.wgsl": `
+         import bar::{foo, zah};
+         module main
+         fn main() { foo(); zah();}
+      `,
+      "bar.wgsl": `
+         module bar
 
-test.skip("tree with path segment list");
+         export fn foo() { }
+         export fn zah() { }
+        `,
+    },
+  });
+  const parsedModules = registry.parsed();
+  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
+  const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
+  expect(pathsToStrings(resolveMap)).deep.eq([
+    "bar/foo -> bar/foo",
+    "bar/zah -> bar/zah",
+  ]);
+  expect(exportsToStrings(resolveMap)).deep.eq([
+    "bar/foo -> bar/foo",
+    "bar/zah -> bar/zah",
+  ]);
+});
+
 test.skip("tree with trailing wildcard");
 test.skip("tree with generator");
+test.skip("tree with segment list of trees");

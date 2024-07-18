@@ -97,6 +97,7 @@ function resolveTreeImport(
     remainingPath: PathSegment[]
   ): ResolvedEntry[] {
     const [segment, ...rest] = remainingPath;
+    // dlog({ segment, resolvedImportPath, resolvedExportPath });
     if (segment === undefined) {
       return [];
     }
@@ -112,19 +113,24 @@ function resolveTreeImport(
     }
     if (segment instanceof SegmentList) {
       // resolve path with each element in the list
-      return segment.list.flatMap((elem) =>
-        recursiveResolve(resolvedImportPath, resolvedExportPath, [
-          elem,
-          ...rest,
-        ])
-      );
+      return segment.list.flatMap((elem) => {
+        const result = recursiveResolve(
+          resolvedImportPath,
+          resolvedExportPath,
+          [elem, ...rest]
+        );
+        return result;
+      });
     }
     if (segment instanceof Wildcard) {
       // TODO
       return [];
     } else if (segment instanceof ImportTree) {
-      // TODO
-      return [];
+      return recursiveResolve(
+        resolvedImportPath,
+        resolvedExportPath,
+        segment.segments
+      );
     }
     console.error("unknown segment type", segment); // should be impossible
     return [];
@@ -134,7 +140,7 @@ function resolveTreeImport(
     impPath: string[],
     expPath: string[]
   ): ResolvedEntry[] {
-    const entries:ResolvedEntry[] = [new ImportToExportPath(impPath, expPath)];
+    const entries: ResolvedEntry[] = [new ImportToExportPath(impPath, expPath)];
     const expMod = registry.getModuleExport2(importingModule, expPath);
     // try and resolve as an exported element
     if (expMod) {
