@@ -1,5 +1,3 @@
-import { dlog } from "berry-pretty";
-
 export function multiKeySet<A, B, V>(
   m: Map<A, Map<B, V>>,
   a: A,
@@ -95,7 +93,7 @@ export function overlapTail<T>(a: T[], b: T[]): T[] | undefined {
 
   while (overlapSize > 0) {
     const suffix = a.slice(-overlapSize);
-    const prefix = b.slice(0, overlapSize); 
+    const prefix = b.slice(0, overlapSize);
     if (arrayEquals(suffix, prefix)) {
       break;
     } else {
