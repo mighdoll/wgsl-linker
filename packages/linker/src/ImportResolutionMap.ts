@@ -134,26 +134,12 @@ function resolveTreeImport(
     impPath: string[],
     expPath: string[]
   ): ResolvedEntry[] {
-    // try and resolve as an exported element
+    const entries:ResolvedEntry[] = [new ImportToExportPath(impPath, expPath)];
     const expMod = registry.getModuleExport2(importingModule, expPath);
+    // try and resolve as an exported element
     if (expMod) {
-      return [
-        new ImportToExport(impPath, expMod),
-        new ImportToExportPath(impPath, expPath),
-      ];
+      entries.push(new ImportToExport(impPath, expMod));
     }
-    // otherwise return as a module path
-    dlog("resolved to Module Path", { impPath, expPath });
-    return [new ImportToExportPath(impPath, expPath)];
+    return entries;
   }
 }
-
-// export function logResolveMap(resolveMap: ResolveMap): void {
-//   const expMap = [...resolveMap.exportMap.entries()].map(([imp, exp]) => {
-//     return `${imp} -> ${exp.module.name}/${(exp.exp as TextExport).ref.name}`;
-//   });
-//   const pathMap = [...resolveMap.pathsMap.entries()].map(([imp, exp]) => {
-//     return `${imp.join("/")} -> ${exp.join("/")}`;
-//   });
-//   dlog({ expMap, pathMap });
-// }
