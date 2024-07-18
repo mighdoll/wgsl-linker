@@ -63,6 +63,21 @@ export const importTests: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `call foo::bar()`,
+    notes: "module path at call site",
+    src: {
+      "./main.wgsl": `
+         import foo::bar;
+         module main
+         fn main() { foo::bar(); }
+       `,
+      "./bar.wgsl": `
+          module foo
+          export fn bar() { }
+       `,
+    },
+  },
 ];
 
 export default importTests;

@@ -64,6 +64,17 @@ test(`import bar::foo`, (ctx) => {
   });
 });
 
+test(`call foo::bar()`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() { bar(); }
+
+      fn bar() { }
+    `,
+  });
+});
+    
+
 function linkTest(name: string, expectation: LinkExpectation): void {
   const exampleSrc = examplesByName.get(name);
   if (!exampleSrc) {
