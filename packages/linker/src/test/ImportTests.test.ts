@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { importTests } from "../../../shared-tests/src/test-cases/ImportTests.js";
+import { importCases } from "../../../shared-tests/src/test-cases/ImportCases.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { trimSrc } from "./shared/StringUtil.js";
 
@@ -10,7 +10,7 @@ interface LinkExpectation {
 }
 
 // wgsl example src, indexed by name
-const examplesByName = new Map(importTests.map((t) => [t.name, t.src]));
+const examplesByName = new Map(importCases.map((t) => [t.name, t.src]));
 
 test('import { foo } from "./bar";', (ctx) => {
   linkTest(ctx.task.name, {

@@ -5,7 +5,9 @@
   "scripts": {
     "prepublishOnly": "run-s build",
     "build": "esbuild --bundle --platform=node --outfile=bin/tests-to-json src/tools/tests-to-json.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "build:cases": "node bin/tests-to-json",
+    "cases": "run-s build build:cases"
   },
   "files": [
     "bin"

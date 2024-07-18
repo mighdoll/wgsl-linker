@@ -11,10 +11,10 @@ The format is described in:
 [TestSchema.ts](./src/test-cases/TestSchema.ts)
 
 JSON version:
-[import-tests.json](./src/test-cases/import-tests.json)
+[import-cases.json](./src/test-cases/import-cases.json)
 
 TypeScript version:
-[ImportTests.ts](./src/test-cases/ImportTests.ts)
+[ImportCases.ts](./src/test-cases/ImportCases.ts)
 
 ## Add Examples in TypeScript
 

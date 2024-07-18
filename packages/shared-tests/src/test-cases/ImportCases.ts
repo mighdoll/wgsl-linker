@@ -1,6 +1,6 @@
 import { WgslTestSrc } from "./TestSchema.js";
 
-export const importTests: WgslTestSrc[] = [
+export const importCases: WgslTestSrc[] = [
   {
     name: `import { foo } from "./bar";`,
     src: {
@@ -112,4 +112,4 @@ export const importTests: WgslTestSrc[] = [
   },
 ];
 
-export default importTests;
+export default importCases;
