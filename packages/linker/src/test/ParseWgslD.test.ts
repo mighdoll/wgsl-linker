@@ -330,7 +330,6 @@ test("parse foo.bar(); ", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-
 test("parse let x: foo::bar; ", () => {
   const src = "fn main() { let x: foo::bar = 1; }";
   const parsed = testParseWgsl(src);
@@ -341,4 +340,17 @@ test("parse let x: foo.bar; ", () => {
   const src = "fn main() { let x: foo.bar = 1; }";
   const parsed = testParseWgsl(src);
   expect(parsed).toMatchSnapshot();
+});
+
+test("parse var x: foo::bar;", () => {
+  const src = `
+     import foo::bar;
+     module main
+     var x: foo::bar;
+     fn main() { }
+  `;
+  const parsed = testParseWgsl(src);
+
+  const varRef = parsed.find((e) => e.kind === "var");
+  expect(varRef?.typeRefs[0].name).eq("foo::bar");
 });
