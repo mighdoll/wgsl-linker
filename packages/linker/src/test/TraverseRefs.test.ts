@@ -5,6 +5,7 @@ import { ModuleRegistry } from "../ModuleRegistry.js";
 import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
 import { printRef } from "../RefDebug.js";
 import { refLog } from "../LinkerLogging.js";
+import { dlog } from "berry-pretty";
 
 test("traverse a fn to struct ref", () => {
   const src = `
@@ -44,7 +45,6 @@ test("traverse simple rust style import", () => {
   expect(exp.elem.kind).eq("fn");
   expect(exp.elem.name).eq("foo");
 });
-
 
 test("traverse nested import with params and support fn", () => {
   const src = `
@@ -215,6 +215,24 @@ test("mismatched import export params", () => {
         #export(C)    Ln 2
         ^"
   `);
+});
+
+test("traverse var to rust style struct ref", () => {
+  const main = `
+     import foo::bar;
+     module main
+     var x: bar;
+     fn main() { }
+   `;
+  const foo = `
+      module foo
+      export struct bar { f: f32 }
+   `;
+
+  const refs = traverseTest(main, foo);
+  refs.map((r) => printRef(r));
+  const structRef = refs.find(ref => ref.kind === "txt" && ref.elem.kind === "struct");
+  expect(structRef).toBeDefined();
 });
 
 test("traverse a struct to struct ref", () => {
@@ -481,7 +499,6 @@ test("parse texture_storage_2d with texture format in type position", () => {
   expect(log).is.empty;
 });
 
-
 /** run traverseRefs with no filtering and return the refs and the error log output */
 function traverseWithLog(
   src: string,
@@ -495,7 +512,7 @@ function traverseWithLog(
 
 /** run traverseRefs on the provided wgsl source strings
  * the first module is treated as the root
-*/
+ */
 function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const moduleFiles = Object.fromEntries(
     modules.map((m, i) => [`moduleFile${i}`, m])
@@ -505,13 +522,9 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const refs: FoundRef[] = [];
   const parsed = registry.parsed();
   const mainModule = parsed.findTextModule("./main")!;
-  traverseRefs(
-    mainModule,
-    parsed,
-    (ref) => {
-      refs.push(ref);
-      return true;
-    }
-  );
+  traverseRefs(mainModule, parsed, (ref) => {
+    refs.push(ref);
+    return true;
+  });
   return refs;
 }
