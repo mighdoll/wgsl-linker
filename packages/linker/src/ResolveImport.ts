@@ -1,10 +1,9 @@
-import { TreeImportElem } from "./AbstractElems.js";
 import { ResolveMap } from "./ImportResolutionMap.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { overlapTail } from "./Util.js";
 
 export interface ResolvedImport {
-  modExp: ModuleExport;  
+  modExp: ModuleExport;
   // importElem: TreeImportElem;
   callSegments: string[];
 }
@@ -36,8 +35,8 @@ export function resolveImport(
     if (modExp) {
       return {
         modExp,
-        callSegments
-      }
+        callSegments,
+      };
     }
   }
 
