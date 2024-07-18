@@ -20,7 +20,7 @@ import {
 } from "./ModuleRegistry.js";
 import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
-import { groupBy } from "./Util.js";
+import { groupBy, last } from "./Util.js";
 import { resolveImport } from "./ResolveImport.js";
 
 export type FoundRef = TextRef | GeneratorRef;
@@ -297,9 +297,11 @@ function importRef(
   registry: ParsedRegistry
 ): TextRef | GeneratorRef | undefined {
   const resolveMap = registry.importResolveMap(impMod);
-  const modExp = resolveImport(name, resolveMap);
+  const resolved = resolveImport(name, resolveMap);
   const fromImport = imports[0]; // TODO implement
-  if (modExp && fromImport) {
+  if (resolved) {
+    const { modExp, callSegments } = resolved;
+    const proposedName = last(callSegments)!;
     const expMod = modExp.module;
     const expImpArgs = [] as [string, string][]; // TODO implement
     const expInfo: ExportInfo = {
@@ -309,13 +311,12 @@ function importRef(
     };
     if (expMod.kind === "text") {
       const exp = modExp.exp as TextExport;
-
       return {
         kind: "txt",
         expInfo,
         expMod,
         elem: exp.ref,
-        proposedName: fromImport.as ?? exp.ref.name,
+        proposedName,
       };
     } else if (expMod.kind === "generator") {
       const exp = modExp.exp as GeneratorExport;
@@ -323,7 +324,7 @@ function importRef(
         kind: "gen",
         expInfo,
         expMod,
-        proposedName: fromImport.as ?? exp.name,
+        proposedName,
         name: exp.name,
       };
     }

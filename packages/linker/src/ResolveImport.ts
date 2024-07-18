@@ -1,6 +1,13 @@
+import { TreeImportElem } from "./AbstractElems.js";
 import { ResolveMap } from "./ImportResolutionMap.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { overlapTail } from "./Util.js";
+
+export interface ResolvedImport {
+  modExp: ModuleExport;  
+  // importElem: TreeImportElem;
+  callSegments: string[];
+}
 
 /** resolve an import to an export using the resolveMap
  * @param callPath the reference to the import, e.g. "foo::bar" from
@@ -18,16 +25,19 @@ import { overlapTail } from "./Util.js";
 export function resolveImport(
   callPath: string,
   resolveMap: ResolveMap
-): ModuleExport | undefined {
-  const importSegments = callPath.includes("::")
+): ResolvedImport | undefined {
+  const callSegments = callPath.includes("::")
     ? callPath.split("::")
     : callPath.split(".");
 
-  const expPath = impToExportPath(importSegments, resolveMap);
+  const expPath = impToExportPath(callSegments, resolveMap);
   if (expPath) {
-    const exp = resolveMap.exportMap.get(expPath);
-    if (exp) {
-      return exp;
+    const modExp = resolveMap.exportMap.get(expPath);
+    if (modExp) {
+      return {
+        modExp,
+        callSegments
+      }
     }
   }
 

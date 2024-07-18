@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AliasElem,
   FnElem,
@@ -9,7 +8,7 @@ import {
   VarElem,
 } from "./AbstractElems.js";
 import { refLog } from "./LinkerLogging.js";
-import { ModuleRegistry } from "./ModuleRegistry.js";
+import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
 import {
@@ -20,7 +19,6 @@ import {
   traverseRefs,
 } from "./TraverseRefs.js";
 import { partition, replaceWords } from "./Util.js";
-import { ParsedRegistry } from "./ParsedRegistry.js";
 
 type DirectiveRef = {
   kind: "dir";
@@ -68,7 +66,7 @@ export function linkWgslModule(
  */
 export function findReferences(
   srcModule: TextModule,
-  registry: ParsedRegistry 
+  registry: ParsedRegistry
 ): FoundRef[] {
   const visited = new Map<string, string>();
   const found: FoundRef[] = []; // reference to unique elements to add to the linked result
@@ -77,14 +75,14 @@ export function findReferences(
   traverseRefs(srcModule, registry, handleRef);
   return found;
 
-  /** 
+  /**
    * process one reference found by the reference traversal
-   * 
+   *
    * set any renaming necessary for 'import as' or global uniqueness.
-   * 
-   * @returns true if the reference is new and so 
-    * the traverse should continue to recurse.
-  */
+   *
+   * @returns true if the reference is new and so
+   * the traverse should continue to recurse.
+   */
   function handleRef(ref: FoundRef): boolean {
     let continueTraverse = false;
 
@@ -98,11 +96,8 @@ export function findReferences(
       continueTraverse = true;
     }
 
-    // mutate the rename field in the ref if appropriate
-    if (refName(ref) !== linkName) {
-      if (ref.rename) console.error("rename already?", ref.rename, linkName);
-      ref.rename = linkName;
-    }
+    // always set the rename field to rewrite calls with module path prefixes and/or uniquification
+    ref.rename = linkName;
 
     return continueTraverse;
   }
@@ -110,8 +105,8 @@ export function findReferences(
 
 /**
  * Calculate a unique name for a top level element like a struct or fn.
- * @param proposedName 
- * @param rootNames 
+ * @param proposedName
+ * @param rootNames
  * @returns the unique name (which may be the proposed name if it's so far unique)
  */
 function uniquifyName(
