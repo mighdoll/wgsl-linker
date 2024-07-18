@@ -78,6 +78,38 @@ export const importTests: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `import foo::bar; var x:bar;`,
+    notes: "struct reference",
+    src: {
+      "./main.wgsl": `
+         import foo::bar;
+         module main
+         var x: bar;
+         fn main() { }
+       `,
+      "./bar.wgsl": `
+          module foo
+          export struct bar { f: f32 }
+       `,
+    },
+  },
+  {
+    name: `var x: foo::bar;`,
+    notes: "struct reference with module path",
+    src: {
+      "./main.wgsl": `
+         import foo::bar;
+         module main
+         var x: foo::bar;
+         fn main() { }
+       `,
+      "./bar.wgsl": `
+          module foo
+          export struct bar { f: f32 }
+       `,
+    },
+  },
 ];
 
 export default importTests;
