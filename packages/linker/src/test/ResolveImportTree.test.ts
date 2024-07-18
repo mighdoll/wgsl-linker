@@ -1,7 +1,8 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { TextExport, TextModule } from "../ParseModule.js";
-import { resolveImport, importResolutionMap } from "../ImportResolutionMap.js";
+import { importResolutionMap } from "../ImportResolutionMap.js";
+import { resolveImport } from "../ResolveImport.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -36,7 +37,6 @@ test("simple tree", () => {
   expect(impSegments).deep.eq(["bar", "foo"]);
   expect(expSegments).deep.eq(["bar", "foo"]);
 });
-
 
 test("matchImport simple completing path", () => {
   const registry = new ModuleRegistry({

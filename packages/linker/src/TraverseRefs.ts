@@ -21,7 +21,7 @@ import {
 import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { groupBy } from "./Util.js";
-import { resolveImport } from "./ImportResolutionMap.js";
+import { resolveImport } from "./ResolveImport.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 
@@ -99,7 +99,7 @@ export function traverseRefs(
   registry: ParsedRegistry,
   fn: (ref: FoundRef) => boolean
 ): void {
-  const { aliases, fns, structs, vars, imports } = srcModule;
+  const { aliases, fns, structs, vars } = srcModule;
   const expMod = srcModule;
   const srcRefs: TextRef[] = [...structs, ...vars, ...fns, ...aliases].map(
     (elem) => ({
