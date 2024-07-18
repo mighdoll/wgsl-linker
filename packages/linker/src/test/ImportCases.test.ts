@@ -114,6 +114,18 @@ test(`import foo::{bar, zah}`, (ctx) => {
   });
 });
 
+test.skip(`import foo::{bar::jan::zah, doo}`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() { zah(); doo(); }
+
+      fn zah() { }
+
+      fn doo() { }
+    `,
+  });
+});
+
 function linkTest(name: string, expectation: LinkExpectation): void {
   const exampleSrc = examplesByName.get(name);
   if (!exampleSrc) {
