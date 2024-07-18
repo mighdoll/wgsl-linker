@@ -95,13 +95,13 @@ export const importCases: WgslTestSrc[] = [
     },
   },
   {
-    name: `var x: foo::bar;`,
+    name: `var y: foo::bar;`,
     notes: "struct reference with module path",
     src: {
       "./main.wgsl": `
          import foo::bar;
          module main
-         var x: foo::bar;
+         var y: foo::bar;
          fn main() { }
        `,
       "./bar.wgsl": `

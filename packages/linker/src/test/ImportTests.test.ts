@@ -88,6 +88,20 @@ test(`import foo::bar; var x:bar;`, (ctx) => {
   });
 });
 
+test(`var y: foo::bar;`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      var y: bar;
+
+      fn main() { }
+
+      struct bar {
+        f: f32
+      }
+    `,
+  });
+});
+
 function linkTest(name: string, expectation: LinkExpectation): void {
   const exampleSrc = examplesByName.get(name);
   if (!exampleSrc) {
