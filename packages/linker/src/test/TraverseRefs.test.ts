@@ -230,7 +230,6 @@ test("traverse var to rust style struct ref", () => {
    `;
 
   const refs = traverseTest(main, foo);
-  refs.map((r) => printRef(r));
   const structRef = refs.find(ref => ref.kind === "txt" && ref.elem.kind === "struct");
   expect(structRef).toBeDefined();
 });

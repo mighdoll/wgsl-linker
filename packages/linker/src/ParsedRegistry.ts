@@ -10,6 +10,7 @@ import {
 import { parseModule, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
 import { importResolutionMap, ResolveMap } from "./ImportResolutionMap.js";
+import { dlog } from "berry-pretty";
 
 /** parse wgsl files and provided indexed access to modules and exports */
 export class ParsedRegistry {
@@ -19,7 +20,7 @@ export class ParsedRegistry {
   private textModules: TextModule[] = [];
 
   // map from export names to a map of module names to exports // TODO rm
-  private exports = new Map<string, ModuleExport[]>(); 
+  private exports = new Map<string, ModuleExport[]>();
 
   constructor(
     public registry: ModuleRegistry,

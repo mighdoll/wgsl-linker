@@ -1,4 +1,6 @@
+import { dlog } from "berry-pretty";
 import { ResolveMap } from "./ImportResolutionMap.js";
+import { logResolveMap } from "./LogResolveMap.js";
 import { ModuleExport } from "./ModuleRegistry.js";
 import { overlapTail } from "./Util.js";
 
@@ -33,10 +35,7 @@ export function resolveImport(
   if (expPath) {
     const modExp = resolveMap.exportMap.get(expPath);
     if (modExp) {
-      return {
-        modExp,
-        callSegments,
-      };
+      return { modExp, callSegments };
     }
   }
 
