@@ -44,7 +44,7 @@ export const identTokens = tokenMatcher(
 export const moduleTokens = tokenMatcher(
   {
     ws: /\s+/,
-    moduleName: /[a-zA-Z_][\w./-]*/,
+    moduleName: /[a-zA-Z_][\w./:-]*/,
   },
   "moduleName"
 );

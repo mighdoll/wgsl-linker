@@ -132,6 +132,18 @@ test("module foo.bar.ca", (ctx) => {
   expect((appState[0] as ModuleElem).name).eq("foo.bar.ca");
 });
 
+test("module foo::bar::ba", (ctx) => {
+  const appState = parseWgslD(ctx.task.name);
+  expect(appState[0].kind).eq("module");
+  expect((appState[0] as ModuleElem).name).eq("foo::bar::ba");
+});
+
+test("module foo/bar/ba", (ctx) => {
+  const appState = parseWgslD(ctx.task.name);
+  expect(appState[0].kind).eq("module");
+  expect((appState[0] as ModuleElem).name).eq("foo/bar/ba");
+});
+
 test("parse import with numeric types", () => {
   const nums = "1u 2.0F 0x010 -7.0 1e7".split(" ");
   const src = `#import foo(${nums.join(",")})`;
