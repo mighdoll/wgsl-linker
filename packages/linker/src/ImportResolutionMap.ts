@@ -12,7 +12,7 @@ import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 
 export interface ResolveMap {
-  // map from export path string to resolved export
+  // map from export path string "pkg/foo/bar/exp" to resolved export
   exportMap: Map<string, ModuleExport>;
   // map from caller path to exporter path
   pathsMap: Map<string[], string[]>;
