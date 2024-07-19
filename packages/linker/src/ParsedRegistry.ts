@@ -49,7 +49,6 @@ export class ParsedRegistry {
     src: string,
     params: Record<string, any> = {},
     fileName: string,
-    moduleName?: string
   ): void {
     const newFileName = fileName && normalize(fileName);
     const m = parseModule(
@@ -57,7 +56,6 @@ export class ParsedRegistry {
       this.registry.templates,
       newFileName,
       params,
-      moduleName
     );
     this.addTextModule(m);
   }

@@ -68,7 +68,6 @@ export function parseModule(
   templates: Map<string, ApplyTemplateFn> = new Map(),
   fileName = `/unnamed-${unnamedFileDex++}`,
   params: Record<string, any> = {},
-  defaultModuleName?: string
 ): TextModule {
   const srcMap = preProcess(src, params, templates);
 
@@ -91,7 +90,7 @@ export function parseModule(
   const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(parsed, srcMap);
 
-  const name = moduleName ?? defaultModuleName ?? `module${unnamedModuleDex++}`;
+  const name = moduleName ?? `module${unnamedModuleDex++}`;
   const kind = "text";
   return {
     ...{ kind, src, srcMap, preppedSrc, fileName, name },
