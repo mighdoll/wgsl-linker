@@ -114,7 +114,7 @@ test(`import foo::{bar, zah}`, (ctx) => {
   });
 });
 
-test.skip(`import foo::{bar::jan::zah, doo}`, (ctx) => {
+test(`import foo::{bar::jan::zah, doo}`, (ctx) => {
   linkTest(ctx.task.name, {
     linked: `
       fn main() { zah(); doo(); }

@@ -127,7 +127,23 @@ export const exportDirective = seq(
   r.app.state.push(e);
 });
 
-const moduleDirective = oneArgDirective("module");
+const moduleDirective = seq(
+    or("module", "#module"),
+    tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
+    eolf
+  ).map((r) => {
+    const e = makeElem("module", r);
+    e.name = normalizeModulePath(r.tags.name[0]);
+    r.app.state.push(e);
+  });
+
+function normalizeModulePath(name: string): string {
+  if (name.includes("::")) {
+    const result = name.split("::").join("/"); 
+    return result;
+  }
+  return name;
+}
 
 const templateDirective = oneArgDirective("template");
 
