@@ -10,21 +10,17 @@ import {
 import { parseModule, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
 import { importResolutionMap, ResolveMap } from "./ImportResolutionMap.js";
-import { multiKeySet } from "./Util.js";
 
-export class ParsedRegistry { 
+/** parse wgsl files and provided indexed access to modules and exports */
+export class ParsedRegistry {
   // map from module path with / separators, to module
   private moduleMap = new Map<string, TextModule | GeneratorModule>();
 
-  // map from module path (with / separators), to map of exports by local name
-  private exportsMap = new Map<string, Map<string, ModuleExport>>();
-
   private textModules: TextModule[] = [];
 
-  // map from export names to a map of module names to exports
-  private exports = new Map<string, ModuleExport[]>(); // TODO drop this
+  // map from export names to a map of module names to exports // TODO rm
+  private exports = new Map<string, ModuleExport[]>(); 
 
-  /** parse wgsl files from cached in a mdule registry and register them as modules */
   constructor(
     public registry: ModuleRegistry,
     public conditions: Record<string, any> = {}
@@ -48,15 +44,10 @@ export class ParsedRegistry {
   private parseOneModule(
     src: string,
     params: Record<string, any> = {},
-    fileName: string,
+    fileName: string
   ): void {
     const newFileName = fileName && normalize(fileName);
-    const m = parseModule(
-      src,
-      this.registry.templates,
-      newFileName,
-      params,
-    );
+    const m = parseModule(src, this.registry.templates, newFileName, params);
     this.addTextModule(m);
   }
 
@@ -162,7 +153,6 @@ export class ParsedRegistry {
         kind: "text",
       };
       this.addModuleExport(moduleExport);
-      multiKeySet(this.exportsMap, module.name, e.ref.name, moduleExport);
     });
   }
 
