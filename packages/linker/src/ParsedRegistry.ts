@@ -33,10 +33,10 @@ export class ParsedRegistry {
     this.recordGenerators();
   }
 
-  link(moduleName: string): string {
-    const module = this.findTextModule(moduleName);
+  link(moduleSpecifier: string): string {
+    const module = this.findTextModule(moduleSpecifier);
     if (!module) {
-      throw new Error(`Module not found: ${moduleName}`);
+      throw new Error(`Module not found: ${moduleSpecifier}`);
     }
     return linkWgslModule(module, this, this.conditions);
   }
@@ -53,7 +53,8 @@ export class ParsedRegistry {
   }
 
   /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
-  getModuleExport(
+  getModuleExportOld(
+    // TODO rm
     requesting: TextModule,
     exportName: string,
     moduleSpecifier?: string // either a module name or a relative path
@@ -84,12 +85,14 @@ export class ParsedRegistry {
     }
   }
 
+  // TODO drop this?  It's only used for tests
   moduleByPath(
     pathSegments: string[]
   ): TextModule | GeneratorModule | undefined {
     return this.moduleMap.get(pathSegments.join("/"));
   }
 
+  /** @return a ResolveMap to make it easier to resolve imports from the provided module */
   importResolveMap(importingModule: TextModule): ResolveMap {
     const treeImports: TreeImportElem[] = importingModule.imports.filter(
       (i) => i.kind === "treeImport"
@@ -119,13 +122,16 @@ export class ParsedRegistry {
   }
 
   /** find a text module by module name or file name */
-  findTextModule(searchName: string): TextModule | undefined {
+  findTextModule(moduleSpecifier: string): TextModule | undefined {
+    // const fileNames = this.textModules.map((m) => m.fileName);
+    // const names = this.textModules.map((m) => m.name);
+    // dlog({ searchName: moduleSpecifier, fileNames, names });
     const moduleNameMatch = this.textModules.find(
-      (m) => m.name === searchName || m.fileName === searchName
+      (m) => m.name === moduleSpecifier || m.fileName === moduleSpecifier
     );
     if (moduleNameMatch) return moduleNameMatch;
 
-    const baseSearch = normalize(searchName);
+    const baseSearch = normalize(moduleSpecifier);
     const pathMatch = this.textModules.find(
       (m) => m.fileName === baseSearch || noSuffix(m.fileName) === baseSearch
     );
