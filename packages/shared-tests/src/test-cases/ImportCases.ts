@@ -54,11 +54,9 @@ export const importCases: WgslTestSrc[] = [
     src: {
       "./main.wgsl": `
          import bar::foo;
-         module main
          fn main() { foo(); }
        `,
       "./bar.wgsl": `
-          module bar
           export fn foo() { }
        `,
     },
@@ -69,11 +67,9 @@ export const importCases: WgslTestSrc[] = [
     src: {
       "./main.wgsl": `
          import foo::bar;
-         module main
          fn main() { foo::bar(); }
        `,
-      "./bar.wgsl": `
-          module foo
+      "./foo.wgsl": `
           export fn bar() { }
        `,
     },
@@ -84,12 +80,10 @@ export const importCases: WgslTestSrc[] = [
     src: {
       "./main.wgsl": `
          import foo::bar;
-         module main
          var x: bar;
          fn main() { }
        `,
-      "./bar.wgsl": `
-          module foo
+      "./foo.wgsl": `
           export struct bar { f: f32 }
        `,
     },
@@ -100,12 +94,10 @@ export const importCases: WgslTestSrc[] = [
     src: {
       "./main.wgsl": `
          import foo::bar;
-         module main
          var y: foo::bar;
          fn main() { }
        `,
-      "./bar.wgsl": `
-          module foo
+      "./foo.wgsl": `
           export struct bar { f: f32 }
        `,
     },
@@ -115,11 +107,9 @@ export const importCases: WgslTestSrc[] = [
     src: {
       "./main.wgsl": `
          import foo::{bar, zah};
-         module main
          fn main() { bar(); zah(); }
        `,
-      "./bar.wgsl": `
-          module foo
+      "./foo.wgsl": `
           export fn bar() { }
           export fn zah() { }
        `,
@@ -130,15 +120,12 @@ export const importCases: WgslTestSrc[] = [
     src: {
       "./main.wgsl": `
          import foo::{bar::jan::zah, doo}
-         module main
          fn main() { zah(); doo(); }
        `,
       "./foo.wgsl": `
-          module foo
           export fn doo() { }
        `,
       "./foo/bar/jan.wgsl": `
-          module foo::bar::jan
           export fn zah() { }
        `,
     },
