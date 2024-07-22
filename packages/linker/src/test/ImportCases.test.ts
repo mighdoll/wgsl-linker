@@ -126,6 +126,20 @@ test(`import foo::{bar::jan::zah, doo}`, (ctx) => {
   });
 });
 
+test(`import foo::*`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() { bar(); zah(); }
+
+      fn bar() { }
+
+      fn zah() { }
+    `,
+  });
+});
+
+
+
 afterAll((c) => {
   const testNameSet = new Set(c.tasks.map((t) => t.name));
   const cases = importCases.map((c) => c.name);

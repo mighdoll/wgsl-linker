@@ -130,6 +130,19 @@ export const importCases: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `import foo::*`,
+    src: {
+      "./main.wgsl": `
+         import foo::*;
+         fn main() { bar(); zah(); }
+       `,
+      "./foo.wgsl": `
+          export fn bar() { }
+          export fn zah() { }
+       `,
+    },
+  },
 ];
 
 export default importCases;
