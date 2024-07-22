@@ -1,4 +1,5 @@
 import { srcLog, SrcMap } from "mini-parse";
+import { normalize, noSuffix } from "wgsl-linker";
 import {
   AbstractElem,
   AliasElem,
@@ -66,8 +67,8 @@ export function preProcess(
 export function parseModule(
   src: string,
   templates: Map<string, ApplyTemplateFn> = new Map(),
-  fileName = `/unnamed-${unnamedFileDex++}`,
-  params: Record<string, any> = {},
+  fileName = `/unnamed-${unnamedFileDex++}`, // TODO can we require this?
+  params: Record<string, any> = {}
 ): TextModule {
   const srcMap = preProcess(src, params, templates);
 
@@ -81,7 +82,8 @@ export function parseModule(
     "globalDirective"
   );
   const imports = parsed.filter(
-    (e) => e.kind === "import" || e.kind === "extends" || e.kind === "treeImport"
+    (e) =>
+      e.kind === "import" || e.kind === "extends" || e.kind === "treeImport"
   ) as (ImportElem | ExtendsElem | TreeImportElem)[];
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
@@ -90,7 +92,7 @@ export function parseModule(
   const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(parsed, srcMap);
 
-  const name = moduleName ?? `module${unnamedModuleDex++}`;
+  const name = moduleName ?? noSuffix(normalize(fileName));
   const kind = "text";
   return {
     ...{ kind, src, srcMap, preppedSrc, fileName, name },

@@ -80,7 +80,7 @@ exports[`simple fn export 1`] = `
   "globalDirectives": [],
   "imports": [],
   "kind": "text",
-  "name": "module0",
+  "name": "unnamed-0",
   "preppedSrc": "
     // #export
     fn one() -> i32 {
@@ -159,7 +159,7 @@ exports[`simple fn import 1`] = `
     },
   ],
   "kind": "text",
-  "name": "module1",
+  "name": "unnamed-1",
   "preppedSrc": "
     // #import foo
     fn bar() { foo(); }
