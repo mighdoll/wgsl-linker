@@ -1,16 +1,16 @@
 import { TreeImportElem } from "./AbstractElems.js";
+import { importResolutionMap, ResolveMap } from "./ImportResolutionMap.js";
 import { linkWgslModule } from "./Linker.js";
 import {
+  GeneratorExport,
   GeneratorModule,
   GeneratorModuleExport,
   ModuleExport,
   ModuleRegistry,
   TextModuleExport,
 } from "./ModuleRegistry.js";
-import { parseModule, TextModule } from "./ParseModule.js";
+import { parseModule, TextExport, TextModule } from "./ParseModule.js";
 import { normalize, noSuffix, relativePath } from "./PathUtil.js";
-import { importResolutionMap, ResolveMap } from "./ImportResolutionMap.js";
-import { dlog } from "berry-pretty";
 
 /** parse wgsl files and provided indexed access to modules and exports */
 export class ParsedRegistry {
@@ -121,15 +121,24 @@ export class ParsedRegistry {
     }
   }
 
+  findModule(
+    moduleSpecifier: string
+  ): TextModule | GeneratorModule | undefined {
+    return (
+      this.findTextModule(moduleSpecifier) ??
+      this.registry.generators.get(moduleSpecifier)
+    );
+  }
+
   /** find a text module by module name or file name */
   findTextModule(moduleSpecifier: string): TextModule | undefined {
     // const fileNames = this.textModules.map((m) => m.fileName);
     // const names = this.textModules.map((m) => m.name);
     // dlog({ searchName: moduleSpecifier, fileNames, names });
-    const moduleNameMatch = this.textModules.find(
+    const exactMatch = this.textModules.find(
       (m) => m.name === moduleSpecifier || m.fileName === moduleSpecifier
     );
-    if (moduleNameMatch) return moduleNameMatch;
+    if (exactMatch) return exactMatch;
 
     const baseSearch = normalize(moduleSpecifier);
     const pathMatch = this.textModules.find(
@@ -164,7 +173,7 @@ export class ParsedRegistry {
   }
 
   private addModuleExport(moduleExport: ModuleExport): void {
-    const expName = exportName(moduleExport);
+    const expName = moduleExportName(moduleExport);
     const existing = this.exports.get(expName);
     if (existing) {
       existing.push(moduleExport);
@@ -174,10 +183,13 @@ export class ParsedRegistry {
   }
 }
 
-function exportName(moduleExport: ModuleExport): string {
-  if (moduleExport.kind === "text") {
-    return moduleExport.exp.ref.name;
-  } else {
-    return moduleExport.exp.name;
-  }
+function moduleExportName(moduleExport: ModuleExport): string {
+  return exportName(moduleExport.exp);
+}
+
+export function exportName(exp: TextExport | GeneratorExport): string {
+  // TODO make TextExport into a class or give kinds to avoid unsound casts
+  const asTextExport = exp as TextExport;
+  const asGenExport = exp as GeneratorExport;
+  return asTextExport.ref?.name ?? asGenExport.name;
 }

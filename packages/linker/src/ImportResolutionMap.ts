@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import { TreeImportElem } from "./AbstractElems.js";
 import {
   ImportTree,
@@ -7,8 +6,8 @@ import {
   SimpleSegment,
   Wildcard,
 } from "./ImportTree.js";
-import { ModuleExport } from "./ModuleRegistry.js";
-import { ParsedRegistry } from "./ParsedRegistry.js";
+import { GeneratorModule, ModuleExport } from "./ModuleRegistry.js";
+import { exportName, ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 
 export interface ResolveMap {
@@ -99,7 +98,7 @@ function resolveTreeImport(
     const [segment, ...rest] = remainingPath;
     // dlog({ segment, resolvedImportPath, resolvedExportPath });
     if (segment === undefined) {
-      return [];
+      throw new Error(`undefined segment ${imp.imports.segments}`);
     }
     if (segment instanceof SimpleSegment) {
       const impPath = [...resolvedImportPath, segment.as || segment.name];
@@ -123,7 +122,13 @@ function resolveTreeImport(
       });
     }
     if (segment instanceof Wildcard) {
-      // TODO
+      const modulePath = resolvedExportPath.join("/");
+      const m = registry.findModule(modulePath);
+      if (m) {
+        return wildCardExports(m, resolvedImportPath, resolvedExportPath);
+      } else {
+        console.error("no module found", modulePath); // LATER point to source location in error
+      }
       return [];
     } else if (segment instanceof ImportTree) {
       return recursiveResolve(
@@ -132,8 +137,30 @@ function resolveTreeImport(
         segment.segments
       );
     }
+
     console.error("unknown segment type", segment); // should be impossible
     return [];
+  }
+
+  function wildCardExports(
+    m: GeneratorModule | TextModule,
+    resolvedImportPath: string[],
+    resolvedExportPath: string[]
+  ): ResolvedEntry[] {
+    const exportKind = m.kind === "generator" ? "function" : "text";
+    return m.exports.flatMap((e) => {
+      const expPath = [...resolvedExportPath, exportName(e)];
+      const impPath = [...resolvedImportPath, exportName(e)];
+      const modExp = {
+        kind: exportKind,
+        module: m,
+        exp: e,
+      } as ModuleExport;
+      return [
+        new ImportToExportPath(impPath, expPath),
+        new ImportToExport(impPath, modExp),
+      ];
+    });
   }
 
   function resolveFullPath(

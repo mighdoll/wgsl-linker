@@ -1,12 +1,11 @@
 import { expect, test } from "vitest";
-import { ModuleRegistry } from "../ModuleRegistry.js";
-import { TextExport, TextModule } from "../ParseModule.js";
 import { importResolutionMap } from "../ImportResolutionMap.js";
 import {
   exportsToStrings,
-  logResolveMap,
-  pathsToStrings,
+  pathsToStrings
 } from "../LogResolveMap.js";
+import { ModuleRegistry } from "../ModuleRegistry.js";
+import { TextExport, TextModule } from "../ParseModule.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
@@ -70,6 +69,30 @@ test("tree with path segment list", () => {
 });
 
 test("tree with trailing wildcard", () => {
+  const registry = new ModuleRegistry({
+    wgsl: {
+      "main.wgsl": `
+         import bar::*;
+         fn main() { foo(); zah();}
+      `,
+      "./bar.wgsl": `
+         export fn foo() { }
+         export fn zah() { }
+        `,
+    },
+  });
+  const parsedModules = registry.parsed();
+  const impMod = parsedModules.findTextModule("main")!;
+  const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
+  const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
+  expect(pathsToStrings(resolveMap)).deep.eq([
+    "bar/foo -> bar/foo",
+    "bar/zah -> bar/zah",
+  ]);
+  expect(exportsToStrings(resolveMap)).deep.eq([
+    "bar/foo -> bar/foo",
+    "bar/zah -> bar/zah",
+  ]);
 
 });
 
