@@ -52,7 +52,6 @@ export interface TextExport extends ExportElem {
   ref: FnElem | StructElem;
 }
 
-let unnamedModuleDex = 0;
 let unnamedFileDex = 0;
 
 export function preProcess(
