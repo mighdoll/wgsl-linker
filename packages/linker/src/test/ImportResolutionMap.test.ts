@@ -47,19 +47,16 @@ test("tree with path segment list", () => {
     wgsl: {
       "main.wgsl": `
          import bar::{foo, zah};
-         module main
          fn main() { foo(); zah();}
       `,
-      "bar.wgsl": `
-         module bar
-
+      "./bar.wgsl": `
          export fn foo() { }
          export fn zah() { }
         `,
     },
   });
   const parsedModules = registry.parsed();
-  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const impMod = parsedModules.findTextModule("main")!;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
   expect(pathsToStrings(resolveMap)).deep.eq([
@@ -72,6 +69,9 @@ test("tree with path segment list", () => {
   ]);
 });
 
-test.skip("tree with trailing wildcard");
+test("tree with trailing wildcard", () => {
+
+});
+
 test.skip("tree with generator");
 test.skip("tree with segment list of trees");
