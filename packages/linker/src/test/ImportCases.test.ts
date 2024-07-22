@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { afterAll, expect, test } from "vitest";
 import { importCases } from "../../../shared-tests/src/test-cases/ImportCases.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { trimSrc } from "./shared/StringUtil.js";
@@ -124,6 +124,16 @@ test(`import foo::{bar::jan::zah, doo}`, (ctx) => {
       fn doo() { }
     `,
   });
+});
+
+afterAll((c) => {
+  const testNameSet = new Set(c.tasks.map((t) => t.name));
+  const cases = importCases.map((c) => c.name);
+  const missing = cases.filter((name) => !testNameSet.has(name));
+  if (missing.length) {
+    console.error("Missing tests for cases:", missing);
+    expect(missing).length(0);
+  }
 });
 
 function linkTest(name: string, expectation: LinkExpectation): void {
