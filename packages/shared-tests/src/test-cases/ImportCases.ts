@@ -143,6 +143,23 @@ export const importCases: WgslTestSrc[] = [
        `,
     },
   },
+  {
+    name: `import both rust and js style`,
+    notes: "weird to mix rust and js style in the same file",
+    src: {
+      "./main.wgsl": `
+         import foo::bar::jan::*
+         import doo from foo
+         fn main() { zah(); doo(); }
+       `,
+      "./foo.wgsl": `
+          export fn doo() { }
+       `,
+      "./foo/bar/jan.wgsl": `
+          export fn zah() { }
+       `,
+    },
+  },
 ];
 
 export default importCases;

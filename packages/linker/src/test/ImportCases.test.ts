@@ -138,7 +138,17 @@ test(`import foo::*`, (ctx) => {
   });
 });
 
+test(`import both rust and js style`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() { zah(); doo(); }
 
+      fn zah() { }
+
+      fn doo() { }
+    `,
+  });
+});
 
 afterAll((c) => {
   const testNameSet = new Set(c.tasks.map((t) => t.name));
@@ -146,7 +156,7 @@ afterAll((c) => {
   const missing = cases.filter((name) => !testNameSet.has(name));
   if (missing.length) {
     console.error("Missing tests for cases:", missing);
-    expect(missing).length(0);
+    expect("missing test: " + missing.toString()).toBe("");
   }
 });
 
