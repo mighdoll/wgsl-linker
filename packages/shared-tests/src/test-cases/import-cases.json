@@ -25,32 +25,63 @@
     "name": "import bar::foo",
     "notes": "simple rust style import",
     "src": {
-      "./main.wgsl": "\n         import bar::foo;\n         module main\n         fn main() { foo(); }\n       ",
-      "./bar.wgsl": "\n          module bar\n          export fn foo() { }\n       "
+      "./main.wgsl": "\n         import bar::foo;\n         fn main() { foo(); }\n       ",
+      "./bar.wgsl": "\n          export fn foo() { }\n       "
     }
   },
   {
     "name": "call foo::bar()",
     "notes": "module path at call site",
     "src": {
-      "./main.wgsl": "\n         import foo::bar;\n         module main\n         fn main() { foo::bar(); }\n       ",
-      "./bar.wgsl": "\n          module foo\n          export fn bar() { }\n       "
+      "./main.wgsl": "\n         import foo::bar;\n         fn main() { foo::bar(); }\n       ",
+      "./foo.wgsl": "\n          export fn bar() { }\n       "
     }
   },
   {
     "name": "import foo::bar; var x:bar;",
     "notes": "struct reference",
     "src": {
-      "./main.wgsl": "\n         import foo::bar;\n         module main\n         var x: bar;\n         fn main() { }\n       ",
-      "./bar.wgsl": "\n          module foo\n          export struct bar { f: f32 }\n       "
+      "./main.wgsl": "\n         import foo::bar;\n         var x: bar;\n         fn main() { }\n       ",
+      "./foo.wgsl": "\n          export struct bar { f: f32 }\n       "
     }
   },
   {
-    "name": "var x: foo::bar;",
+    "name": "var y: foo::bar;",
     "notes": "struct reference with module path",
     "src": {
-      "./main.wgsl": "\n         import foo::bar;\n         module main\n         var x: foo::bar;\n         fn main() { }\n       ",
-      "./bar.wgsl": "\n          module foo\n          export struct bar { f: f32 }\n       "
+      "./main.wgsl": "\n         import foo::bar;\n         var y: foo::bar;\n         fn main() { }\n       ",
+      "./foo.wgsl": "\n          export struct bar { f: f32 }\n       "
+    }
+  },
+  {
+    "name": "import foo::{bar, zah}",
+    "src": {
+      "./main.wgsl": "\n         import foo::{bar, zah};\n         fn main() { bar(); zah(); }\n       ",
+      "./foo.wgsl": "\n          export fn bar() { }\n          export fn zah() { }\n       "
+    }
+  },
+  {
+    "name": "import foo::{bar::jan::zah, doo}",
+    "src": {
+      "./main.wgsl": "\n         import foo::{bar::jan::zah, doo}\n         fn main() { zah(); doo(); }\n       ",
+      "./foo.wgsl": "\n          export fn doo() { }\n       ",
+      "./foo/bar/jan.wgsl": "\n          export fn zah() { }\n       "
+    }
+  },
+  {
+    "name": "import foo::*",
+    "src": {
+      "./main.wgsl": "\n         import foo::*;\n         fn main() { bar(); zah(); }\n       ",
+      "./foo.wgsl": "\n          export fn bar() { }\n          export fn zah() { }\n       "
+    }
+  },
+  {
+    "name": "import both rust and js style",
+    "notes": "weird to mix rust and js style in the same file",
+    "src": {
+      "./main.wgsl": "\n         import foo::bar::jan::*\n         import doo from foo\n         fn main() { zah(); doo(); }\n       ",
+      "./foo.wgsl": "\n          export fn doo() { }\n       ",
+      "./foo/bar/jan.wgsl": "\n          export fn zah() { }\n       "
     }
   }
 ]
