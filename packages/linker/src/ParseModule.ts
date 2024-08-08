@@ -87,7 +87,6 @@ export function parseModule(
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];
-  matchMergeImports(parsed, srcMap);
   const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(parsed, srcMap);
 
