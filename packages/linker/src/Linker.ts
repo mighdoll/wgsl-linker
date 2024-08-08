@@ -62,9 +62,14 @@ export function findReferences(
   srcModule: TextModule,
   registry: ParsedRegistry
 ): FoundRef[] {
-  const visited = new Map<string, string>();
-  const found: FoundRef[] = []; // reference to unique elements to add to the linked result
+  // map full export name (with generic params from import) to name for linked result
+  const visited = new Map<string, string>(); 
+
+  // set of linked result names (values of visited map)
   const rootNames = new Set<string>();
+  
+  // accumulates all elements to add to the linked result
+  const found: FoundRef[] = []; 
 
   traverseRefs(srcModule, registry, handleRef);
   return found;
@@ -72,7 +77,7 @@ export function findReferences(
   /**
    * process one reference found by the reference traversal
    *
-   * set any renaming necessary for 'import as' or global uniqueness.
+   * set any renaming necessary for 'import as', global uniqueness.
    *
    * @returns true if the reference is new and so
    * the traverse should continue to recurse.
