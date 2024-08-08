@@ -1,6 +1,6 @@
 # wgsl-linker
 
-**wgsl-linker** enriches the WGSL shader language to support 
+**wgsl-linker** enriches the WGSL shader language to support
 linking code modules via import and export statements.
 Linking can be done entirely at runtime.
 
