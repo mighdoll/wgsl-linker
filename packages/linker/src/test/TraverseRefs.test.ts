@@ -527,13 +527,13 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const seen = new Set<string>();
 
   traverseRefs(mainModule, parsed, (ref) => {
-    if (visited(ref)) {
+    if (unseen(ref)) {
       refs.push(ref);
       return true;
     } 
   });
 
-  function visited(ref: FoundRef): true | undefined {
+  function unseen(ref: FoundRef): true | undefined {
     const fullName = refFullName(ref);
     if (!seen.has(fullName)) {
       seen.add(fullName);
