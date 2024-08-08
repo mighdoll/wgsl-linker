@@ -130,7 +130,7 @@ function uniquifyName(
  * We'll eventually give each unique element a unique fn, struct or variable name
  * in the linked source.
  */
-function refFullName(ref: FoundRef): string {
+export function refFullName(ref: FoundRef): string {
   const expImpArgs = ref.expInfo?.expImpArgs ?? [];
   const impArgs = expImpArgs.map(([, arg]) => arg);
   const argsStr = "(" + impArgs.join(",") + ")";

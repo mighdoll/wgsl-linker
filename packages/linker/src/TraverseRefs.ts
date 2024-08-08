@@ -97,7 +97,7 @@ export interface TextRef extends FoundRefBase {
 export function traverseRefs(
   srcModule: TextModule,
   registry: ParsedRegistry,
-  fn: (ref: FoundRef) => boolean
+  fn: (ref: FoundRef) => true | false | undefined
 ): void {
   const { aliases, fns, structs, vars } = srcModule;
   const expMod = srcModule;
@@ -132,39 +132,22 @@ export function traverseRefs(
 function recursiveRefs(
   refs: FoundRef[],
   registry: ParsedRegistry,
-  fn: (ref: FoundRef) => boolean
+  fn: (ref: FoundRef) => boolean | undefined
 ): void {
   // run the fn on each ref, and prep to recurse on each ref for which the fn returns true
   const filtered = refs.filter((r) => fn(r));
 
-  const nonGenRefs = textRefs(filtered); // we don't need to find imports in generated text
+  const nonGenRefs = textRefs(filtered); // we don't need to trace generated text (and thus we don't parse it anyway)
 
   const modGroups = groupBy(nonGenRefs, (r) => r.expMod);
   [...modGroups.entries()].forEach(([mod, refs]) => {
     if (refs.length) {
       const childRefs = refs.flatMap((r) => elemRefs(r, mod, registry));
-      const noRepeats = childRefs.filter((r) => !includesRef(r, refs));
-      recursiveRefs(noRepeats, registry, fn);
+      recursiveRefs(childRefs, registry, fn);
     }
   });
 }
 
-/** @return true if the ref refers to matching ref already found */
-function includesRef(r: FoundRef, refs: FoundRef[]): boolean {
-  return !!refs.find((a) => matchRef(r, a));
-}
-
-/** @return true if the two refs refer to the same named element in the same module */
-function matchRef(a: FoundRef, b: FoundRef): boolean {
-  if (a.expMod.name !== b.expMod.name) return false;
-  if (a.kind === "txt" && b.kind === "txt") {
-    return a.elem.name == b.elem.name;
-  }
-  if (a.kind === "gen" && b.kind === "gen") {
-    return a.name === b.name;
-  }
-  return false;
-}
 
 export function textRefs(refs: FoundRef[]): TextRef[] {
   return refs.filter(textRef);

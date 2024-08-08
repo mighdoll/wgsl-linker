@@ -6,6 +6,7 @@ import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
 import { printRef } from "../RefDebug.js";
 import { refLog } from "../LinkerLogging.js";
 import { dlog } from "berry-pretty";
+import { refFullName } from "../Linker.js";
 
 test("traverse a fn to struct ref", () => {
   const src = `
@@ -230,7 +231,9 @@ test("traverse var to rust style struct ref", () => {
    `;
 
   const refs = traverseTest(main, foo);
-  const structRef = refs.find(ref => ref.kind === "txt" && ref.elem.kind === "struct");
+  const structRef = refs.find(
+    (ref) => ref.kind === "txt" && ref.elem.kind === "struct"
+  );
   expect(structRef).toBeDefined();
 });
 
@@ -383,7 +386,7 @@ test("traverse with local support struct", () => {
 
   const refs = traverseTest(src, module1);
   const refNames = refs.map(refName);
-  expect(refNames).deep.eq(["B", "b", "A", "B"]);
+  expect(refNames).deep.eq(["B", "b", "A"]);
 });
 
 test("traverse from return type of function", () => {
@@ -415,7 +418,7 @@ test("traverse skips built in fn and type", () => {
   const { refs, log } = traverseWithLog(src);
   const refNames = refs.map(refName);
   // refs.map(r => refLog(r));
-  expect(refNames).deep.eq(["foo", "bar", "bar"]); // TODO is this right?
+  expect(refNames).deep.eq(["foo", "bar"]);
   expect(log).eq("");
 });
 
@@ -429,7 +432,7 @@ test("type inside fn with same name as fn", () => {
   `;
   const { refs, log } = traverseWithLog(src);
   expect(log).is.empty;
-  expect(refs).length(3);
+  expect(refs).length(2);
 });
 
 test("call inside fn with same name as fn", () => {
@@ -457,7 +460,7 @@ test("call cross reference", () => {
   const refNames = refs.map((r) => (r as TextRef).elem.name);
   expect(refNames).contains("foo");
   expect(refNames).contains("bar");
-  expect(refNames).length(4); // TODO is this right?
+  expect(refNames).length(2);
   expect(log).is.empty;
 });
 
@@ -489,7 +492,7 @@ test("struct cross reference", () => {
   const refNames = refs.map((r) => (r as any).elem.name);
   expect(refNames).includes("A");
   expect(refNames).includes("B");
-  expect(refNames).length(4);
+  expect(refNames).length(2);
 });
 
 test("parse texture_storage_2d with texture format in type position", () => {
@@ -521,9 +524,22 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const refs: FoundRef[] = [];
   const parsed = registry.parsed();
   const mainModule = parsed.findTextModule("./main")!;
+  const seen = new Set<string>();
+
   traverseRefs(mainModule, parsed, (ref) => {
-    refs.push(ref);
-    return true;
+    if (visited(ref)) {
+      refs.push(ref);
+      return true;
+    } 
   });
+
+  function visited(ref: FoundRef): true | undefined {
+    const fullName = refFullName(ref);
+    if (!seen.has(fullName)) {
+      seen.add(fullName);
+      return true;
+    }
+  }
+
   return refs;
 }
