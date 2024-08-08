@@ -28,11 +28,6 @@ type DirectiveRef = {
 
 type LoadableRef = TextRef | GeneratorRef | DirectiveRef;
 
-interface Rewriting {
-  extParams: Record<string, string>;
-  registry: ParsedRegistry;
-}
-
 /**
  * Produce a linked wgsl string with all directives processed
  * (e.g. #import'd functions from other modules are inserted into the resulting string).
@@ -43,7 +38,7 @@ interface Rewriting {
 export function linkWgslModule(
   srcModule: TextModule,
   registry: ParsedRegistry,
-  runtimeParams: Record<string, any> = {}
+  extParams: Record<string, any> = {}
 ): string {
   const refs = findReferences(srcModule, registry); // all recursively referenced structs and fns
 
@@ -55,8 +50,7 @@ export function linkWgslModule(
 
   // extract export texts, rewriting via rename map and exp/imp args
   const extractRefs = [...loadRefs, ...directiveRefs];
-  const rewriting: Rewriting = { extParams: runtimeParams, registry };
-  return extractTexts(extractRefs, rewriting);
+  return extractTexts(extractRefs, extParams);
 }
 
 /** Find references to structs and fns we might import into the linked result
@@ -233,7 +227,7 @@ function toDirectiveRef(
 // LATER rename imported vars or aliases
 function loadOtherElem(
   ref: TextRef | DirectiveRef,
-  rewriting: Rewriting
+  extParams: Record<string, string>
 ): string {
   const { expMod, elem } = ref;
   const typeRefs = (elem as VarElem | AliasElem).typeRefs ?? [];
@@ -241,17 +235,18 @@ function loadOtherElem(
   const srcMap = sliceReplace(expMod.preppedSrc, slicing, elem.start, elem.end);
   // LATER propogate srcMap
 
-  return applyExpImp(srcMap.dest, ref, rewriting);
+  return applyExpImp(srcMap.dest, ref, extParams);
 }
 
-function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
+function loadGeneratedElem(
+  ref: GeneratorRef,
+  extParams: Record<string, string>
+): string {
   const genExp = ref.expMod.exports.find((e) => e.name === ref.name);
   if (!genExp) {
     refLog(ref, "missing generator", ref.name);
     return "//?";
   }
-  const { extParams } = rewriting;
-
   const fnName = ref.rename ?? ref.proposedName ?? ref.name;
   const params = refExpImp(ref, extParams);
 
@@ -260,44 +255,47 @@ function loadGeneratedElem(ref: GeneratorRef, rewriting: Rewriting): string {
 }
 
 /** load exported text for an import */
-function extractTexts(refs: LoadableRef[], rewriting: Rewriting): string {
+function extractTexts(
+  refs: LoadableRef[],
+  extParams: Record<string, string>
+): string {
   return refs
     .map((r) => {
       if (r.kind === "gen") {
-        return loadGeneratedElem(r, rewriting);
+        return loadGeneratedElem(r, extParams);
       }
       if (r.kind === "txt") {
         const elemKind = r.elem.kind;
         if (elemKind === "fn") {
-          return loadFnText(r.elem, r, rewriting);
+          return loadFnText(r.elem, r, extParams);
         }
         if (elemKind === "struct") {
-          return loadStruct(r, rewriting);
+          return loadStruct(r, extParams);
         }
         if (elemKind === "var" || elemKind === "alias") {
-          return loadOtherElem(r, rewriting);
+          return loadOtherElem(r, extParams);
         }
         console.warn("can't extract. unexpected elem kind:", elemKind, r.elem);
       }
       if (r.kind === "dir") {
-        return loadOtherElem(r, rewriting);
+        return loadOtherElem(r, extParams);
       }
     })
     .join("\n\n");
 }
 
 /** load a struct text, mixing in any elements from #extends */
-function loadStruct(ref: TextRef, rewriting: Rewriting): string {
+function loadStruct(ref: TextRef, extParams: Record<string, string>): string {
   const structElem = ref.elem as StructElem;
 
   const rootMembers =
-    structElem.members?.map((m) => loadMemberText(m, ref, rewriting)) ?? [];
+    structElem.members?.map((m) => loadMemberText(m, ref, extParams)) ?? [];
 
   const newMembers =
     ref.mergeRefs?.flatMap((mergeRef) => {
       const mergeStruct = mergeRef.elem as StructElem;
       return mergeStruct.members?.map((member) =>
-        loadMemberText(member, mergeRef, rewriting)
+        loadMemberText(member, mergeRef, extParams)
       );
     }) ?? [];
 
@@ -310,10 +308,10 @@ function loadStruct(ref: TextRef, rewriting: Rewriting): string {
 function loadMemberText(
   member: StructMemberElem,
   ref: TextRef,
-  rewriting: Rewriting
+  extParams: Record<string, string>
 ): string {
   const newRef = { ...ref, elem: member };
-  return loadOtherElem(newRef, rewriting);
+  return loadOtherElem(newRef, extParams);
 }
 
 /** get the export/import param map if appropriate for this ref */
@@ -334,7 +332,11 @@ function refExpImp(
   return Object.fromEntries(entries);
 }
 
-function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
+function loadFnText(
+  elem: FnElem,
+  ref: TextRef,
+  extParams: Record<string, string>
+): string {
   const { rename } = ref;
   const slicing: SliceReplace[] = [];
 
@@ -360,17 +362,15 @@ function loadFnText(elem: FnElem, ref: TextRef, rewriting: Rewriting): string {
     elem.end
   );
 
-  return applyExpImp(srcMap.dest, ref, rewriting);
+  return applyExpImp(srcMap.dest, ref, extParams);
 }
 
 /** rewrite the src text according to module templating and exp/imp params */
 function applyExpImp(
   src: string,
   ref: TextRef | DirectiveRef,
-  rewriting: Rewriting
+  extParams: Record<string, string>
 ): string {
-  const { extParams } = rewriting;
-
   const params = ref.kind === "txt" ? refExpImp(ref, extParams) : {};
   return replaceWords(src, params);
 }
