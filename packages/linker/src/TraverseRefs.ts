@@ -1,4 +1,3 @@
-import { dlog } from "berry-pretty";
 import {
   AliasElem,
   CallElem,
@@ -20,8 +19,8 @@ import {
 } from "./ModuleRegistry.js";
 import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
-import { groupBy, last } from "./Util.js";
 import { resolveImport } from "./ResolveImport.js";
+import { groupBy, last } from "./Util.js";
 
 export type FoundRef = TextRef | GeneratorRef;
 
@@ -109,7 +108,6 @@ export function traverseRefs(
       elem,
     })
   );
-  // srcRefs.forEach(r => printRef(r, "traverseRefs.src"))
   srcRefs.forEach((ref) => fn(ref));
   if (!srcRefs.length) return;
 
