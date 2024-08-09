@@ -74,9 +74,13 @@ extended syntax is removed.
   importing from a code generator is just like importing from a package,
   but internally the code calls the generator function instead.
 * Users can plug in their own text processor to run during the preprocessing phase.
-* Struct inheritance - TBD
-* ImportMap - TBD
-* ResolveMap - TBD
+* Struct inheritance - After traversal, refs to structures with `extends` clauses
+  are modified to add 'mergeRefs' a list of refs to the extension source structs.
+  When the struct text is loaded, the fields from the extension source structs are
+  mixed in.
+* ImportResolutionMap - Fully expand wildcard and list style imports,
+  distinguish imports that refer to wgsl elements
+  from (rust only) path prefix imports.
 
 ## Error Reporting
 
