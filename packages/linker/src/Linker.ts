@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AliasElem,
   FnElem,
@@ -19,6 +20,7 @@ import {
   traverseRefs,
 } from "./TraverseRefs.js";
 import { partition, replaceWords } from "./Util.js";
+import { printRef } from "./RefDebug.js";
 
 type DirectiveRef = {
   kind: "dir";
@@ -53,10 +55,8 @@ export function linkWgslModule(
   return extractTexts(extractRefs, extParams);
 }
 
-/** Find references to structs and fns we might import into the linked result
+/** Find references to elements like structs and fns to import into the linked result.
  * (note that local functions are not listed unless they are referenced)
- *
- * Adds rename links to the discovered references
  */
 export function findReferences(
   srcModule: TextModule,
@@ -71,19 +71,15 @@ export function findReferences(
   // accumulates all elements to add to the linked result
   const found: FoundRef[] = []; 
 
-  traverseRefs(srcModule, registry, handleRef);
+  traverseRefs(srcModule, registry, refVisit);
   return found;
 
   /**
    * process one reference found by the reference traversal
    *
-   * set any renaming necessary for 'import as', global uniqueness.
-   *
-   * @returns true if the reference is new and so
-   * the traverse should continue to recurse.
+   * choose a unique name for the reference so that it can be imported into the 
    */
-  function handleRef(ref: FoundRef): boolean {
-    let continueTraverse = false;
+  function refVisit(ref: FoundRef): void {
 
     const fullName = refFullName(ref);
     let linkName = visited.get(fullName);
@@ -92,13 +88,10 @@ export function findReferences(
       visited.set(fullName, linkName);
       rootNames.add(linkName);
       found.push(ref);
-      continueTraverse = true;
     }
 
-    // always set the rename field to rewrite calls with module path prefixes and/or uniquification
-    ref.rename = linkName;
-
-    return continueTraverse;
+    // always set the rename field to make sure we rewrite calls with module path prefixes 
+    ref.rename = linkName; // TODO only set if necessary
   }
 }
 

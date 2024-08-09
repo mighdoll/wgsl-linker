@@ -11,6 +11,7 @@ import {
   TypeRefElem,
   VarElem,
 } from "./AbstractElems.js";
+import { refFullName } from "./Linker.js";
 import { moduleLog, refLog } from "./LinkerLogging.js";
 import {
   GeneratorExport,
@@ -22,6 +23,13 @@ import { TextExport, TextModule } from "./ParseModule.js";
 import { resolveImport } from "./ResolveImport.js";
 import { groupBy, last } from "./Util.js";
 
+/** 
+ * A wrapper around a wgsl element targeted for inclusion in the link
+ * There is one FoundRef per unique target element. 
+ * . Multiple references to a single target element share the same FoundRef.
+ * . But multiple versions of a target element from generic expansion
+ *   result in multiple FoundRefs.
+*/
 export type FoundRef = TextRef | GeneratorRef;
 
 export type StringPairs = [string, string][];
@@ -61,12 +69,7 @@ export interface GeneratorRef extends FoundRefBase {
   mergeRefs?: undefined;
 }
 
-/** found reference to an exported function or struct.
- * describes the links:
- *  from a source element (e.g. CallElem)
- *  -> to an import in the same module
- *  -> to the resolved export in another module
- */
+/** A reference to a target wgsl element (e.g. a function). */
 export interface TextRef extends FoundRefBase {
   kind: "txt";
 
@@ -86,17 +89,16 @@ export interface TextRef extends FoundRefBase {
 
 /**
  * Recursively walk through all imported references starting from a src module, calling
- * a function with each struct/fn reference found.
+ * a function for each reference to an addressable wgsl element (fn, struct, etc.).
  *
  * Note that the reference graph may have multiple references to the same src element.
- * Return false in the provided filter fn to avoid recursing into the node.
- * Currently the linker will recurse through the the same node multiple times
- * to handle varied import parameters.
+ * (Currently the linker will recurse through the the same node multiple times
+ * to handle varied import parameters.)
  */
 export function traverseRefs(
   srcModule: TextModule,
   registry: ParsedRegistry,
-  fn: (ref: FoundRef) => true | false | undefined
+  fn: (ref: FoundRef) => void
 ): void {
   const { aliases, fns, structs, vars } = srcModule;
   const expMod = srcModule;
@@ -116,7 +118,23 @@ export function traverseRefs(
   const childRefs = nonGenRefs.flatMap((srcRef) =>
     elemRefs(srcRef, srcModule, registry)
   );
-  recursiveRefs(childRefs, registry, fn);
+  const seen = new Set<string>();
+  recursiveRefs(childRefs, registry, eachRef);
+
+  function eachRef(ref: FoundRef): true | undefined {
+    fn(ref);
+    if (unseen(ref)) {
+      return true;
+    }
+  }
+
+  function unseen(ref: FoundRef): true | undefined {
+    const fullName = refFullName(ref);
+    if (!seen.has(fullName)) {
+      seen.add(fullName);
+      return true;
+    }
+  }
 }
 
 /*
@@ -145,7 +163,6 @@ function recursiveRefs(
     }
   });
 }
-
 
 export function textRefs(refs: FoundRef[]): TextRef[] {
   return refs.filter(textRef);
@@ -177,6 +194,7 @@ function elemRefs(
   return [...fnRefs, ...tRefs, ...mergeRefs];
 }
 
+/** return type references from an element */
 function elemTypeRefs(
   elem: FnElem | StructElem | VarElem | AliasElem | StructMemberElem
 ): TypeRefElem[] {
@@ -207,12 +225,12 @@ function elemChildrenRefs(
   mod: TextModule,
   registry: ParsedRegistry
 ): FoundRef[] {
-  return children.flatMap((elem) => elemRef(elem, srcRef, mod, registry));
+  return children.flatMap((elem) => linkedRef(elem, srcRef, mod, registry));
 }
 
-/** given a source elem that references a function or struct, return a TextRef linking
- * the src elem to its referent, possibly through an import/export */
-function elemRef(
+/** given a source elem that refers to another element (like a fn call or type reference), 
+ * return a TextRef linking the src elem to its referent, possibly through an import/export */
+function linkedRef(
   elem: CallElem | TypeRefElem,
   srcRef: TextRef,
   mod: TextModule,
@@ -310,10 +328,10 @@ function importRef(
       };
     }
   } else {
-    return oldStyleImports(); 
+    return oldStyleImports();
   }
 
-  function oldStyleImports (): TextRef | GeneratorRef | undefined {
+  function oldStyleImports(): TextRef | GeneratorRef | undefined {
     // TODO
     const fromImport = imports.find((imp) => importName(imp) == name);
     const modExp = matchingExport(fromImport, impMod, registry);

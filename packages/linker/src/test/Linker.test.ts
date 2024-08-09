@@ -742,7 +742,7 @@ test("#import using simple template and imp/exp param", () => {
     rawWgsl: [src, module1],
     templates: [simpleTemplate],
   });
-  const linked = registry.link("main", { Foo: "Bar"});
+  const linked = registry.link("main", { Foo: "Bar" });
   expect(linked).contains("step < 128");
   expect(linked).contains("/* Bar */");
 });
@@ -882,7 +882,7 @@ test("copy diagnostics to output", () => {
   expect(linked).toContain("diagnostic(off,derivative_uniformity);");
 });
 
-test("traverse two calls to renamed fn", () => {
+test("imported fn calls support fn with root conflict", () => {
   const src = `
     #module main
     #import foo
@@ -897,12 +897,12 @@ test("traverse two calls to renamed fn", () => {
       conflicted(1);
     }
     fn conflicted(a:i32) {}
-  `
+  `;
   const linked = linkWgslTest(src, module1);
-  expect(linked).includes( "fn conflicted(");
-  expect(linked).includes( "conflicted()");
-  expect(linked).includes( "conflicted0(0)");
-  expect(linked).includes( "conflicted0(1)");
+  expect(linked).includes("fn conflicted(");
+  expect(linked).includes("conflicted()");
+  expect(linked).includes("conflicted0(0)");
+  expect(linked).includes("conflicted0(1)");
 });
 
 test("import twice with two as names", () => {
@@ -917,7 +917,7 @@ test("import twice with two as names", () => {
   const module1 = `
     #export
     fn foo() { }
-  `
+  `;
   const linked = linkWgslTest(src, module1);
-  expect(linked).includes( "fn main() { bar(); bar(); }");
-})
+  expect(linked).includes("fn main() { bar(); bar(); }");
+});
