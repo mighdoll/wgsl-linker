@@ -12,10 +12,11 @@ import { exportName, ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 
 export interface ResolveMap {
-  // map from export path string "pkg/foo/bar/exp" to resolved export
+  // map from export path string "mypkg/foo/bar/exp" to resolved export
   exportMap: Map<string, ModuleExport>;
-  // map from caller path to exporter path
-  pathsMap: Map<string[], string[]>;
+
+  // map from caller path to exporter path ["pkg", "subpath", "asName"] -> ["mypkg", "subpath", "expName"]
+  pathsMap: Array<[string[], string[]]>; 
 }
 
 /* we could be bringing two different things into scope when we import mymod::foo
@@ -47,7 +48,7 @@ class ImportToExportPath {
 /** Expand all imports to their corresponding exported element (fn, struct var),
  * or to their corresponding export module.
  * Wildcards and path lists are fully expanded, so the result is
- * a flat list of single import paths to single export paths.
+ * a flat list of single import paths to single export paths or export elements.
  *
  * @returns a map from import path to either a resolved export element
  *  or to an export path
@@ -79,7 +80,7 @@ export function importResolutionMap(
 
   return {
     exportMap: new Map(exportEntries),
-    pathsMap: new Map(pathEntries),
+    pathsMap: pathEntries,
   };
 }
 

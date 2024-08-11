@@ -42,12 +42,19 @@ export function resolveImport(
   return undefined;
 }
 
+/** Convert a caller path to an export path,
+ * caller paths are allowed to overlap with export paths
+ * (at least with rust style call syntax, where 
+ * e.g. foo overlaps:
+ *  import pkg::foo; 
+ *  foo::bar() 
+ */
 function impToExportPath(
   impSegments: string[],
   resolveMap: ResolveMap
 ): string | undefined {
   const { pathsMap } = resolveMap;
-  for (const [imp, exp] of pathsMap.entries()) {
+  for (const [imp, exp] of pathsMap) {
     const impTail = overlapTail(imp, impSegments);
     if (impTail) {
       console.assert(imp.length === exp.length);
