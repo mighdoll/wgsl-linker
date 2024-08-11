@@ -88,7 +88,7 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
   return p;
 }
 
-const importElemPhrase = seq(bracketedImportClause, opt(fromClause)).map(
+const importElemPhrase = seq(bracketedImportClause, fromClause).map(
   (r) => {
     const from = r.tags.from?.[0];
     return r.tags.importClause.map((impClause) => {
