@@ -289,7 +289,7 @@ function importArgRef(srcRef: FoundRef, name: string): boolean | undefined {
 /** If this src element references an #import function
  * @return an TextRef describing the export to link */
 function importRef(
-  fromRef: FoundRef,
+  fromRef: TextRef,
   name: string,
   impMod: TextModule,
   imports: (ImportElem | ExtendsElem)[],
@@ -299,10 +299,9 @@ function importRef(
   const resolved = resolveImport(name, resolveMap);
   const fromImport = imports[0]; // TODO implement
   if (resolved) {
-    const { modExp, callSegments } = resolved;
+    const { modExp, callSegments, expImpArgs } = resolved;
     const proposedName = last(callSegments)!;
     const expMod = modExp.module;
-    const expImpArgs = [] as [string, string][]; // TODO implement
     const expInfo: ExportInfo = {
       fromImport,
       fromRef,

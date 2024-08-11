@@ -1,13 +1,22 @@
 import { dlog } from "berry-pretty";
 import { ResolveMap } from "./ImportResolutionMap.js";
 import { logResolveMap } from "./LogResolveMap.js";
-import { ModuleExport } from "./ModuleRegistry.js";
+import {
+  GeneratorExport,
+  GeneratorModule,
+  ModuleExport,
+} from "./ModuleRegistry.js";
 import { overlapTail } from "./Util.js";
+import { StringPairs } from "./TraverseRefs.js";
+import { moduleLog } from "./LinkerLogging.js";
+import { ExportElem, TreeImportElem } from "./AbstractElems.js";
+import { TextModule } from "./ParseModule.js";
 
 export interface ResolvedImport {
   modExp: ModuleExport;
   // importElem: TreeImportElem;
   callSegments: string[];
+  expImpArgs: StringPairs;
 }
 
 /** resolve an import to an export using the resolveMap
@@ -25,17 +34,19 @@ export interface ResolvedImport {
  */
 export function resolveImport(
   callPath: string,
-  resolveMap: ResolveMap
+  resolveMap: ResolveMap,
 ): ResolvedImport | undefined {
   const callSegments = callPath.includes("::")
     ? callPath.split("::")
-    : callPath.split(".");  
+    : callPath.split(".");
 
   const expPath = impToExportPath(callSegments, resolveMap);
   if (expPath) {
-    const modExp = resolveMap.exportMap.get(expPath);
-    if (modExp) {
-      return { modExp, callSegments };
+    const impToExp = resolveMap.exportMap.get(expPath);
+
+    if (impToExp) {
+      const { expMod, expImpArgs } = impToExp;
+      return { modExp:expMod, callSegments, expImpArgs };
     }
   }
 
