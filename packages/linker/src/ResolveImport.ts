@@ -1,16 +1,9 @@
-import { dlog } from "berry-pretty";
 import { ResolveMap } from "./ImportResolutionMap.js";
-import { logResolveMap } from "./LogResolveMap.js";
 import {
-  GeneratorExport,
-  GeneratorModule,
-  ModuleExport,
+  ModuleExport
 } from "./ModuleRegistry.js";
-import { overlapTail } from "./Util.js";
 import { StringPairs } from "./TraverseRefs.js";
-import { moduleLog } from "./LinkerLogging.js";
-import { ExportElem, TreeImportElem } from "./AbstractElems.js";
-import { TextModule } from "./ParseModule.js";
+import { overlapTail } from "./Util.js";
 
 export interface ResolvedImport {
   modExp: ModuleExport;
@@ -34,7 +27,7 @@ export interface ResolvedImport {
  */
 export function resolveImport(
   callPath: string,
-  resolveMap: ResolveMap,
+  resolveMap: ResolveMap
 ): ResolvedImport | undefined {
   const callSegments = callPath.includes("::")
     ? callPath.split("::")
@@ -45,8 +38,8 @@ export function resolveImport(
     const impToExp = resolveMap.exportMap.get(expPath);
 
     if (impToExp) {
-      const { expMod, expImpArgs } = impToExp;
-      return { modExp:expMod, callSegments, expImpArgs };
+      const { modExp, expImpArgs } = impToExp;
+      return { modExp, callSegments, expImpArgs };
     }
   }
 
@@ -55,10 +48,10 @@ export function resolveImport(
 
 /** Convert a caller path to an export path,
  * caller paths are allowed to overlap with export paths
- * (at least with rust style call syntax, where 
- * e.g. foo overlaps:
- *  import pkg::foo; 
- *  foo::bar() 
+ * (at least with rust style call syntax, where e.g. foo overlaps:
+ *    import pkg::foo;
+ *    foo::bar()
+ *  )
  */
 function impToExportPath(
   impSegments: string[],

@@ -36,7 +36,7 @@ type ResolvedEntry = ImportToExport | ImportToExportPath;
 class ImportToExport {
   constructor(
     public importPath: string[],
-    public expMod: ModuleExport,
+    public modExp: ModuleExport,
     public expImpArgs: StringPairs
   ) {}
 }
@@ -176,16 +176,16 @@ function resolveTreeImport(
     const entries: ResolvedEntry[] = [new ImportToExportPath(impPath, expPath)];
 
     // try and resolve as an exported element as well
-    const expMod = registry.getModuleExport2(importingModule, expPath);
-    if (expMod) {
+    const modExp = registry.getModuleExport2(importingModule, expPath);
+    if (modExp) {
       const expImpArgs = matchExportImportArgs(
         importingModule,
         imp,
         impArgs ?? [],
-        expMod.module,
-        expMod.exp
+        modExp.module,
+        modExp.exp
       );
-      entries.push(new ImportToExport(impPath, expMod, expImpArgs));
+      entries.push(new ImportToExport(impPath, modExp, expImpArgs));
     }
     return entries;
   }
