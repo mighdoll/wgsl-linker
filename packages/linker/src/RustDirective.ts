@@ -25,6 +25,22 @@ import { TreeImportElem } from "./AbstractElems.js";
 
 const word = kind(treeImportTokens.word);
 
+/*
+ syntax supported:
+    import a::b
+    import self::b
+    import super::super::b
+    import self::{a, b::c}
+    import self::{a, b::c}
+    import self::{a, *}
+    import a::{a as f, b::c as g}
+    import a // [should this be allowed?
+
+ TBD generic syntax:
+    import a::b(X)
+    import a::{a(X), b::c(X)}
+ */
+
 // forward reference (for mutual recursion)
 let importTree: Parser<any, any> = null as any;
 
@@ -58,7 +74,7 @@ importTree = seq(simpleSegment, pathExtension).map((r) => {
 
 /** parse a Rust style wgsl import statement.
  * The syntax is like 'use' in Rust.
- * 'self' references are not currenlty supported. */
+ * 'self' references are not currently supported. */
 export const rustImport = tokens(
   treeImportTokens,
   seq(
