@@ -2,6 +2,7 @@ import { SrcMap } from "mini-parse";
 import { ParsedRegistry } from "./ParsedRegistry.js";
 import { TextExport, TextModule } from "./ParseModule.js";
 import { normalize } from "./PathUtil.js";
+import { dlog } from "berry-pretty";
 
 /** A named function to transform code fragments (e.g. by inserting parameters) */
 export interface Template {
@@ -44,7 +45,7 @@ export type ModuleExport = TextModuleExport | GeneratorModuleExport;
 
 export interface TextModuleExport {
   module: TextModule;
-  exp: TextExport; 
+  exp: TextExport;
   kind: "text";
 }
 
@@ -87,7 +88,6 @@ export interface RegistryParams {
  * #import statements and generate a complete wgsl shader.
  */
 export class ModuleRegistry {
-
   templates = new Map<string, ApplyTemplateFn>();
   wgslSrc = new Map<string, string>();
   generators = new Map<string, GeneratorModule>();
@@ -114,7 +114,7 @@ export class ModuleRegistry {
   link(moduleName: string, runtimeParams: Record<string, any> = {}): string {
     return this.parsed(runtimeParams).link(moduleName);
   }
-  
+
   /** Parse the text modules in the registry */
   parsed(runtimeParams: Record<string, any> = {}): ParsedRegistry {
     return new ParsedRegistry(this, runtimeParams);
@@ -132,8 +132,8 @@ export class ModuleRegistry {
       name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
       exports: [exp],
     };
-    
-    this.generators.set(module.name, module)
+
+    this.generators.set(module.name, module);
   }
 
   /** register a template processor  */
@@ -141,11 +141,21 @@ export class ModuleRegistry {
     templates.forEach((t) => this.templates.set(t.name, t.apply));
   }
 
-  private addModuleSrc(src: string, fileName?: string): void {
-    if (fileName) {
-      this.wgslSrc.set(normalize(fileName), src);
+  private addModuleSrc(
+    src: string,
+    filePath?: string,
+    packageName?: string
+  ): void {
+    if (filePath) {
+      this.wgslSrc.set(modulePath(filePath, packageName), src);
     } else {
       this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
     }
   }
+}
+
+export function modulePath(filePath: string, packageName = "_root"): string {
+  const normalPath = normalize(filePath);
+  const fullPath = `${packageName}/${normalPath}`;
+  return fullPath;
 }

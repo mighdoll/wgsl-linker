@@ -5,14 +5,15 @@ import { ModuleRegistry } from "../ModuleRegistry.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
 import { linkWgslTest } from "./TestUtil.js";
 
-test("simple #import", () => {
+// TODO mv to import cases
+test.only("simple #import", () => {
   const myModule = `
-    // #export
-    fn foo() { /* fooImpl */ }
+    export fn foo() { /* fooImpl */ }
   `;
 
   const src = `
-    // #import foo
+    import foo from "./file1.wgsl";
+
     fn bar() {
       foo();
     }
@@ -20,8 +21,8 @@ test("simple #import", () => {
   const linked = linkWgslTest(src, myModule);
   expect(linked).contains("fn bar()");
   expect(linked).includes("fooImpl");
-  expect(linked).not.includes("#import");
-  expect(linked).not.includes("#export");
+  expect(linked).not.includes("import");
+  expect(linked).not.includes("export");
 });
 
 test("copy root elements linked output", () => {

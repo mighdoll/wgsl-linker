@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { TreeImportElem } from "./AbstractElems.js";
 import { importResolutionMap, ResolveMap } from "./ImportResolutionMap.js";
 import { linkWgslModule } from "./Linker.js";
@@ -6,11 +7,12 @@ import {
   GeneratorModule,
   GeneratorModuleExport,
   ModuleExport,
+  modulePath,
   ModuleRegistry,
   TextModuleExport,
 } from "./ModuleRegistry.js";
 import { parseModule, TextExport, TextModule } from "./ParseModule.js";
-import { normalize, noSuffix, relativePath } from "./PathUtil.js";
+import { dirname, normalize, noSuffix, relativePath } from "./PathUtil.js";
 
 /** parse wgsl files and provided indexed access to modules and exports */
 export class ParsedRegistry {
@@ -52,9 +54,9 @@ export class ParsedRegistry {
     this.addTextModule(m);
   }
 
+  // TODO rm Old
   /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
   getModuleExportOld(
-    // TODO rm
     requesting: TextModule,
     exportName: string,
     moduleSpecifier?: string // either a module name or a relative path
@@ -108,17 +110,30 @@ export class ParsedRegistry {
     importingModule: TextModule,
     pathSegments: string[]
   ): ModuleExport | undefined {
+    const exportName = pathSegments[pathSegments.length - 1];
     if (pathSegments[0] === ".") {
-      // TODO handle relative path
+      // relative module path in current package
+      const moduleDir = dirname(importingModule.fileName);
+      const joined = [moduleDir, ...pathSegments.slice(1, -1)].join("/");
+      const modulePath = normalize(joined);
+      return this.findExport(modulePath, exportName);
     } else {
+      // package rooted path
       const modulePath = pathSegments.slice(0, -1).join("/");
-      const expName = pathSegments[pathSegments.length - 1];
-      const module = this.findTextModule(modulePath); // TODO also find generator modules
-      const exp = module?.exports.find((e) => e.ref.name === expName);
-      if (exp) {
-        return { module, exp: exp } as TextModuleExport;
-      }
+      return this.findExport(modulePath, exportName);
     }
+  }
+
+  private findExport(
+    modulePath: string,
+    exportName: string
+  ): TextModuleExport | GeneratorModuleExport | undefined {
+    const module = this.findTextModule(modulePath); 
+    const exp = module?.exports.find((e) => e.ref.name === exportName);
+    if (exp) {
+      return { module, exp: exp } as TextModuleExport;
+    }
+    // TODO also find generator modules / exports
   }
 
   findModule(
@@ -130,21 +145,22 @@ export class ParsedRegistry {
     );
   }
 
-  /** find a text module by module name or file name */
-  findTextModule(moduleSpecifier: string): TextModule | undefined {
-    // const fileNames = this.textModules.map((m) => m.fileName);
-    // const names = this.textModules.map((m) => m.name);
-    // dlog({ searchName: moduleSpecifier, fileNames, names });
-    const exactMatch = this.textModules.find(
-      (m) => m.name === moduleSpecifier || m.fileName === moduleSpecifier
-    );
-    if (exactMatch) return exactMatch;
+  /**
+   * Find a text module by module specifier
+   */
+  findTextModule(
+    moduleSpecifier: string,
+    packageName = "_root"
+  ): TextModule | undefined {
+    // relative module path
+    const searchPath = moduleSpecifier.startsWith(".")
+      ? modulePath(moduleSpecifier, packageName)
+      : moduleSpecifier;
 
-    const baseSearch = normalize(moduleSpecifier);
-    const pathMatch = this.textModules.find(
-      (m) => m.fileName === baseSearch || noSuffix(m.fileName) === baseSearch
+    return (
+      this.textModules.find((m) => m.fileName === searchPath) ||
+      this.textModules.find((m) => noSuffix(m.fileName) === searchPath)
     );
-    if (pathMatch) return pathMatch;
   }
 
   // TODO just register modules, drop exports based index

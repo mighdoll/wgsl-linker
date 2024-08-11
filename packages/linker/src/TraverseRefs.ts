@@ -328,7 +328,7 @@ function importRef(
       };
     }
   } else {
-    return oldStyleImports();
+    // return oldStyleImports();
   }
 
   function oldStyleImports(): TextRef | GeneratorRef | undefined {

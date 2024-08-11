@@ -35,7 +35,7 @@ export interface TextModule {
   name: string;
 
   /** name of the module. A synthetic file name will be assigned if none is provided */
-  fileName: string;
+  fileName: string; // full path to the module e.g "package/sub/foo.wgsl", or "self/root.wgsl"
 
   /** original src for module */
   src: string;

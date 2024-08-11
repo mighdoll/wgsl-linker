@@ -22,6 +22,7 @@ import {
 } from "./MatchWgslD.js";
 import { eolf, makeElem } from "./ParseSupport.js";
 import { rustImport } from "./RustDirective.js";
+import { ImportTree, SimpleSegment } from "./ImportTree.js";
 
 /* parse #directive enhancements to wgsl: #import, #export, etc. */
 
@@ -87,7 +88,23 @@ function importPhrase<T extends ImportElem | ExtendsElem>(
   return p;
 }
 
-const importElemPhrase = importPhrase<ImportElem>("import");
+const importElemPhrase = seq(bracketedImportClause, opt(fromClause)).map(
+  (r) => {
+    const from = r.tags.from?.[0];
+    return r.tags.importClause.map((impClause) => {
+      const elem = makeElem("treeImport", r as any, [], []);
+      const fromSegments = from.split("/").map(s => new SimpleSegment(s))
+      const lastSegment = new SimpleSegment(impClause.name, impClause.as);
+      const segments = [...fromSegments, lastSegment];
+      const importTree: ImportTree = new ImportTree(segments);
+      elem.imports = importTree;
+      // TODO args
+      // TODO wildcards
+      return elem;
+    });
+  }
+);
+
 const extendsElemPhrase = importPhrase<ExtendsElem>("extends");
 if (tracing) setTraceNames({ importElemPhrase, extendsElemPhrase });
 
@@ -128,18 +145,18 @@ export const exportDirective = seq(
 });
 
 const moduleDirective = seq(
-    or("module", "#module"),
-    tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
-    eolf
-  ).map((r) => {
-    const e = makeElem("module", r);
-    e.name = normalizeModulePath(r.tags.name[0]);
-    r.app.state.push(e);
-  });
+  or("module", "#module"),
+  tokens(moduleTokens, req(kind(moduleTokens.moduleName).tag("name"))),
+  eolf
+).map((r) => {
+  const e = makeElem("module", r);
+  e.name = normalizeModulePath(r.tags.name[0]);
+  r.app.state.push(e);
+});
 
 function normalizeModulePath(name: string): string {
   if (name.includes("::")) {
-    const result = name.split("::").join("/"); 
+    const result = name.split("::").join("/");
     return result;
   }
   return name;

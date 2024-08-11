@@ -29,7 +29,7 @@ export function resolveImport(
 ): ResolvedImport | undefined {
   const callSegments = callPath.includes("::")
     ? callPath.split("::")
-    : callPath.split(".");
+    : callPath.split(".");  
 
   const expPath = impToExportPath(callSegments, resolveMap);
   if (expPath) {
