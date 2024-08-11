@@ -1,12 +1,11 @@
-import { dlog } from "berry-pretty";
 import { ResolveMap } from "./ImportResolutionMap.js";
 import { TextExport } from "./ParseModule.js";
 
 export function logResolveMap(resolveMap: ResolveMap): void {
-  const expMap = exportsToStrings(resolveMap);
-  const pathsMap = pathsToStrings(resolveMap);
-  dlog({ expMap});
-  dlog({ pathsMap });
+  const pathEntries = pathsToStrings(resolveMap);
+  const exportEntries = exportsToStrings(resolveMap);
+  console.log("\tpathsMap: " + pathEntries.join("\n"));
+  console.log("\texportMap: " + exportEntries.join("\n"));
 }
 
 export function pathsToStrings(resolveMap: ResolveMap): string[] {
