@@ -1,5 +1,5 @@
 import { dlog } from "berry-pretty";
-import { TreeImportElem } from "./AbstractElems.js";
+import { ExportElem, TreeImportElem } from "./AbstractElems.js";
 import {
   ImportTree,
   PathSegment,
@@ -7,13 +7,15 @@ import {
   SimpleSegment,
   Wildcard,
 } from "./ImportTree.js";
-import { GeneratorModule, ModuleExport } from "./ModuleRegistry.js";
+import { GeneratorExport, GeneratorModule, ModuleExport } from "./ModuleRegistry.js";
 import { exportName, ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
+import { StringPairs } from "./TraverseRefs.js";
+import { moduleLog } from "./LinkerLogging.js";
 
 export interface ResolveMap {
   // map from export path string "mypkg/foo/bar/exp" to resolved export
-  exportMap: Map<string, ModuleExport>;
+  exportMap: Map<string, ImportToExport>;
 
   // map from caller path to exporter path ["pkg", "subpath", "asName"] -> ["mypkg", "subpath", "expName"]
   pathsMap: Array<[string[], string[]]>; 
@@ -34,7 +36,8 @@ type ResolvedEntry = ImportToExport | ImportToExportPath;
 class ImportToExport {
   constructor(
     public importPath: string[],
-    public expMod: ModuleExport
+    public expMod: ModuleExport,
+    public expImpArgs: StringPairs
   ) {}
 }
 
@@ -67,12 +70,12 @@ export function importResolutionMap(
     resolveTreeImport(importingModule, imp, registry)
   );
 
-  const exportEntries: [string, ModuleExport][] = [];
+  const exportEntries: [string, ImportToExport][] = [];
   const pathEntries: [string[], string[]][] = [];
 
   resolveEntries.forEach((e) => {
     if (e instanceof ImportToExport) {
-      exportEntries.push([e.importPath.join("/"), e.expMod]);
+      exportEntries.push([e.importPath.join("/"), e]);
     } else {
       pathEntries.push([e.importPath, e.exportPath]);
     }
@@ -109,7 +112,7 @@ function resolveTreeImport(
         // we're in the middle of the path so keep recursing
         return recursiveResolve(impPath, expPath, rest);
       } else {
-        return resolveFullPath(impPath, expPath);
+        return resolveFullPath(impPath, expPath, segment.args);
       }
     }
     if (segment instanceof SegmentList) {
@@ -160,21 +163,46 @@ function resolveTreeImport(
       } as ModuleExport;
       return [
         new ImportToExportPath(impPath, expPath),
-        new ImportToExport(impPath, modExp),
+        new ImportToExport(impPath, modExp, []),
       ];
     });
   }
 
   function resolveFullPath(
     impPath: string[],
-    expPath: string[]
+    expPath: string[],
+    impArgs: string[] | undefined
   ): ResolvedEntry[] {
     const entries: ResolvedEntry[] = [new ImportToExportPath(impPath, expPath)];
+
+    // try and resolve as an exported element as well
     const expMod = registry.getModuleExport2(importingModule, expPath);
-    // try and resolve as an exported element
     if (expMod) {
-      entries.push(new ImportToExport(impPath, expMod));
+      const expImpArgs = matchExportImportArgs(
+        importingModule,
+        imp,
+        impArgs ?? [],
+        expMod.module,
+        expMod.exp
+      );
+      entries.push(new ImportToExport(impPath, expMod, expImpArgs));
     }
     return entries;
   }
+}
+
+function matchExportImportArgs(
+  impMod: TextModule | GeneratorModule,
+  imp: TreeImportElem,
+  impArgs: string[],
+  expMod: TextModule | GeneratorModule,
+  exp: ExportElem | GeneratorExport
+): StringPairs {
+  const expArgs = exp.args ?? [];
+  if (expArgs.length !== impArgs.length) {
+    impMod.kind === "text" &&
+      moduleLog(impMod, imp.start, "mismatched import and export params");
+    expMod.kind === "text" && moduleLog(expMod, (exp as ExportElem).start);
+  }
+  return expArgs.map((p, i) => [p, impArgs[i]]);
 }
