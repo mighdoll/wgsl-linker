@@ -4,11 +4,11 @@ export class ImportTree {
 
 export type PathSegment = SimpleSegment | Wildcard | ImportTree | SegmentList;
 
-
 export class SimpleSegment {
   constructor(
     public name: string,
-    public as?: string
+    public as?: string,
+    public args?: string[] // generic args (only allowed on final segment)
   ) {}
 }
 

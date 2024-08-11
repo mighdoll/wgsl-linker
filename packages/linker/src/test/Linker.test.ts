@@ -6,7 +6,7 @@ import { simpleTemplate } from "../templates/SimpleTemplate.js";
 import { linkWgslTest } from "./TestUtil.js";
 
 // TODO mv to import cases
-test.only("simple #import", () => {
+test("simple import", () => {
   const myModule = `
     export fn foo() { /* fooImpl */ }
   `;
@@ -30,7 +30,6 @@ test("copy root elements linked output", () => {
   const rootVar = `@group(0) @binding(0) var<uniform> u: Uniforms;`;
   const rootFn = `fn main() { }`;
   const src = `
-    // #module main
     ${rootStruct}
     ${rootVar}
     ${rootFn}
@@ -41,16 +40,16 @@ test("copy root elements linked output", () => {
   expect(linked).includes(rootFn);
 });
 
-test("#import with parameter", () => {
+test.only("#import with parameter", () => {
   const myModule = `
-    // #export (Elem)
+    export(Elem)
     fn foo(a: Elem) { /* fooImpl */ }
   `;
 
   const src = `
     struct MyElem {}
 
-    // #import foo(MyElem)
+    import foo(MyElem) from "./file1"
     fn bar() {
       foo();
     }
