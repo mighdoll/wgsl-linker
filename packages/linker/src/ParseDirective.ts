@@ -93,8 +93,12 @@ const importElemPhrase = seq(bracketedImportClause, fromClause).map(
     const from = r.tags.from?.[0];
     return r.tags.importClause.map((impClause) => {
       const elem = makeElem("treeImport", r as any, [], []);
-      const fromSegments = from.split("/").map(s => new SimpleSegment(s))
-      const lastSegment = new SimpleSegment(impClause.name, impClause.as, impClause.args);
+      const fromSegments = from.split("/").map((s) => new SimpleSegment(s));
+      const lastSegment = new SimpleSegment(
+        impClause.name,
+        impClause.as,
+        impClause.args
+      );
       const segments = [...fromSegments, lastSegment];
       const importTree: ImportTree = new ImportTree(segments);
       elem.imports = importTree;
