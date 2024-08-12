@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import { resolveImport } from "../ResolveImport.js";
-import { ModuleRegistry } from "../ModuleRegistry.js";
 import { importResolutionMap } from "../ImportResolutionMap.js";
-import { TextExport, TextModule } from "../ParseModule.js";
+import { ModuleRegistry } from "../ModuleRegistry.js";
+import { TextExport } from "../ParseModule.js";
+import { resolveImport } from "../ResolveImport.js";
 
 test("resolveImport foo() from import bar::foo", () => {
   const registry = new ModuleRegistry({
@@ -21,13 +21,13 @@ test("resolveImport foo() from import bar::foo", () => {
     },
   });
   const parsedModules = registry.parsed();
-  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const impMod = parsedModules.findTextModule("main")!;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
 
   const found = resolveImport("foo", resolveMap);
   expect(found).toBeDefined();
-  expect(found?.modExp.module.name).eq("bar");
+  expect(found?.modExp.module.modulePath).eq("bar");
   expect((found?.modExp.exp as TextExport).ref.name).eq("foo");
 });
 
@@ -47,11 +47,11 @@ test("resolveImport bar::foo() from import bar::foo", () => {
     },
   });
   const parsedModules = registry.parsed();
-  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const impMod = parsedModules.findTextModule("main")!;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
   const found = resolveImport("bar::foo", resolveMap);
   expect(found).toBeDefined();
-  expect(found?.modExp.module.name).eq("bar");
+  expect(found?.modExp.module.modulePath).eq("bar");
   expect((found?.modExp.exp as TextExport).ref.name).eq("foo");
 });
