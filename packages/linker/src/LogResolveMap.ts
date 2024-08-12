@@ -1,6 +1,5 @@
 import { ResolveMap } from "./ImportResolutionMap.js";
 import { ModuleExport } from "./ModuleRegistry.js";
-import { TextExport, TextModule } from "./ParseModule.js";
 
 export function logResolveMap(resolveMap: ResolveMap): void {
   const pathEntries = pathsToStrings(resolveMap);

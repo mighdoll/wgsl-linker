@@ -51,9 +51,9 @@ export interface ResolveMap {
  * These entries will be converted into a ResolveMap
  */
 type ResolvedEntry = ImportToExport | ImportToExportPath;
-class ImportToExport {
+class ImportToExport { // TODO rename to ExportPathToExport
   constructor(
-    public importPath: string[],
+    public importPath: string[],   // TODO shouldn't this be export path?
     public modExp: ModuleExport,
     public expImpArgs: StringPairs
   ) {}
@@ -126,7 +126,7 @@ function resolveTreeImport(
         // we're in the middle of the path so keep recursing
         return recursiveResolve(impPath, expPath, rest);
       } else {
-        return resolveFullPath(impPath, expPath, segment.args);
+        return resolveFlatPath(impPath, expPath, segment.args);
       }
     }
     if (segment instanceof SegmentList) {
@@ -174,7 +174,10 @@ function resolveTreeImport(
     });
   }
 
-  function resolveFullPath(
+  /** resolve a flattened path as best we can, returning a path mapping entry
+   * and a 
+  */
+  function resolveFlatPath(
     impPath: string[],
     expPath: string[],
     impArgs: string[] | undefined
