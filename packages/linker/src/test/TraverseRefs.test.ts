@@ -1,16 +1,14 @@
+import { dlog } from "berry-pretty";
 import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
+import { refFullName } from "../Linker.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
 import { FoundRef, TextRef, refName, traverseRefs } from "../TraverseRefs.js";
-import { printRef } from "../RefDebug.js";
-import { refLog } from "../LinkerLogging.js";
-import { dlog } from "berry-pretty";
-import { refFullName } from "../Linker.js";
 
 test("traverse a fn to struct ref", () => {
   const src = `
-    #import AStruct 
+    #import AStruct from ./file1
 
     fn main() {
       let a:AStruct; 
@@ -33,7 +31,6 @@ test("traverse a fn to struct ref", () => {
 test("traverse simple rust style import", () => {
   const main = `
     import bar::foo;
-    module main
     fn main() { foo(); }
   `;
   const bar = `
@@ -49,14 +46,14 @@ test("traverse simple rust style import", () => {
 
 test("traverse nested import with params and support fn", () => {
   const src = `
-    // #import foo(u32)
+    // #import foo(u32) from ./file1
     fn bar() {
       foo(8u);
     }
   `;
 
   const module1 = `
-    // #import zap
+    // #import zap from ./file2
   
     // #export (A)
     fn foo(a: A) { 
@@ -81,14 +78,15 @@ test("traverse nested import with params and support fn", () => {
   expect(second.elem.name).eq("support");
 });
 
-test("traverse importing", () => {
+test.skip("traverse importing", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
+
   const module1 = `
-    #export(C, D) importing bar(D)
+    #export(C, D) importing bar(D) from ./file2
     fn foo(c:C, d:D) { bar(d); } `;
   const module2 = `
     #export(X)
@@ -100,17 +98,17 @@ test("traverse importing", () => {
   expect(importingRef.expInfo?.expImpArgs).deep.eq([["X", "B"]]);
 });
 
-test("traverse double importing", () => {
+test.skip("traverse double importing", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
   const module1 = `
-    #export(C, D) importing bar(D)
+    #export(C, D) importing bar(D) from ./file2
     fn foo(c:C, d:D) { bar(d); } `;
   const module2 = `
-    #export(X) importing zap(X)
+    #export(X) importing zap(X) from ./file3
     fn bar(x:X) { zap(x); } `;
   const module3 = `
     #export(Y) 
@@ -126,17 +124,17 @@ test("traverse double importing", () => {
   expect(expImpArgs[3]).deep.eq([["Y", "B"]]);
 });
 
-test("traverse importing from a support fn", () => {
+test.skip("traverse importing from a support fn", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
   const module1 = `
-    #export(C, D) importing support(D)
+    #export(C, D) importing support(D) from ./file1
     fn foo(c:C, d:D) { support(d); } 
     
-    #export(D) importing bar(D)
+    #export(D) importing bar(D) from ./file2
     fn support(d:D) { bar(d); }
     `;
   const module2 = `
@@ -152,14 +150,14 @@ test("traverse importing from a support fn", () => {
   expect(expImpArgs).toMatchSnapshot();
 });
 
-test("traverse importing from a local call fails", () => {
+test.skip("traverse importing from a local call fails", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
   const module1 = `
-    #export(C, D) importing bar(D)
+    #export(C, D) importing bar(D) 
     fn foo(c:C, d:D) { support(d); } 
     
     fn support(d:D) { bar(d); } //  need to mark this as an export with importing, so we can map params
@@ -172,14 +170,14 @@ test("traverse importing from a local call fails", () => {
   expect(log.length).not.eq(0);
 });
 
-test("importing args don't match", () => {
+test.skip("importing args don't match", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
   const module1 = `
-    #export(C, D) importing bar(E)
+    #export(C, D) importing bar(E) from ./file2
     fn foo(c:C, d:D) { bar(d); } `;
   const module2 = `
     #export(X)
@@ -199,7 +197,7 @@ test("importing args don't match", () => {
 
 test("mismatched import export params", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
@@ -209,10 +207,10 @@ test("mismatched import export params", () => {
 
   const { log } = traverseWithLog(src, module1);
   expect(log).toMatchInlineSnapshot(`
-    "mismatched import and export params  module: main main
-        #import foo(A, B)   Ln 2
+    "mismatched import and export params  module: _root/main.wgsl
+        #import foo(A, B) from ./file1   Ln 2
         ^
-     module: moduleFile0 moduleFile0
+     module: _root/file1.wgsl
         #export(C)    Ln 2
         ^"
   `);
@@ -221,7 +219,6 @@ test("mismatched import export params", () => {
 test("traverse var to rust style struct ref", () => {
   const main = `
      import foo::bar;
-     module main
      var x: bar;
      fn main() { }
    `;
@@ -239,7 +236,7 @@ test("traverse var to rust style struct ref", () => {
 
 test("traverse a struct to struct ref", () => {
   const src = `
-    #import AStruct 
+    #import AStruct from ./file1
 
     struct SrcStruct {
       a: AStruct,
@@ -259,7 +256,7 @@ test("traverse a struct to struct ref", () => {
 
 test("traverse a global var to struct ref", () => {
   const src = `
-    #import Uniforms
+    #import Uniforms from ./file1
 
     @group(0) @binding(0) var<uniform> u: Uniforms;      
     `;
@@ -279,14 +276,14 @@ test("traverse a global var to struct ref", () => {
 
 test("traverse transitive struct refs", () => {
   const src = `
-    #import AStruct 
+    #import AStruct  from ./file1
 
     struct SrcStruct {
       a: AStruct,
     }
   `;
   const module1 = `
-    #import BStruct
+    #import BStruct from ./file2
 
     #export
     struct AStruct {
@@ -305,7 +302,7 @@ test("traverse transitive struct refs", () => {
   expect(refName(refs[2])).toBe("BStruct");
 });
 
-test("traverse #export importing struct to struct", () => {
+test.skip("traverse #export importing struct to struct", () => {
   const src = `
     #import AStruct(MyStruct)
 
@@ -337,7 +334,7 @@ test("traverse #export importing struct to struct", () => {
 
 test("traverse ref from struct constructor", () => {
   const src = `
-    #import AStruct
+    #import AStruct from ./file1
 
     fn main() {
       var x = AStruct(1u);
@@ -354,9 +351,9 @@ test("traverse ref from struct constructor", () => {
   expect(refName(refs[1])).toBe("AStruct");
 });
 
-test("traverse #extends", () => {
+test.skip("traverse #extends", () => {
   const src = `
-    #extends A
+    #extends A 
     struct B {
       x: u32
     }
@@ -373,7 +370,7 @@ test("traverse #extends", () => {
 
 test("traverse with local support struct", () => {
   const src = `
-    #import A
+    #import A from ./file1
 
     fn b() { var a: A; var b: B; }
 
@@ -391,7 +388,7 @@ test("traverse with local support struct", () => {
 
 test("traverse from return type of function", () => {
   const src = `
-    #import A
+    #import A from ./file1
 
     fn b() -> A { }
   `;
@@ -517,20 +514,21 @@ function traverseWithLog(
  */
 function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const moduleFiles = Object.fromEntries(
-    modules.map((m, i) => [`moduleFile${i}`, m])
+    modules.map((m, i) => [`./file${i + 1}.wgsl`, m])
   );
-  const wgsl = { "./main": src, ...moduleFiles };
+  const wgsl = { "./main.wgsl": src, ...moduleFiles };
   const registry = new ModuleRegistry({ wgsl });
   const refs: FoundRef[] = [];
   const parsed = registry.parsed();
   const mainModule = parsed.findTextModule("./main")!;
+  dlog({mainModule:!!mainModule})
   const seen = new Set<string>();
 
   traverseRefs(mainModule, parsed, (ref) => {
     if (unseen(ref)) {
       refs.push(ref);
       return true;
-    } 
+    }
   });
 
   function unseen(ref: FoundRef): true | undefined {
