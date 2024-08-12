@@ -100,7 +100,7 @@ export class ParsedRegistry {
       (i) => i.kind === "treeImport"
     ); // TODO drop filter when we drop other import kinds
 
-    // LATER cache? 
+    // LATER cache?
     return importResolutionMap(importingModule, treeImports, this);
   }
 
@@ -128,7 +128,7 @@ export class ParsedRegistry {
     modulePath: string,
     exportName: string
   ): TextModuleExport | GeneratorModuleExport | undefined {
-    const module = this.findTextModule(modulePath); 
+    const module = this.findTextModule(modulePath);
     const exp = module?.exports.find((e) => e.ref.name === exportName);
     if (exp) {
       return { module, exp: exp } as TextModuleExport;
@@ -153,14 +153,15 @@ export class ParsedRegistry {
     moduleSpecifier: string,
     packageName = "_root"
   ): TextModule | undefined {
-    // relative module path
     if (moduleSpecifier.startsWith(".")) {
-      const mPath = modulePath(moduleSpecifier, packageName);
+      // relative module path
+      const resolvedPath = modulePath(moduleSpecifier, packageName);
       return (
-        this.textModules.find((m) => m.fileName === mPath) ||
-        this.textModules.find((m) => noSuffix(m.fileName) === mPath)
+        this.textModules.find((m) => m.fileName === resolvedPath) ||
+        this.textModules.find((m) => noSuffix(m.fileName) === resolvedPath)
       );
     } else {
+      // package module specifier
       return this.textModules.find((m) => m.name === moduleSpecifier);
     }
   }
