@@ -48,13 +48,14 @@ test("tree with path segment list", () => {
          fn main() { foo(); zah();}
       `,
       "./bar.wgsl": `
+         module bar
          export fn foo() { }
          export fn zah() { }
         `,
     },
   });
   const parsedModules = registry.parsed();
-  const impMod = parsedModules.findTextModule("main")!;
+  const impMod = parsedModules.findTextModule("./main")!;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
   expect(pathsToStrings(resolveMap)).deep.eq([
@@ -75,13 +76,14 @@ test("tree with trailing wildcard", () => {
          fn main() { foo(); zah();}
       `,
       "./bar.wgsl": `
+         module bar
          export fn foo() { }
          export fn zah() { }
         `,
     },
   });
   const parsedModules = registry.parsed();
-  const impMod = parsedModules.findTextModule("main")!;
+  const impMod = parsedModules.findTextModule("./main")!;
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
   expect(pathsToStrings(resolveMap)).deep.eq([
@@ -92,7 +94,6 @@ test("tree with trailing wildcard", () => {
     "bar/foo -> bar/foo",
     "bar/zah -> bar/zah",
   ]);
-
 });
 
 test.skip("tree with generator");
