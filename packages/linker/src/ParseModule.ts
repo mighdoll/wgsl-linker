@@ -68,9 +68,9 @@ export function preProcess(
 
 export function parseModule(
   src: string,
-  templates: Map<string, ApplyTemplateFn> = new Map(),
   naturalModulePath: string,
-  params: Record<string, any> = {}
+  params: Record<string, any> = {},
+  templates: Map<string, ApplyTemplateFn> = new Map()
 ): TextModule {
   const srcMap = preProcess(src, params, templates);
 

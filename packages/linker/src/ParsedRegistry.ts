@@ -7,12 +7,12 @@ import {
   GeneratorModule,
   GeneratorModuleExport,
   ModuleExport,
-  relativeToAbsolute,
   ModuleRegistry,
+  relativeToAbsolute,
   TextModuleExport,
 } from "./ModuleRegistry.js";
 import { parseModule, TextExport, TextModule } from "./ParseModule.js";
-import { dirname, normalize, noSuffix, relativePath } from "./PathUtil.js";
+import { dirname, normalize, noSuffix } from "./PathUtil.js";
 
 /** parse wgsl files and provided indexed access to modules and exports */
 export class ParsedRegistry {
@@ -49,7 +49,7 @@ export class ParsedRegistry {
     params: Record<string, any> = {},
     modulePath: string
   ): void {
-    const m = parseModule(src, this.registry.templates, modulePath, params);
+    const m = parseModule(src, modulePath, params, this.registry.templates);
     this.addTextModule(m);
   }
 
