@@ -7,10 +7,12 @@ exports[`import rust style 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "my",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "foo",
         },
@@ -53,7 +55,7 @@ exports[`simple fn export 1`] = `
       "start": 8,
     },
   ],
-  "fileName": "/unnamed-0",
+  "fileName": "oldFileName",
   "fns": [
     {
       "calls": [],
@@ -80,7 +82,8 @@ exports[`simple fn export 1`] = `
   "globalDirectives": [],
   "imports": [],
   "kind": "text",
-  "name": "unnamed-0",
+  "modulePath": "./test.wgsl",
+  "name": "oldName",
   "preppedSrc": "
     // #export
     fn one() -> i32 {
@@ -125,7 +128,7 @@ exports[`simple fn import 1`] = `
 {
   "aliases": [],
   "exports": [],
-  "fileName": "/unnamed-1",
+  "fileName": "oldFileName",
   "fns": [
     {
       "calls": [
@@ -153,13 +156,22 @@ exports[`simple fn import 1`] = `
   "imports": [
     {
       "end": 19,
-      "kind": "import",
-      "name": "foo",
+      "imports": ImportTree {
+        "segments": [
+          SimpleSegment {
+            "args": undefined,
+            "as": undefined,
+            "name": "foo",
+          },
+        ],
+      },
+      "kind": "treeImport",
       "start": 8,
     },
   ],
   "kind": "text",
-  "name": "unnamed-1",
+  "modulePath": "./test.wgsl",
+  "name": "oldName",
   "preppedSrc": "
     // #import foo
     fn bar() { foo(); }

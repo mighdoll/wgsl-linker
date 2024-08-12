@@ -1,8 +1,7 @@
 import { _withBaseLogger } from "mini-parse";
 import { logCatch } from "mini-parse/test-util";
 import { expect, test } from "vitest";
-import { ImportElem } from "../AbstractElems.js";
-import { parseModule } from "../ParseModule.js";
+import { parseModule, TextModule } from "../ParseModule.js";
 import { simpleTemplate } from "../templates/SimpleTemplate.js";
 
 test("simple fn export", () => {
@@ -12,7 +11,7 @@ test("simple fn export", () => {
       return 1;
     }
   `;
-  const module = parseModule(src);
+  const module = testParseModule(src);
   expect(module.exports.length).toBe(1);
   expect(module).toMatchSnapshot();
 });
@@ -22,9 +21,8 @@ test("simple fn import", () => {
     // #import foo
     fn bar() { foo(); }
   `;
-  const module = parseModule(src);
+  const module = testParseModule(src);
   expect(module.imports.length).toBe(1);
-  expect((module.imports[0] as ImportElem).name).toBe("foo");
   expect(module).toMatchSnapshot();
 });
 
@@ -36,7 +34,7 @@ test("match #extends", () => {
       sum: f32
     }
   `;
-  const module = parseModule(src);
+  const module = testParseModule(src);
   const merges = module.structs[0].extendsElems!;
   expect(merges[0].name).eq("Foo");
   expect(merges[1].name).eq("Bar");
@@ -49,7 +47,7 @@ test("read simple struct export", () => {
       sum: f32
     }
   `;
-  const module = parseModule(exportPrefix + "\n" + src);
+  const module = testParseModule(exportPrefix + "\n" + src);
   expect(module.exports.length).toBe(1);
   const firstExport = module.exports[0];
   expect(firstExport.ref.name).toBe("Elem");
@@ -61,8 +59,8 @@ test("read #module", () => {
     // #export
     fn foo() {}
   `;
-  const textModule = parseModule(src);
-  expect(textModule.name).toBe("my.module.com");
+  const textModule = testParseModule(src);
+  expect(textModule.modulePath).toBe("my.module.com");
 });
 
 test("simple #template preserves src map", () => {
@@ -75,7 +73,7 @@ test("simple #template preserves src map", () => {
     fn foo() { /**/ }
   `;
   const templates = new Map([["simple", simpleTemplate.apply]]);
-  const textModule = parseModule(src, templates, "./foo", { XX: "/**/" });
+  const textModule = parseModule(src, "./foo", { XX: "/**/" }, templates);
   expect(textModule.preppedSrc).includes("fn foo() { /**/ }");
   expect(textModule.preppedSrc).equals(expected);
   expect(textModule.srcMap.entries).length(3);
@@ -90,7 +88,7 @@ test("parse error shows correct line after simple #template", () => {
   const templates = new Map([["simple", simpleTemplate.apply]]);
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    parseModule(src, templates, "./foo", { XX: "/**/" });
+    parseModule(src, "./foo", { XX: "/**/" }, templates);
   });
   expect(logged()).toMatchInlineSnapshot(`
     "missing fn name
@@ -110,7 +108,7 @@ test("parse error shows correct line after #ifdef ", () => {
   const templates = new Map([["simple", simpleTemplate.apply]]);
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    parseModule(src, templates, "./foo", { XX: "/**/" });
+    parseModule(src, "./foo", { XX: "/**/" }, templates);
   });
   expect(logged()).toMatchInlineSnapshot(`
     "missing fn name
@@ -132,7 +130,7 @@ test("parse error shows correct line after #ifdef and simple #template", () => {
   const templates = new Map([["simple", simpleTemplate.apply]]);
   const { log, logged } = logCatch();
   _withBaseLogger(log, () => {
-    parseModule(src, templates, "./foo", { XX: "/**/" });
+    parseModule(src, "./foo", { XX: "/**/" }, templates);
   });
   expect(logged()).toMatchInlineSnapshot(`
     "missing fn name
@@ -147,6 +145,10 @@ test("import rust style", () => {
 
     fn bar() { foo(); }
   `;
-  const module = parseModule(src);
+  const module = testParseModule(src);
   expect(module.imports).toMatchSnapshot();
 });
+
+function testParseModule(src: string): TextModule {
+  return parseModule(src, "./test.wgsl");
+}
