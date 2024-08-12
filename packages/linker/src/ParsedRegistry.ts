@@ -134,8 +134,8 @@ export class ParsedRegistry {
     const module = this.findTextModule(modulePath);
     dlog({ modulePath, module: !!module });
     const exp = module?.exports.find((e) => e.ref.name === exportName);
-    if (exp) {
-      return { module, exp: exp } as TextModuleExport;
+    if (exp && module) {
+      return { module, exp: exp, kind: "text"} ;
     }
     
     return this.registry.generators.get(modulePath);
