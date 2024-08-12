@@ -1,9 +1,7 @@
 import { expect, test } from "vitest";
-import { ModuleRegistry, TextModuleExport } from "../ModuleRegistry.js";
-import { dlog } from "berry-pretty";
-import { TextModule } from "../ParseModule.js";
+import { ModuleRegistry } from "../ModuleRegistry.js";
 
-test("moduleByPath", () => {
+test("findTextModule", () => {
   const registry = new ModuleRegistry({
     wgsl: {
       "main.wgsl": `
@@ -13,8 +11,8 @@ test("moduleByPath", () => {
     },
   });
   const parsed = registry.parsed();
-  const m = parsed.moduleByPath(["bar"]);
-  expect(m?.name).eq("bar");
+  const m = parsed.findTextModule("bar");
+  expect(m?.modulePath).eq("bar");
 });
 
 test("getModuleExport", () => {
@@ -22,7 +20,6 @@ test("getModuleExport", () => {
     wgsl: {
       "main.wgsl": `
          import bar::foo;
-         module main
          fn main() { foo(); }
       `,
       "bar.wgsl": `
@@ -33,11 +30,8 @@ test("getModuleExport", () => {
     },
   });
   const parsed = registry.parsed();
-  const impMod = parsed.moduleByPath(["main"]) as TextModule;
+  const impMod = parsed.findTextModule("./main")!;
 
-  const m = parsed.getModuleExport2(impMod, [
-    "bar",
-    "foo",
-  ]) as TextModuleExport;
-  expect(m.module.name).eq("bar");
+  const m = parsed.getModuleExport2(impMod, ["bar", "foo"]);
+  expect(m?.module.modulePath).eq("bar");
 });
