@@ -147,20 +147,22 @@ export class ParsedRegistry {
 
   /**
    * Find a text module by module specifier
+   * @param packageName requesting package name (for resolving relative paths)
    */
   findTextModule(
     moduleSpecifier: string,
     packageName = "_root"
   ): TextModule | undefined {
     // relative module path
-    const searchPath = moduleSpecifier.startsWith(".")
-      ? modulePath(moduleSpecifier, packageName)
-      : moduleSpecifier;
-
-    return (
-      this.textModules.find((m) => m.fileName === searchPath) ||
-      this.textModules.find((m) => noSuffix(m.fileName) === searchPath)
-    );
+    if (moduleSpecifier.startsWith(".")) {
+      const mPath = modulePath(moduleSpecifier, packageName);
+      return (
+        this.textModules.find((m) => m.fileName === mPath) ||
+        this.textModules.find((m) => noSuffix(m.fileName) === mPath)
+      );
+    } else {
+      return this.textModules.find((m) => m.name === moduleSpecifier);
+    }
   }
 
   // TODO just register modules, drop exports based index

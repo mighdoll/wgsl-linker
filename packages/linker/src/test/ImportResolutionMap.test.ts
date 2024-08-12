@@ -29,14 +29,13 @@ test("simple tree", () => {
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
 
   expect(resolveMap.exportMap.size).eq(1);
-  const [impPath, modExp] = [...resolveMap.exportMap.entries()][0];
+  const [impPath, impToExp] = [...resolveMap.exportMap.entries()][0];
   expect(impPath).eq("bar/foo");
-  expect(modExp.module.name).eq("bar");
-  expect((modExp.exp as TextExport).ref.name).eq("foo");
+  expect(impToExp.modExp.module.name).eq("bar");
+  expect((impToExp.modExp.exp as TextExport).ref.name).eq("foo");
 
-  const pathMapEntries = [...resolveMap.pathsMap.entries()];
-  expect(pathMapEntries.length).eq(1);
-  const [impSegments, expSegments] = pathMapEntries[0];
+  expect(resolveMap.pathsMap.length).eq(1);
+  const [impSegments, expSegments] = resolveMap.pathsMap[0];
   expect(impSegments).deep.eq(["bar", "foo"]);
   expect(expSegments).deep.eq(["bar", "foo"]);
 });
