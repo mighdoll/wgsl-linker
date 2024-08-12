@@ -63,7 +63,6 @@ export interface GeneratorModuleExport {
 }
 
 /** unique index for naming otherwise unnamed generator modules and src files */
-let unnamedCodeDex = 0;
 let unnamedTextDex = 0;
 
 export interface RegistryParams {
@@ -91,7 +90,7 @@ export interface RegistryParams {
 export class ModuleRegistry {
   templates = new Map<string, ApplyTemplateFn>();
   wgslSrc = new Map<string, string>();
-  generators = new Map<string, GeneratorModule>();
+  generators = new Map<string, GeneratorModuleExport>();
 
   constructor(args?: RegistryParams) {
     if (!args) return;
@@ -130,12 +129,12 @@ export class ModuleRegistry {
     };
     const module: GeneratorModule = {
       kind: "generator",
-      name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
+      name: reg.moduleName,
       modulePath: reg.moduleName,
       exports: [exp],
     };
 
-    this.generators.set(module.name, module);
+    this.generators.set(module.modulePath, { kind: "function", module, exp });
   }
 
   /** register a template processor  */

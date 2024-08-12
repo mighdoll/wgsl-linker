@@ -16,7 +16,7 @@ import {
 import { exportName, ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 import { StringPairs } from "./TraverseRefs.js";
-import { dirname, normalize, resolve } from "path";
+import { dirname, normalize } from "./PathUtil.js";
 
 /**
  * Maps to resolve imports to exports.

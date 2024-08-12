@@ -32,7 +32,6 @@ export class ParsedRegistry {
     this.registry.wgslSrc.forEach((src, fileName) => {
       this.parseOneModule(src, conditions, fileName);
     });
-    this.recordGenerators();
   }
 
   link(moduleSpecifier: string): string {
@@ -122,7 +121,9 @@ export class ParsedRegistry {
     } else {
       // package rooted path
       const modulePath = pathSegments.slice(0, -1).join("/");
-      return this.findExport(modulePath, exportName);
+      const result = this.findExport(modulePath, exportName);
+      dlog({ modulePath, exportName, result: !!result });
+      return result;
     }
   }
 
@@ -136,7 +137,8 @@ export class ParsedRegistry {
     if (exp) {
       return { module, exp: exp } as TextModuleExport;
     }
-    // TODO also find generator modules / exports
+    
+    return this.registry.generators.get(modulePath);
   }
 
   findModule(
@@ -144,7 +146,7 @@ export class ParsedRegistry {
   ): TextModule | GeneratorModule | undefined {
     return (
       this.findTextModule(moduleSpecifier) ??
-      this.registry.generators.get(moduleSpecifier)
+      this.registry.generators.get(moduleSpecifier)?.module
     );
   }
 
@@ -166,18 +168,6 @@ export class ParsedRegistry {
       this.textModules.find((m) => noSuffix(m.modulePath) === resolvedPath);
     dlog({ moduleSpecifier, packageName, result: !!result });
     return result;
-  }
-
-  // TODO just register modules, drop exports based index
-  private recordGenerators(): void {
-    this.registry.generators.forEach((g) => {
-      const moduleExport: GeneratorModuleExport = {
-        module: g,
-        exp: g.exports[0],
-        kind: "function",
-      };
-      this.addModuleExport(moduleExport);
-    });
   }
 
   private addTextModule(module: TextModule): void {
