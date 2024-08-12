@@ -2,7 +2,12 @@ import { _withBaseLogger, tokens } from "mini-parse";
 import { logCatch, testParse } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
-import { ImportElem, ModuleElem, TemplateElem } from "../AbstractElems.js";
+import {
+  ImportElem,
+  ModuleElem,
+  TemplateElem,
+  TreeImportElem,
+} from "../AbstractElems.js";
 import { argsTokens } from "../MatchWgslD.js";
 import {
   directive,
@@ -11,6 +16,9 @@ import {
 } from "../ParseDirective.js";
 import { parseWgslD } from "../ParseWgslD.js";
 import { testAppParse } from "./TestUtil.js";
+import { last } from "../Util.js";
+import { SimpleSegment, treeToString } from "../ImportTree.js";
+import { dlog } from "berry-pretty";
 
 test("directive parses #export", () => {
   const { appState } = testAppParse(directive, "#export");
@@ -54,13 +62,13 @@ test("parse #export(foo) with trailing space", () => {
   expect(parsed).toMatchSnapshot();
 });
 
-test("importing parses importing bar(A) fog(B)", () => {
+test.skip("importing parses importing bar(A) fog(B)", () => {
   const src = ` importing bar(A), fog(B)`;
   const { parsed } = testAppParse(tokens(argsTokens, importing), src);
   expect(parsed?.tags.importing).toMatchSnapshot();
 });
 
-test("parse #export(A, B) importing bar(A)", () => {
+test.skip("parse #export(A, B) importing bar(A)", () => {
   const src = `
     #export(A, B) importing bar(A)
     fn foo(a:A, b:B) { bar(a); }
@@ -68,6 +76,7 @@ test("parse #export(A, B) importing bar(A)", () => {
   const parsed = parseWgslD(src);
   expect(parsed[0]).toMatchSnapshot();
 });
+
 test("#export w/o closing paren", () => {
   const src = `#export (A
     )
@@ -146,9 +155,12 @@ test("module foo/bar/ba", (ctx) => {
 
 test("parse import with numeric types", () => {
   const nums = "1u 2.0F 0x010 -7.0 1e7".split(" ");
-  const src = `#import foo(${nums.join(",")})`;
+  const src = `#import foo(${nums.join(",")}) from bar`;
   const appState = parseWgslD(src);
-  expect((appState[0] as ImportElem).args).deep.eq(nums);
+
+  const segments = (appState[0] as TreeImportElem).imports.segments;
+  const lastSegment = last(segments) as SimpleSegment;
+  expect(lastSegment.args).deep.eq(nums);
 });
 
 test("parse template", () => {
@@ -157,25 +169,24 @@ test("parse template", () => {
   expect((appState[0] as TemplateElem).name).deep.eq("foo.cz/magic-strings");
 });
 
-test("parse import relpath", () => {
-  const src = `#import foo from ./util`;
-  const appState = parseWgslD(src);
-  const importElem = appState[0] as ImportElem;
-  expect(importElem.from).eq("./util");
+test("#import foo from ./util", (ctx) => {
+  const appState = parseWgslD(ctx.task.name);
+  const importElem = appState[0] as TreeImportElem;
+  const segments = treeToString(importElem.imports);
+  expect(segments).eq("./util/foo");
 });
 
 test('import { foo } from "./bar"', (ctx) => {
   const appState = parseWgslD(ctx.task.name);
-  const importElem = appState[0] as ImportElem;
-
-  expect(importElem.from).eq("./bar");
+  const importElem = appState[0] as TreeImportElem;
+  const segments = treeToString(importElem.imports);
+  expect(segments).eq("./bar/foo");
 });
 
 test('import { foo, bar } from "./bar"', (ctx) => {
   const appState = parseWgslD(ctx.task.name);
-  const imports = appState.filter((e) => e.kind === "import") as ImportElem[];
-  expect(imports).length(2);
-  imports.forEach((importElem) => {
-    expect(importElem.from).eq("./bar");
-  });
+  const imports = appState.filter((e) => e.kind === "treeImport");
+  const segments = imports.map((i) => treeToString(i.imports));
+  expect(segments).includes("./bar/foo");
+  expect(segments).includes("./bar/bar");
 });

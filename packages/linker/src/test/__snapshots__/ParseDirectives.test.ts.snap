@@ -75,8 +75,16 @@ exports[`parse #import foo 1`] = `
 [
   {
     "end": 11,
-    "kind": "import",
-    "name": "foo",
+    "imports": ImportTree {
+      "segments": [
+        SimpleSegment {
+          "args": undefined,
+          "as": undefined,
+          "name": "foo",
+        },
+      ],
+    },
+    "kind": "treeImport",
     "start": 0,
   },
 ]
@@ -85,11 +93,22 @@ exports[`parse #import foo 1`] = `
 exports[`parse #import foo(a,b) as baz from bar 1`] = `
 [
   {
-    "as": "baz",
     "end": 27,
-    "from": "bar",
-    "kind": "import",
-    "name": "foo",
+    "imports": ImportTree {
+      "segments": [
+        SimpleSegment {
+          "args": undefined,
+          "as": undefined,
+          "name": "bar",
+        },
+        SimpleSegment {
+          "args": undefined,
+          "as": "baz",
+          "name": "foo",
+        },
+      ],
+    },
+    "kind": "treeImport",
     "start": 0,
   },
 ]
