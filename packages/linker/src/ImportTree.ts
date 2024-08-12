@@ -20,3 +20,26 @@ export class Wildcard {
   public static _ = new Wildcard();
   wildcard = "*"; // to identify this object in debug logging
 }
+
+export function treeToString(tree: ImportTree): string {
+  return tree.segments.map((s) => segmentToString(s)).join("/");
+}
+
+function segmentToString(segment: PathSegment): string {
+  if (segment instanceof SimpleSegment) {
+    const {name, as, args} = segment;
+    const asMsg = as ? ` as ${as}` : "";
+    const argsMsg = args ? `(${args.join(", ")})` : "";
+    return `${name}${argsMsg}${asMsg}`;
+  }
+  if (segment instanceof Wildcard) {
+    return "*";
+  }
+  if (segment instanceof SegmentList) {
+    return `{${segment.list.map((s) => segmentToString(s)).join(", ")}}`;
+  }
+  if (segment instanceof ImportTree) {
+    return `(${treeToString(segment)})`;
+  }
+  throw new Error(`unknown segment type ${segment}`);
+}
