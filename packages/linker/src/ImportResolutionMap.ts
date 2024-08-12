@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import { ExportElem, TreeImportElem } from "./AbstractElems.js";
 import {
   ImportTree,
@@ -15,6 +16,7 @@ import {
 import { exportName, ParsedRegistry } from "./ParsedRegistry.js";
 import { TextModule } from "./ParseModule.js";
 import { StringPairs } from "./TraverseRefs.js";
+import { dirname, normalize, resolve } from "path";
 
 /**
  * Maps to resolve imports to exports.
@@ -34,11 +36,12 @@ import { StringPairs } from "./TraverseRefs.js";
  *    fn foo() { b::bar(); }  // can now resolve to exported element pkg::a::bar
  */
 export interface ResolveMap {
-  // map from export path string "mypkg/foo/bar/exp" to resolved export
-  exportMap: Map<string, ImportToExport>;
-
   // map from caller path to exporter path ["pkg", "subpath", "asName"] -> ["mypkg", "subpath", "expName"]
   pathsMap: Array<[string[], string[]]>;
+
+  // map from export path string "mypkg/foo/exp" to resolved export
+  exportMap: Map<string, ImportToExport>;
+
 }
 
 /*
@@ -176,10 +179,15 @@ function resolveTreeImport(
     expPath: string[],
     impArgs: string[] | undefined
   ): ResolvedEntry[] {
-    const entries: ResolvedEntry[] = [new ImportToExportPath(impPath, expPath)];
+    const resolvedImp = absolutePath(impPath, importingModule);
+    const resolvedExp = absolutePath(expPath, importingModule);
+    const entries: ResolvedEntry[] = [
+      new ImportToExportPath(resolvedImp, resolvedExp),
+    ];
 
     // try and resolve as an exported element as well
-    const modExp = registry.getModuleExport2(importingModule, expPath);
+    const modExp = registry.getModuleExport2(importingModule, resolvedExp);
+    dlog({ modExp: !!modExp, resolvedExp });
     if (modExp) {
       const expImpArgs = matchExportImportArgs(
         importingModule,
@@ -188,9 +196,20 @@ function resolveTreeImport(
         modExp.module,
         modExp.exp
       );
-      entries.push(new ImportToExport(impPath, modExp, expImpArgs));
+      entries.push(new ImportToExport(resolvedExp, modExp, expImpArgs));
     }
     return entries;
+  }
+}
+
+function absolutePath(pathSegments: string[], mod: TextModule): string[] {
+  if (pathSegments[0] === ".") {
+    const moduleDir = dirname(mod.modulePath);
+    const joined = [moduleDir, ...pathSegments.slice(1)].join("/");
+    const modulePath = normalize(joined);
+    return modulePath.split("/");
+  } else {
+    return pathSegments;
   }
 }
 

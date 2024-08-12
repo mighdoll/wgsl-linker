@@ -127,6 +127,7 @@ export function refFullName(ref: FoundRef): string {
   const expImpArgs = ref.expInfo?.expImpArgs ?? [];
   const impArgs = expImpArgs.map(([, arg]) => arg);
   const argsStr = "(" + impArgs.join(",") + ")";
+  // TODO use .modulePath instead of .name
   return ref.expMod.name + "." + refName(ref) + argsStr;
 }
 

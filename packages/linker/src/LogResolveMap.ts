@@ -1,5 +1,5 @@
 import { ResolveMap } from "./ImportResolutionMap.js";
-import { TextExport } from "./ParseModule.js";
+import { TextExport, TextModule } from "./ParseModule.js";
 
 export function logResolveMap(resolveMap: ResolveMap): void {
   const pathEntries = pathsToStrings(resolveMap);
@@ -16,7 +16,8 @@ export function pathsToStrings(resolveMap: ResolveMap): string[] {
 
 export function exportsToStrings(resolveMap: ResolveMap): string[] {
   return [...resolveMap.exportMap].map(([imp, exp]) => {
-    const expPath = `${exp.modExp.module.name}/${(exp.modExp.exp as TextExport).ref.name}`;
+    const modulePath = (exp.modExp.module as TextModule).modulePath;
+    const expPath = `${modulePath}/${(exp.modExp.exp as TextExport).ref.name}`;
     const expImpArgs = exp.expImpArgs.length ? ` (${exp.expImpArgs.join(", ")})` : "";
     return `${imp} -> ${expPath}${expImpArgs}`;
   });

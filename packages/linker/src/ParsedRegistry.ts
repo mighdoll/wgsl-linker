@@ -7,7 +7,7 @@ import {
   GeneratorModule,
   GeneratorModuleExport,
   ModuleExport,
-  modulePath,
+  relativeToAbsolute,
   ModuleRegistry,
   TextModuleExport,
 } from "./ModuleRegistry.js";
@@ -47,10 +47,9 @@ export class ParsedRegistry {
   private parseOneModule(
     src: string,
     params: Record<string, any> = {},
-    fileName: string
+    modulePath: string
   ): void {
-    const newFileName = fileName && normalize(fileName);
-    const m = parseModule(src, this.registry.templates, newFileName, params);
+    const m = parseModule(src, this.registry.templates, modulePath, params);
     this.addTextModule(m);
   }
 
@@ -61,30 +60,31 @@ export class ParsedRegistry {
     exportName: string,
     moduleSpecifier?: string // either a module name or a relative path
   ): ModuleExport | undefined {
-    const exports = this.exports.get(exportName);
-    if (!exports) {
-      return undefined;
-    } else if (moduleSpecifier?.startsWith(".")) {
-      const searchName = relativePath(requesting.fileName, moduleSpecifier);
-      const baseSearch = noSuffix(searchName);
+    return undefined;
+    // const exports = this.exports.get(exportName);
+    // if (!exports) {
+    //   return undefined;
+    // } else if (moduleSpecifier?.startsWith(".")) {
+    //   const searchName = relativePath(requesting.fileName, moduleSpecifier);
+    //   const baseSearch = noSuffix(searchName);
 
-      return exports.find((e) => {
-        const fileName = (e.module as TextModule).fileName;
-        if (!fileName) return false;
-        if (fileName === searchName) return true;
-        if (baseSearch === noSuffix(fileName)) return true;
-      });
-    } else if (moduleSpecifier) {
-      return exports.find((e) => e.module.name === moduleSpecifier);
-    } else if (exports.length === 1) {
-      return exports[0];
-    } else {
-      const moduleNames = exports.map((e) => e.module.name).join(", ");
-      console.warn(
-        `Multiple modules export "${exportName}". (${moduleNames}) ` +
-          `Use "#import ${exportName} from <moduleName>" to select which one import`
-      );
-    }
+    //   return exports.find((e) => {
+    //     const fileName = (e.module as TextModule).fileName;
+    //     if (!fileName) return false;
+    //     if (fileName === searchName) return true;
+    //     if (baseSearch === noSuffix(fileName)) return true;
+    //   });
+    // } else if (moduleSpecifier) {
+    //   return exports.find((e) => e.module.name === moduleSpecifier);
+    // } else if (exports.length === 1) {
+    //   return exports[0];
+    // } else {
+    //   const moduleNames = exports.map((e) => e.module.name).join(", ");
+    //   console.warn(
+    //     `Multiple modules export "${exportName}". (${moduleNames}) ` +
+    //       `Use "#import ${exportName} from <moduleName>" to select which one import`
+    //   );
+    // }
   }
 
   // TODO drop this?  It's only used for tests
@@ -107,16 +107,18 @@ export class ParsedRegistry {
   /** @return a ModuleExport if the provided pathSegments
    * reference an export in a registered module */
   getModuleExport2(
-    importingModule: TextModule,
+    importingModule: TextModule, // TODO drop this and require pathSegments to be absolute
     pathSegments: string[]
   ): ModuleExport | undefined {
     const exportName = pathSegments[pathSegments.length - 1];
     if (pathSegments[0] === ".") {
       // relative module path in current package
-      const moduleDir = dirname(importingModule.fileName);
+      const moduleDir = dirname(importingModule.modulePath);
       const joined = [moduleDir, ...pathSegments.slice(1, -1)].join("/");
       const modulePath = normalize(joined);
-      return this.findExport(modulePath, exportName);
+      const result = this.findExport(modulePath, exportName);
+      dlog({ modulePath, exportName, result: !!result });
+      return result;
     } else {
       // package rooted path
       const modulePath = pathSegments.slice(0, -1).join("/");
@@ -129,6 +131,7 @@ export class ParsedRegistry {
     exportName: string
   ): TextModuleExport | GeneratorModuleExport | undefined {
     const module = this.findTextModule(modulePath);
+    dlog({ modulePath, module: !!module });
     const exp = module?.exports.find((e) => e.ref.name === exportName);
     if (exp) {
       return { module, exp: exp } as TextModuleExport;
@@ -153,17 +156,16 @@ export class ParsedRegistry {
     moduleSpecifier: string,
     packageName = "_root"
   ): TextModule | undefined {
-    if (moduleSpecifier.startsWith(".")) {
-      // relative module path
-      const resolvedPath = modulePath(moduleSpecifier, packageName);
-      return (
-        this.textModules.find((m) => m.fileName === resolvedPath) ||
-        this.textModules.find((m) => noSuffix(m.fileName) === resolvedPath)
-      );
-    } else {
-      // package module specifier
-      return this.textModules.find((m) => m.name === moduleSpecifier);
-    }
+    // const modulePaths = this.textModules.map((m) => m.modulePath);
+    // dlog({ modulePaths });
+    const resolvedPath = moduleSpecifier.startsWith(".")
+      ? relativeToAbsolute(moduleSpecifier, packageName)
+      : moduleSpecifier;
+    const result =
+      this.textModules.find((m) => m.modulePath === resolvedPath) ??
+      this.textModules.find((m) => noSuffix(m.modulePath) === resolvedPath);
+    dlog({ moduleSpecifier, packageName, result: !!result });
+    return result;
   }
 
   // TODO just register modules, drop exports based index

@@ -1,13 +1,12 @@
+import { dlog } from "berry-pretty";
 import { ResolveMap } from "./ImportResolutionMap.js";
-import {
-  ModuleExport
-} from "./ModuleRegistry.js";
+import { ModuleExport } from "./ModuleRegistry.js";
 import { StringPairs } from "./TraverseRefs.js";
 import { overlapTail } from "./Util.js";
+import { logResolveMap } from "./LogResolveMap.js";
 
 export interface ResolvedImport {
   modExp: ModuleExport;
-  // importElem: TreeImportElem;
   callSegments: string[];
   expImpArgs: StringPairs;
 }
@@ -33,14 +32,19 @@ export function resolveImport(
     ? callPath.split("::")
     : callPath.split(".");
 
+  logResolveMap(resolveMap);
+
   const expPath = impToExportPath(callSegments, resolveMap);
   if (expPath) {
     const impToExp = resolveMap.exportMap.get(expPath);
+    dlog({ callSegments, expPath, impToExp: !!impToExp });
 
     if (impToExp) {
       const { modExp, expImpArgs } = impToExp;
       return { modExp, callSegments, expImpArgs };
     }
+  } else {
+    dlog({ callSegments, expPath });
   }
 
   return undefined;

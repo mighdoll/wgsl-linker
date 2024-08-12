@@ -51,7 +51,8 @@ export interface TextModuleExport {
 
 export interface GeneratorModule {
   kind: "generator";
-  name: string;
+  name: string; // TODO drop name, just use modulePath
+  modulePath: string;
   exports: GeneratorExport[];
 }
 
@@ -130,6 +131,7 @@ export class ModuleRegistry {
     const module: GeneratorModule = {
       kind: "generator",
       name: reg.moduleName ?? `funModule${unnamedCodeDex++}`,
+      modulePath: reg.moduleName,
       exports: [exp],
     };
 
@@ -144,18 +146,22 @@ export class ModuleRegistry {
   private addModuleSrc(
     src: string,
     filePath?: string,
-    packageName?: string
+    packageName = "_root"
   ): void {
     if (filePath) {
-      this.wgslSrc.set(modulePath(filePath, packageName), src);
+      this.wgslSrc.set(relativeToAbsolute(filePath, packageName), src);
     } else {
+      // TODO get rid of this case
       this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
     }
   }
 }
 
-export function modulePath(filePath: string, packageName = "_root"): string {
-  const normalPath = normalize(filePath);
+export function relativeToAbsolute(
+  relativePath: string,
+  packageName: string
+): string {
+  const normalPath = normalize(relativePath);
   const fullPath = `${packageName}/${normalPath}`;
   return fullPath;
 }

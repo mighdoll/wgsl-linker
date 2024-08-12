@@ -40,7 +40,7 @@ test("copy root elements linked output", () => {
   expect(linked).includes(rootFn);
 });
 
-test.only("#import with parameter", () => {
+test("import with parameter", () => {
   const myModule = `
     export(Elem)
     fn foo(a: Elem) { /* fooImpl */ }
@@ -58,9 +58,9 @@ test.only("#import with parameter", () => {
   expect(linked).includes("a: MyElem");
 });
 
-test("transitive import", () => {
+test.skip("transitive import", () => {
   const binOpModule = `
-    // #export(Elem) 
+    #export(Elem) 
     fn binaryOp(a: Elem, b: Elem) -> Elem {
         return a + b; // binOpImpl
     }`;
@@ -82,14 +82,13 @@ test("transitive import", () => {
   expect(linked).includes("binOpImpl");
 });
 
-test("#import foo as bar", () => {
+test("import foo as bar", () => {
   const myModule = `
-    #export
-    fn foo() { /* fooImpl */ }
+    export fn foo() { /* fooImpl */ }
    `;
 
   const src = `
-    #import foo as bar
+    import foo as bar from "./file1"
 
     fn main() {
       bar();

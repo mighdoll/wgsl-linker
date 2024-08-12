@@ -21,7 +21,7 @@ export function moduleLog(
     srcMap ?? src,
     pos,
     ...msgs,
-    ` module: ${mod.name} ${mod.fileName || ""}`
+    ` module: ${mod.modulePath}`
   );
 }
 

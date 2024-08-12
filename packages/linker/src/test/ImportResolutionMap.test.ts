@@ -1,18 +1,14 @@
 import { expect, test } from "vitest";
 import { importResolutionMap } from "../ImportResolutionMap.js";
-import {
-  exportsToStrings,
-  pathsToStrings
-} from "../LogResolveMap.js";
+import { exportsToStrings, pathsToStrings } from "../LogResolveMap.js";
 import { ModuleRegistry } from "../ModuleRegistry.js";
-import { TextExport, TextModule } from "../ParseModule.js";
+import { TextExport } from "../ParseModule.js";
 
 test("simple tree", () => {
   const registry = new ModuleRegistry({
     wgsl: {
       "main.wgsl": `
          import bar::foo;
-         module main
          fn main() { foo(); }
       `,
       "bar.wgsl": `
@@ -23,7 +19,7 @@ test("simple tree", () => {
     },
   });
   const parsedModules = registry.parsed();
-  const impMod = parsedModules.moduleByPath(["main"]) as TextModule;
+  const impMod = parsedModules.findTextModule("./main")!;
 
   const treeImports = impMod.imports.filter((i) => i.kind === "treeImport");
   const resolveMap = importResolutionMap(impMod, treeImports, parsedModules);
@@ -31,7 +27,7 @@ test("simple tree", () => {
   expect(resolveMap.exportMap.size).eq(1);
   const [impPath, impToExp] = [...resolveMap.exportMap.entries()][0];
   expect(impPath).eq("bar/foo");
-  expect(impToExp.modExp.module.name).eq("bar");
+  expect(impToExp.modExp.module.modulePath).eq("bar");
   expect((impToExp.modExp.exp as TextExport).ref.name).eq("foo");
 
   expect(resolveMap.pathsMap.length).eq(1);

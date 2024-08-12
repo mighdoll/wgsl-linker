@@ -18,6 +18,7 @@ import { processConditionals } from "./Conditionals.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
+import { dlog } from "berry-pretty";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -37,6 +38,8 @@ export interface TextModule {
   /** name of the module. A synthetic file name will be assigned if none is provided */
   fileName: string; // full path to the module e.g "package/sub/foo.wgsl", or "self/root.wgsl"
 
+  modulePath: string; // full path to the module e.g "package/sub/foo", or "_root/sub/foo"
+
   /** original src for module */
   src: string;
 
@@ -52,7 +55,7 @@ export interface TextExport extends ExportElem {
   ref: FnElem | StructElem;
 }
 
-let unnamedFileDex = 0;
+// let unnamedFileDex = 0;
 
 export function preProcess(
   src: string,
@@ -66,7 +69,7 @@ export function preProcess(
 export function parseModule(
   src: string,
   templates: Map<string, ApplyTemplateFn> = new Map(),
-  fileName = `/unnamed-${unnamedFileDex++}`, // TODO can we require this?
+  naturalModulePath: string,
   params: Record<string, any> = {}
 ): TextModule {
   const srcMap = preProcess(src, params, templates);
@@ -87,23 +90,20 @@ export function parseModule(
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];
-  const moduleName = filterElems<ModuleElem>(parsed, "module")[0]?.name;
+  const overridePath = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(parsed, srcMap);
 
-  const name = moduleName ?? noSuffix(normalize(fileName));
+  // const name = moduleName ?? noSuffix(normalize(fileName));
+  const fileName = "oldFileName";
+  const name = "oldName";
+
+  const modulePath = overridePath ?? naturalModulePath;
+  // dlog({ modulePath, overridePath });
   const kind = "text";
   return {
-    ...{ kind, src, srcMap, preppedSrc, fileName, name },
-    ...{
-      exports,
-      fns,
-      structs,
-      vars,
-      imports,
-      template,
-      aliases,
-      globalDirectives,
-    },
+    ...{ kind, src, srcMap, preppedSrc, fileName, name, modulePath },
+    ...{ exports, fns, structs, vars, imports, template },
+    ...{ aliases, globalDirectives },
   };
 }
 
