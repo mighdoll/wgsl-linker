@@ -4,8 +4,8 @@ import { TextExport } from "./ParseModule.js";
 export function logResolveMap(resolveMap: ResolveMap): void {
   const pathEntries = pathsToStrings(resolveMap);
   const exportEntries = exportsToStrings(resolveMap);
-  console.log("\tpathsMap: " + pathEntries.join("\n"));
-  console.log("\texportMap: " + exportEntries.join("\n"));
+  console.log("\tpathsMap:\n\t\t" + pathEntries.join("\n\t\t"));
+  console.log("\texportMap:\n\t\t" + exportEntries.join("\n\t\t"));
 }
 
 export function pathsToStrings(resolveMap: ResolveMap): string[] {
@@ -17,7 +17,7 @@ export function pathsToStrings(resolveMap: ResolveMap): string[] {
 export function exportsToStrings(resolveMap: ResolveMap): string[] {
   return [...resolveMap.exportMap].map(([imp, exp]) => {
     const expPath = `${exp.modExp.module.name}/${(exp.modExp.exp as TextExport).ref.name}`;
-    const expImpArgs = exp.expImpArgs ? `(${exp.expImpArgs.join(", ")})` : "";
-    return `${imp} -> ${expPath} (${expImpArgs})`;
+    const expImpArgs = exp.expImpArgs.length ? ` (${exp.expImpArgs.join(", ")})` : "";
+    return `${imp} -> ${expPath}${expImpArgs}`;
   });
 }
