@@ -7,6 +7,7 @@ exports[`import a 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "a",
         },
@@ -25,6 +26,7 @@ exports[`import a::* 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "a",
         },
@@ -46,6 +48,7 @@ exports[`import a::{b, c}::* 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "a",
         },
@@ -54,6 +57,7 @@ exports[`import a::{b, c}::* 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "b",
                 },
@@ -62,6 +66,7 @@ exports[`import a::{b, c}::* 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "c",
                 },
@@ -87,14 +92,17 @@ exports[`import a::b::c 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "a",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "b",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "c",
         },
@@ -113,10 +121,12 @@ exports[`import my::lighting::{ pbr }; 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "my",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "lighting",
         },
@@ -125,6 +135,7 @@ exports[`import my::lighting::{ pbr }; 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "pbr",
                 },
@@ -147,10 +158,12 @@ exports[`import my::lighting::{ pbr as lights } 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "my",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "lighting",
         },
@@ -159,6 +172,7 @@ exports[`import my::lighting::{ pbr as lights } 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": "lights",
                   "name": "pbr",
                 },
@@ -181,10 +195,12 @@ exports[`import my::lighting::{ pbr, jelly }; 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "my",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "lighting",
         },
@@ -193,6 +209,7 @@ exports[`import my::lighting::{ pbr, jelly }; 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "pbr",
                 },
@@ -201,6 +218,7 @@ exports[`import my::lighting::{ pbr, jelly }; 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "jelly",
                 },
@@ -223,10 +241,12 @@ exports[`import my::lighting::{ pbr, jelly::jam }; 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "my",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "lighting",
         },
@@ -235,6 +255,7 @@ exports[`import my::lighting::{ pbr, jelly::jam }; 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "pbr",
                 },
@@ -243,10 +264,12 @@ exports[`import my::lighting::{ pbr, jelly::jam }; 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "jelly",
                 },
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "jam",
                 },
@@ -269,14 +292,17 @@ exports[`import my::lighting::pbr; 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "my",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "lighting",
         },
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "pbr",
         },
@@ -295,6 +321,7 @@ exports[`multiline import 1`] = `
     "imports": ImportTree {
       "segments": [
         SimpleSegment {
+          "args": undefined,
           "as": undefined,
           "name": "a",
         },
@@ -303,6 +330,7 @@ exports[`multiline import 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "b",
                 },
@@ -311,6 +339,7 @@ exports[`multiline import 1`] = `
             ImportTree {
               "segments": [
                 SimpleSegment {
+                  "args": undefined,
                   "as": undefined,
                   "name": "c",
                 },
