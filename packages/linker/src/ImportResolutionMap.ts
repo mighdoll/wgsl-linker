@@ -41,7 +41,6 @@ export interface ResolveMap {
 
   // map from export path string "mypkg/foo/exp" to resolved export
   exportMap: Map<string, ImportToExport>;
-
 }
 
 /*

@@ -58,7 +58,7 @@ test("import with parameter", () => {
   expect(linked).includes("a: MyElem");
 });
 
-test.skip("transitive import", () => {
+test.skip("transitive with importing", () => {
   const binOpModule = `
     #export(Elem) 
     fn binaryOp(a: Elem, b: Elem) -> Elem {
@@ -154,20 +154,20 @@ test.skip("import transitive conflicts with main", () => {
 
 // TODO
 test.skip("#import twice with different names", () => {
-  const module1 = `
-    #export(A)
-    fn foo(a:A) { /* module1 */ }
-  `;
   const src = `
-    #import foo(b) as bar from ./file1
-    #import foo(z) as zap from ./file1
+    import foo(b) as bar from ./file1
+    import foo(z) as zap from ./file1
 
     fn main() {
       bar();
       zap();
     }
   `;
+  const module1 = `
+    export(A) fn foo(a:A) { /* module1 */ }
+  `;
   const linked = linkTest(src, module1);
+  console.log(linked);
   const matches = linked.matchAll(/module1/g);
   expect([...matches].length).toBe(2);
 });
@@ -306,12 +306,12 @@ test("#import support fn from two exports", () => {
 
 test.skip("#export importing", () => {
   const src = `
-    #import foo(A, B)
+    #import foo(A, B) from ./file1
     fn main() {
       foo(k, l);
     } `;
   const module1 = `
-    #export(C, D) importing bar(D)
+    #export(C, D) importing bar(D) from ./file2
     fn foo(c:C, d:D) { bar(d); } `;
   const module2 = `
     #export(X)
