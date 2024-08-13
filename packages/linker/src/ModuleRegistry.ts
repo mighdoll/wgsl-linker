@@ -61,16 +61,9 @@ export interface GeneratorModuleExport {
   kind: "function";
 }
 
-/** unique index for naming otherwise unnamed generator modules and src files */
-let unnamedTextDex = 0;
-
 export interface RegistryParams {
   /** record of file names an wgsl text for modules */
   wgsl?: Record<string, string>;
-
-  /** alt interface to provide wgsl module texts w/o file names.
-   * (usually best to provide filenames though, to allow relative imports) */
-  rawWgsl?: string[];
 
   /** string template handlers for processing exported functions and structs */
   templates?: Template[];
@@ -93,12 +86,11 @@ export class ModuleRegistry {
 
   constructor(args?: RegistryParams) {
     if (!args) return;
-    const { wgsl = {}, rawWgsl = [], templates = [], generators } = args;
+    const { wgsl = {}, templates = [], generators } = args;
 
     Object.entries(wgsl).forEach(([fileName, src]) =>
-      this.addModuleSrc(src, fileName)
+      this.wgslSrc.set(relativeToAbsolute(fileName, "_root"), src)
     );
-    rawWgsl.forEach((src) => this.addModuleSrc(src));
     templates && this.registerTemplate(...templates);
     generators?.map((g) => this.registerGenerator(g));
   }
@@ -140,18 +132,6 @@ export class ModuleRegistry {
     templates.forEach((t) => this.templates.set(t.name, t.apply));
   }
 
-  private addModuleSrc(
-    src: string,
-    filePath?: string,
-    packageName = "_root"
-  ): void {
-    if (filePath) {
-      this.wgslSrc.set(relativeToAbsolute(filePath, packageName), src);
-    } else {
-      // TODO get rid of this case
-      this.wgslSrc.set(`rawWgsl-${unnamedTextDex++}`, src);
-    }
-  }
 }
 
 export function relativeToAbsolute(

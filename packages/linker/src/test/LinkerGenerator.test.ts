@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { ModuleRegistry, RegisterGenerator } from "../ModuleRegistry.js";
+import { linkTestOpts } from "./TestUtil.js";
 
 const fooGenerator: RegisterGenerator = {
   name: "foo",
@@ -68,24 +69,22 @@ test("#import with ext.arg from code generator", () => {
 
 test("#import conficted code gen fn", () => {
   const src = `
-    #module main
-    #import bar from zero
+    import bar from zero
     fn foo() { bar(); }
   `;
 
   const module0 = `
-    #import foo(boo) from test.generator
+    import foo(boo) from test.generator
     module zero
 
     #export
     fn bar() { foo(); }
   `;
 
-  const registry = new ModuleRegistry({
-    rawWgsl: [src, module0],
-    generators: [fooGenerator]
-  });
-  const linked = registry.link("main", { zee: "zog" });
+  const generators = [fooGenerator];
+  const runtimeParams = {zee: "zog"};
+  const linked = linkTestOpts({ generators, runtimeParams}, src, module0)
+
   expect(linked).contains("booImpl");
   expect(linked).contains("fn foo0()");
   expect(linked).contains("foo0();");

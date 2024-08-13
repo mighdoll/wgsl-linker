@@ -434,13 +434,10 @@ test("import with simple template", () => {
 
 test("ext params don't replace override", () => {
   const src = `
-    #module main 
     override workgroupSizeX = 4u;
   `;
-  const registry = new ModuleRegistry({
-    rawWgsl: [src],
-  });
-  const linked = registry.link("main", { workgroupSizeX: 4 });
+  
+  const linked = linkTestOpts({ runtimeParams: { workgroupSizeX: 4 } }, src);
   expect(linked).contains("override workgroupSizeX = 4u;");
 });
 
