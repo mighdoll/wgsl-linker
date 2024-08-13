@@ -43,7 +43,7 @@ const fromClause = seq(
   or(fromWord.tag("from"), seq('"', fromWord.tag("from"), '"'))
 );
 
-interface ImportClause {
+export interface ImportClause {
   name: string;
   as?: string;
   args?: string[];
