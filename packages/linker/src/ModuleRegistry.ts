@@ -51,7 +51,6 @@ export interface TextModuleExport {
 
 export interface GeneratorModule {
   kind: "generator";
-  name: string; // TODO drop name, just use modulePath
   modulePath: string;
   exports: GeneratorExport[];
 }
@@ -129,7 +128,6 @@ export class ModuleRegistry {
     };
     const module: GeneratorModule = {
       kind: "generator",
-      name: reg.moduleName,
       modulePath: reg.moduleName,
       exports: [exp],
     };
