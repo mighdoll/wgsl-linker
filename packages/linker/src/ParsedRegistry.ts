@@ -16,13 +16,7 @@ import { dirname, normalize, noSuffix } from "./PathUtil.js";
 
 /** parse wgsl files and provided indexed access to modules and exports */
 export class ParsedRegistry {
-  // map from module path with / separators, to module
-  private moduleMap = new Map<string, TextModule | GeneratorModule>();
-
   private textModules: TextModule[] = [];
-
-  // map from export names to a map of module names to exports // TODO rm
-  private exports = new Map<string, ModuleExport[]>();
 
   constructor(
     public registry: ModuleRegistry,
@@ -49,9 +43,8 @@ export class ParsedRegistry {
     modulePath: string
   ): void {
     const m = parseModule(src, modulePath, params, this.registry.templates);
-    this.addTextModule(m);
+    this.textModules.push(m);
   }
-
 
   /** @return a ResolveMap to make it easier to resolve imports from the provided module */
   importResolveMap(importingModule: TextModule): ResolveMap {
@@ -95,9 +88,9 @@ export class ParsedRegistry {
     // dlog({ modulePath, module: !!module });
     const exp = module?.exports.find((e) => e.ref.name === exportName);
     if (exp && module) {
-      return { module, exp: exp, kind: "text"} ;
+      return { module, exp: exp, kind: "text" };
     }
-    
+
     return this.registry.generators.get(modulePath);
   }
 
@@ -130,32 +123,6 @@ export class ParsedRegistry {
     return result;
   }
 
-  private addTextModule(module: TextModule): void {
-    this.textModules.push(module);
-    this.moduleMap.set(module.name, module);
-    module.exports.forEach((e) => {
-      const moduleExport: TextModuleExport = {
-        module,
-        exp: e,
-        kind: "text",
-      };
-      this.addModuleExport(moduleExport);
-    });
-  }
-
-  private addModuleExport(moduleExport: ModuleExport): void {
-    const expName = moduleExportName(moduleExport);
-    const existing = this.exports.get(expName);
-    if (existing) {
-      existing.push(moduleExport);
-    } else {
-      this.exports.set(expName, [moduleExport]);
-    }
-  }
-}
-
-function moduleExportName(moduleExport: ModuleExport): string {
-  return exportName(moduleExport.exp);
 }
 
 export function exportName(exp: TextExport | GeneratorExport): string {
