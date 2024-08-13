@@ -10,7 +10,7 @@ export function logResolveMap(resolveMap: ResolveMap): void {
 
 export function pathsToStrings(resolveMap: ResolveMap): string[] {
   return [...resolveMap.pathsMap].map(([imp, exp]) => {
-    return `${imp.join("/")} -> ${exp.join("/")}`;
+    return `${imp.join("/")} -> ${exp}`;
   });
 }
 

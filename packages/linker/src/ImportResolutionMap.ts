@@ -36,11 +36,13 @@ import { dirname, normalize } from "./PathUtil.js";
  *    fn foo() { b::bar(); }  // can now resolve to exported element pkg::a::bar
  */
 export interface ResolveMap {
-  // map from caller path to exporter path ["pkg", "subpath", "asName"] -> ["mypkg", "subpath", "expName"]
-  pathsMap: Array<[string[], string[]]>;
+  // map from caller path to exporter path ["pkg", "subpath", "asName"] -> "mypkg/subpath/expName"
+  // TODO append imp params if any "mypkg/foo/exp(X)"
+  pathsMap: Array<[string[], string]>;
 
   // map from export path string "mypkg/foo/exp" to resolved export
-  exportMap: Map<string, ImportToExport>;
+  // TODO append imp params if any "mypkg/foo/exp(X)"
+  exportMap: Map<string, ExportPathToExport>;
 }
 
 /*
@@ -49,10 +51,10 @@ export interface ResolveMap {
  *
  * These entries will be converted into a ResolveMap
  */
-type ResolvedEntry = ImportToExport | ImportToExportPath;
-class ImportToExport { // TODO rename to ExportPathToExport
+type ResolvedEntry = ExportPathToExport | ImportToExportPath;
+class ExportPathToExport { 
   constructor(
-    public importPath: string[],   // TODO shouldn't this be export path?
+    public exportPath: string,   
     public modExp: ModuleExport,
     public expImpArgs: StringPairs
   ) {}
@@ -61,7 +63,7 @@ class ImportToExport { // TODO rename to ExportPathToExport
 class ImportToExportPath {
   constructor(
     public importPath: string[],
-    public exportPath: string[]
+    public exportPath: string,
   ) {}
 }
 
@@ -81,12 +83,12 @@ export function importResolutionMap(
     resolveTreeImport(importingModule, imp, registry)
   );
 
-  const exportEntries: [string, ImportToExport][] = [];
-  const pathEntries: [string[], string[]][] = [];
+  const exportEntries: [string, ExportPathToExport][] = [];
+  const pathEntries: [string[], string][] = [];
 
   resolveEntries.forEach((e) => {
-    if (e instanceof ImportToExport) {
-      exportEntries.push([e.importPath.join("/"), e]);
+    if (e instanceof ExportPathToExport) {
+      exportEntries.push([e.exportPath, e]);
     } else {
       pathEntries.push([e.importPath, e.exportPath]);
     }
@@ -167,8 +169,8 @@ function resolveTreeImport(
       const impPath = [...resolvedImportPath, exportName(exp)];
       const modExp = { kind: exportKind, module: m, exp } as ModuleExport;
       return [
-        new ImportToExportPath(impPath, expPath),
-        new ImportToExport(impPath, modExp, []),
+        new ImportToExportPath(impPath, expPath.join("/")),
+        new ExportPathToExport(impPath.join("/"), modExp, []),
       ];
     });
   }
@@ -184,7 +186,7 @@ function resolveTreeImport(
     const resolvedImp = absolutePath(impPath, importingModule);
     const resolvedExp = absolutePath(expPath, importingModule);
     const entries: ResolvedEntry[] = [
-      new ImportToExportPath(resolvedImp, resolvedExp),
+      new ImportToExportPath(resolvedImp, resolvedExp.join("/")),
     ];
 
     // try and resolve as an exported element as well
@@ -198,7 +200,7 @@ function resolveTreeImport(
         modExp.module,
         modExp.exp
       );
-      entries.push(new ImportToExport(resolvedExp, modExp, expImpArgs));
+      entries.push(new ExportPathToExport(resolvedExp.join("/"), modExp, expImpArgs));
     }
     return entries;
   }

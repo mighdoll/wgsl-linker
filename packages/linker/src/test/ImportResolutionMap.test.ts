@@ -33,7 +33,7 @@ test("simple tree", () => {
   expect(resolveMap.pathsMap.length).eq(1);
   const [impSegments, expSegments] = resolveMap.pathsMap[0];
   expect(impSegments).deep.eq(["bar", "foo"]);
-  expect(expSegments).deep.eq(["bar", "foo"]);
+  expect(expSegments).eq("bar/foo");
 });
 
 test("tree with path segment list", () => {

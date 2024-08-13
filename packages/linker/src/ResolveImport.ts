@@ -65,8 +65,7 @@ function impToExportPath(
   for (const [imp, exp] of pathsMap) {
     const impTail = overlapTail(imp, impSegments);
     if (impTail) {
-      console.assert(imp.length === exp.length);
-      const combined = [...exp, ...impTail];
+      const combined = [exp, ...impTail];
       return combined.join("/");
     }
   }
