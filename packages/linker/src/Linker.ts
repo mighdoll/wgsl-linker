@@ -63,13 +63,13 @@ export function findReferences(
   registry: ParsedRegistry
 ): FoundRef[] {
   // map full export name (with generic params from import) to name for linked result
-  const visited = new Map<string, string>(); 
+  const visited = new Map<string, string>();
 
   // set of linked result names (values of visited map)
   const rootNames = new Set<string>();
-  
+
   // accumulates all elements to add to the linked result
-  const found: FoundRef[] = []; 
+  const found: FoundRef[] = [];
 
   traverseRefs(srcModule, registry, refVisit);
   return found;
@@ -77,10 +77,9 @@ export function findReferences(
   /**
    * process one reference found by the reference traversal
    *
-   * choose a unique name for the reference so that it can be imported into the 
+   * choose a unique name for the reference so that it can be imported into the
    */
   function refVisit(ref: FoundRef): void {
-
     const fullName = refFullName(ref);
     let linkName = visited.get(fullName);
     if (!linkName) {
@@ -90,7 +89,7 @@ export function findReferences(
       found.push(ref);
     }
 
-    // always set the rename field to make sure we rewrite calls with module path prefixes 
+    // always set the rename field to make sure we rewrite calls with module path prefixes
     ref.rename = linkName; // TODO only set if necessary
   }
 }
