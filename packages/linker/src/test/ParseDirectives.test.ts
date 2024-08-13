@@ -3,7 +3,6 @@ import { logCatch, testParse } from "mini-parse/test-util";
 
 import { expect, test } from "vitest";
 import {
-  ImportElem,
   ModuleElem,
   TemplateElem,
   TreeImportElem,

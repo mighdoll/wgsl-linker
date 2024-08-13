@@ -7,7 +7,6 @@ import {
   ExtendsElem,
   FnElem,
   GlobalDirectiveElem,
-  ImportElem,
   ModuleElem,
   StructElem,
   TemplateElem,
@@ -28,7 +27,7 @@ export interface TextModule {
   fns: FnElem[];
   vars: VarElem[];
   structs: StructElem[];
-  imports: (ImportElem | ExtendsElem | TreeImportElem)[];
+  imports: (ExtendsElem | TreeImportElem)[];
   aliases: AliasElem[];
   globalDirectives: GlobalDirectiveElem[];
 
@@ -84,9 +83,8 @@ export function parseModule(
     "globalDirective"
   );
   const imports = parsed.filter(
-    (e) =>
-      e.kind === "import" || e.kind === "extends" || e.kind === "treeImport"
-  ) as (ImportElem | ExtendsElem | TreeImportElem)[];
+    (e) => e.kind === "extends" || e.kind === "treeImport"
+  ) as (ExtendsElem | TreeImportElem)[];
   const structs = filterElems<StructElem>(parsed, "struct");
   const vars = filterElems<VarElem>(parsed, "var");
   const template = filterElems<TemplateElem>(parsed, "template")?.[0];

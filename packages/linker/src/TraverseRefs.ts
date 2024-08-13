@@ -5,7 +5,6 @@ import {
   ExportElem,
   ExtendsElem,
   FnElem,
-  ImportElem,
   StructElem,
   StructMemberElem,
   TreeImportElem,
@@ -49,7 +48,7 @@ export interface ExportInfo {
   fromRef: FoundRef;
 
   /** import or extends elem that resolved to this export (so we can later separate out extends) */
-  fromImport: ImportElem | ExtendsElem | TreeImportElem;
+  fromImport: ExtendsElem | TreeImportElem;
 
   /** mapping from export arguments to import arguments
    * (could be mapping to import args prior to this import, via chain of importing) */
@@ -240,9 +239,8 @@ function linkedRef(
   const { name } = elem;
   if (importArgRef(srcRef, name)) return [];
 
-  const tradImports = mod.imports as (ImportElem | ExtendsElem)[];
   const foundRef =
-    importRef(srcRef, name, mod, tradImports, registry) ??
+    importRef(srcRef, name, mod, mod.imports, registry) ??
     importingRef(srcRef, name, mod, registry) ??
     localRef(name, mod);
 
@@ -271,8 +269,7 @@ function extendsRefs(
   const merges = elem.extendsElems;
   if (!merges) return [];
   return merges.flatMap((merge) => {
-    const tradImports = mod.imports as (ImportElem | ExtendsElem)[];
-    const foundRef = importRef(srcRef, merge.name, mod, tradImports, registry);
+    const foundRef = importRef(srcRef, merge.name, mod, mod.imports, registry);
     if (foundRef) return [foundRef];
 
     moduleLog(srcRef.expMod, merge.start, `import merge reference not found`);
@@ -293,10 +290,10 @@ function importRef(
   fromRef: TextRef,
   name: string,
   impMod: TextModule,
-  imports: (ImportElem | ExtendsElem)[],
+  imports: (TreeImportElem | ExtendsElem)[],
   registry: ParsedRegistry
 ): TextRef | GeneratorRef | undefined {
-  dlog({importKinds:imports.map(i => i.kind)})
+  // dlog({importKinds:imports.map(i => i.kind)})
   const resolveMap = registry.importResolveMap(impMod);
   const resolved = resolveImport(name, resolveMap);
   const fromImport = imports[0]; // TODO implement
@@ -333,7 +330,7 @@ function importRef(
 
 function matchImportExportArgs(
   impMod: TextModule | GeneratorModule,
-  imp: ImportElem | ExtendsElem,
+  imp: ExtendsElem,
   expMod: TextModule | GeneratorModule,
   exp: ExportElem | GeneratorExport
 ): StringPairs {
@@ -355,51 +352,51 @@ function importingRef(
   impMod: TextModule,
   registry: ParsedRegistry
 ): TextRef | GeneratorRef | undefined {
-  let fromImport: ImportElem | undefined;
+  // let fromImport: TreeImportElem | undefined;
 
-  // find a matching 'importing' phrase in an #export
-  const textExport = impMod.exports.find((exp) => {
-    fromImport = exp.importing?.find((i) => i.name === name);
-    return !!fromImport;
-  });
+  // // find a matching 'importing' phrase in an #export
+  // const textExport = impMod.exports.find((exp) => {
+  //   fromImport = exp.importing?.find((i) => i.name === name);
+  //   return !!fromImport;
+  // });
 
-  // find the export for the importing
-  const modExp = matchingExport(fromImport, impMod, registry);
-  if (!modExp) return;
-  isDefined(fromImport);
-  isDefined(textExport);
+  // // find the export for the importing
+  // const modExp = matchingExport(fromImport, impMod, registry);
+  // if (!modExp) return;
+  // isDefined(fromImport);
+  // isDefined(textExport);
 
-  if (srcRef.kind !== "txt") {
-    refLog(srcRef, "unexpected srcRef", srcRef.kind);
-    return;
-  }
+  // if (srcRef.kind !== "txt") {
+  //   refLog(srcRef, "unexpected srcRef", srcRef.kind);
+  //   return;
+  // }
 
-  const expImpArgs = importingArgs(fromImport, modExp.exp, srcRef);
-  const expInfo: ExportInfo = {
-    fromRef: srcRef,
-    fromImport,
-    expImpArgs,
-  };
-  if (modExp.kind === "text") {
-    const exp = modExp.exp;
+  // const expImpArgs = importingArgs(fromImport, modExp.exp, srcRef);
+  // const expInfo: ExportInfo = {
+  //   fromRef: srcRef,
+  //   fromImport,
+  //   expImpArgs,
+  // };
+  // if (modExp.kind === "text") {
+  //   const exp = modExp.exp;
 
-    return {
-      kind: "txt",
-      expInfo,
-      expMod: modExp.module as TextModule,
-      elem: exp.ref,
-      proposedName: fromImport.as ?? exp.ref.name,
-    };
-  } else if (modExp.kind === "function") {
-    const exp = modExp.exp;
-    return {
-      kind: "gen",
-      expInfo,
-      expMod: modExp.module,
-      proposedName: fromImport.as ?? exp.name,
-      name: exp.name,
-    };
-  }
+  //   return {
+  //     kind: "txt",
+  //     expInfo,
+  //     expMod: modExp.module as TextModule,
+  //     elem: exp.ref,
+  //     proposedName: fromImport.as ?? exp.ref.name,
+  //   };
+  // } else if (modExp.kind === "function") {
+  //   const exp = modExp.exp;
+  //   return {
+  //     kind: "gen",
+  //     expInfo,
+  //     expMod: modExp.module,
+  //     proposedName: fromImport.as ?? exp.name,
+  //     name: exp.name,
+  //   };
+  // }
 
   return undefined;
 }
@@ -423,27 +420,28 @@ function importingRef(
  * @param srcRef - reference that led us to this import
  */
 function importingArgs(
-  imp: ImportElem,
+  imp: TreeImportElem,
   exp: ExportElem | GeneratorExport,
   srcRef: TextRef
 ): StringPairs {
-  if (srcRef.expInfo === undefined) return [];
-  const expImp = matchImportExportArgs(
-    srcRef.expInfo.fromRef.expMod,
-    imp,
-    srcRef.expMod,
-    exp
-  ); // X -> D
-  const srcExpImp = srcRef.expInfo.expImpArgs;
-  return expImp.flatMap(([iExp, iImp]) => {
-    const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
-    if (!pair) {
-      moduleLog(srcRef.expMod, imp.start, "importing arg doesn't match export");
-      return [];
-    }
-    const [, impArg] = pair;
-    return [[iExp, impArg]] as [string, string][]; // X -> B
-  });
+  return [];
+  // if (srcRef.expInfo === undefined) return [];
+  // const expImp = matchImportExportArgs(
+  //   srcRef.expInfo.fromRef.expMod,
+  //   imp,
+  //   srcRef.expMod,
+  //   exp
+  // ); // X -> D
+  // const srcExpImp = srcRef.expInfo.expImpArgs;
+  // return expImp.flatMap(([iExp, iImp]) => {
+  //   const pair = srcExpImp.find(([srcExpArg]) => srcExpArg === iImp); // D -> B
+  //   if (!pair) {
+  //     moduleLog(srcRef.expMod, imp.start, "importing arg doesn't match export");
+  //     return [];
+  //   }
+  //   const [, impArg] = pair;
+  //   return [[iExp, impArg]] as [string, string][]; // X -> B
+  // });
 }
 
 function isDefined<T>(a: T | undefined): asserts a is T {
@@ -451,7 +449,7 @@ function isDefined<T>(a: T | undefined): asserts a is T {
 }
 
 function matchingExport(
-  imp: TreeImportElem | ImportElem | ExtendsElem | undefined,
+  imp: TreeImportElem | ExtendsElem | undefined,
   mod: TextModule,
   registry: ParsedRegistry
 ): ModuleExport | undefined {

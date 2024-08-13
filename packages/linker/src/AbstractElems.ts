@@ -5,7 +5,6 @@ import { FoundRef } from "./TraverseRefs.js";
 
 export type AbstractElem =
   | AliasElem
-  | ImportElem
   | TreeImportElem
   | ExtendsElem
   | ExportElem
@@ -82,19 +81,11 @@ export interface StructMemberElem extends AbstractElemBase {
 export interface ExportElem extends AbstractElemBase {
   kind: "export";
   args?: string[];
-  importing?: ImportElem[];
+  importing?: any[]; // TODO
 }
 
 // LATER consider modeling import elems as containing multiple clauses 
 // instead of overlapping ImportElems 
-
-export interface ImportElem extends AbstractElemBase {
-  kind: "import";
-  name: string;
-  args?: string[];
-  as?: string;
-  from?: string;
-}
 
 export interface TreeImportElem extends AbstractElemBase {
   kind: "treeImport";
@@ -102,7 +93,7 @@ export interface TreeImportElem extends AbstractElemBase {
 }
 
 
-export interface ExtendsElem extends Omit<ImportElem, "kind"> {
+export interface ExtendsElem extends AbstractElemBase {
   kind: "extends";
   name: string;
   args?: string[];

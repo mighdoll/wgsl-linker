@@ -13,7 +13,7 @@ import {
   tracing,
   withSep,
 } from "mini-parse";
-import { ExtendsElem, ImportElem, NamedElem } from "./AbstractElems.js";
+import { ExtendsElem, NamedElem } from "./AbstractElems.js";
 import {
   argsTokens,
   lineCommentTokens,
@@ -71,8 +71,8 @@ const bracketedImportClause = or(
 );
 
 /** <{> foo <,zip> <(A,B)> <as boo> <}> <from bar>
- * @returns array of ImportElem or ExtendsElem elements */
-function importPhrase<T extends ImportElem | ExtendsElem>(
+ * @returns array of ExtendsElem elements */
+function importPhrase<T extends ExtendsElem>(
   kind: T["kind"]
 ): Parser<T[]> {
   const p = seq(bracketedImportClause, opt(fromClause)).map((r) => {
