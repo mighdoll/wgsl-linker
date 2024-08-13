@@ -82,7 +82,6 @@ exports[`simple fn export 1`] = `
   "imports": [],
   "kind": "text",
   "modulePath": "./test.wgsl",
-  "name": "oldName",
   "preppedSrc": "
     // #export
     fn one() -> i32 {
@@ -169,7 +168,6 @@ exports[`simple fn import 1`] = `
   ],
   "kind": "text",
   "modulePath": "./test.wgsl",
-  "name": "oldName",
   "preppedSrc": "
     // #import foo
     fn bar() { foo(); }

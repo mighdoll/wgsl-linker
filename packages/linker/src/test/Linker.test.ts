@@ -98,6 +98,26 @@ test("#import twice doesn't get two copies", () => {
   expect([...matches].length).toBe(1);
 });
 
+// TODO
+test.skip("#import twice with different names", () => {
+  const src = `
+    import foo(X) as bar from ./file1
+    import foo(Y) as zap from ./file1
+
+    fn main() {
+      bar();
+      zap();
+    }
+  `;
+  const module1 = `
+    export(A) fn foo(a:A) { /* module1 */ }
+  `;
+  const linked = linkTest(src, module1);
+  console.log(linked);
+  const matches = linked.matchAll(/module1/g);
+  expect([...matches].length).toBe(2);
+});
+
 // TODO why is this broken?
 test.skip("import transitive conflicts with main", () => {
   const src = `
@@ -127,25 +147,6 @@ test.skip("import transitive conflicts with main", () => {
   expect(linked).includes("mid() { grand0(); }");
 });
 
-// TODO
-test.skip("#import twice with different names", () => {
-  const src = `
-    import foo(b) as bar from ./file1
-    import foo(z) as zap from ./file1
-
-    fn main() {
-      bar();
-      zap();
-    }
-  `;
-  const module1 = `
-    export(A) fn foo(a:A) { /* module1 */ }
-  `;
-  const linked = linkTest(src, module1);
-  console.log(linked);
-  const matches = linked.matchAll(/module1/g);
-  expect([...matches].length).toBe(2);
-});
 
 test("#import foo from zap (multiple modules)", () => {
   const module1 = `

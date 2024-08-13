@@ -29,9 +29,6 @@ export interface TextModule {
   aliases: AliasElem[];
   globalDirectives: GlobalDirectiveElem[];
 
-  /** name of the module. A synthetic name will be assigned if none is provided */
-  name: string;
-
   modulePath: string; // full path to the module e.g "package/sub/foo", or "_root/sub/foo"
 
   /** original src for module */
@@ -84,14 +81,11 @@ export function parseModule(
   const overridePath = filterElems<ModuleElem>(parsed, "module")[0]?.name;
   matchMergeImports(parsed, srcMap);
 
-  // const name = moduleName ?? noSuffix(normalize(fileName));
-  const name = "oldName";
-
   const modulePath = overridePath ?? naturalModulePath;
   // dlog({ modulePath, overridePath });
   const kind = "text";
   return {
-    ...{ kind, src, srcMap, preppedSrc, name, modulePath },
+    ...{ kind, src, srcMap, preppedSrc, modulePath },
     ...{ exports, fns, structs, vars, imports, template },
     ...{ aliases, globalDirectives },
   };
