@@ -118,8 +118,7 @@ test.skip("#import twice with different names", () => {
   expect([...matches].length).toBe(2);
 });
 
-// TODO why is this broken?
-test.skip("import transitive conflicts with main", () => {
+test("import transitive conflicts with main", () => {
   const src = `
     #import mid from ./file1
 
@@ -143,7 +142,6 @@ test.skip("import transitive conflicts with main", () => {
     }
   `;
   const linked = linkTest(src, module1, module2);
-  console.log(linked);
   expect(linked).includes("mid() { grand0(); }");
 });
 
