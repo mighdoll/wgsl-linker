@@ -77,18 +77,16 @@ test("import foo as bar", () => {
 
 test("#import twice doesn't get two copies", () => {
   const module1 = `
-    #export
-    fn foo() { /* fooImpl */ }
+    export fn foo() { /* fooImpl */ }
   `;
   const module2 = `
-    #export
-    fn bar() { foo(); }
+    import foo from ./file1
+    export fn bar() { foo(); }
 
-    #import foo
   `;
   const src = `
-    #import bar from ./file2
     #import foo from ./file1
+    #import bar from ./file2
 
     fn main() {
       foo();
