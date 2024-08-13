@@ -655,17 +655,15 @@ test("copy diagnostics to output", () => {
   expect(linked).toContain("diagnostic(off,derivative_uniformity);");
 });
 
-test.skip("imported fn calls support fn with root conflict", () => {
+test("imported fn calls support fn with root conflict", () => {
   const src = `
-    #module main
-    #import foo from ./file1
+    import foo from ./file1
 
     fn main() { foo(); }
     fn conflicted() { }
   `;
   const module1 = `
-    #export
-    fn foo() {
+    export fn foo() {
       conflicted(0);
       conflicted(1);
     }
