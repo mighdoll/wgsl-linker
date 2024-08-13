@@ -241,7 +241,7 @@ function linkedRef(
 
   const foundRef =
     importRef(srcRef, name, mod, mod.imports, registry) ??
-    importingRef(srcRef, name, mod, registry) ??
+    // importingRef(srcRef, name, mod, registry) ??
     localRef(name, mod);
 
   if (foundRef) {
@@ -328,30 +328,30 @@ function importRef(
   } 
 }
 
-function matchImportExportArgs(
-  impMod: TextModule | GeneratorModule,
-  imp: ExtendsElem,
-  expMod: TextModule | GeneratorModule,
-  exp: ExportElem | GeneratorExport
-): StringPairs {
-  const impArgs = imp.args ?? [];
-  const expArgs = exp.args ?? [];
-  if (expArgs.length !== impArgs.length) {
-    impMod.kind === "text" &&
-      moduleLog(impMod, imp.start, "mismatched import and export params");
-    expMod.kind === "text" && moduleLog(expMod, (exp as ExportElem).start);
-  }
-  return expArgs.map((p, i) => [p, impArgs[i]]);
-}
+// function matchImportExportArgs(
+//   impMod: TextModule | GeneratorModule,
+//   imp: ExtendsElem,
+//   expMod: TextModule | GeneratorModule,
+//   exp: ExportElem | GeneratorExport
+// ): StringPairs {
+//   const impArgs = imp.args ?? [];
+//   const expArgs = exp.args ?? [];
+//   if (expArgs.length !== impArgs.length) {
+//     impMod.kind === "text" &&
+//       moduleLog(impMod, imp.start, "mismatched import and export params");
+//     expMod.kind === "text" && moduleLog(expMod, (exp as ExportElem).start);
+//   }
+//   return expArgs.map((p, i) => [p, impArgs[i]]);
+// }
 
 /** If this element references an #export.. importing function
  * @return a ref describing the export to link */
-function importingRef(
-  srcRef: FoundRef,
-  name: string,
-  impMod: TextModule,
-  registry: ParsedRegistry
-): TextRef | GeneratorRef | undefined {
+// function importingRef(
+//   srcRef: FoundRef,
+//   name: string,
+//   impMod: TextModule,
+//   registry: ParsedRegistry
+// ): TextRef | GeneratorRef | undefined {
   // let fromImport: TreeImportElem | undefined;
 
   // // find a matching 'importing' phrase in an #export
@@ -398,8 +398,8 @@ function importingRef(
   //   };
   // }
 
-  return undefined;
-}
+//   return undefined;
+// }
 
 /**
  * @return the arguments for an importing reference, mapping through the
