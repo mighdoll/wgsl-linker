@@ -678,18 +678,15 @@ test.skip("imported fn calls support fn with root conflict", () => {
   expect(linked).includes("conflicted0(1)");
 });
 
-test.skip("import twice with two as names", () => {
+test("import twice with two as names", () => {
   const src = `
-    #module main
     #import foo as bar from ./file1
     #import foo as zap from ./file1
 
     fn main() { bar(); zap(); }
-    fn conflicted() { }
   `;
   const module1 = `
-    #export
-    fn foo() { }
+    export fn foo() { }
   `;
   const linked = linkTest(src, module1);
   expect(linked).includes("fn main() { bar(); bar(); }");
