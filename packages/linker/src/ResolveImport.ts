@@ -32,19 +32,19 @@ export function resolveImport(
     ? callPath.split("::")
     : callPath.split(".");
 
-  logResolveMap(resolveMap);
+  // logResolveMap(resolveMap);
 
   const expPath = impToExportPath(callSegments, resolveMap);
   if (expPath) {
     const impToExp = resolveMap.exportMap.get(expPath);
-    dlog({ callSegments, expPath, impToExp: !!impToExp });
+    // dlog({ callSegments, expPath, impToExp: !!impToExp });
 
     if (impToExp) {
       const { modExp, expImpArgs } = impToExp;
       return { modExp, callSegments, expImpArgs };
     }
   } else {
-    dlog({ callSegments, expPath });
+    // dlog({ callSegments, expPath });
   }
 
   return undefined;

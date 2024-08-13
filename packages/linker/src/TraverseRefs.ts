@@ -296,6 +296,7 @@ function importRef(
   imports: (ImportElem | ExtendsElem)[],
   registry: ParsedRegistry
 ): TextRef | GeneratorRef | undefined {
+  dlog({importKinds:imports.map(i => i.kind)})
   const resolveMap = registry.importResolveMap(impMod);
   const resolved = resolveImport(name, resolveMap);
   const fromImport = imports[0]; // TODO implement

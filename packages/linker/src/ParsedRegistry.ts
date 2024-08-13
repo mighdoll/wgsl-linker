@@ -76,13 +76,13 @@ export class ParsedRegistry {
       const joined = [moduleDir, ...pathSegments.slice(1, -1)].join("/");
       const modulePath = normalize(joined);
       const result = this.findExport(modulePath, exportName);
-      dlog({ modulePath, exportName, result: !!result });
+      // dlog({ modulePath, exportName, result: !!result });
       return result;
     } else {
       // package rooted path
       const modulePath = pathSegments.slice(0, -1).join("/");
       const result = this.findExport(modulePath, exportName);
-      dlog({ modulePath, exportName, result: !!result });
+      // dlog({ modulePath, exportName, result: !!result });
       return result;
     }
   }
@@ -92,7 +92,7 @@ export class ParsedRegistry {
     exportName: string
   ): TextModuleExport | GeneratorModuleExport | undefined {
     const module = this.findTextModule(modulePath);
-    dlog({ modulePath, module: !!module });
+    // dlog({ modulePath, module: !!module });
     const exp = module?.exports.find((e) => e.ref.name === exportName);
     if (exp && module) {
       return { module, exp: exp, kind: "text"} ;
@@ -126,7 +126,7 @@ export class ParsedRegistry {
     const result =
       this.textModules.find((m) => m.modulePath === resolvedPath) ??
       this.textModules.find((m) => noSuffix(m.modulePath) === resolvedPath);
-    dlog({ moduleSpecifier, packageName, result: !!result });
+    // dlog({ moduleSpecifier, packageName, result: !!result });
     return result;
   }
 
