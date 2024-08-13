@@ -55,7 +55,6 @@ exports[`simple fn export 1`] = `
       "start": 8,
     },
   ],
-  "fileName": "oldFileName",
   "fns": [
     {
       "calls": [],
@@ -128,7 +127,6 @@ exports[`simple fn import 1`] = `
 {
   "aliases": [],
   "exports": [],
-  "fileName": "oldFileName",
   "fns": [
     {
       "calls": [

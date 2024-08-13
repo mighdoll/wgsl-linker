@@ -1,5 +1,4 @@
 import { srcLog, SrcMap } from "mini-parse";
-import { normalize, noSuffix } from "wgsl-linker";
 import {
   AbstractElem,
   AliasElem,
@@ -17,7 +16,6 @@ import { processConditionals } from "./Conditionals.js";
 import { ApplyTemplateFn } from "./ModuleRegistry.js";
 import { parseWgslD } from "./ParseWgslD.js";
 import { SliceReplace, sliceReplace } from "./Slicer.js";
-import { dlog } from "berry-pretty";
 
 /** module with exportable text fragments that are optionally transformed by a templating engine */
 export interface TextModule {
@@ -33,9 +31,6 @@ export interface TextModule {
 
   /** name of the module. A synthetic name will be assigned if none is provided */
   name: string;
-
-  /** name of the module. A synthetic file name will be assigned if none is provided */
-  fileName: string; // full path to the module e.g "package/sub/foo.wgsl", or "self/root.wgsl"
 
   modulePath: string; // full path to the module e.g "package/sub/foo", or "_root/sub/foo"
 
@@ -53,8 +48,6 @@ export interface TextModule {
 export interface TextExport extends ExportElem {
   ref: FnElem | StructElem;
 }
-
-// let unnamedFileDex = 0;
 
 export function preProcess(
   src: string,
@@ -92,14 +85,13 @@ export function parseModule(
   matchMergeImports(parsed, srcMap);
 
   // const name = moduleName ?? noSuffix(normalize(fileName));
-  const fileName = "oldFileName";
   const name = "oldName";
 
   const modulePath = overridePath ?? naturalModulePath;
   // dlog({ modulePath, overridePath });
   const kind = "text";
   return {
-    ...{ kind, src, srcMap, preppedSrc, fileName, name, modulePath },
+    ...{ kind, src, srcMap, preppedSrc, name, modulePath },
     ...{ exports, fns, structs, vars, imports, template },
     ...{ aliases, globalDirectives },
   };
