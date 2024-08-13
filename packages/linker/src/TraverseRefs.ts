@@ -327,48 +327,7 @@ function importRef(
         name: exp.name,
       };
     }
-  } else {
-    // return oldStyleImports();
-  }
-
-  function oldStyleImports(): TextRef | GeneratorRef | undefined {
-    // TODO
-    const fromImport = imports.find((imp) => importName(imp) == name);
-    const modExp = matchingExport(fromImport, impMod, registry);
-    if (!modExp || !fromImport) return;
-    const expMod = modExp.module;
-    const expImpArgs = matchImportExportArgs(
-      impMod,
-      fromImport,
-      expMod,
-      modExp.exp
-    );
-    const expInfo: ExportInfo = {
-      fromImport,
-      fromRef,
-      expImpArgs,
-    };
-    if (expMod.kind === "text") {
-      const exp = modExp.exp as TextExport;
-
-      return {
-        kind: "txt",
-        expInfo,
-        expMod,
-        elem: exp.ref,
-        proposedName: fromImport.as ?? exp.ref.name,
-      };
-    } else if (expMod.kind === "generator") {
-      const exp = modExp.exp as GeneratorExport;
-      return {
-        kind: "gen",
-        expInfo,
-        expMod,
-        proposedName: fromImport.as ?? exp.name,
-        name: exp.name,
-      };
-    }
-  }
+  } 
 }
 
 function matchImportExportArgs(
