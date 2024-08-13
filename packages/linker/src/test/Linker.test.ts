@@ -58,7 +58,6 @@ test("import with parameter", () => {
   expect(linked).includes("a: MyElem");
 });
 
-
 test("import foo as bar", () => {
   const myModule = `
     export fn foo() { /* fooImpl */ }
@@ -98,7 +97,6 @@ test("#import twice doesn't get two copies", () => {
   expect([...matches].length).toBe(1);
 });
 
-// TODO
 test("#import twice with different params", () => {
   const src = `
     #import foo(A) from ./file1
@@ -118,7 +116,6 @@ test("#import twice with different params", () => {
   expect(linked).includes("fn bar(x:B) { /* B */ }");
   expect(linked).includes("fn foo(x:A) { /* A */ }");
 });
-
 
 test("import transitive conflicts with main", () => {
   const src = `
@@ -146,7 +143,6 @@ test("import transitive conflicts with main", () => {
   const linked = linkTest(src, module1, module2);
   expect(linked).includes("mid() { grand0(); }");
 });
-
 
 test("#import foo from zap (multiple modules)", () => {
   const module1 = `
@@ -280,7 +276,6 @@ test("#import support fn from two exports", () => {
   expect([...supportMatch].length).toBe(3);
 });
 
-
 test("#import a struct", () => {
   const src = `
     import AStruct from ./file1
@@ -385,7 +380,7 @@ test("import a struct with imp/exp params", () => {
   expect(linked).contains("x: i32");
 });
 
-test.skip("import a struct with name conflicting support struct", () => {
+test("import a struct with name conflicting support struct", () => {
   const src = `
     #import AStruct from ./file1
 
@@ -436,7 +431,7 @@ test("ext params don't replace override", () => {
   const src = `
     override workgroupSizeX = 4u;
   `;
-  
+
   const linked = linkTestOpts({ runtimeParams: { workgroupSizeX: 4 } }, src);
   expect(linked).contains("override workgroupSizeX = 4u;");
 });
@@ -559,7 +554,6 @@ test("warn on missing template", () => {
         ^"
   `);
 });
-
 
 test("template on struct member", () => {
   const src = `
