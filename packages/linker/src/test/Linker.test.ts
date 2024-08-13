@@ -99,6 +99,27 @@ test("#import twice doesn't get two copies", () => {
 });
 
 // TODO
+test.skip("#import twice with different params", () => {
+  const src = `
+    #import foo(A) from ./file1
+    #import foo(B) as bar from ./file1
+
+    fn main() {
+      bar();
+      foo();
+    }
+  `;
+  const module0 = `
+    #export(X)
+    fn foo() { /* X */ }
+  `;
+
+  const linked = linkTest(src, module0);
+  expect(linked).includes("fn bar() { /* B */ }");
+  expect(linked).includes("fn foo() { /* A */ }");
+});
+
+// TODO
 test.skip("#import twice with different names", () => {
   const src = `
     import foo(X) as bar from ./file1
@@ -117,6 +138,8 @@ test.skip("#import twice with different names", () => {
   const matches = linked.matchAll(/module1/g);
   expect([...matches].length).toBe(2);
 });
+
+
 
 test("import transitive conflicts with main", () => {
   const src = `
@@ -519,26 +542,6 @@ test("#import using external param", () => {
   const runtimeParams = { workgroupSize: 128 };
   const linked = linkTestOpts({ runtimeParams }, src, module1);
   expect(linked).contains("step < 128");
-});
-
-test.skip("#import twice with different params", () => {
-  const src = `
-    #import foo(A) from ./file1
-    #import foo(B) as bar from ./file1
-
-    fn main() {
-      bar();
-      foo();
-    }
-  `;
-  const module0 = `
-    #export(X)
-    fn foo() { /* X */ }
-  `;
-
-  const linked = linkTest(src, module0);
-  expect(linked).includes("fn bar() { /* B */ }");
-  expect(linked).includes("fn foo() { /* A */ }");
 });
 
 test("external param w/o ext. prefix doesn't override imp/exp params", () => {
