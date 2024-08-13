@@ -52,46 +52,6 @@ export class ParsedRegistry {
     this.addTextModule(m);
   }
 
-  // TODO rm Old
-  /** return a reference to an exported text fragment or code generator (i.e. in response to an #import request) */
-  getModuleExportOld(
-    requesting: TextModule,
-    exportName: string,
-    moduleSpecifier?: string // either a module name or a relative path
-  ): ModuleExport | undefined {
-    return undefined;
-    // const exports = this.exports.get(exportName);
-    // if (!exports) {
-    //   return undefined;
-    // } else if (moduleSpecifier?.startsWith(".")) {
-    //   const searchName = relativePath(requesting.fileName, moduleSpecifier);
-    //   const baseSearch = noSuffix(searchName);
-
-    //   return exports.find((e) => {
-    //     const fileName = (e.module as TextModule).fileName;
-    //     if (!fileName) return false;
-    //     if (fileName === searchName) return true;
-    //     if (baseSearch === noSuffix(fileName)) return true;
-    //   });
-    // } else if (moduleSpecifier) {
-    //   return exports.find((e) => e.module.name === moduleSpecifier);
-    // } else if (exports.length === 1) {
-    //   return exports[0];
-    // } else {
-    //   const moduleNames = exports.map((e) => e.module.name).join(", ");
-    //   console.warn(
-    //     `Multiple modules export "${exportName}". (${moduleNames}) ` +
-    //       `Use "#import ${exportName} from <moduleName>" to select which one import`
-    //   );
-    // }
-  }
-
-  // TODO drop this?  It's only used for tests
-  moduleByPath(
-    pathSegments: string[]
-  ): TextModule | GeneratorModule | undefined {
-    return this.moduleMap.get(pathSegments.join("/"));
-  }
 
   /** @return a ResolveMap to make it easier to resolve imports from the provided module */
   importResolveMap(importingModule: TextModule): ResolveMap {

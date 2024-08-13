@@ -1,3 +1,4 @@
+import { dlog } from "berry-pretty";
 import {
   AliasElem,
   CallElem,
@@ -490,17 +491,20 @@ function isDefined<T>(a: T | undefined): asserts a is T {
 }
 
 function matchingExport(
-  imp: ImportElem | ExtendsElem | undefined,
+  imp: TreeImportElem | ImportElem | ExtendsElem | undefined,
   mod: TextModule,
   registry: ParsedRegistry
 ): ModuleExport | undefined {
   if (!imp) return;
 
-  const modExp = registry.getModuleExportOld(mod, imp.name, imp.from);
-  if (!modExp) {
-    moduleLog(mod, imp.start, "export not found for import");
-  }
-  return modExp;
+  dlog("NYI")
+  // TODO
+  
+  // const modExp = registry.getModuleExportOld(mod, imp.name, imp.from);
+  // if (!modExp) {
+  //   moduleLog(mod, imp.start, "export not found for import");
+  // }
+  // return modExp;
 }
 
 function localRef(name: string, mod: TextModule): TextRef | undefined {
