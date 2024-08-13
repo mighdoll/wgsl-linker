@@ -65,7 +65,7 @@ export class ParsedRegistry {
 
   /** @return a ModuleExport if the provided pathSegments
    * reference an export in a registered module */
-  getModuleExport2(
+  getModuleExport(
     importingModule: TextModule, // TODO drop this and require pathSegments to be absolute
     pathSegments: string[]
   ): ModuleExport | undefined {

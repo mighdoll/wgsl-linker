@@ -188,7 +188,7 @@ function resolveTreeImport(
     ];
 
     // try and resolve as an exported element as well
-    const modExp = registry.getModuleExport2(importingModule, resolvedExp);
+    const modExp = registry.getModuleExport(importingModule, resolvedExp);
     dlog({ modExp: !!modExp, resolvedExp });
     if (modExp) {
       const expImpArgs = matchExportImportArgs(

@@ -32,6 +32,6 @@ test("getModuleExport", () => {
   const parsed = registry.parsed();
   const impMod = parsed.findTextModule("./main")!;
 
-  const m = parsed.getModuleExport2(impMod, ["bar", "foo"]);
+  const m = parsed.getModuleExport(impMod, ["bar", "foo"]);
   expect(m?.module.modulePath).eq("bar");
 });
