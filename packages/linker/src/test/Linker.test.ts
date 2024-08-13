@@ -187,7 +187,7 @@ test("multiple exports from the same module", () => {
   expect(linked).toMatchSnapshot();
 });
 
-test.skip("import and resolve conflicting support function", () => {
+test("import and resolve conflicting support function", () => {
   const src = `
     import foo as bar from ./file1
 
@@ -212,7 +212,7 @@ test.skip("import and resolve conflicting support function", () => {
   expect([...barMatch].length).toBe(2);
 });
 
-test.skip("#import support fn that references another import", () => {
+test("#import support fn that references another import", () => {
   const src = `
     #import foo from ./file1
 
