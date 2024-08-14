@@ -63,6 +63,20 @@ export const importCases: WgslTestSrc[] = [
     },
   },
   {
+    name: `import bar::{foo as zip}`,
+    notes: "simple rust style import",
+    src: {
+      "./main.wgsl": `
+         import bar::{foo as zip};
+         fn main() { zip(); }
+       `,
+      "./bar.wgsl": `
+          module bar
+          export fn foo() { }
+       `,
+    },
+  },
+  {
     name: `call foo::bar()`,
     notes: "module path at call site",
     src: {
