@@ -64,6 +64,15 @@ test(`import bar::foo`, (ctx) => {
   });
 });
 
+test(`import self::foo::bar`, (ctx) => {
+  linkTest(ctx.task.name, {
+    linked: `
+      fn main() { bar(); }
+
+      fn bar() { }
+    `,
+  });
+});
 
 test(`import bar::{foo as zip}`, (ctx) => {
   linkTest(ctx.task.name, {

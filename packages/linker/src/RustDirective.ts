@@ -22,6 +22,7 @@ import {
 import { treeImportTokens } from "./MatchWgslD.js";
 import { makeElem } from "./ParseSupport.js";
 import { TreeImportElem } from "./AbstractElems.js";
+import { dlog } from "berry-pretty";
 
 const word = kind(treeImportTokens.word);
 
@@ -46,7 +47,15 @@ let importTree: Parser<any, any> = null as any;
 
 const simpleSegment = withTags(
   seq(word.tag("segment"), opt(seq("as", word.tag("as")))).map(
-    (r) => new SimpleSegment(r.tags.segment[0], r.tags.as?.[0])
+    (r) => {
+      let segment = r.tags.segment[0];
+      if (segment === "self") {
+        segment = "."
+      } else if (segment === "super") {
+        segment = ".."
+      }
+      return new SimpleSegment(segment, r.tags.as?.[0])
+    }
   )
 );
 

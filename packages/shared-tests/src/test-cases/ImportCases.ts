@@ -135,6 +135,18 @@ export const importCases: WgslTestSrc[] = [
     },
   },
   {
+    name: `import self::foo::bar`,
+    src: {
+      "./main.wgsl": `
+         import self::foo::bar;
+         fn main() { bar(); }
+       `,
+      "./foo.wgsl": `
+          export fn bar() { }
+       `,
+    },
+  },
+  {
     name: `import foo::{bar::jan::zah, doo}`,
     src: {
       "./main.wgsl": `
