@@ -28,8 +28,8 @@ test("simple fn import", () => {
 
 test("match #extends", () => {
   const src = `
-    // #extends Foo
-    // #extends Bar
+    // #extends Foo from pkg
+    // #extends Bar from pkg
     struct Elem {
       sum: f32
     }

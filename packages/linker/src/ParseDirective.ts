@@ -75,7 +75,7 @@ const bracketedImportClause = or(
 function importPhrase<T extends ExtendsElem>(
   kind: T["kind"]
 ): Parser<T[]> {
-  const p = seq(bracketedImportClause, opt(fromClause)).map((r) => {
+  const p = seq(bracketedImportClause, fromClause).map((r) => {
     const from = r.tags.from?.[0];
     return r.tags.importClause.map((impClause) => {
       const elem = makeElem(kind, r as any, [], []) as unknown as T;
