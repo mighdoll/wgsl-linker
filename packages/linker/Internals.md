@@ -42,24 +42,26 @@ extended syntax is removed.
 
 ## Linking phases
 
-* Preprocess and parse the registry
-  * preprocess based on runtime variables set by the caller
-    * apply #if conditionals
-    * replace text with runtime variables (e.g. using the `SimpleTemplate`)
-    * apply any user provided custom string templates
-  * parse wgsl fragments into an abstract syntax tree. see `AbstractElem`
-* Traverse the abstract syntax tree recursively, starting from the wgsl
+Linking is relatively straightforward.
+
+1. Preprocess and parse the registry
+    * preprocess based on runtime variables set by the caller
+      * apply #if conditionals
+      * replace text with runtime variables (e.g. using the `SimpleTemplate`)
+      * apply any user provided custom string templates
+    * parse wgsl fragments into an abstract syntax tree. see `AbstractElem`
+1. Traverse the abstract syntax tree recursively, starting from the wgsl
   elements in the root wgsl fragment.
-  * The accumulated list of wgsl elements (`FoundRef[]`)
-    will eventually be concatenated into the linked result string.
-  * each FoundRef has a deconflicted 'rename' name
-    so that wgsl element names will be unique in the linked result.
-    see `findReferences() handleRef()`.
-  * During the traverse, mutate the abstract elem graph to add
-    a link from referencing elements (call, typeRef)
-    to their FoundRef target (fn, struct).
-    (so we can rename referncing elements as necessary)
-* The text of all referenced FoundRef[] elements is extracted
+    * The accumulated list of wgsl elements (`FoundRef[]`)
+      will eventually be concatenated into the linked result string.
+    * each FoundRef has a deconflicted 'rename' name
+      so that wgsl element names will be unique in the linked result.
+      see `findReferences() handleRef()`.
+    * During the traverse, mutate the abstract elem graph to add
+      a link from referencing elements (e.g. a call, type annotation)
+      to their FoundRef target (e.g. fn, struct).
+      (so we can rename referncing elements as necessary)
+1. The text of all referenced FoundRef[] elements is extracted
   from the source fragment, rewritten according to any renaming,
   and concatenated into the final linked result string.
 
@@ -76,7 +78,7 @@ extended syntax is removed.
 * Users can plug in their own text processor to run during the preprocessing phase.
 * Struct inheritance - After traversal, refs to structures with `extends` clauses
   are modified to add 'mergeRefs' a list of refs to the extension source structs.
-  When the struct text is loaded, the fields from the extension source structs are
+  When the struct text is extracted, the fields from the extension source structs are
   mixed in.
 * ImportResolutionMap - Fully expand wildcard and list style imports,
   distinguish imports that refer to wgsl elements
@@ -88,8 +90,7 @@ If the linker finds a parsing or semantic error,
 it logs a console message for the programmer including
 the source line and a fragment of the source text.
 
-An internal `SrcMap` provided by `MiniParse`
-is used to maintain the mapping
+An internal `SrcMap` provided by `MiniParse` is used to maintain the mapping
 from edited text to the original text.
 Linker errors found while processing the edited text can
 then be reported to the user in terms of the source text.
