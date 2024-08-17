@@ -521,7 +521,6 @@ function traverseTest(src: string, ...modules: string[]): FoundRef[] {
   const refs: FoundRef[] = [];
   const parsed = registry.parsed();
   const mainModule = parsed.findTextModule("./main")!;
-  dlog({mainModule:!!mainModule})
   const seen = new Set<string>();
 
   traverseRefs(mainModule, parsed, (ref) => {
