@@ -60,17 +60,13 @@ Linking is relatively straightforward.
     * During the traverse, mutate the abstract elem graph to add
       a link from referencing elements (e.g. a call, type annotation)
       to their FoundRef target (e.g. fn, struct).
-      (so we can rename referncing elements as necessary)
+      (so we can rename referencing elements as necessary)
 1. The text of all referenced FoundRef[] elements is extracted
   from the source fragment, rewritten according to any renaming,
   and concatenated into the final linked result string.
 
 ## Embellishments
 
-* To support generic parameters imports/exports, a map between
-  export parameter names and import names is created during `FoundRef`
-  construction, see `expImpArgs`.
-  The expImpArgs map is used to rewrite generic elements during extraction.
 * Importing is allowed from user supplied code generator functions.
   Code generator functions expose module names and export names -
   importing from a code generator is just like importing from a package,
@@ -83,6 +79,10 @@ Linking is relatively straightforward.
 * ImportResolutionMap - Fully expand wildcard and list style imports,
   distinguish imports that refer to wgsl elements
   from (rust only) path prefix imports.
+* To support generic parameters imports/exports, a map between
+  export parameter names and import names is created during `ImportResolutionMap`
+  construction.
+  The expImpArgs map is used to rewrite generic elements during extraction.
 
 ## Error Reporting
 
