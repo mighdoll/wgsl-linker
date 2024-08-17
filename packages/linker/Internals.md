@@ -108,7 +108,7 @@ Linker rewriting should also track through a `SrcMap`
 wgsl parsing errors from dawn/naga can also be
 translated to the original source.
 
-No performance tuning has been done to date, there's undoubtedly low hanging fruite.
+No performance tuning has been done to date. There's undoubtedly low hanging fruit.
 
 Consider rewriting graph mutations as separate passes
 producing new data structures to improve clarity (rather
