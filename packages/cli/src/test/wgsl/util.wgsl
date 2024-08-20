@@ -1,4 +1,0 @@
-// #export
-fn foo() {
-  // fooImpl
-}
